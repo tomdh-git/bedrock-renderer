@@ -1,0 +1,111 @@
+# Progress: agent bgfx-d3d12-dragon (sections A, B, C and K ids L1*, L2*, L3*)
+
+## NEXT
+Resume with: (1) update docs/functions dossier text is NOT needed; results are in this file. (2) Next unit: B6/L2l queue wrapper fence-wait internals (slots 8/61/62, docs/BGFX_MAP.md 6av), then B7a/L2m createTexture (slot 26 = 0xe8143c0, already in D3D12Context.h TextureRecordLayout), B5/L2k root signature (init 0xe807ff0), C3a/C3b/L3d/L3e task scheduler.
+Tools made this run (all in tools/sigs, static, read the 62.01 exe): `bgfxalloc_dragon.py` (finds HandleAlloc headers by paired u16 loads), `bgfxcmd_dragon.py <fn..>` (command byte + context displacements per function), `bgfxcmdtable_dragon.py` (decodes the command-buffer executor 0xbc68e40 switch).
+Live polls so far (read-only, evaluate_lua readQword/readSmallInteger/readBytes only): ctx = [base+0x12AE1748]; allocator headers; D3D12 table non-null counts; semaphore handle values; encoder array. Base this run 0x7FF65A5B0000.
+Files created/edited: src/sdk/mc/deps/bgfx/Handles.h (new), tools/sigs/bgfxalloc_dragon.py, bgfxcmd_dragon.py, bgfxcmdtable_dragon.py (new). Not yet created: Uniforms.h (L1z/A13 stays OPEN until it exists), dragon/*.h.
+Nothing half-done at the moment.
+
+## Corrections found (CONTRADICTS lines)
+- CONTRADICTS 6as/6ai: the "per-surface render objects, stride 0x700" at ctx+0x13D18 are bgfx::EncoderImpl objects (stride 0x700, one per encoder; +0x6AC = m_uniformIdx, +0x6F0/+0x6F8 = encoder begin/end QPC stamps). ctx+0x13D20 is a pointer to a HandleAlloc of encoder ids (live {num 1, max 10, dense 0,1,2..}; max 10 = CapsLimit::MaxEncoders). So "surfaces" = encoders.
+- CONTRADICTS 6as: 0xbc65800 is bgfx::Context::frame(flags) itself (it CALLS the swap/flip 0xbc66de0 at 0xbc65ae3), not "called from frame()". The semaphore at ctx+0x00 is the API semaphore, ctx+0x80 the render semaphore, ctx+0x100 the encoder-end semaphore.
+- CONTRADICTS 6ai: 0xbc74a80 is not createDynamicTexture; it is the window-framebuffer create (command byte 0x14 = executor case 19 = RendererContext slot 39) on the 128-entry frame buffer allocator. Textures are created by 0xbc73770 and 0xbc74590 (dynamic allocator 0xbc79a60). 6ai also swapped shaders/programs: 0xbc71f60 = createShader (cmd 0xc -> slot 22), 0xbc72c80 = createProgram (cmd 0xd -> slot 24).
+- CONTRADICTS 6s: allocators are listed there as an unlabelled set; the full table with roles is below.
+
+### A4b / L1e - DONE
+Everything in the item is verified:
+- Context global: `s_ctx` = qword at rva 0x12AE1748 [V: bgfx::renderFrame 0xbc63060 loads it at 0xbc63068, null => sets a flag and returns NoContext].
+- View array: ctx+0x1EAB080 stride 0x140 (ViewRecord in bgfx/View.h, 6dd/6q/6hs, live-read [V]).
+- Semaphores: ctx+0x00 apiSem, ctx+0x80 renderSem, ctx+0x100 encoderEndSem. Each is a struct whose first qword is a Win32 semaphore HANDLE [V: 0xebdbc60 = `WaitForSingleObject(*sem, ms<0 ? INFINITE : ms)` returning (result==0); 0xebdbc50 = `ReleaseSemaphore(*sem, count, NULL)` jump through the IAT; live HANDLE values 0x8A0 / 0x8AC / 0x8B4 [V live]]. Lock: ctx+0x1C0 and ctx+0x180 are critical sections taken by 0xebdbf10 / released by 0xebdbf20 [V].
+- Frames: [ctx+0x1CFD0C0] (consume) and [ctx+0x1CFD0C8] (fill) [V live: swapped between polls, equal to encoder 0 / 1 frame pointers].
+- Handle allocators: see A8a below (the former blocker).
+Assertions: static_asserts in Handles.h. No Sigs.json symbol anchors bgfx::Context::frame / the Context constructor, so there is no layout_asserts.json entry (static_asserts are the guard).
+
+### A8a / L1p - DONE
+Method: tools/sigs/bgfxalloc_dragon.py (paired `word [ctx+X]`, `word [ctx+X+2]` loads over 0xbc5f000..0xbc7e000) -> 17 candidates; live check of every header: n <= max, dense[k] < max and sparse[dense[k]] == k for all k < n, 0 bad entries on all 12 real allocators. Roles are taken from `Context::swap` 0xbc66de0 (0xbc6848d..0xbc68520) which copies each allocator's count into bgfx::Stats::num* in stock Stats order at Context+0x484..0x498, and cross-checked live against the D3D12 renderer's non-null record counts.
+| allocator (Context+) | capacity | role | evidence |
+|---|---|---|---|
+| 0x1DDD308 | 4096 | dynamic index buffers | Stats +0x484; createDynamicIndexBuffer 0xbc6f910 = cmd 5 = executor case 4 = slot 16; live 5 |
+| 0x1DE1348 | 4096 | dynamic vertex buffers | Stats +0x486; 0xbc70240 = cmd 7 = slot 19; live 10 |
+| 0x1DFB48C | 128 | frame buffers | Stats +0x488; 0xbc74a80 cmd 0x14 = slot 39; CapsLimit MaxFrameBuffers 128; live 1 |
+| 0x1DE534C | 4096 | index buffers | Stats +0x48A; 0xbc6f0a0 cmd 3 = slot 10; live 9 = 9 non-null D3D12 IB records [V] |
+| 0x1DFBE94 | 256 | occlusion queries | Stats +0x48C; MaxOcclusionQueries 256; live 0 |
+| 0x1DF145C | 2048 | programs | Stats +0x48E; 0xbc72c80 cmd 0xd = slot 24; live 150 = 150 non-null D3D12 program records [V] |
+| 0x1DED458 | 4096 | shaders | Stats +0x490; 0xbc71f60 cmd 0xc = slot 22; live 118 = 118 non-null shader records [V] |
+| 0x1DF7478 (count only) | dynamic | textures | Stats +0x492; see A12a |
+| 0x1DFB690 | 512 | uniforms | Stats +0x494; createUniform 0xbc75440; live 54 |
+| 0x1DE9454 | 4096 | vertex buffers | Stats +0x496; 0xbc6f4d0 cmd 4 = slot 14; live 14 = 14 non-null VB records [V] |
+| 0x1DE9350 | 64 | vertex layouts | Stats +0x498; 0xbc76490 cmd 2 = slot 12; live 14 |
+| 0x1DF7488 | 4096 | shader buffers [I name] | Mojang addition, 0xbc70ca0 cmd 0xf = slot 36; header initialised {0, 0x1000} by the Context constructor 0xbc6b560 (dword 0x10000000 at 0xbc6bec7); live 3 = 3 non-null D3D12 shader-buffer records [V] |
+| 0x1DFC298 | 32768 | acceleration structures [I name] | 0xbc716a0/0xbc71990 (BLAS/TLAS) + destroy 0xbc71da0; CapsLimit MaxAccelerationStructures 32768; live 0 (RTX off) |
+Layout: each allocator = {u16 num, u16 max, u16 dense[max], u16 sparse[max]}, so the next member starts at +4+4*max; the chain is asserted in Handles.h (index buffers -> vertex layouts -> vertex buffers -> shaders -> programs; shader buffers -> frame buffers -> uniforms -> occlusion queries -> acceleration structures; dynamic IB -> 0x3C bytes -> dynamic VB -> index buffers). Free queues (vector, 0x10-byte elements) at 0x1DDD2D0 (dyn IB) and 0x1DE1310 (dyn VB), drained by frame().
+Files: src/sdk/mc/deps/bgfx/Handles.h (HandleAllocators, ContextStats, static_asserts).
+
+### A12a / L1v - DONE (with correction)
+- Caps bit: `test byte [rip+..], 0x10` at 0xbc67284 reads rva 0x12ADFA54 (= high dword of the supported u64 at 0x12ADFA50, CapsFlag::DynamicTextureHandles = bit 36) [V]; live value 0x7E, bit set [V live].
+- Reset flag 0x400000 (`ContextTextureState::kResetDynamicHandles`) in ctx+0x1EBF19C is compared with the consumed Frame's copy [Frame+0xDC5810] in Context::swap 0xbc672a9..0xbc672dc; turning it OFF logs "Disabling dynamic texture handles is not supported." (the message string at 0xbc672cb path, severity 2); turning it ON clears bytes ctx+0x1DF7480, +0x1E7DAD0, +0x1EBF2F3, +0xE62610, +0x1CD6FD0 [V disasm]. The constructor 0xbc6b560 sets 1DF7480 = 1, 1E7DAD0 = 1, 1EBF2F3 = 1 (static mode: createTexture 0xbc73770 returns 0xFFFF past 0x1000 handles: `cmp byte [1DF7480],1 / cmp word [1DF7478],0x1000 / jb`). Live: all three bytes are 0 (dynamic mode on) [V live].
+- The allocator is a paged HandleAllocT at Context+0x1DF3460 (right after the program allocator), alloc = 0xbc79a60 (returns the handle in ax; callers: createTexture 0xbc73770 and 0xbc74590), free = the loops in Context::swap 0xbc6798a..0xbc67cc0. Entry = u32 {lo16 sparse, hi16 dense}, new entries appended as identity, paged in 0x4000-byte pages with next-page pointer at +0x4000, object fields +0x4008 size bytes, +0x4010 capacity bytes, +0x4018 u16 numHandles (= Stats numTextures source) [V disasm + live: size 8336 = 2084 entries, numHandles 1553..1568 drifting, entries 0..13 identity, entries beyond decode to lo/hi both < 2084].
+- Texture records (Context side) = 0x28 bytes (`lea eax,[r15*8]; lea rcx,[rax+rax*4]`), paged 0x1000 records (0x28000 bytes) from Context+0x1E55AB8 [V disasm].
+- "createDynamicTexture 0xbc74a80" in the item text does not exist (see CONTRADICTS 6ai). Real creates: 0xbc73770 (image-container variant, calls 0xebd2160/0xebd15b0) and 0xbc74590.
+Files: Handles.h (DynamicHandleAlloc, ContextTextureState). Guard: static_asserts only (no Sigs anchor).
+
+### A10 / L1t - DONE
+Fully decoded this run (instruction-complete, see flow below), corrects 6as:
+- Thread proc 0xbc65720 loops `while (renderFrame(5000) != Exiting)` [V]; created by 0xbc63690 only when the global single-thread flag is 0. LIVE: ctx+0x1EBF2F1 == 1 and 0x1EBF2EC == 1 [V live]: byte 2F1 = "no internal render thread / external renderFrame" (m_singleThreaded). In that mode neither renderSem nor apiSem is waited (every `cmp byte [ctx+0x1EBF2F1],0` guard skips the wait/post). The game's own render driver calls bgfx::renderFrame(-1) through the object method 0xc262000 (vtable at .rdata 0xF478400), which calls the public API 0xbc63060.
+- bgfx::renderFrame (public) = 0xbc63060: `if (!s_ctx) { global flag=1; return NoContext(0) } r = Context::renderFrame(msecs==-1 ? 5000 : msecs); if (r == Exiting(3)) { if multithreaded: wait renderSem(INFINITE), store wait time to Frame+0xE746C8; s_ctx-rel global = 0; post apiSem; return 3 }` [V].
+- Context::renderFrame = 0xbc63150, instruction-complete:
+```
+frame = ctx[+0x1CFD0C0]; flags = frame[+0xDC5810]; frame[+0xDC5810] = flags & ~0x40000
+if (ctx[+0x1EBF2EE]==1) { renderer->vtbl[9](); ctx[+0x1EBF2EE]=0 }          // renderer = ctx[+0x1EBF2D0]
+reset = ctx[+0x1EBF19C]
+if (ctx[+0x1EBF2F0]==0) { if (ctx[+0x1EBF2EC]==1 && ctx[+0x1EBF2ED]==0) renderer->vtbl[6]();   // flip-after-render path
+                          if ((reset & 0x800000) && 2EC==1 && 2ED==0) renderer->vtbl[53]() }
+if (ctx[+0x1EBF2F1]==0) { t0=QPC; if (!wait(ctx+0x80, msecs)) return 2 /*Timeout*/; frame[+0xE746C8]=QPC-t0; fill[+0xE60E40]=fill[+0xE746C8] }
+if (ctx[+0x1EBF2EC]==1) {                                                           // renderer initialised
+    renderer->vtbl[7]();  if (renderer->vtbl[5]()) {                                 // device lost / needs re-create
+        { type = renderer->vtbl[1](); cleanupTable[type*0x28+8](...) ; renderer = 0xbc68840(&..., 0 /*create*/, init struct {w,h,reset...}); ctx[+0x1EBF2D0]=renderer; global=0 }
+    } else ctx[+0x1EBF2ED] = frame[+0xE74989]
+}
+exec(ctx, frame+0xDC5818)            // 0xbc68e40, the pre command buffer
+if (2EC==1) renderer->vtbl[50](frame, ctx+0x1EBF260, ctx+0x1EBF1F0)   // submit (slot 50), r8/r9 = stats blocks
+exec(ctx, frame+0xE05820)            // post command buffer
+if (2F1==0) release(apiSem ctx+0x00, 1)                                         // 0xebdbc50
+if (2F0==1) { same vtbl[6]/vtbl[53] flip step as above }
+if (flags_before & 0x40000 && 2EC) { renderer->vtbl[8](); ctx[+0x1EBF2EE]=1 }
+return 2*ctx[+0x1EBF2EF] + 1                                                  // 1 Render, 3 Exiting
+```
+- bgfx::Context::frame(flags) = 0xbc65800 (API thread), decoded end to end: ends encoder 0's uniform stream (writes u32 1 into the Frame tail block if room, `used = 0`), stamps encoder +0x6F8 = QPC, locks ctx+0x1C0, drains the encoder-handle list (HandleAlloc at [ctx+0x13D20], waits encoderEndSem ctx+0x100 N-1 times, copies each encoder's {+0x6F0,+0x6F8} into [ctx+0x13D08] (16 B each), resets the list to identity), locks ctx+0x180, writes flags bit0 -> Frame+0xE74988 and bit1 -> Frame+0xE74989, (multithreaded: waits apiSem ctx+0x00 and records the wait in Frame+0xE746D0), calls Context::swap 0xbc66de0, posts renderSem ctx+0x80, re-points encoder 0 at the new fill frame (`[enc]=ctx[+0x1CFD0C8]`, +0x6F0 = QPC, +0x6AC = 0, +0x694 = 0, +0x68C = 0, +0x688 = 0, frame tail used = 0), unlocks both locks, returns the old frame number (Frame+0xE746D8) [V disasm, bc65800..bc65b79].
+- Encoder array: [ctx+0x13D18], stride 0x700 (EncoderImpl; +0x6AC m_uniformIdx, +0x6AD discard, +0x688/+0x68C/+0x694.. as in Encoder.h), live encoder 0 = fill frame [V live]. Callers of 0xbc65800: 0xbc63c80, 0xbc660a0, GraphicsTasks Execute 0xc25fc50 [V dossier].
+- Command-buffer executor 0xbc68e40 (called twice from renderFrame): see "Command enum" below.
+Assertions: Encoder stride is already used in Encoder.h; the new layout facts are asserted in Handles.h only where static; guard = static_asserts + disassembly offsets above [no Sigs anchor].
+
+### Note: command enum of the Frame pre/post command buffers. NOTE: BGFX_MAP 6er..6fa (docs/data/bgfx_cmdbuf_args_1.26.62.01.txt) already decode this more completely; my table below is a cross-check only, with two artefacts (command 14 = createTexture calls slot 26 via the MemoryReader path, not slot 56; my 'first slot' heuristic is wrong for commands 11, 14). The command = case+1 shift (`dec eax` at 0xbc68f51) agrees with 6es.
+Executor 0xbc68e40 reads a byte, `dec eax`, `cmp eax,0x27`, jump table at rva 0xF4E9638 (= 0xbc68f29 + 0x37e070f, 0x28 int32 offsets relative to the table); command = case + 1. Table decoded by tools/sigs/bgfxcmdtable_dragon.py. command -> RendererContext vtable slot called (first slot): 1 RendererShutdownEnd (clears ctx+0x1EBF2EC), 2 CreateVertexLayout (12), 3 CreateIndexBuffer (10), 4 CreateVertexBuffer (14, then 12), 5 CreateDynamicIndexBuffer (16), 6 UpdateDynamicIndexBuffer (17), 7 CreateDynamicVertexBuffer (19), 8 UpdateDynamicVertexBuffer (20), 9 End/no-op (jumps to the loop head), 10 RendererInit (calls 0xbc68840, reads a 0x40-byte init struct), 11 slot 56, 12 CreateShader (22), 13 CreateProgram (24), 14 slot 56 (7 fields), 15 slot 36, 16 slot 31, 17 slot 35 (0xbc7a3d0, 0xbc5f110), 18 slot 37/45, 19 slot 39 (window framebuffer, as used by 0xbc74a80 = cmd 0x14), 20 slot 42 (createUniform uses 0x15 = 21: see the shift: 0xbc75440 stores 0x15 -> case 20 -> slot 42), 21 slot 45, ... 40 slot 44. The destroy commands are the 1-field cases 27..38 (slots 11, 13, 15, 18, 21, 23, 25, 34, 38, 41, 43, 57, 30). Payload sizes are in the script output (reads column). Status: slot per command [V]; all command NAMES are [I] by slot (the slot names come from D3D12Slots and are themselves partly inferred). This table is a lookup for the pre/post command bytes at Frame+0xDC5820 / +0xE05828.
+
+### A13 / L1z - DONE
+Headers present with static_asserts: Frame.h, Caps.h, View.h, Encoder.h (pre-existing), Handles.h (new: handle allocators, Stats mapping, dynamic texture allocator), Uniforms.h (new: UniformType, PredefinedUniform, registry geometry, UniformRecord). Uniform registry re-verified live: 54 uniforms, records at Context+0x1E1DAA8 stride 0x18 decode to names ("FogColor" len 8, "bgfx_clear_color" num 8, "DitherParams2" num 3), types histogram {Sampler 8, Vec4 45, Mat4 1} = stock UniformType numbering [V live]. Predefined names read from the pointer table at rva 0xF4418C0 (14 entries: u_viewRect .. u_alphaRef4) [V static]. Edited d3d12/D3D12Context.h: PredefinedType Unknown8/12/13 renamed PrevViewProj / PrevWorldPosOffset / AlphaRef4.
+Guard: static_asserts only (no Sigs anchor for createUniform). Not compiled (no builds allowed); written with only <cstddef>/<cstdint> dependencies.
+
+### B6 / L2l - OPEN (single blocking fact: the frame-context ring and fence-completion path 0xe818490 (0x4e6 bytes) is only half-read)
+Facts newly decoded this run [V disasm of 0xe80ecb0, partially 0xe818490]; the queue wrapper at renderer+0xCC9268 is a ~0x2F8D150-byte struct (so the offsets below are relative to the wrapper, not to the renderer):
+- +0x00 ID3D12CommandQueue* (vtbl +0x50 = ExecuteCommandLists [10], +0x70 = Signal [14]).
+- +0x2F8B798 u64 (compared with the wanted fence value in 0xe818490: early out "already completed" when it is >= value) [I: last completed value].
+- +0x2F8B7A0 u64[] pending frame-context pointers, count at +0x2F8C020 (u64), each ctx: +0x30 = ID3D12CommandList*, +0x2CBD0 u64 fence value assigned at submit, +0x2CBD8 u8 submitted, +0x2CBE0/+0x2CBE8 u64 pair (read in 0xe818490).
+- +0x2F8C028 ring of 0x110 u64 entries (in-flight contexts), head +0x2F8C8A8, tail +0x2F8C8B0 (0x110 = empty sentinel); entries = frame-context pointers.
+- +0x2F8D148 Fence object*: +0x00/+0x08 vector begin/end of 0x88-byte listeners (+0x78 = COM-like ptr, vtbl +0x10 called with &value), +0x18 ID3D12Fence*, +0x20 event HANDLE, +0x28 current fence value (post-incremented after Signal), +0x30 last completed value (-1 = device removed) [I names].
+- 0xe80ecb0(wrapper, timeout) = flush-and-wait: ExecuteCommandLists for the pending contexts (assigning fence value, ring push), `Signal(fence+0x18, value)`, ++value, notify listeners, 0xe81b3b0(fence), then 0xe818490(wrapper, value-1, timeout) = wait until completed (SetEventOnCompletion = ID3D12Fence vtbl +0x48 [9] then WaitForSingleObject(+0x20, timeout)); then retire ring entries whose +0x2CBD0 <= value.
+Remaining to close: finish 0xe818490 (0x4e6 bytes: retire loop + device-removed handling + timeout result) and 0xe81ac80 / 0xe81af20 (open / close+execute list, 0x18c / 0x1c8 bytes) and write them as a struct header.
+
+### A6c / L1l - DONE
+Sorted list: u16[] at Frame+0x94700 = item index per sorted slot (Frame::sort radix output, docs/functions/bc61e20.md), keys u64[] at Frame+0x14700. Sort key bit layout fully written in Encoder.h SortKey (view bits 54..61 remapped by Frame::sort, bit 52 draw, bits 50..52 type tag, payload per type) and now has decoders + static_asserts (tag mask corrected to bits 50..52: bits 48..49 are payload: depth<<18 reaches bit 49, seq<<30 reaches bit 49, trans<<48 in the program type).
+Live poll (consume frame re-checked before/after, frames #54850 and #54933, 1078 / 1070 draws): every key has tag 0x18 (sequence mode; all views use mode 1 in this scene); program field (key>>17)&0x7FF indexes a non-null D3D12 program record for 1078/1078 keys; seq (key>>30)&0xFFFFF is non-decreasing per view in submission order with 0 duplicate (view, seq) pairs; trans bits (key>>28)&3 = {0: 730, 1: 0, 2: 1, 3: 339} (Encoder flags low 2 bits, Encoder.h kFlags); sorted list ascending by raw key except 11 steps (= view remap boundaries, Frame::sort replaces the view bits) [V live].
+Depth (0x14) and program (0x10) types: formulas [V static] from the fully reversed submit (bc60740.md every instruction mapped); no view used those modes in the sampled frames, so those two are not live-confirmed [stated limitation; static is complete].
+Edited: src/sdk/mc/deps/bgfx/Encoder.h (SortKey decoders, kTypeMask, 3 static_asserts).
+
+### B3b / L2g - DONE
+- Descriptor binding types: all ten named in Encoder.h BindingType (6fp/6fq). The two open ones are now closed: type 5 = acceleration-structure SRV: test of the caps byte at rva 0x12ADFA53 (= bits 24..31 of the supported u64, bit 0x80 = bit 31) at 0xe82609e; when set it jumps to 0xe82735a: `imul rax, idx, 0x78; r8 = renderer + rax + 0x57A180; device->vtbl[+0x90 = CreateShaderResourceView](NULL resource, desc = record+8, slot)` then advances the descriptor heap cursor; when clear it only reserves the slot [V static]. Table = renderer+0x57A178, stride 0x78, 32768 records, ending exactly at the index buffer table (0x57A178 + 32768*0x78 = 0x93A178) [V arithmetic] = same capacity as the acceleration-structure allocator (Handles.h) -> that allocator's role is confirmed. Live: table readable end to end, first 64 records all zero. Type 0 = unbound/reserved slot only (0xe825ba6: no resource read) [V static], type 7 skipped [V static].
+- Sort-key program field: live-verified (A6c above).
+- Descriptor flush 0xe81b720: dossier + DrawBatcherOffsets in D3D12Context.h (D2) [V].
+- Caveat recorded: live caps byte 0x12ADFA53 = 0xBB, i.e. bit 31 set (Caps.h calls it RayTracing) although all records are zero; either the flag is "supported" (not "in use") or the label of bit 31 is an inference. This does not change the binding behaviour decoded here.
+Edited: Encoder.h (BindingType::AccelerationStructure replaces FeatureGated), d3d12/D3D12Context.h (kAccelerationStructures + static_assert).
