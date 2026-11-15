@@ -210,7 +210,9 @@ static_assert(offsetof(RenderBlockSelectionOverlayDescription, mColor) == 0x80);
 static_assert(offsetof(RenderBlockSelectionOverlayDescription, mFlags) == 0x90);
 static_assert(offsetof(RenderBlockSelectionOverlayDescription, mVariantIndex) == 0xB0);
 
-// RenderSkyDescription (Sky group tag 5), built by 0x668c910 for the sky clone 0x5369b30 (insert at 0x536a2e3; docs/functions/668c910.md).
+// RenderSkyDescription (inserted by the thin EndSky clone 0x53707a0 = Sky group tag 3): built by 0x668c910 inside the sky clone 0x5369b30 (call 0x5369f89, EndSky clone call 0x5369f99;
+// docs/functions/668c910.md). CORRECTION (2026-11 static pass): it was labelled tag 5 here, but the visitor reads exactly this layout in its tag-3 (EndSky) case; the tag-5 insert
+// (0x536a2e3) uses RenderSkyColorsDescription below.
 // Every field is written by the constructor [V]; size = aligned end [I].
 struct RenderSkyDescription {
     const void* mSource;          // +0x00 first qword of the source
@@ -226,6 +228,20 @@ static_assert(sizeof(RenderSkyDescription) == 0xB0);
 static_assert(offsetof(RenderSkyDescription, mFlags) == 0x18);
 static_assert(offsetof(RenderSkyDescription, mMatrix) == 0x2C);
 static_assert(offsetof(RenderSkyDescription, mUvTransform) == 0x6C);
+
+// RenderSkyColorsDescription (Sky group tag 5, material "Sky"): built inline in the sky clone 0x5369b30 at 0x536a146..0x536a25a (a 0x70-byte object in the frame at [rbp+0xF0]) and inserted at
+// 0x536a2e3 (`mov byte [rbp+0x298],5` 0x536a2d8, vslot 0x370). Every field is written there [V rdis]; matches the visitor's tag-5 reads (docs/functions/66560f0_sky_cases.md section 4).
+struct RenderSkyColorsDescription {
+    const void* mMesh;            // +0x00 mov rcx,[r15]; mov [rbp+0xF0],rcx (0x536a146)
+    float mSkyColor[4];           // +0x08 movlps [rbp+0xF8],xmm8 (xy), movss [rbp+0x100],xmm6 (z), dword [rbp+0x104] = 1.0f (0x536a150..0x536a160): uniform "SkyColor"
+    float mFogColor[4];           // +0x18 movups xmm0,[rax] (rax = rdi+0x18, 0x536a132) -> [rbp+0x108] (0x536a16d): uniform "FogColor"
+    float mMatrix[16];            // +0x28 sixteen movss copies of the 16 floats at [[rbp+0x38]+0..+0x3C] -> [rbp+0x118..0x154] (0x536a180..0x536a247)
+    uint16_t mFlags;              // +0x68 movzx eax,byte [[rbp+0x2E0]+0x74]; mov [rbp+0x158],ax (0x536a256..0x536a25a)
+};
+static_assert(offsetof(RenderSkyColorsDescription, mSkyColor) == 0x08);
+static_assert(offsetof(RenderSkyColorsDescription, mFogColor) == 0x18);
+static_assert(offsetof(RenderSkyColorsDescription, mMatrix) == 0x28);
+static_assert(offsetof(RenderSkyColorsDescription, mFlags) == 0x68);
 
 // RenderStarsDescription (Sky group tag 6), built inline in the same clone (0x536e006..0x536e112, insert at 0x536e193). [V offsets, I size]
 struct RenderStarsDescription {
@@ -540,22 +556,31 @@ static_assert(offsetof(RenderBlitFlipbookDescription, mCount) == 0x10);
 static_assert(offsetof(RenderBlitFlipbookDescription, mElements) == 0x18);
 static_assert(sizeof(RenderBlitFlipbookDescription) == 0x20);
 
-// RenderAimAssistHighlightDescription (Effect group tag 6, visitor 0x666aca0 case 0x666b143; desc in r15 = [r8]). Verified reads of the case:
-// vec2 at +0x0C and float at +0x14 build a local translate/scale matrix (rbp+0x3f0), which is multiplied by the mat4 at +0x28 with 0xaa6580
-// (out = rbp+0x2a0); the material ("CameraAimAssistHighlight") is then resolved with 0x675e440. The shared exit tail 0x666c8f0 also reads a dword at
-// +0x84 but is shared with other Effect cases, so it is not attributed here [?]. Fields +0x00..+0x0B, +0x18..+0x27 are unread [?]. The size is
-// at least 0x68 (end of the mat4); the true size is unknown.
+// RenderAimAssistHighlightDescription (Effect group tag 6; producer 0x53e77c0 builds it at [rbp-0x58] after the default constructor 0x668e160). COMPLETE from that
+// constructor: zeroed +0x00..+0x17 (extractor reads vec2 +0x0C and float +0x14), constant vec4 +0x18, identity mat4 +0x28 (multiplied with the local transform via 0xaa6580),
+// shared_ptr pair +0x68 (0x4dfb570, empty), qword +0x78 (argument), u16 +0x80, dword +0x84 = 0xFFFFFFFF (read by the shared Effect tail 0x666c96f). Size 0x88 [V].
+// CONTRADICTS 6ih (min 0x68): the +0x84 read is this struct's own field.
 struct RenderAimAssistHighlightDescription {
-    uint8_t mHead00[0x0C];     // +0x00 unread [?]
+    float mHead00[3];          // +0x00 zeroed by the constructor
     float mVec0C[2];           // +0x0C
     float mValue14;            // +0x14
-    uint8_t mPad18[0x10];      // +0x18 unread [?]
-    float mMatrix[16];         // +0x28 multiplied into the local transform
+    float mConst18[4];         // +0x18 constant vec4 from .rdata
+    float mMatrix[16];         // +0x28 identity by default
+    SharedRef mRef68;          // +0x68
+    uint64_t mValue78;         // +0x78
+    uint16_t mWord80;          // +0x80
+    uint8_t mPad82[2];
+    uint32_t mIndex84;         // +0x84 (0xFFFFFFFF default)
 };
 static_assert(offsetof(RenderAimAssistHighlightDescription, mVec0C) == 0x0C);
 static_assert(offsetof(RenderAimAssistHighlightDescription, mValue14) == 0x14);
+static_assert(offsetof(RenderAimAssistHighlightDescription, mConst18) == 0x18);
 static_assert(offsetof(RenderAimAssistHighlightDescription, mMatrix) == 0x28);
-static_assert(sizeof(RenderAimAssistHighlightDescription) == 0x68);
+static_assert(offsetof(RenderAimAssistHighlightDescription, mRef68) == 0x68);
+static_assert(offsetof(RenderAimAssistHighlightDescription, mValue78) == 0x78);
+static_assert(offsetof(RenderAimAssistHighlightDescription, mWord80) == 0x80);
+static_assert(offsetof(RenderAimAssistHighlightDescription, mIndex84) == 0x84);
+static_assert(sizeof(RenderAimAssistHighlightDescription) == 0x88);
 
 // RenderEditorHighlightDescription (Effect group tag 8, visitor case 0x666b316): the case copies the whole description (0x58 bytes) verbatim into
 // an element of the pass vector at pass+0x80/+0x88 (element stride 0x58), taking a reference on the control block at +0x08 (lock inc [ctrl+8]).
@@ -918,5 +943,32 @@ static_assert(offsetof(RenderVolumetricFogDescription, mRow44) == 0x44);
 static_assert(offsetof(RenderVolumetricFogDescription, mQword54) == 0x54);
 static_assert(offsetof(RenderVolumetricFogDescription, mUnreadTail5C) == 0x5C);
 static_assert(sizeof(RenderVolumetricFogDescription) == 0xE0);
+
+// RenderShadowDescription (Effect tag 4; fat producer 0x53e6c30, stores @53e7353..@53e737a, insert @53e7404 with the variant at [rbp-0x38]). Fields: qword +0x00 (a
+// pointer = frame object + 0x5E0), qword +0x08 (an entry from a ring buffer of the producer's source), qword +0x10 (pointer to a producer-local record), u16 +0x18 (byte
+// [source+0x74], read by extractor 0x66a9d50 @66aa452). The Effect case 0x666ad3b checks [[+0]+0x28/0x38/0x48] non-zero, then passes +0x08/+0x10 on. End 0x1A -> sizeof 0x20 [V].
+struct RenderShadowDescription {
+    void* mSource;             // +0x00 ([ptr+0x28], [ptr+0x38], [ptr+0x48] must be non-zero)
+    uint64_t mEntry;           // +0x08
+    void* mLocal;              // +0x10
+    uint16_t mFlags;           // +0x18
+    uint8_t mPad1A[6];
+};
+static_assert(offsetof(RenderShadowDescription, mEntry) == 0x08);
+static_assert(offsetof(RenderShadowDescription, mLocal) == 0x10);
+static_assert(offsetof(RenderShadowDescription, mFlags) == 0x18);
+static_assert(sizeof(RenderShadowDescription) == 0x20);
+
+// RenderUIHudIconDescription (UI tag 1; producer e9aed0 @e9b470 with the description at [rbp+0x80], variant [rbp+0x40] below it). Stores: qword +0x00, 16 floats +0x08..+0x47
+// (a 4x4 matrix, read by the case as qword rows through 0x6664d51..), dword +0x48 (the case reads the low word, movzx @6665561). End 0x4C -> sizeof 0x50 [V].
+struct RenderUIHudIconDescription {
+    uint64_t mValue00;         // +0x00
+    float mMatrix08[16];       // +0x08 .. +0x47
+    uint32_t mValue48;         // +0x48 (low word read)
+    uint8_t mPad4C[4];
+};
+static_assert(offsetof(RenderUIHudIconDescription, mMatrix08) == 0x08);
+static_assert(offsetof(RenderUIHudIconDescription, mValue48) == 0x48);
+static_assert(sizeof(RenderUIHudIconDescription) == 0x50);
 
 } // namespace mce::framebuilder

@@ -16,6 +16,15 @@ struct D3D12Rvas {
     static constexpr uintptr_t kResetHandler = 0xE81A610;    // [V] slot 60 (RTX 0xE83EC70)
     static constexpr uintptr_t kDeviceLostHandler = 0xE8102B0; // [I] slot 7: TDR/device-lost with DRED report
     static constexpr uintptr_t kInit = 0xE807FF0;            // [V] slot 58 ("d3d12.dll")
+    // Slots 42-45 (M1c, 1.26.62.01). [V RVA/slots] Semantics partially reversed; see docs/functions/0xe817cf0.md..0xe8189c0.md.
+    static constexpr uintptr_t kSlot42 = 0xE817CF0;          // [V] cmd byte 21: per-context uniform/value alloc+store + handle-map tail helper
+    static constexpr uintptr_t kSlot43 = 0xE817E50;          // [V] cmd byte 37: release/clear per-context value ptrs and remove handle from 0x400-entry map
+    static constexpr uintptr_t kSlot44 = 0xE818050;          // [V] cmd byte 40: screenshot/readback-style path ("LScreenshot")
+    static constexpr uintptr_t kSlot45 = 0xE8189C0;          // [V] cmd byte 22 and routed with byte 19: set per-index name at this + index*0x100 + 0x7EDE
+    // Slots 39-41 (M1c, 1.26.62.01). [V RVA/slots] Framebuffer/window-record ops on D3D12Tables::kFrameBuffers (stride 0x68).
+    static constexpr uintptr_t kCreateWindowFrameBuffer = 0xE817880;   // [V] slot 39: create window-backed FB/swapchain into record
+    static constexpr uintptr_t kSetFrameBufferAttachments = 0xE8176A0; // [V] slot 40: copy attachments, derive via 0xe819b50 (internal)
+    static constexpr uintptr_t kDestroyFrameBuffer = 0xE817C00;        // [V] slot 41: release swapchain, clear record, remove from window list
 };
 
 // Offsets inside the RendererContextD3D12 object.
@@ -66,8 +75,12 @@ struct D3D12Tables {
     // Framebuffers (was kUniforms): the PSO builder indexes this table with the current framebuffer handle and reads, per record,
     // u16 color texture handles at +0x00, the u16 depth texture handle at +0x10, a window/swap-chain pointer at +0x18 and the u8 color
     // attachment count at +0x32 (BGFX_MAP 6fr). [V use]
+    // Note (M1c slots 42-45, 1.26.62.01): slot 42/43 operate on per-context uniform/value pointers (context + handle*8 + 0x1250) and a
+    // 0x400-entry handle hash map at +0xC9AA9C/+0xC9AAA0/+0xC9BAA0; slot 44 is a screenshot path; slot 45 writes names at this + index*0x100 + 0x7EDE.
+    // None of 42-45 contain a direct 0xC97698 displacement in analyzed bodies, despite task-level association; see docs/functions/0xe817cf0.md..0xe8189c0.md. [V/I audit]
     static constexpr size_t kFrameBuffers = 0xC97698;   // stride 0x68
     static constexpr size_t kFrameBuffersStride = 0x68;
+    static constexpr size_t kFrameBufferRecords = 128;  // [I] 128 * 0x68 = 0x3400; task claim, not independently proven from 42-45 bodies in this pass
 };
 static_assert(D3D12Tables::kTextures + 4096 * D3D12Tables::kTexturesStride == D3D12Tables::kTextureOverflowPages);
 static_assert(D3D12Tables::kAccelerationStructures + D3D12Tables::kAccelerationStructuresCount * D3D12Tables::kAccelerationStructuresStride == D3D12Tables::kIndexBuffers);
@@ -100,6 +113,27 @@ static_assert(offsetof(FrameBufferRecordLayout, mDepth) == FrameBufferRecord::kD
 static_assert(offsetof(FrameBufferRecordLayout, mSwapChain) == FrameBufferRecord::kWindow);
 static_assert(offsetof(FrameBufferRecordLayout, mNumColor) == FrameBufferRecord::kNumColor);
 static_assert(offsetof(FrameBufferRecordLayout, mDirty) == 0x64);
+static_assert(D3D12Tables::kFrameBufferRecords * D3D12Tables::kFrameBuffersStride == 0x3400);
+
+// Handle allocator/hash map used by slots 42/43 (and tail helper 0xe804590) for uniform/value handles. [V from 0xe817e50/0xe817cf0]
+// 1024-entry open-addressing table: count at +0xC9AA9C, u32 keys/state at +0xC9AAA0, u16 handles/slots at +0xC9BAA0.
+struct UniformHandleMapOffsets {
+    static constexpr size_t kBase = 0xC9AA98;       // passed to 0xe804590 as (this + kBase)
+    static constexpr size_t kCount = 0xC9AA9C;      // u32 active entries
+    static constexpr size_t kKeys = 0xC9AAA0;       // u32[1024]
+    static constexpr size_t kHandles = 0xC9BAA0;    // u16[1024], 0xFFFF = empty
+    static constexpr size_t kCapacity = 0x400;
+};
+static_assert(UniformHandleMapOffsets::kCount == UniformHandleMapOffsets::kBase + 0x4);
+static_assert(UniformHandleMapOffsets::kKeys == UniformHandleMapOffsets::kBase + 0x8);
+static_assert(UniformHandleMapOffsets::kHandles == UniformHandleMapOffsets::kKeys + UniformHandleMapOffsets::kCapacity * sizeof(uint32_t));
+
+// Per-index name storage written by slot 45 (0xe8189c0): destination = this + index*0x100 + 0x7EDE, max copy 0xFA. [V]
+struct NamedIndexOffsets {
+    static constexpr size_t kNameBase = 0x7EDE;
+    static constexpr size_t kNameStride = 0x100;
+    static constexpr size_t kNameMax = 0xFA;
+};
 
 // The vertex layout record is bgfx::VertexLayout copied verbatim: createVertexLayout (slot 12, 0xe812bb0) is a 0x54-byte memcpy into
 // ctx + kVertexLayouts + handle * 0x54 (6hx). See VertexLayoutRecord below for the field offsets.
@@ -180,6 +214,11 @@ struct D3D12Slots {
     static constexpr size_t kOverrideInternal = 32;
     static constexpr size_t kGetInternal = 33;
     static constexpr size_t kDestroyTexture = 34;
+    // M1c slots 42-45 (1.26.62.01). [V RVA/dispatch] Names/semantics partially inferred; see docs/functions/0xe817cf0.md..0xe8189c0.md.
+    static constexpr size_t kSlot42 = 42; // cmd byte 21: (re)allocate per-context uniform/value storage at context + handle*8 + 0x1250, then 0xe804590(this+0xC9AA98, handle, arg)
+    static constexpr size_t kSlot43 = 43; // cmd byte 37: release/clear per-context value storage and remove handle from 0x400-entry hash map at +0xC9AA9C/+0xC9AAA0/+0xC9BAA0
+    static constexpr size_t kSlot44 = 44; // cmd byte 40: screenshot/readback-style GPU path ("LScreenshot")
+    static constexpr size_t kSlot45 = 45; // cmd byte 22 and routed with byte 19: write bounded name into this + index*0x100 + 0x7EDE
     static constexpr size_t kUpdateUniform = 46; // (ctx, u16 handle, data, size): memcpy into ctx->kUniformValues[handle] [V body 0xe818a70]
     static constexpr size_t kSetMarker = 47;     // (ctx, data, size); empty stub in the D3D12 classes [V]
 };
@@ -356,7 +395,7 @@ static_assert(D3D12Tables::kIndexBuffers + 4096 * D3D12Tables::kIndexBuffersStri
 static_assert(D3D12Tables::kVertexBuffers + 4096 * D3D12Tables::kVertexBuffersStride == D3D12Tables::kShaderBuffers);
 static_assert(D3D12Tables::kShaderBuffers + 4096 * D3D12Tables::kShaderBuffersStride == D3D12Tables::kShaders);
 static_assert(D3D12Tables::kShaders + 4096 * D3D12Tables::kShadersStride == D3D12Tables::kPrograms);
-static_assert(D3D12Tables::kPrograms + 512 * D3D12Tables::kProgramsStride == D3D12Tables::kTextures);
+static_assert(D3D12Tables::kPrograms + 2048 * D3D12Tables::kProgramsStride == D3D12Tables::kTextures);
 static_assert(offsetof(BufferRecord, mGpuAddress) == 0x58 && offsetof(BufferRecord, mSize) == 0x60);
 static_assert(offsetof(BufferRecord, mMapped) == 0x68 && offsetof(BufferRecord, mStride) == 0x70);
 

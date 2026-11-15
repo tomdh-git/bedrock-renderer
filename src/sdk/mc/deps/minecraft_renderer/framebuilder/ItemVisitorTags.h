@@ -1,6 +1,4 @@
 #pragma once
-#include <cstddef>
-#include <cstdint>
 
 // Item group visitor 0x6646980 (1.26.62.01): jump-table tags and the payload offsets each handler path reads.
 // Source: tools/sigs/ext_cv_cfg.py control-flow trace (docs/data/item_visitor_tag_reads_1.26.62.01.txt). Offsets are payload byte

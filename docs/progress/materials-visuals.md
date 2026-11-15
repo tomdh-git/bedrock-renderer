@@ -1,11 +1,16 @@
 # Progress: materials-visuals
 
 ## NEXT
-Closed: G4a/L7e, G1b/L7b, G2/L7c, L8c, F1a, F4, I1a/L11a, I3/L13a, I4a/L13b. Open with blocker: G4b/L7f/L8d, F1b, F2b, I4b/L13c, G6/L7h, L8a, L8b.
-Resume: L8a = pack->image producers above 0x67ceb40/0x67ceed0 (docs/functions/8b9f1c0.md); L8b = atlas builders 0x5752d50, 0x4e1a0a0, 0x6bfa6d0, 0x6bfa9d0 (leads in this file).
-Then L11b-d, L14a-d, I2a, I2c, I5-I7 (descriptions agent owns description fields; M1e owns lambda bodies); I4b.
+Closed: G4a/L7e, G1b/L7b, G2/L7c, L8c, F1a, F4, I1a/L11a, I3/L13a, I4a/L13b. L11b = DONE by citation (vv_lambda_bodies.md D1 entries). Open: G4b/L7f/L8d, F1b, F2b, I4b/L13c, G6/L7h, L8a, L8b (parked), L11c-d, L14a-d, I2a, I2c, I5-I7.
+L11d DONE (docs/functions/sky_probe_passes.md). Order given by coordinator: L14c (now: FONT_TYPE define pair seen at 0x674d2bf/0x674d6be {MSDF|TrueType}; glyph atlas body = stage FontGlyph id 9, body not located) -> L14a -> L11d (vvclosures.py, docs/data/vv_closures.txt for SkyProbe/IBLSyncPoint) -> I2c (OPEN-partial: path+args decoded, docs/functions/item_in_hand_ctor_path.md; ctor body not read)  -> L14b (document cohtml glue 0x52d26a0 in/out).
 
 ## Units
+### L14a / L14c step (both OPEN, partial; docs/functions/ui_font_text_leads.md)
+- [V] UI visitor 5 cases summarised; ScreenRenderer not locatable by strings. Font loaders found: 0x4fb3870 (_ttf + .png + .info) and 0x4fbe0c0 (_ttfmsdf + .png + .info), extension tests 0x4fb2900/0x4fbdcd0; callers 0x4fbbea0, 0x4fbbf20, 0x4fbcab0, 0x4fc3930, 0x4fc3db0, 0x4fe0e10. Next: read 0x4fb3870 + its callers for the glyph .info parse (advances) = L14c closure. L14b parked (leads recorded).
+### I2c - OPEN (path and arguments decoded: renderItemFull 0x531b490 -> renderItem 0x531a580 -> ctor 0x668cb70; docs/functions/item_in_hand_ctor_path.md)
+- Blocking fact: ctor body 0x668cb70.. and the frame-data field names ([rdi+0x20/0x74/0x75/0x7c]) not reversed.
+### L11d - DONE (probe/IBL pass bodies located)
+- [V] IBLSyncPoint = NothingTask, body 0x56aeeb0 (view setup only). Sky-probe builder 0x56a06a0; pass body 0x56ae230 (material-pass template, pass hash 0xb2525e19c6e17c4b), fn body 0x56adf40, draw-list pairs 0xf25c020/0xf25c050. RT lighting bodies: cited vv_lambda_bodies.md. Doc: docs/functions/sky_probe_passes.md.
 ### G4a / L7e - DONE (sampler flag decode + sampler cache; texture/atlas management is tracked by L8a-c, not by this item)
 - [V] 0xe820500 reversed instruction-complete: docs/functions/e820500.md. Key = bgfx HashMurmur2A over <=16 flag dwords; open hash map at heap+0x60; u16 free ring at heap+8; CreateSampler (device vtable +0xB0) into heap+0x10 + (u16[+0x24]*slot+i)*u32[+0x20]; D3D12_SAMPLER_DESC fully decoded with the tables read from the exe (address {1,2,3,4}, filter bytes, comparison {0,2,4,3,7,5,6,1,8}, MaxLOD 3.0 / FLT_MAX).
 - CONTRADICTS 6ax: bit 28 (0x10000000) selects MaxLOD 3.0 vs FLT_MAX, not the border colour; border colour comes from the r9 table (index = bits 24..27), gated by BORDER address mode.
@@ -68,3 +73,15 @@ Live read-only (CE evaluate_lua readQword/readInteger only, 2 bounded polls, bas
 - Files: docs/functions/e8143c0.md (addenda), docs/functions/e818490.md. No header (offsets are inside the FrameManager object whose layout is only partly known); static_asserts not applicable.
 ### L8b - OPEN (compression/mips path closed via the same code: block-aware copy + GetCopyableFootprints; blocker = terrain/item atlas builders on the game side untraced)
 - L8b leads (atlas builders, strings verified by xref.py str atlas): 0x5752d50 ("atlas.terrain", "atlas.items", compass/clock atlas textures), 0x4e1a0a0 ("texture_atlas", "failed to read texture_name in atlas file %s"), 0x6bfa6d0 ("Texture %s is missing from atlas textures"), 0x6bfa9d0 ("invalid atlas index %i for the expected UV count %i"), 0x6bf8770 / 0x6bf9270 (atlas_index / atlas_tile / atlas_tile_variant block-model fields), 0x94cf90 (grass block atlas entry assert). None reversed.
+- L8b (this pass): docs/functions/atlas_uv_apply.md: 0x6bfa6d0 + 0x6bfa9d0 read in full (UV application by atlas index, error strings), 0x4e1a0a0 identified as the atlas JSON parser, 0x5752d50 corrected (inventory item renderer, not an atlas builder). Still OPEN: the stitcher that builds the atlas image/mips and feeds the texture creation chain.
+- L8a/L8b parked by coordinator order. Leads: callers 0x95ed00 (of 0x6bfa6d0), 0x4e198d0 and 0x4e1cbb0 (of the atlas JSON parser 0x4e1a0a0).
+
+### L11b-d, L14a, L14c, L14d, I2a, I5a, I5c, I6-I7 - OPEN (not worked; blockers)
+- L11b/I1b: needs the pass bodies ClusterLights 0xbc5bad0 / voxel 0xbc0b240 (M1e agent). L11c: description fields of LightAmbient/Directional/Atmosphere (descriptions agent, docs/progress/descriptions.md). L11d: no probe/IBL body located (SkyProbe/IBLSyncPoint names only).
+- L14a/I5a: UI visitor 0x6664a00 and extractor 0x674a3a0 exist as dossiers; ScreenRenderer internals untraced. L14d: description fields (descriptions agent).
+- L14b/I5b blocker: Ore UI is cohtml, a statically linked third-party renderer (cohtml mangled export strings in the exe, glue 0x52d26a0); its backend is not reversed.
+- L14c/I5c: glyph atlas / SDF font code not located (no string hit in the one search made).
+- I2a: anchors exist in Sigs.json; "internals pending" has no reversal this pass. I6a/I6b/I7: bodies are M1e's (0xbc8cfd0, 0x56d4860, 0xbcb7590, 0xbcb7e70, 0xbc080c0).
+
+### L11b / I1b - DONE by citation (pass code): docs/functions/vv_lambda_bodies.md entries 0xbc5bad0 ClusterLights (six uniforms by name hash, scope, material holder), 0xbc0b240 CombineVoxelLighting, 0xbc0ac20 voxel upload; inherits that agent's D1/D2 status. The CPU scoring and shader inputs were already in 6bj/6cd.
+### Resource-load graph (new, supports L8a/L14c): docs/functions/resource_load_graph.md - 36 stage names with ids (FontGlyph 9, TerrainAtlas 6, ItemAtlas 7, AnimatedAtlas 8, BlockThumbnailAtlas 0x26, DynamicTextures 0x19, TextureShift 0x27, Texture 1, FinalizeLoad 0x1E), registerStage 0x1870de0 semantics; stage bodies not located.

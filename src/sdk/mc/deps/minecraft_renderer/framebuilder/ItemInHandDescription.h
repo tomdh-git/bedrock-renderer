@@ -3,8 +3,6 @@
 // Layout is instruction-complete for the constructor 0x668cb70 (docs/functions/668cb70.md): every store into the object is listed.
 // Object size 0x180 (last store +0x17C). Tags: [V] disassembly. Names are by role; where a value is a copy of a field of the
 // renderer-side object it says which.
-#include <cstddef>
-#include <cstdint>
 
 namespace mce::framebuilder {
 

@@ -1,6 +1,4 @@
 #pragma once
-#include <cstddef>
-#include <cstdint>
 
 // Cave-visibility compute for one 16x16x16 sub-chunk (1.26.62.01): fn 0x791f170 (docs/functions/791f170.md), called by 0x6b0c4c0.
 // Layouts are read from the disassembly of 0x791f170 and 0x6b0c4c0 (docs/progress/ext-culling-visitor.md, H1b). Pure documentation

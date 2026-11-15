@@ -1,0 +1,306 @@
+﻿669bd5d: test r15b, r15b
+669bd60: je 0x669c2a6
+669bd66: add r13, 0x1b0
+669bd6d: mov rax, qword ptr [rbp + 0x2068]
+669bd74: mov rdx, qword ptr [rax]
+669bd77: mov rcx, rbx
+669bd7a: mov r8, r13
+669bd7d: call 0x6693850
+669bd82: nop 
+669bd83: test rax, rax
+669bd86: je 0x669c2a6
+669bd8c: mov rcx, qword ptr [rax + 8]
+669bd90: test rcx, rcx
+669bd93: je 0x669bded
+669bd95: lock inc dword ptr [rcx + 8]
+669bd99: mov rdi, qword ptr [rax]
+669bd9c: mov rbx, qword ptr [rax + 8]
+669bda0: test rbx, rbx
+669bda3: je 0x669bddc
+669bda5: lock dec dword ptr [rbx + 8]
+669bda9: jne 0x669bddc
+669bdab: mov rcx, qword ptr [rbx]
+669bdae: mov rdx, qword ptr [rcx]
+669bdb1: mov rcx, rbx
+669bdb4: mov r15, rax
+669bdb7: mov rax, rdx
+669bdba: call qword ptr [rip + 0x93041e0]
+669bdc0: mov rax, r15
+669bdc3: lock dec dword ptr [rbx + 0xc]
+669bdc7: jne 0x669bddc
+669bdc9: mov rax, qword ptr [rbx]
+669bdcc: mov rax, qword ptr [rax + 8]
+669bdd0: mov rcx, rbx
+669bdd3: call qword ptr [rip + 0x93041c7]
+669bdd9: mov rax, r15
+669bddc: test rdi, rdi
+669bddf: mov rbx, qword ptr [rbp + 0x2060]
+669bde6: jne 0x669bdf7
+669bde8: jmp 0x669c2a6
+669bded: cmp qword ptr [rax], 0
+669bdf1: je 0x669c2a6
+669bdf7: mov ecx, esi
+669bdf9: or ecx, 0x4000
+669bdff: test byte ptr [rbp + 0x2087], 0x40
+669be06: cmove ecx, esi
+669be09: test dword ptr [rbp + 0x2050], 0x800
+669be13: je 0x669be2b
+669be15: xorps xmm0, xmm0
+669be18: movaps xmmword ptr [rbp + 0x17a0], xmm0
+669be1f: lea r10, [rbp + 0x1fd0]
+669be26: jmp 0x669bf30
+669be2b: xorps xmm0, xmm0
+669be2e: movaps xmmword ptr [rbp + 0x17a0], xmm0
+669be35: mov r8, qword ptr [rbp + 0x2068]
+669be3c: mov rdx, qword ptr [r8 + 0x10]
+669be40: test rdx, rdx
+669be43: je 0x669bf15
+669be49: lock inc dword ptr [rdx + 8]
+669be4d: mov rdx, qword ptr [r8 + 0x10]
+669be51: jmp 0x669bf17
+669be56: cmp byte ptr [rbp + 0x19a9], 0
+669be5d: jne 0x669be66
+669be5f: mov byte ptr [rbp + 0x19a9], 1
+669be66: test byte ptr [r8 + 0x78], 0x20
+669be6b: jne 0x669ca19
+669be71: cmp byte ptr [rbp + 0x18c9], 0
+669be78: jne 0x669ca29
+669be7e: mov byte ptr [rbp + 0x18c9], 1
+669be85: jmp 0x669ca29
+669be8a: mov r14b, 2
+669be8d: mov si, 0x8800
+669be91: cmp byte ptr [rbp + 0x1991], 0
+669be98: jne 0x669bd5d
+669be9e: mov byte ptr [rbp + 0x1991], 1
+669bea5: jmp 0x669bd5d
+669beaa: cmp eax, 2
+669bead: setae dl
+669beb0: or dl, cl
+669beb2: movsd xmm0, qword ptr [r8 + 0x6c]
+669beb8: movss xmm1, dword ptr [r8 + 0x68]
+669bebe: movzx eax, byte ptr [rbp + 0x1a0c]
+669bec5: movss dword ptr [rbp + 0x1a00], xmm1
+669becd: test dl, 1
+669bed0: je 0x669cad5
+669bed6: test al, al
+669bed8: jne 0x669bee1
+669beda: mov byte ptr [rbp + 0x1a0c], 1
+669bee1: movlps qword ptr [rbp + 0x1a04], xmm0
+669bee8: cmp byte ptr [rbp + 0x19b9], 0
+669beef: jne 0x669bef8
+669bef1: mov byte ptr [rbp + 0x19b9], 1
+669bef8: mov si, 0x8000
+669befc: cmp byte ptr [rbp + 0x1999], 0
+669bf03: jne 0x669bd5a
+669bf09: mov byte ptr [rbp + 0x1999], 1
+669bf10: jmp 0x669bd5a
+669bf15: xor edx, edx
+669bf17: lea r10, [rbp + 0x1fd0]
+669bf1e: mov r8, qword ptr [r8 + 8]
+669bf22: mov qword ptr [rbp + 0x17a0], r8
+669bf29: mov qword ptr [rbp + 0x17a8], rdx
+669bf30: movaps xmmword ptr [rbp + 0x1260], xmm0
+669bf37: mov rdx, qword ptr [rax + 8]
+669bf3b: test rdx, rdx
+669bf3e: je 0x669bf4a
+669bf40: lock inc dword ptr [rdx + 8]
+669bf44: mov rdx, qword ptr [rax + 8]
+669bf48: jmp 0x669bf4c
+669bf4a: xor edx, edx
+669bf4c: mov rax, qword ptr [rax]
+669bf4f: mov qword ptr [rbp + 0x1260], rax
+669bf56: mov qword ptr [rbp + 0x1268], rdx
+669bf5d: mov rax, qword ptr [rbp + 0x2068]
+669bf64: mov r9, qword ptr [rax + 0x120]
+669bf6b: movaps xmmword ptr [rbp + 0x1fd0], xmm0
+669bf72: movaps xmmword ptr [rbp + 0x1830], xmm0
+669bf79: lea rax, [rbp + 0x1830]
+669bf80: mov qword ptr [rsp + 0x38], rax
+669bf85: mov qword ptr [rsp + 0x30], r10
+669bf8a: mov word ptr [rsp + 0x28], cx
+669bf8f: lea rax, [rbp + 0x17a0]
+669bf96: mov qword ptr [rsp + 0x20], rax
+669bf9b: mov dword ptr [rsp + 0x48], 0xffffff00
+669bfa3: mov dword ptr [rsp + 0x40], 0xffffff00
+669bfab: lea rcx, [rbp + 0x1bb0]
+669bfb2: lea rdx, [rbp + 0x1260]
+669bfb9: mov r8d, r14d
+669bfbc: call 0x673cc80
+669bfc1: lea rcx, [rbp + 0x1910]
+669bfc8: cmp byte ptr [rbp + 0x1970], 1
+669bfcf: jne 0x669bfe9
+669bfd1: lea rdx, [rbp + 0x1bb0]
+669bfd8: call 0x67d1120
+669bfdd: mov rdi, qword ptr [rbp + 0x1c00]
+669bfe4: jmp 0x669c0f5
+669bfe9: xorps xmm0, xmm0
+669bfec: movups xmmword ptr [rcx], xmm0
+669bfef: mov rax, qword ptr [rbp + 0x1bb8]
+669bff6: test rax, rax
+669bff9: je 0x669c008
+669bffb: lock inc dword ptr [rax + 8]
+669bfff: mov rax, qword ptr [rbp + 0x1bb8]
+669c006: jmp 0x669c00a
+669c008: xor eax, eax
+669c00a: mov rcx, qword ptr [rbp + 0x1bb0]
+669c011: mov qword ptr [rbp + 0x1910], rcx
+669c018: mov qword ptr [rbp + 0x1918], rax
+669c01f: movups xmm1, xmmword ptr [rbp + 0x1bc0]
+669c026: movaps xmmword ptr [rbp + 0x1920], xmm1
+669c02d: movzx eax, word ptr [rbp + 0x1bd0]
+669c034: mov word ptr [rbp + 0x1930], ax
+669c03b: movups xmmword ptr [rbp + 0x1938], xmm0
+669c042: mov rax, qword ptr [rbp + 0x1be0]
+669c049: test rax, rax
+669c04c: je 0x669c05b
+669c04e: lock inc dword ptr [rax + 8]
+669c052: mov rax, qword ptr [rbp + 0x1be0]
+669c059: jmp 0x669c05d
+669c05b: xor eax, eax
+669c05d: mov rdx, qword ptr [rbp + 0x1bd8]
+669c064: mov rcx, qword ptr [rbp + 0x1bf0]
+669c06b: mov qword ptr [rbp + 0x1938], rdx
+669c072: mov qword ptr [rbp + 0x1940], rax
+669c079: movups xmmword ptr [rbp + 0x1948], xmm0
+669c080: test rcx, rcx
+669c083: je 0x669c092
+669c085: lock inc dword ptr [rcx + 8]
+669c089: mov rax, qword ptr [rbp + 0x1bf0]
+669c090: jmp 0x669c094
+669c092: xor eax, eax
+669c094: mov rdx, qword ptr [rbp + 0x1be8]
+669c09b: mov rcx, qword ptr [rbp + 0x1c00]
+669c0a2: mov qword ptr [rbp + 0x1948], rdx
+669c0a9: mov qword ptr [rbp + 0x1950], rax
+669c0b0: movups xmmword ptr [rbp + 0x1958], xmm0
+669c0b7: test rcx, rcx
+669c0ba: je 0x669c0c9
+669c0bc: lock inc dword ptr [rcx + 8]
+669c0c0: mov rdi, qword ptr [rbp + 0x1c00]
+669c0c7: jmp 0x669c0cb
+669c0c9: xor edi, edi
+669c0cb: mov rax, qword ptr [rbp + 0x1bf8]
+669c0d2: mov rcx, qword ptr [rbp + 0x1c08]
+669c0d9: mov qword ptr [rbp + 0x1958], rax
+669c0e0: mov qword ptr [rbp + 0x1960], rdi
+669c0e7: mov qword ptr [rbp + 0x1968], rcx
+669c0ee: mov byte ptr [rbp + 0x1970], 1
+669c0f5: test rdi, rdi
+669c0f8: je 0x669c125
+669c0fa: lock dec dword ptr [rdi + 8]
+669c0fe: jne 0x669c125
+669c100: mov rax, qword ptr [rdi]
+669c103: mov rax, qword ptr [rax]
+669c106: mov rcx, rdi
+669c109: call qword ptr [rip + 0x9303e91]
+669c10f: lock dec dword ptr [rdi + 0xc]
+669c113: jne 0x669c125
+669c115: mov rax, qword ptr [rdi]
+669c118: mov rax, qword ptr [rax + 8]
+669c11c: mov rcx, rdi
+669c11f: call qword ptr [rip + 0x9303e7b]
+669c125: mov rdi, qword ptr [rbp + 0x1bf0]
+669c12c: test rdi, rdi
+669c12f: je 0x669c15c
+669c131: lock dec dword ptr [rdi + 8]
+669c135: jne 0x669c15c
+669c137: mov rax, qword ptr [rdi]
+669c13a: mov rax, qword ptr [rax]
+669c13d: mov rcx, rdi
+669c140: call qword ptr [rip + 0x9303e5a]
+669c146: lock dec dword ptr [rdi + 0xc]
+669c14a: jne 0x669c15c
+669c14c: mov rax, qword ptr [rdi]
+669c14f: mov rax, qword ptr [rax + 8]
+669c153: mov rcx, rdi
+669c156: call qword ptr [rip + 0x9303e44]
+669c15c: mov rdi, qword ptr [rbp + 0x1be0]
+669c163: test rdi, rdi
+669c166: je 0x669c193
+669c168: lock dec dword ptr [rdi + 8]
+669c16c: jne 0x669c193
+669c16e: mov rax, qword ptr [rdi]
+669c171: mov rax, qword ptr [rax]
+669c174: mov rcx, rdi
+669c177: call qword ptr [rip + 0x9303e23]
+669c17d: lock dec dword ptr [rdi + 0xc]
+669c181: jne 0x669c193
+669c183: mov rax, qword ptr [rdi]
+669c186: mov rax, qword ptr [rax + 8]
+669c18a: mov rcx, rdi
+669c18d: call qword ptr [rip + 0x9303e0d]
+669c193: mov rdi, qword ptr [rbp + 0x1bb8]
+669c19a: test rdi, rdi
+669c19d: je 0x669c1ca
+669c19f: lock dec dword ptr [rdi + 8]
+669c1a3: jne 0x669c1ca
+669c1a5: mov rax, qword ptr [rdi]
+669c1a8: mov rax, qword ptr [rax]
+669c1ab: mov rcx, rdi
+669c1ae: call qword ptr [rip + 0x9303dec]
+669c1b4: lock dec dword ptr [rdi + 0xc]
+669c1b8: jne 0x669c1ca
+669c1ba: mov rax, qword ptr [rdi]
+669c1bd: mov rax, qword ptr [rax + 8]
+669c1c1: mov rcx, rdi
+669c1c4: call qword ptr [rip + 0x9303dd6]
+669c1ca: mov rdi, qword ptr [rbp + 0x1838]
+669c1d1: test rdi, rdi
+669c1d4: je 0x669c201
+669c1d6: lock dec dword ptr [rdi + 8]
+669c1da: jne 0x669c201
+669c1dc: mov rax, qword ptr [rdi]
+669c1df: mov rax, qword ptr [rax]
+669c1e2: mov rcx, rdi
+669c1e5: call qword ptr [rip + 0x9303db5]
+669c1eb: lock dec dword ptr [rdi + 0xc]
+669c1ef: jne 0x669c201
+669c1f1: mov rax, qword ptr [rdi]
+669c1f4: mov rax, qword ptr [rax + 8]
+669c1f8: mov rcx, rdi
+669c1fb: call qword ptr [rip + 0x9303d9f]
+669c201: mov rdi, qword ptr [rbp + 0x1fd8]
+669c208: test rdi, rdi
+669c20b: je 0x669c238
+669c20d: lock dec dword ptr [rdi + 8]
+669c211: jne 0x669c238
+669c213: mov rax, qword ptr [rdi]
+669c216: mov rax, qword ptr [rax]
+669c219: mov rcx, rdi
+669c21c: call qword ptr [rip + 0x9303d7e]
+669c222: lock dec dword ptr [rdi + 0xc]
+669c226: jne 0x669c238
+669c228: mov rax, qword ptr [rdi]
+669c22b: mov rax, qword ptr [rax + 8]
+669c22f: mov rcx, rdi
+669c232: call qword ptr [rip + 0x9303d68]
+669c238: mov rdi, qword ptr [rbp + 0x1268]
+669c23f: test rdi, rdi
+669c242: je 0x669c26f
+669c244: lock dec dword ptr [rdi + 8]
+669c248: jne 0x669c26f
+669c24a: mov rax, qword ptr [rdi]
+669c24d: mov rax, qword ptr [rax]
+669c250: mov rcx, rdi
+669c253: call qword ptr [rip + 0x9303d47]
+669c259: lock dec dword ptr [rdi + 0xc]
+669c25d: jne 0x669c26f
+669c25f: mov rax, qword ptr [rdi]
+669c262: mov rax, qword ptr [rax + 8]
+669c266: mov rcx, rdi
+669c269: call qword ptr [rip + 0x9303d31]
+669c26f: mov rdi, qword ptr [rbp + 0x17a8]
+669c276: test rdi, rdi
+669c279: je 0x669c2a6
+669c27b: lock dec dword ptr [rdi + 8]
+669c27f: jne 0x669c2a6
+669c281: mov rax, qword ptr [rdi]
+669c284: mov rax, qword ptr [rax]
+669c287: mov rcx, rdi
+669c28a: call qword ptr [rip + 0x9303d10]
+669c290: lock dec dword ptr [rdi + 0xc]
+669c294: jne 0x669c2a6
+669c296: mov rax, qword ptr [rdi]
+669c299: mov rax, qword ptr [rax + 8]
+669c29d: mov rcx, rdi
+669c2a0: call qword ptr [rip + 0x9303cfa]

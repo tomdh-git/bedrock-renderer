@@ -1,6 +1,4 @@
 #pragma once
-#include <cstddef>
-#include <cstdint>
 // Partial MaterialPass layout read from MaterialPass::findVariant 0xbcc7ce0 (docs/functions/bcc7ce0.md), 1.26.62.01 [V reads, I roles].
 namespace mce::material {
 struct MaterialPassLayout {

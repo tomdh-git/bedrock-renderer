@@ -1,0 +1,146 @@
+0x6bf7260  push rbp
+0x6bf7261  push r15
+0x6bf7263  push r14
+0x6bf7265  push r13
+0x6bf7267  push r12
+0x6bf7269  push rsi
+0x6bf726a  push rdi
+0x6bf726b  push rbx
+0x6bf726c  sub rsp,0x68
+0x6bf7270  lea rbp,[rsp+0x60]
+0x6bf7275  movaps [rbp-0x10],xmm6
+0x6bf7279  mov qword ptr [rbp-0x18],0xFFFFFFFFFFFFFFFE
+0x6bf7281  mov [rbp-0x40],r9
+0x6bf7285  mov rsi,rdx
+0x6bf7288  mov rbx,rcx
+0x6bf728b  xorps xmm6,xmm6
+0x6bf728e  cmp byte ptr [rcx+0x365],0
+0x6bf7295  jne short 0x6BF72CB
+0x6bf7297  mov eax,[r8+0x74]
+0x6bf729b  xor ecx,ecx
+0x6bf729d  cmp al,4
+0x6bf729f  cmovb ecx,eax
+0x6bf72a2  cvtsi2ss xmm0,dword ptr [rbx+0x354]
+0x6bf72aa  movzx eax,cl
+0x6bf72ad  movss xmm6,[0xEEC8060]
+0x6bf72b5  divss xmm6,xmm0
+0x6bf72b9  mulss xmm6,[r8+rax*4+0x120]
+0x6bf72c3  addss xmm6,[rbx+0x348]
+0x6bf72cb  cvttss2si r14d,xmm6
+0x6bf72d0  cvttps2dq xmm0,xmm6
+0x6bf72d4  cvtdq2ps xmm0,xmm0
+0x6bf72d7  xor eax,eax
+0x6bf72d9  ucomiss xmm0,xmm6
+0x6bf72dc  seta al
+0x6bf72df  sub r14d,eax
+0x6bf72e2  mov eax,[rbx+0x34C]
+0x6bf72e8  mov [rbp-0x38],rax
+0x6bf72ec  lea ecx,[rax-1]
+0x6bf72ef  mov r8d,[rbx+0x350]
+0x6bf72f6  mov eax,r14d
+0x6bf72f9  cdq
+0x6bf72fa  idiv r8d
+0x6bf72fd  movsxd rax,edx
+0x6bf7300  mov r9,[rbx]
+0x6bf7303  mov r13d,[r9+rax*4]
+0x6bf7307  cmp ecx,r13d
+0x6bf730a  cmovl r13d,ecx
+0x6bf730e  lea eax,[r14+1]
+0x6bf7312  cdq
+0x6bf7313  idiv r8d
+0x6bf7316  movsxd rax,edx
+0x6bf7319  mov edi,[r9+rax*4]
+0x6bf731d  cmp ecx,edi
+0x6bf731f  cmovl edi,ecx
+0x6bf7322  mov rcx,[rbx+0x80]
+0x6bf7329  test rcx,rcx
+0x6bf732c  lea rax,[0x129C1210]
+0x6bf7333  cmovne rax,rcx
+0x6bf7337  xorps xmm0,xmm0
+0x6bf733a  movaps [rbp-0x30],xmm0
+0x6bf733e  mov rcx,[rax]
+0x6bf7341  test rcx,rcx
+0x6bf7344  je short 0x6BF734A
+0x6bf7346  movzx ecx,word ptr [rcx+0x10]
+0x6bf734a  mov rcx,[rax+8]
+0x6bf734e  test rcx,rcx
+0x6bf7351  je short 0x6BF735D
+0x6bf7353  lock inc dword ptr [rcx+8]
+0x6bf7357  mov rcx,[rax+8]
+0x6bf735b  jmp short 0x6BF735F
+0x6bf735d  xor ecx,ecx
+0x6bf735f  lea r12,[rbx+0xB0]
+0x6bf7366  mov rax,[rax]
+0x6bf7369  mov [rbp-0x30],rax
+0x6bf736d  mov r15,[rbp-0x28]
+0x6bf7371  mov [rbp-0x28],rcx
+0x6bf7375  test r15,r15
+0x6bf7378  je short 0x6BF73A7
+0x6bf737a  lock dec dword ptr [r15+8]
+0x6bf737f  jne short 0x6BF73A7
+0x6bf7381  mov rax,[r15]
+0x6bf7384  mov rax,[rax]
+0x6bf7387  mov rcx,r15
+0x6bf738a  call qword ptr [0xF99FFA0]
+0x6bf7390  lock dec dword ptr [r15+0xC]
+0x6bf7395  jne short 0x6BF73A7
+0x6bf7397  mov rax,[r15]
+0x6bf739a  mov rax,[rax+8]
+0x6bf739e  mov rcx,r15
+0x6bf73a1  call qword ptr [0xF99FFA0]
+0x6bf73a7  mov bl,[rbx+0x364]
+0x6bf73ad  mov [rsi],r12
+0x6bf73b0  lea rcx,[rsi+8]
+0x6bf73b4  lea rdx,[rbp-0x30]
+0x6bf73b8  call 0x4DFB570
+0x6bf73bd  nop
+0x6bf73be  cvtsi2ss xmm2,r14d
+0x6bf73c3  xorps xmm0,xmm0
+0x6bf73c6  cvtsi2ss xmm0,r13d
+0x6bf73cb  cvtsi2ss xmm1,dword ptr [rbp-0x38]
+0x6bf73d0  subss xmm6,xmm2
+0x6bf73d4  divss xmm0,xmm1
+0x6bf73d8  test bl,bl
+0x6bf73da  jne short 0x6BF73E1
+0x6bf73dc  movaps xmm2,xmm0
+0x6bf73df  jmp short 0x6BF73EC
+0x6bf73e1  xorps xmm2,xmm2
+0x6bf73e4  cvtsi2ss xmm2,edi
+0x6bf73e8  divss xmm2,xmm1
+0x6bf73ec  movss [rsi+0x18],xmm0
+0x6bf73f1  movss [rsi+0x1C],xmm2
+0x6bf73f6  movss [rsi+0x20],xmm6
+0x6bf73fb  mov rax,[rbp-0x40]
+0x6bf73ff  movups xmm0,[rax]
+0x6bf7402  movups [rsi+0x24],xmm0
+0x6bf7406  mov rax,[rax+0x10]
+0x6bf740a  mov [rsi+0x34],rax
+0x6bf740e  mov byte ptr [rsi+0x3C],0
+0x6bf7412  mov rdi,[rbp-0x28]
+0x6bf7416  test rdi,rdi
+0x6bf7419  je short 0x6BF7446
+0x6bf741b  lock dec dword ptr [rdi+8]
+0x6bf741f  jne short 0x6BF7446
+0x6bf7421  mov rax,[rdi]
+0x6bf7424  mov rax,[rax]
+0x6bf7427  mov rcx,rdi
+0x6bf742a  call qword ptr [0xF99FFA0]
+0x6bf7430  lock dec dword ptr [rdi+0xC]
+0x6bf7434  jne short 0x6BF7446
+0x6bf7436  mov rax,[rdi]
+0x6bf7439  mov rax,[rax+8]
+0x6bf743d  mov rcx,rdi
+0x6bf7440  call qword ptr [0xF99FFA0]
+0x6bf7446  mov rax,rsi
+0x6bf7449  movaps xmm6,[rbp-0x10]
+0x6bf744d  add rsp,0x68
+0x6bf7451  pop rbx
+0x6bf7452  pop rdi
+0x6bf7453  pop rsi
+0x6bf7454  pop r12
+0x6bf7456  pop r13
+0x6bf7458  pop r14
+0x6bf745a  pop r15
+0x6bf745c  pop rbp
+0x6bf745d  ret
+0x6bf745e  xchg ax,ax

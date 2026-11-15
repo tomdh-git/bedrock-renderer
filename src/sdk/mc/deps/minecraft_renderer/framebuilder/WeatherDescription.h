@@ -1,8 +1,6 @@
 #pragma once
 // Sky tag 9 (Weather) description + pass entry, read from the disassembly of extractWeather 0x6745440 (1.26.62.01).
 // docs/functions/6745440.md. Offsets are the displacements the extractor reads through r8; every one is [V].
-#include <cstddef>
-#include <cstdint>
 
 namespace bluey::weather {
 
