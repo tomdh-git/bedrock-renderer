@@ -1,0 +1,25 @@
+# Progress: ext-actors-hands (ItemInHand 0x6698e30 + L12c, skinned, nametag + L12d, L12a)
+
+## NEXT
+Phase 1 (ItemInHand): ctor 0x668cb70 DONE (docs/functions/668cb70.md + framebuilder/ItemInHandDescription.h). Extractor 0x6698e30 (4728 instr) decoded only to RVA 0x6699103 (head + variant key). Regenerate disasm: `python tools/sigs/disrange.py 6698e30 669ee00`. Resume the extractor at 0x6699200 (material-name build, then 0x67cfd80 material variant lookups: rcx=material, rdx=out shared_ptr, r8 = 16B key table [rip+0xc35f345 + (esi<<4)], r9/stack = name + 64B-entry table [rip+0xc35f14a + (r14<<6)]).
+Then (after the extractor): nametag producer 0x11276b0 from RVA 0x1127c35; skinned extractor (Item tag 7, inline in 0x6646980), nametag (tag 1 inline + clone 0x1127330 + L12d), L12a.
+Helper: a Sigs.json -> RVA resolver is trivial (regex over xref.text); the 62.01 renderItem family RVAs are below.
+
+---
+
+### L12c - DONE (62.01 re-check)
+- Sigs.json ItemInHandRenderer sigs resolve on 62.01 [V sig scan]: tick 0x5316030, renderFirstPerson 0x532b5a0, renderItem 0x531a580, renderArm 0x530ab10, renderItemFull 0x531b490. The 60.05 -> 62.01 delta for this class is +0x370 (renderItem 0x531a210 -> 0x531a580), so the old lead `0x531b120` = **renderItemFull 0x531b490** [V by delta + sig; callers include renderFirstPerson 0x532b5a0, 0x5979d60, 0x597d2b0, 0x597f6f0, 0x5a15fb0, 0x5a1a7f0 ...: the fan-in that sees every held item]. Its argument list is not decoded (size 0x2ed4) [?]; the lead is relocated, not reversed.
+- Description path [V]: renderItem 0x531a580 -> ctor 0x668cb70 (instruction-complete) -> thin clone 0x531b180 (its only caller is renderItem: sites 0x531adb2 and 0x531ae8d) -> Item slot 0x378 tag 6 -> extractor 0x6698e30.
+- Bare arm is skeletal, not an ItemInHand description (60.05 conclusion) [I, not re-measured].
+
+### ItemInHand description ctor 0x668cb70 - DONE (376/376 instructions)
+docs/functions/668cb70.md (source), header src/sdk/mc/deps/minecraft_renderer/framebuilder/ItemInHandDescription.h (sizeof 0x180, static_asserts per offset). CONTRADICTS 6dz on +0x18 (texture pair, not u8 kind) and +0x158.. (10 floats + UV rect).
+
+### ItemInHand extractor 0x6698e30 (D5e / L4i / M1d ItemInHand) - OPEN (reached RVA 0x6699103; function ends ~0x669ede4)
+Decoded [V] head: rcx=builder, rdx=frame ctx, r8=desc. anyOverlay = ((d78&1)|d79|d7A) != 0; selR12 = (ctx[0x70]==1) && !d79 && anyOverlay; selBL (r13) = (ctx[0x70]==1) && !(d7A|d79) when !selR12 (bl=1,r13=0 when selR12); itemFlags = *(u32*)([itemData+0x40]+0x258), lazily computed by 0xbb68930(&tmp, itemData+0x98) and cached (valid byte +0x25C); variantA r14 = (bl ? 2 : (itemFlags>>3)&2) | ((itemFlags&0x200)>>9) | (selR12 ? ctx[0x74]<<2 : 0); esi = itemFlags with (selR12<<4)+(selBL<<3) or-ed into the key; four thread-local magic-static guards between; itemFlags&0x800 selects the Glint name family (names built as SSO strings: "ItemInHandColor"+"Glint" etc.), d78 bit6 (0x40) selects the Textured family; material lookup 0x67cfd80 (FNV-1a over the 16-byte key, hash table at material+0x48/0x58/0x70, miss -> 0x567d280). Remaining: all pass bodies 0x6699200..0x669ede4 (~4500 instructions) - none decoded.
+
+### L12d nametags - OPEN (reached RVA 0x1127c35 of 0x11276b0..0x1128a40; skin-shadow blob not located in it)
+Identified [V]: the producer is **0x11276b0** (0x1381 bytes, 1120 instr, sole caller 0x539e3b0): per nametag it (a) takes a 0xA-split of the name string via 0x3e8fb0 (lines count = (end-begin)>>5 -1, entries are 0x20-byte std::string), (b) writes the 16-byte colour block [name+0x30] to [ctx30]+0 with valid byte +0x10 = 1, (c) computes camera-facing billboard rotation as a quaternion from delta = (cam - nametagPos) with the name object fields +0x50 (pos xyz at +0x50/+0x54/+0x58), +0x5C (scale), +0x78/+0x7C and +0x80/+0x88 (alternate 2D offsets when byte +0x88 != 0), (d) pushes onto the extraction ctx matrix stack ([r13+0x18]: ring +0x48 cap +0x50 head +0x58 count +0x60, dirty byte +0x78, 0x53d0be0 pushes, translation of top written to [top+0x30]), (e) later calls the Nametag clone 0x1127330 x2 and MeshFallback insert 0x4def480 x2 (the nametag background quad and the text), with a loop over the lines (stride 0x20, 0x11283d0..) and a jump table 0xf0df06c/0xf0df07c (4 entries: 0->0x1127f00, 1->0x11289b6, 2,3->0x112896c). Not decoded: 0x1127c35..0x1128a40 (the matrix push/scale, the two inserts and the line loop).
+The "skin shadows blob" of the checklist text: the blob shadow draws are MeshFallback calls from the Shadow clone 0x53e6c30 (BGFX_MAP 6fx, docs/functions/53e6c30.md), not a nametag-side blob; no separate nametag skin-shadow blob was found in 0x11276b0's first 330 instructions [I]. Recommend the lead rewrites L12d as: nametag producer 0x11276b0 + clone 0x1127330 (done) and Shadow via 6fx.
+
+### Skinned mesh extractor (Item tag 7), L12a actor dispatcher internals - OPEN (not started; entry anchors: Item visitor 0x6646980 case 7 inline, skinned clone 0x4e39f20 / 0x6b84e60, ctor 0x668d350; dispatcher anchors per L12a text)

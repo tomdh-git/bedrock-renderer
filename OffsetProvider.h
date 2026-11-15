@@ -1,0 +1,1 @@
+C:/Users/Atomi/Desktop/BlueySenseV2/src/sdk/OffsetProvider.h
