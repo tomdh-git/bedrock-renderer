@@ -2,8 +2,6 @@
 // Chunk draw-list entry (element of the vector view at RenderChunkGeometryDescription +0x38 {u64 count, ptr +0x40}) and the draw descriptor
 // 0x678F640 packs (1.26.62.01, static; docs/functions/66ea3d0.md "Body A" and docs/functions/678c4c0.md). Only offsets read by the
 // extractor loop 0x66ec31d..0x66ec8c0 and by 0x678C4C0 are named; the rest is padding [?].
-#include <cstddef>
-#include <cstdint>
 
 #include "DrawItem.h"
 

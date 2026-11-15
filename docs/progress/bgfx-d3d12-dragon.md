@@ -2,7 +2,7 @@
 
 ## NEXT
 DONE so far: A4b/L1e, A8a/L1p, A12a/L1v, A10/L1t, A13/L1z, A6c/L1l, B3b/L2g, B7a/L2m, B7b/L2n. B6/L2l now DONE too. NOTE: the game exited during this run (CE reads return nil), so further work is static-only until the user restarts it.
-DONE now also B5/L2k, B6/L2l, A8b/L1q, B9b/L2s. OPEN with notes: C3a, C3b. Next unit: C4a/C4b, then A7c, A12b-d, B3a, B4, B7c, B10, C5-C9. B6 note: 0xe818490 agrees with docs/functions/e818490.md (other agent); 0xe81ac80/0xe81af20 read independently.
+DONE now also B5/L2k, B6/L2l, A8b/L1q, B9b/L2s, C3a/L3d, C9/L3p. OPEN with notes: C3b, C4a, C4b, C7a, C7b, C8 (see entries). Next unit: C5a/C5b, C6, then A7c, A12b-d, B3a, B4, B7c, B10. Static only (game closed).
 Tools (tools/sigs): bgfxalloc_dragon.py, bgfxcmd_dragon.py, bgfxcmdtable_dragon.py. Live polls: evaluate_lua read-only, ctx=[base+0x12AE1748], obj=[base+0x12BB4910], base 0x7FF65A5B0000 this run.
 Files created/edited: bgfx/Handles.h, bgfx/Uniforms.h (new); bgfx/Encoder.h (SortKey decoders, BindingType::AccelerationStructure); d3d12/D3D12Context.h (PredefinedType names, kAccelerationStructures).
 
@@ -147,3 +147,41 @@ Every record table of the renderer now has a struct with static_asserts: texture
 - createProgram (slot 24, 0xe8142c0) and destroyShader (slot 23, 0xe8141e0) records: ProgramRecordLayout / ShaderRecordLayout in D3D12Context.h (6au/6hv/6hw, static_asserts, A8b above).
 - The open half, the input-layout builder ("TEXCOORD" user): the string at rva 0xF7CCFBB is referenced by exactly three functions [V xref]: 0xe81e860 (PSO builder, ref at 0xe81fdc5 = the input-element builder: streams claim the shader's attributes in order, instance data become float4 TEXCOORD elements after the highest TEXCOORD used with per-instance class; transcribed end to end in docs/functions/e81e860.md and BGFX_MAP 6ft), 0xe7ff810 (ref 0xe8002bb; called from 0xe7f5380 and 0xe803b00, a separate pipeline path outside the draw PSO builder), 0xa0d5870 (unrelated, a shader/material string user). So "'TEXCOORD' user 0xe81xxxx" = 0xe81e860. [V]
 Caveat (does not change the item): the second user 0xe7ff810 is not decoded here.
+
+### C4a / L3f - OPEN (the DragonFrameResources constructor/destructor and owner type are not located; fields outside the task vector have no reader found)
+- [V] The object lives at owner+0x268 (0x67CA3BB-0x67CA3C0 in the frame renderer). It is passed by reference through endFrame 0xC270460 (forwarded only, never dereferenced there; dossier) and as args+0x20 into the dispatcher 0xE9002E0, which touches only +0x290/+0x298/+0x2A0.
+- CORRECTION to 6cx/6eg: the vector is {first +0x290, last +0x298, end +0x2A0}, element 0x10 {Task*, shared_ptr ctrl*}. Evidence: push at 0xE9004AA..0xE9004C5 (`r15=[rdi+0x298]; cmp r15,[rdi+0x2A0]; je grow; store; add [rdi+0x298],0x10`) and the growth path 0xE900827 (`sub rsi,[rdi+0x290]; sar 4`). So +0x298 is NOT "begin".
+- The 7 `0xA784C0` resource sets at 0x4F8/0x740/0x988/0xE90/0xC18/0x10F0/0x1338 in 0x67C9C20 belong to another object (rdi there), not to DragonFrameResources; do not equate "+0x4F8" with DFR+0x290.
+- Header: dragon/FrameGraph.h (DragonFrameResourcesOffsets).
+- Blocking fact: no function that constructs or destroys DragonFrameResources was found (scans for +0x290/+0x298/+0x2A0 operand sets and `lea/add reg,0x268` + call produced nothing useful), so the fields below +0x290 and after +0x2A8 and the object size are unknown.
+
+### C4b / L3g - OPEN (arena object fields +0x00..+0x27, +0x38, +0x50..+0x87 and its constructor not decoded)
+- [V] IntraFrameAllocator = {Arena* +0x00}. allocate = 0xA78940(arena, out*, size, align): out is an engaged std::optional<ArenaBlock> (0x30 + flag at +0x30, 0x38 bytes, matching the 0x38-byte `0xA78940` calls in 0xC273420). Two modes by [arena+0x90]: lock [arena+0x88]; 0xA78FC0 (first page) / 0xA79120 (walk the page vectors at arena+0x28/+0x30 and +0x40/+0x48) then 0xA79700 on a page.
+- [V] 0xA79700(page, out*, size, align): two bump regions per page {size +0x48/+0x60, start +0x50/+0x68, cursor +0x58/+0x70}, lock cmpxchg on the cursor, region 1 tried first; on success: [page+0x40] and [page+0x78] += padding+size, [page+0x80] u16 ++, [page+0x90] = [page+0x88], [page+0x98] = 1; ArenaBlock = {page+0, page+8 (shared_ptr ctrl, strong count +8 incremented), aligned address, size, padding, [page+0x88]}. Failure: engaged flag 0.
+- [V] Arena: +0x08 refcount, +0x18 total bytes handed out (lock add of padding+size in 0xA78FF9).
+- Header: dragon/FrameGraph.h (ArenaBlock, ArenaAllocResult, ArenaPageOffsets, ArenaOffsets with static_asserts for sizes).
+- Blocking fact: the arena constructor and the roles of the page vectors (+0x28/+0x30 8-byte elements, +0x40/+0x48 16-byte elements) are inferred from 0xA79120 reads only.
+
+### C7b / L3m - OPEN (kind-1/2/3 binding records and the 16-slot variant are decoded structurally; the semantic names of the slot kinds 0..4 are not)
+- [V] Per-pass loop 0xC277F10..0xC2793FE iterates declared entries (0x10 bytes {key, PassDesc*}; iterator [rbp+0x3450], end [rbp+0x3418]); each key is find-or-inserted into an rb-tree (nodes 0x38 from the IntraFrameAllocator: {left,right,parent, u16 color/isnil +0x18, key +0x20, value +0x28/+0x30 = shared_ptr<Task>}) at [rbp+0x3290] (0xC277FC2..0xC27806E).
+- [V] PassDesc layout read by the loop and per-pass output vectors: see dragon/FrameGraph.h (PassDescOffsets, GeneratedEntryOffsets, BindingRecord 0x28, UseRecord 0x20, AccessRecord 0x20).
+- CORRECTION to 6cz: the second vector's element is 0x20 bytes, not 24 (0xC27FCC0 uses sar 5 / shl 5, advances by 0x20 at 0xC2788A0 and 0xC278B30); the first is 0x28 (0xC27F940, advance 0x28 at 0xC27864D). A third vector (Entry+0x60, 0x20 elements) collects the kind-4 accesses (0xC278938..0xC278B30).
+- [V] The generated Entry (0x80): task shared_ptr +0, task->vtbl[2](out) 16 bytes at +0x10 (0xC278E6E..0xC278E9A), flags +0x20..+0x2B, three moved-out vectors +0x30/+0x48/+0x60, sort key +0x78 = 0 (0xC2792FF) - consistent with dragon/Tasks.h (+0x10 pointer, +0x18 kind).
+- Blocking fact: the meaning of the five slot kinds (jump table 0xC2782A9) of the 16 x 0x20 slot table at PassDesc+0x28 and of the kind 1/2/3 binding variants (mapping to BindMaterialTexture/BindFramebufferColor/Depth/BindShaderBuffer/BindAccelerationStructure of 6aq) is not tied to a named type.
+
+### C7a / L3l - OPEN (stage names are not assignable statically)
+- [V] Stages in 0xC273420 order: prologue (0xC273420..0xC277E60) -> 0xC27EC60 (x2: at 0xC277E8C before the loop, at 0xC2793FE after each pass) -> per-pass loop (C7b) -> 0xBC76610 -> 0x67BF2C0 -> 0x6759EA0 (x2) -> 0xBC752F0 -> names ordering (0xC27AB07..0xC27AC5F, 6eo) -> 0xC280010. 0xC27F940/0xC27FCC0 are the 0x28/0x20-element vector growth helpers, not stages.
+- Blocking fact: roles of 0xC27EC60, 0xBC76610, 0x67BF2C0, 0x6759EA0, 0xBC752F0 not decoded.
+
+### C3a / L3d - DONE (supersedes the OPEN entry above)
+- [V] 0x1D2C10(queue, capacity) read end to end (0x4F5 bytes): it is the moodycamel::ConcurrentQueue constructor. Object 0x268: producerListTail +0, producerCount +8, initialBlockPoolIndex +0x10, initialBlockPool +0x18, initialBlockPoolSize +0x20 (= ceil(capacity/32) via `shr 5` + remainder, 0x20 for the scheduler's 0x400), freeList +0x28, implicitProducerHash pointer +0x30 and count +0x38, initial hash {capacity 0x20 +0x40, entries* +0x48 = +0x58, prev +0x50}, 32 hash entries x 0x10 at +0x58..+0x257, tail fields to +0x267. Block stride 0x848 (`imul rbx,0x848`, allocation via the global allocator vtbl +8): 32 elements x 64 bytes (0x800) + header 0x48 (next, elementsCompletelyDequeued, emptyFlags[32], freeListRefs +0x830, freeListNext +0x838, dynamicallyAllocated byte +0x840 set 1 then 0 for the pool). So the task record the queues carry is 64 bytes.
+- Scheduler call map and field list: the C3a OPEN entry above (0xC25B1A0 end to end). Core 0x7709C0 and group 0xC264090 internals are beyond the item text ("call map" + "queue layout").
+- Header: dragon/Scheduler.h (static_asserts on the hash and block layout).
+
+### C3b / L3e - OPEN (updated; blocking fact: the writer of the draw task record is not found)
+- [V] The record the RenderMarkHook calls a "task" (kind qword at data-0x48, entries of 0x18 {?, item*, ?}, +8 = DrawItem record) is NOT the 64-byte scheduler queue element of C3a (different sizes; the kind is a FNV-1a hash of a uniform name per 6ad). The scheduler queues carry 64-byte records; the draw-task record is a 0x48+ stack record handed to the task body.
+- Blocking fact: no function was found that stores the FNV-1a kind into such a record (the two hashes do not occur as immediates in .text, the kind is computed at run time or copied from a pass object), so the write site and layout past the kind and the 0x18-byte entries stay undecoded.
+
+### C9 / L3p - DONE (with the caveat that nothing was run in game)
+- [V] dragon/Tasks.h (task list, class vtables kVt*, name offsets, taskName) and dragon/PassNames.h exist; the item's last clause ("per-frame enumeration detour on 0xE9002E0 not written") is stale: src/client/features/hooks/hooks/render/TaskDispatchHook.cpp (untracked in git, not mine) defines HOOK(FrameGraph, taskDispatch) calling every listener with the TaskList then the original, and src/sdk/Sigs.json line 130 has the `FrameGraph.taskDispatch` signature (prologue bytes of 0xE9002E0 ending 0F B6 41 18, matching the `[rcx+0x18]` state byte read in 6cx). Consumer: RewriteProbe.cpp.
+- Corrections to the header found this run (not edited into Tasks.h, which another agent owns the behaviour of): the generator's Entry is described field by field in dragon/FrameGraph.h (+0x10 = task->vtbl[2] result, three moved vectors at +0x30/+0x48/+0x60, key +0x78); Tasks.h's TaskListEntry +0x30..+0x7F "not decoded" is therefore now explained.

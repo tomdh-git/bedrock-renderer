@@ -32,23 +32,32 @@ enum class ItemGroupTag : uint64_t {
     BatchActor = 10,
 };
 
-// Variant tags of the other groups, read from the tag byte each insert clone stores before its group-slot call (see docs/BGFX_MAP.md 6w).
+// Variant tags of the other groups. Every row below was re-checked in the D12 pass (docs/functions/ui_editor_descriptions.md, BGFX_MAP 6uie): the tag byte each insert
+// clone stores before its group-slot call ([V] = `mov byte ptr [..],N` then `call [vtbl+slot]` in the clone's own listing), and the group visitor's jump-table case count.
+// Effect: visitor 0x666aca0 has 9 cases. 0 FlameBillboard (clone 0x594cbe0: tag 0 stored at 0x594eb1f, slot 0x360 at 0x594eb29), 1 BlitFlipbook (0x5acbe94), 2 Particle
+// (0x5b8d594), 3 PlayerVision (0x53e66fc), 4 Shadow (0x53e73ef), 6 CameraAimAssistHighlight (0x5370ef4), 7 FullscreenEffect (0x530a67b), 8 EditorHighlight (0x4c8a624).
+// 5 FadeToBlack has no clone found; its name comes from the variant order (BGFX_MAP 6g) and its visitor case (0x666afde, FNV key lookup) [I]. The old value
+// `UIGameface = 0` was wrong: the Gameface clone 0x1f44d80 stores tag 0 (0x1f451e5) and calls the UI slot 0x368, so Gameface is UIGroupTag 0, not an Effect.
 enum class EffectGroupTag : uint64_t {
-    UIGameface = 0, // shares the clone with the UI group (see 6w)
+    FlameBillboard = 0,
     BlitFlipbookTexture = 1,
     Particle = 2,
     PlayerVision = 3,
     Shadow = 4,
+    FadeToBlack = 5,
     CameraAimAssistHighlight = 6,
     FullscreenEffect = 7,
     EditorHighlightConfiguration = 8,
 };
 
+// UI: visitor 0x6664a00, 5 cases, jump table 0xF2BF468 (entries 0x6664a6c 0x6664d51 0x6664bd6 0x6664c83 0x6664aab). Clone tag stores: Gameface 0x1f451e5, HudIcon 0xe9b45b,
+// UIMesh 0x4c961b4, UIText 0xe7217f. UIImGui (4): case 0x6664aab builds the material "Debug/ImGui" (lea 0xF5AD096, length 0xB at 0x6664af7) [V]; no clone found.
 enum class UIGroupTag : uint64_t {
     Gameface = 0,
     HudIcon = 1,
     UIMesh = 2,
     UIText = 3,
+    UIImGui = 4,
 };
 
 enum class SkyGroupTag : uint64_t {
@@ -58,19 +67,28 @@ enum class SkyGroupTag : uint64_t {
     EndSky = 3,
     LegacyCubemap = 4,
     SkyStars = 5,
+    Stars = 6,       // visitor case 0x6656812 (docs/functions/66560f0_sky_cases.md section 5); the shared Sky/Stars clone 0x5369b30 stores 5 at 0x536a2d8
     CelestialBody = 7,
     VolumetricFog = 8,
     Weather = 9,
     SkyAmbientSamples = 10,
 };
 
+// Light: visitor 0x6640d80, 8 cases, jump table 0xF2BF2B0. Tags 2,3,4,6,7 are the clone tag stores (0x53e5fb4, 0x535a9b7, 0x535a696, 0x535ad34, 0x535aeb9; the types come
+// from the zone records, docs/functions/6640d80_light_visitor.md). This corrects the BGFX_MAP 6g order, which had LightPoint at 2 and GameplayMetadata at 3.
 enum class LightGroupTag : uint64_t {
     Ambient = 0,
     Directional = 1,
     GameplayMetadata = 2,
+    LightPoint = 3,
+    ShadowAtlasFrame = 4,
     ServerGraphicsOverrideParameters = 5,
+    VoxelVolume = 6,
+    TransitioningVoxelVolume = 7,
 };
 
+// Editor: visitor 0x66742f0, 8 cases, jump table 0xF2BF520 (0x6674388 0x667499f 0x6674518 0x667463c 0x66743f4 0x6674ac3 0x6674d02 0x6674760). Tag stores in the clones:
+// 0 0x6c95724, 1..4 0x4c85de4 / 0x4c85fa4 / 0x4c86164 / 0x4c86324, 5 0x53711d4, 6 0x6c96254, 7 0x6d3d32d; the types come from the zone records (tools/sigs/srcloc.py).
 enum class EditorGroupTag : uint64_t {
     BlockVolumeBoundingBox = 0,
     GizmoHandleArrow = 1,
@@ -90,9 +108,27 @@ struct InsertVariant {
 
 // RenderBatchActorDescription: every actor of the frame in one description (measured live, docs/BGFX_MAP.md section 6c).
 struct RenderBatchActorDescription {
+    // Producer 0x4e355a0 (listing docs/data/listings/batchactor_producer_4e355a0_4e3606c.txt, call @4e35ddf, description at [rbp-0x20], so description offset = rbp offset + 0x20).
+    // D11 re-read: the zero fill covers +0x00..+0x8F; the full path then stores the head and nine spans ({count, data} pairs copied from vectors of the actor-renderer's frame
+    // object, r10) up to the pair at +0x100/+0x108 (mov [rbp+0xE0],r8 @4e35d9e, mov [rbp+0xE8],rcx @4e35dab); the short path zeroes +0xF0..+0x10F (@4e35dc7). Last store ends at
+    // +0x110, so the description is at least 0x110 bytes [V extent; the earlier 0x100 stopped one pair short]. Meanings of the spans are [I] (strides from the magic divides).
+    static constexpr size_t kMinSize = 0x110;
     static constexpr uintptr_t kCountOffset = 0xE0;
     static constexpr uintptr_t kInstancesOffset = 0xE8;
     static constexpr size_t kInstanceStride = 0x48;
+    // Head stores: float[7] at +0x00 (movups [rcx] / movsd [rcx+0x10] / movss [rcx+0x18] @4e35b40..4e35b51, the 0.67 0.82 .. 192.0 block of 6c), u16 at +0x1C (@4e35b5e,
+    // widened from a byte), byte +0x30 = 0 (@4e35b62), 16 bytes at +0x34 (@4e35b69), byte +0x60 = 0 (@4e35b6d).
+    // Span table: description offset of {u64 count, T* data}, element stride of that span, and the source vector (offsets in r10) [V stores, I roles]:
+    //   +0x68 stride 8 (r10+0xF0/+0xF8)   +0x78 stride 2 (r10+0x18/+0x20)   +0xC0 stride 0x14 (r10+0xD8/+0xE0)   +0xD0 stride 0x34 (r10+0x108/+0x110)
+    //   +0xE0 stride 0x48 = the instances (r10+0x120/+0x128)   +0xF0 stride 0x40 (r10+0x138/+0x140)   +0x100 stride 0x40 (r10+0x150/+0x158)
+    // and seven raw qwords at +0x88,+0x90,+0x98,+0xA0,+0xA8,+0xB0,+0xB8 copied from r10+0x30,+0x48,+0x60,+0x78,+0x90,+0xA8,+0xC0 (the begin pointers of seven vectors).
+    struct Span {
+        uint64_t mCount;
+        const void* mData;
+    };
+    static constexpr uintptr_t kSpan68 = 0x68, kSpan78 = 0x78, kSpanC0 = 0xC0, kSpanD0 = 0xD0, kSpanF0 = 0xF0, kSpan100 = 0x100;
+    static constexpr uintptr_t kRawBegins = 0x88; // seven qwords, stride 8
+    static_assert(sizeof(Span) == 0x10);
 
     // Fields from the live capture of 6d (values in the comments are the sampled first-person model). No actor, entity id or world
     // position is stored here: identity comes from RenderMark::bodyActor and its DrawItem records (DrawItem.h, 6bg/6hc).

@@ -1,18 +1,16 @@
 #pragma once
 // Effect tag 0 (FlameBillboard) description, read from extractFlameBillboard 0x673d150 (1.26.62.01).
 // docs/functions/673d150.md. Offsets are the displacements the extractor reads through r8 ([V] descscan + disassembly).
-#include <cstddef>
-#include <cstdint>
 #include "WeatherDescription.h"
 
 namespace bluey::flame {
 
 struct FlameDescription {
     void*    owner;                 // +0x00
+    uint8_t  pad08[0x08];
     uint32_t f10;                   // +0x10
     uint8_t  pad14[0x34];
     weather::TextureBind16 flameAtlas;      // +0x48
-    uint8_t  pad58a[0x00];
     weather::TextureBind16 merTexture;      // +0x58
     uint8_t  pad68[0x08];
     weather::TextureBind16 normalTexture;   // +0x70 (bound only if normalEnabled)

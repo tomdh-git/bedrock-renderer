@@ -1,0 +1,177 @@
+0x66b2b30  push rsi
+0x66b2b31  push rdi
+0x66b2b32  push rbp
+0x66b2b33  push rbx
+0x66b2b34  sub rsp,0x28
+0x66b2b38  mov rax,rcx
+0x66b2b3b  mov byte ptr [rcx+0xE],2
+0x66b2b3f  mov dword ptr [rcx+0x10],0
+0x66b2b46  mov byte ptr [rcx+0x14],0
+0x66b2b4a  xorps xmm0,xmm0
+0x66b2b4d  movups [rcx+0x18],xmm0
+0x66b2b51  movups [rcx+0x24],xmm0
+0x66b2b55  mov word ptr [rcx+0x54],0
+0x66b2b5b  mov rcx,[rdx]
+0x66b2b5e  mov rdx,[rcx+0x40]
+0x66b2b62  xor r11d,r11d
+0x66b2b65  cmp byte ptr [rdx+0x185],1
+0x66b2b6c  jne 0x66B2C11
+0x66b2b72  movzx ecx,byte ptr [rdx+0x180]
+0x66b2b79  movzx r9d,byte ptr [rdx+0x181]
+0x66b2b81  mov ebx,ecx
+0x66b2b83  xor bl,3
+0x66b2b86  mov r10d,r9d
+0x66b2b89  xor r10b,2
+0x66b2b8d  mov r11d,1
+0x66b2b93  mov esi,ebx
+0x66b2b95  or sil,r10b
+0x66b2b98  je short 0x66B2C11
+0x66b2b9a  mov esi,ecx
+0x66b2b9c  xor sil,6
+0x66b2ba0  mov edi,r9d
+0x66b2ba3  xor dil,8
+0x66b2ba7  mov r11d,3
+0x66b2bad  mov ebp,esi
+0x66b2baf  or bpl,dil
+0x66b2bb2  je short 0x66B2C11
+0x66b2bb4  mov r11d,4
+0x66b2bba  or dil,bl
+0x66b2bbd  je short 0x66B2C11
+0x66b2bbf  mov edi,ecx
+0x66b2bc1  xor dil,4
+0x66b2bc5  mov ebp,r9d
+0x66b2bc8  xor bpl,5
+0x66b2bcc  mov r11d,5
+0x66b2bd2  or bpl,dil
+0x66b2bd5  je short 0x66B2C11
+0x66b2bd7  mov edi,r9d
+0x66b2bda  xor dil,3
+0x66b2bde  mov r11d,6
+0x66b2be4  or bl,dil
+0x66b2be7  je short 0x66B2C11
+0x66b2be9  mov r11d,7
+0x66b2bef  or sil,dil
+0x66b2bf2  je short 0x66B2C11
+0x66b2bf4  mov r11d,8
+0x66b2bfa  or r10b,cl
+0x66b2bfd  je short 0x66B2C11
+0x66b2bff  xor r9b,1
+0x66b2c03  xor r10d,r10d
+0x66b2c06  or cl,r9b
+0x66b2c09  sete r10b
+0x66b2c0d  lea r11d,[r10+r10*8]
+0x66b2c11  mov [rax],r11d
+0x66b2c14  movzx ecx,byte ptr [rdx+0x1A8]
+0x66b2c1b  xor r9d,r9d
+0x66b2c1e  cmp cl,1
+0x66b2c21  sete r9b
+0x66b2c25  add r9d,r9d
+0x66b2c28  cmp cl,2
+0x66b2c2b  mov ecx,1
+0x66b2c30  cmovne ecx,r9d
+0x66b2c34  mov [rax+8],ecx
+0x66b2c37  dec r8b
+0x66b2c3a  cmp r8b,5
+0x66b2c3e  jae 0x66B2DD2
+0x66b2c44  mov r9,0x104070502080603
+0x66b2c4e  movzx ecx,r8b
+0x66b2c52  lea r8,[0xF2BF190]
+0x66b2c59  mov ecx,[r8+rcx*4]
+0x66b2c5d  mov [rax+0x10],ecx
+0x66b2c60  movzx ecx,byte ptr [rdx+0x189]
+0x66b2c67  mov [rax+0x54],cl
+0x66b2c6a  movzx ecx,byte ptr [rdx+0x19C]
+0x66b2c71  mov [rax+0x55],cl
+0x66b2c74  movzx ecx,byte ptr [rdx+0x18B]
+0x66b2c7b  mov r8d,ecx
+0x66b2c7e  shl ecx,3
+0x66b2c81  mov r10,r9
+0x66b2c84  shr r10,cl
+0x66b2c87  cmp r8b,8
+0x66b2c8b  mov ecx,2
+0x66b2c90  cmovb ecx,r10d
+0x66b2c94  movzx r10d,byte ptr [rdx+0x18C]
+0x66b2c9c  add r10b,0xFE
+0x66b2ca0  xor r11d,r11d
+0x66b2ca3  lea r8,[0xF2BF1A4]
+0x66b2caa  mov esi,0
+0x66b2caf  cmp r10b,8
+0x66b2cb3  ja short 0x66B2CBD
+0x66b2cb5  movzx r10d,r10b
+0x66b2cb9  mov esi,[r8+r10*4]
+0x66b2cbd  movzx r10d,byte ptr [rdx+0x18E]
+0x66b2cc5  add r10b,0xFE
+0x66b2cc9  cmp r10b,8
+0x66b2ccd  ja short 0x66B2CD7
+0x66b2ccf  movzx r10d,r10b
+0x66b2cd3  mov r11d,[r8+r10*4]
+0x66b2cd7  movzx ebx,byte ptr [rdx+0x18D]
+0x66b2cde  add bl,0xFE
+0x66b2ce1  xor r10d,r10d
+0x66b2ce4  mov edi,0
+0x66b2ce9  cmp bl,8
+0x66b2cec  ja short 0x66B2CF5
+0x66b2cee  movzx edi,bl
+0x66b2cf1  mov edi,[r8+rdi*4]
+0x66b2cf5  mov [rax+0x34],cl
+0x66b2cf8  mov [rax+0x38],esi
+0x66b2cfb  mov [rax+0x3C],edi
+0x66b2cfe  mov [rax+0x40],r11d
+0x66b2d02  movzx ecx,byte ptr [rdx+0x190]
+0x66b2d09  add cl,0xFE
+0x66b2d0c  cmp cl,8
+0x66b2d0f  ja short 0x66B2D18
+0x66b2d11  movzx ecx,cl
+0x66b2d14  mov r10d,[r8+rcx*4]
+0x66b2d18  movzx ecx,byte ptr [rdx+0x18F]
+0x66b2d1f  movzx ebx,byte ptr [rdx+0x192]
+0x66b2d26  add bl,0xFE
+0x66b2d29  xor r11d,r11d
+0x66b2d2c  mov esi,0
+0x66b2d31  cmp bl,8
+0x66b2d34  ja short 0x66B2D3D
+0x66b2d36  movzx esi,bl
+0x66b2d39  mov esi,[r8+rsi*4]
+0x66b2d3d  movzx ebx,byte ptr [rdx+0x191]
+0x66b2d44  add bl,0xFE
+0x66b2d47  cmp bl,8
+0x66b2d4a  ja short 0x66B2D54
+0x66b2d4c  movzx r11d,bl
+0x66b2d50  mov r11d,[r8+r11*4]
+0x66b2d54  mov r8d,ecx
+0x66b2d57  shl ecx,3
+0x66b2d5a  mov rdi,r9
+0x66b2d5d  shr rdi,cl
+0x66b2d60  cmp r8b,8
+0x66b2d64  mov r8d,2
+0x66b2d6a  cmovae edi,r8d
+0x66b2d6e  mov [rax+0x44],dil
+0x66b2d72  mov [rax+0x48],r10d
+0x66b2d76  mov [rax+0x4C],r11d
+0x66b2d7a  mov [rax+0x50],esi
+0x66b2d7d  movzx ecx,byte ptr [rdx+0x184]
+0x66b2d84  mov [rax+4],cl
+0x66b2d87  movzx ecx,byte ptr [rdx+0x188]
+0x66b2d8e  mov [rax+0xC],cl
+0x66b2d91  cmp byte ptr [rdx+0x193],0
+0x66b2d98  setne r10b
+0x66b2d9c  and r10b,cl
+0x66b2d9f  mov [rax+0xD],r10b
+0x66b2da3  movzx ecx,byte ptr [rdx+0x18A]
+0x66b2daa  mov r10d,ecx
+0x66b2dad  shl ecx,3
+0x66b2db0  shr r9,cl
+0x66b2db3  cmp r10b,8
+0x66b2db7  cmovae r9d,r8d
+0x66b2dbb  mov [rax+0xE],r9b
+0x66b2dbf  movzx ecx,byte ptr [rdx+0x194]
+0x66b2dc6  mov [rax+0x56],cl
+0x66b2dc9  add rsp,0x28
+0x66b2dcd  pop rbx
+0x66b2dce  pop rbp
+0x66b2dcf  pop rdi
+0x66b2dd0  pop rsi
+0x66b2dd1  ret
+0x66b2dd2  call 0x1A2800
+0x66b2dd7  int3
+0x66b2dd8  int3

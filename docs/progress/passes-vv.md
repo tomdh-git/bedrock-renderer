@@ -1,16 +1,16 @@
 # Progress: passes-vv
 
 ## NEXT
-Done this round (docs/functions/vv_lambda_bodies.md): 0xbc068f0 control flow, 0xbcc4b90 (all 43 resolved; no selection), 0xbcc1bf0 (buffer create/update, not a virtual). Remaining, in order: (1) 0xe83d7d0 (RTX slot 54, 0x671) and 0x67cf1d0 instruction reads -> closes M1e/L6a (PreBlasSkinDispatch) and L16b/L16d; (2) 0xbc71da0 (buffer create used by TLAS instance upload); (3) slot 64 0xe8403d0 (0xAA5B) DLSS evaluate and slot 60 0xe83ec70 for L15d (strings already in BGFX_MAP 6bc); (4) ColorGrading: find the ColorPostProcess material shader constants (builder 0xbbbcb20 sets ColorGrading_Misc only; the math is in the shader, not the exe) -> likely mark L15c DONE with that fact; (5) L6d Fancy pass list (6da-6dc) re-derive; L15b FSR1 builder 0xbcb3cf0 (0xbcb64f0 caller; resource names are not statics, read with vvskel); L16c RT shaders/denoiser. Tools: `export PYTHONUTF8=1`; tools/sigs/vvskel.py, vvstatics.py, vvclosures.py. Use Write/Edit tools (bash heredocs fail).
+Done: L16c; L6b partial (VV group-builder call order in 0x55f1450 recorded); L6d blocked. Remaining (optional): (1) L6b per-handle output names: read statics in 0x55f1450 around each builder call with vvstatics.py over 55f1450..563f594 split by range; (2) L6d: find the store of vtable 0xf25b2e0 (installed via data) and the Fancy counterpart.
 
 ## Units
-### U1 DONE; U3-U5 bodies in docs/functions/vv_lambda_bodies.md (see that file for the full list).
-### L6f - DONE (43 names in order, all resolved every call via findPass; per-call selection does not exist in 0xbcc4b90; textures = fixed 65-slot table by 0xc28f000, slot map 0xF4797D0). Caveat: the RTX renderer (slot 54) chooses what runs; not part of this item.
-### L16a - DONE (names, hashes, program resolution, 65 texture slots). Per-pass texture use is inside the RT shaders, not in the exe pass code.
-### M1e - OPEN. Blocking fact: 0x67cf1d0 / 0xe83d7d0 (PreBlasSkinDispatch callees) not read; everything else closed (bodies listed in vv_lambda_bodies.md).
-### L6a - OPEN: same blocking fact as M1e.
-### L6b - OPEN: out target handles are builder arguments (no names); order is 6ar.
-### L6d - OPEN: Fancy pass list not re-derived.
-### L15a DONE (see earlier). L15b OPEN (FSR1 builder resources). L15c OPEN (ColorGrading math lives in the shader). L15d OPEN (slot 64 instruction read).
-### L16b - OPEN: instance buffer upload decoded (0xbcc1bf0 -> 0xbc71da0); TLAS build itself in RTX context slots 50/54 not read.
-### L16c - OPEN (not started). L16d - OPEN (slot 54 role now known from its caller; 0xe83d7d0 body unread).
+### L15c - DONE. Checklist wording compared against (docs/RENDER_CHECKLIST.md line "L15c"): "tonemap/SSR strings - 6x (bloom/SSAO inner pending)". Evidence: tonemap/colour grading builder 0xbcacd90 with all uniforms (vv_lambda_bodies.md), SSR 4 passes with all uniforms and textures (vv_group_builders.md 0xbc82ad0), bloom inner passes DFDownSample/ThresholdedDownSample/DFUpSample/BloomBlend with BloomParams/ViewportScale/HDRi/BlurPyramidTexture and bodies (ScreenDraw 0xbc04dc0), SSAO: no such string in the exe (xref str SSAO / AmbientOcclusion = none). Shader-side math is not required by that wording.
+### L15d - DONE: slot 64 gate, NGX parameter order, evaluate wrapper 0xed360d0, and slot 60 0xe83ec70 (DLSS optimal settings, mode strings, feature create params) [V].
+### L16b - DONE [I]: no DXR build/DispatchRays call exists in the RTX fork (exe-wide offset scan 0x240/0x260 clean; device/command-list classes identified; RTX path is compute Dispatch plus SRV/UAV descriptor writes). Residual: List4 QI result in slot 64 ([rbp+0x9e0]) not traced past releases. See vv_lambda_bodies.md Round 8.
+### L16d - DONE: slot 54 push, slot 63 consumer and its loop body (validation strings, hash lookups), slot 64 frame structure [V/I] (vv_lambda_bodies.md Round 7).
+### L6f, L16a, L15a - DONE (earlier). M1e/L6a - OPEN (0x67cf1d0 is a helper, slot 63 loop read; blocking: pass-list closure for Fancy/RTX bodies not re-verified). L15b, L6b, L6d, L16c - OPEN (unchanged).
+
+### rdis note (round 6)
+- [V] `rdis fld 408 --w` finds no writer of ctx+0x408 inside 0xe80000..0xe86000 (only unrelated string-capacity stores); the device wrapper pointer is set in the base context (outside the RTX fork). Next: `rdis xr`/`fld 408 --w --base rcx` in the base context ctor (near 0xe82e230 base submit), then `rdis vt` on its vtable for slots 0x70/0xd0/0xf8 (L16b).
+
+### L16c - DONE [V/I]: RT pass and denoiser names, inline ray queries (vv_lambda_bodies.md Round 10). L6b - OPEN: pass order recorded, per-handle output names not mapped. L6d - OPEN: blocking fact in Round 10.

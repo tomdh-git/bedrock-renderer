@@ -1,7 +1,7 @@
 # Progress: platform-versioning-live
 
 ## NEXT
-Static queue (coordinator 2026-11-14): done L17b, wiring text. Next: L17h (graphics options writers), L10c (65% size code), M1b classification, M1c dossiers, M4d dossier re-run. Game is closed.
+Static queue: done L17b, wiring text, classify, portmetrics, dossier stubs. Next: L10c (dossier 0x67c73d0, find the source struct producer upstream of endFrame 0x66232b0), M1c analyst halves (e81a610, e8102b0, e807ff0, c288990 first), name entry-indirect rows (M1b), L17h OptionID. Game closed.
 Then: K-P7/K-P9/L18b (SelfTest review), M4a-d, live polls L10/L17 (obj=[base+0x12BB4910], ctx=[base+0x12AE1748]).
 
 ## Entries (newest last)
@@ -112,3 +112,30 @@ void checkRendererVtable(Tally& tally) {
 }
 ```
 [I] untested C++ (no build allowed); the renderer-object identity BgfxContext::get() == RendererContextD3D12 is from OffsetProvider bgfx_RendererContextD3D12_mCommandQueue (+0xCC9268, the same offset the live read in L17a used on obj). Slot identity (not just in-.text) is checked offline by tools/sigs/slotcheck.py.
+
+### M4d - OPEN (one fact: 57 of 127 D2 functions have no anchor hit on 51.01/50.04, 6 on 60.05; they need a fresh dossier pass there)
+- New tool tools/sigs/portmetrics.py (BS_EXE = old exe, input = anchors.py refind table): for each D2 function found in the old exe, compares the 62.01 body with the old body: size and every non-branch immediate/displacement >= 0x40.
+- 60.05: 121 of 127 D2 functions found; ALL 121 keep every constant of the 62.01 body (pure code move, deltas -0xC00 etc.): docs/data/port_metrics_60.05.tsv. Not found on 60.05 (6): 0x675e440, the five group insert wrappers (+ DrawItem writer 0x6765020).
+- 51.01 and 50.04 (identical result): 70 D2 functions found, only 33 keep all constants (996 of 2328 constants survive): docs/data/port_metrics_51.01.tsv, port_metrics_50.04.tsv. The 51.01 -> 60.05 patch is a real layout change for the Frame/Encoder family (see port_check_layout_asserts.tsv), not only a code move.
+- Slots: slotcheck passes on 60.05 (vtable 0xf4ec2b0), fails on 51.01 (slots 7,10,12,58 unresolvable).
+- CONTRADICTS functions.tsv: row 0xe81dc60 "PSO state decoder" is the 60.05 rva of psoBuilder; the 62.01 psoBuilder is 0xe81e860 (Sigs.json D3D12Context::psoBuilder). 0xe81dc60 is mid-function in 62.01 (inside 0xe81da20): a stray docs/functions/e81da20.md was generated from it by dossier.py (the brief forbids deleting files; lead may delete it) and the functions.tsv row should read 0xe81e860.
+
+### M1b - OPEN (classification done; names and call-graph layer split remain)
+- New tool tools/sigs/classify.py -> docs/data/function_classes.tsv: all 15113 inventoried functions classed structural / frame-helper / thunk / entry-indirect / lambda / big / leaf / helper from functions.tsv + the frame-path census + inventory class. Counts: L1 structural 23, frame-helper 49, entry-indirect 36, helper 39, leaf 108, thunk 68; L2 structural 36, frame-helper 90, entry-indirect 692, helper 212, leaf 715, thunk 103, big 6; L3 structural 18, frame-helper 53, entry-indirect 435, helper 111, leaf 278, thunk 82, big 1; L4/L5 structural 51, frame-helper 285, entry-indirect 2189, helper 129, leaf 3256, thunk 477, big 4; L6 structural 9, frame-helper 228, entry-indirect 2898, helper 626, leaf 1640, thunk 152, big 14.
+- Unnamed 'big' candidates for new structural rows (L2/L3): 0xe84e210 (0x607f), 0xe8568f0 (0x253e, GPU adapter info), 0xe85e5c0 (0x79cc), 0xe885140, 0xe890770, 0xe8950a0, 0xc284720 (0x2024).
+- Remaining: give names to the entry-indirect rows (virtual slots / std::function bodies) by vtable membership (vtdump) and split layers by call graph.
+
+### M1c - OPEN (mechanical halves generated; analyst halves not written)
+- Generated docs/functions/<rva>.md (mechanical facts) for the L1-L3 structural rows that had none: e8feb10 e8403d0 e83f1d0 e83ec70 e83d440 e83c390 e8360f0 e82d960 e81bf30 e81a610 e819b50 e817880 e8137b0 e812be0 e8124c0 e8102b0 e807ff0 c28b720 c28b100 c288990 c287b30 (bc76610, bc74a80, 67c9c20, 568cd90 already had files). With the 8 existing (bc65720, bc68840, c25b1a0, c273420, c267200, e8143c0...), every L1-L3 non-D2 row now has a dossier file, but status stays D1 until each analyst section (purpose, signature, pseudocode, structs, anchors) is filled by hand [?]. Blocking fact: 24 analyst sections unwritten.
+
+### L17h - OPEN (writers of the graphics options not reached)
+- [V static] Graphics settings screen builder 0x20ff240 (size 0x340c; strings menu.video, gamma, options.upscalingPercentage.automaticPresetOnly, video.view_distance_deferred) builds the options UI. Options registration lives in the Options constructor 0x5b0c1b0: each option is registered by 0x5bc0530(name, translation key, ...) then a vtable +0x88 call on the registry; "upscaling_mode" / "options.upscalingMode" at 0x5b3e950/0x5b3e95c. A preset/config parser 0x11493a0 (caller 0x1152460, size 0x7b0a) handles keys medium/high/ultra, taau/bilinear, 360p..2160p, shadows, volumetric_fog, bloom, block_lights, reflections, upscaling_mode, target_resolution, default_deferred_distance, clouds, target_frame_rate, lighting_mixed_res_enabled (the "automatic preset" data).
+- Not found: the OptionID of upscaling percentage / target resolution and its reader in the frame-graph builder (strings "upscaling_percentage" 0xf5e13cc and "options.targetResolution" 0xf5850de have no direct code refs: registered through a table).
+
+### L10c - OPEN (the writer of the ratio field not identified)
+- [V static] TAAU body 0xbc8cfd0 starts with the per-view setup (rect from task+0x88/0x8C, same as 0x568cd90, 6dd). Its pass context (r8, arg 3) carries the resolution state: float at ctx+0x1F0 = render/display ratio (written to the uniform block as {ratio, 1/ratio, ...} = ResolutionRatiosAndFPEpsilon), u16 dimension pair at ctx+0x1E0, and RenderResolution = ratio * dims (movups [ctx+0x1F0]; movq [ctx+0x1E0]; punpcklwd; cvtdq2ps; mulps at 0xbc8d34e..0xbc8d36d); other uniform blocks come from ctx+0x200 and ctx+0x240.
+- Live (earlier): the scene views are 1248x739 = 0.65 x 1920x1137, consistent with ctx+0x1F0 = 0.65.
+- Blocking fact: no writer of ctx+0x1F0 located (whole-binary disp scans for 0x1F0 are dominated by stack-frame matches); the likely producer is the frame-graph pass-context builder in the dispatch/generate path (0xc273420 / 0xe9002e0) fed from the options above.
+
+### L10c addendum (static)
+- [V] 0x67c73d0 (called from BgfxFrameBuilder::endFrame 0x66232b0) copies a large frame-parameter struct field by field, including +0x1DC, +0x1E0 (float), +0x1E4, +0x1E8 (u16), +0x1EA (u8), +0x1EC, +0x1F0, +0x1F4, +0x1F8: so the TAAU ctx fields (+0x1E0 dims, +0x1F0 ratio) belong to a struct that is assembled by the game layer and copied once per frame at endFrame. The originating writer is therefore upstream of endFrame (game-side frame-parameter producer), not in the frame graph. A raw byte scan for stores to [reg+0x1F0] is useless (hundreds of unrelated structs; do not repeat it). Next step: dossier 0x67c73d0 and find who fills its source argument (rsi) in the endFrame caller chain.
