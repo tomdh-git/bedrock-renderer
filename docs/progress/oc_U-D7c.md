@@ -1247,6 +1247,78 @@ loc_666fdc4:  ; from 666fdbb
 0x666fe58  je 0x666FF60                                  ; -> loc_666ff60
 ```
 
+### Gap 35b: 0x666fe58..0x666ff60 (thread-local check + shared_ref chain walk + buffer free path)
+```
+0x666fe5e  mov eax,[0x129CA5E0]                          ; [data_129ca5e0]
+0x666fe64  mov ecx,[0x128767C8]                          ; [data_128767c8]
+0x666fe6a  mov rdx,gs:[0x58]                             
+0x666fe73  mov rcx,[rdx+rcx*8]                           
+0x666fe77  cmp eax,[rcx+4]                               
+0x666fe7d  jg 0x66710A5                                  ; -> loc_66710a5
+
+loc_666fe83:  ; from 66710b8, 66710f1
+0x666fe83  cmp byte ptr [rbx+0x10],1                     
+0x666fe87  jne 0x666FF60                                 ; -> loc_666ff60
+0x666fe8d  mov rax,[rsi+8]                               
+0x666fe91  test rax,rax                                  
+0x666fe94  je short 0x666FEDA                            ; -> loc_666feda
+0x666fe96  lock inc dword ptr [rax+8]                    
+0x666fe9a  mov rax,[rsi]                                 
+0x666fe9d  mov rsi,[rsi+8]                               
+0x666fea1  mov rax,[rax+0x18]                            
+0x666fea5  mov rbx,[rax]                                 
+0x666fea8  test rsi,rsi                                  
+0x666feab  je short 0x666FEE4                            ; -> loc_666fee4
+0x666fead  lock dec dword ptr [rsi+8]                    
+0x666feb1  jne short 0x666FEE4                           ; -> loc_666fee4
+0x666feb3  mov rax,[rsi]                                 
+0x666feb6  mov rax,[rax]                                 
+0x666feb9  mov rcx,rsi                                   
+0x666febc  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+0x666fec2  lock dec dword ptr [rsi+0xC]                  
+0x666fec6  jne short 0x666FEE4                           ; -> loc_666fee4
+0x666fec8  mov rax,[rsi]                                 
+0x666fecb  mov rax,[rax+8]                               
+0x666fecf  mov rcx,rsi                                   
+0x666fed2  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+0x666fed8  jmp short 0x666FEE4                           ; -> loc_666fee4
+
+loc_666feda:  ; from 666fe94
+0x666feda  mov rax,[rsi]                                 
+0x666fedd  mov rax,[rax+0x18]                            
+0x666fee1  mov rbx,[rax]                                 
+
+loc_666fee4:  ; from 666feab, 666feb1, 666fec6, 666fed8
+0x666fee4  test rbx,rbx                                  
+0x666fee7  je short 0x666FF60                            ; -> loc_666ff60
+0x666fee9  mov rbx,[r14]                                 
+0x666feec  mov rax,[rbp+0x5C0]                           
+0x666fef3  xorps xmm0,xmm0                               
+0x666fef6  movaps [rbp+0x3F0],xmm0                       
+0x666fefd  mov rcx,[rax+8]                               
+0x666ff01  test rcx,rcx                                  
+0x666ff04  je 0x667005C                                  ; -> loc_667005c
+0x666ff0a  lock inc dword ptr [rcx+8]                    
+0x666ff0e  mov rsi,[rbp+0x3F8]                           
+0x666ff15  movups xmm0,[rax]                             
+0x666ff18  movaps [rbp+0x3F0],xmm0                       
+0x666ff1f  test rsi,rsi                                  
+0x666ff22  je 0x6670071                                  ; -> loc_6670071
+0x666ff28  lock dec dword ptr [rsi+8]                    
+0x666ff2c  jne 0x6670071                                 ; -> loc_6670071
+0x666ff32  mov rax,[rsi]                                 
+0x666ff35  mov rax,[rax]                                 
+0x666ff38  mov rcx,rsi                                   
+0x666ff3b  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+0x666ff41  lock dec dword ptr [rsi+0xC]                  
+0x666ff45  jne 0x6670071                                 ; -> loc_6670071
+0x666ff4b  mov rax,[rsi]                                 
+0x666ff4e  mov rax,[rax+8]                               
+0x666ff52  mov rcx,rsi                                   
+0x666ff55  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+0x666ff5b  jmp 0x6670071                                 ; -> loc_6670071
+```
+
 ### Gap 36: 0x666ff60..0x666ff97 (shared_ref cleanup)
 ```
 0x666ff60  mov rsi,[rbp+0x5C8]                           
@@ -5952,35 +6024,55 @@ loc_666ff97:  ; from 0x666ff6a, 0x666ff70, 0x666ff85
 
 ### COMPLETE FIELD READ SUMMARY (Effect tag 7 - FullscreenEffect)
 
-Combining all 8 chunks, the FullscreenEffect description (EffectDescriptions.h RenderFullscreenEffectDescriptionReads, size 0xD0) has the following fields READ by the visitor:
+Combining all chunks, the FullscreenEffect description (EffectDescriptions.h RenderFullscreenEffectDescriptionReads, size 0xD0) has the following fields READ by the visitor. Meaning inferred ONLY from code context at first read site; [UNVERIFIED] = not directly observed as a read in any chunk.
 
-| Offset | Size | Type | Description | First Read |
-|--------|------|------|-------------|------------|
-| +0x00 | 8 | ptr | mObject00 - object pointer | 0x666b9c6 |
-| +0x08 | 16 | SharedRefPair | mPad08 - sampler data for 0xBCAB8F0/0xBCABA00 | 0x666b9b2 |
-| +0x10 | 8 | u64 | mCount - element count | 0x666b6cf |
-| +0x18 | 16 | vec4 | mMatrix18[0] - first matrix row | 0x666d37a |
-| +0x28 | 16 | vec4 | mMatrix18[1] - second matrix row | 0x666f339 |
-| +0x38 | 16 | vec4 | mMatrix18[2] - third matrix row | 0x666f344 |
-| +0x48 | 16 | vec4 | mMatrix18[3] - fourth matrix row | 0x666f34f |
-| +0x58 | 12 | vec3+float | mVec58 - vec3 + padding | 0x666b891/0x666b897 |
-| +0x64 | 16 | vec4 | mVec64 - uniform data | 0x666f2fe |
-| +0x78 | 8 | ptr | mMesh78 - Mesh-like pointer | 0x666d4b1 |
-| +0x80 | 2 | u16 | (unnamed in header) | 0x666d610 |
-| +0x88 | 2 | u16 | mWord88 - record word | 0x666f36e |
-| +0xC8 | 1 | byte | mByteC8 - flag | 0x666d9c0 |
-| +0xC9 | 1 | byte | mByteC9 - flag | [I] from header |
+| Offset | Size | Type | Description (code-inferred) | First Read Site | Verified |
+|--------|------|------|-----------------------------|-----------------|----------|
+| +0x00  | 8    | ptr  | mObject00 - object pointer, passed to 0xBBD7F70/0x66B2B30 | 0x666b9c6 `movups xmm0,[r15]` | V |
+| +0x08  | 16   | SharedRefPair | mPad08 - sampler data for 0xBCAB8F0/0xBCABA00 | 0x666b9b2 `mov rax,[r15+8]` | V |
+| +0x10  | 8    | u64  | mCount - element count | 0x666b6cf `mov rax,[r15+0x10]` | V |
+| +0x18  | 16   | vec4 | mMatrix18[0] - first matrix row | 0x666d37a `movups xmm0,[r11+0x18]` | V |
+| +0x28  | 16   | vec4 | mMatrix18[1] - second matrix row | 0x666f339 `movups xmm1,[rax+0x28]` | V |
+| +0x38  | 16   | vec4 | mMatrix18[2] - third matrix row | 0x666f344 `movups xmm2,[rax+0x38]` | V |
+| +0x48  | 16   | vec4 | mMatrix18[3] - fourth matrix row | 0x666f34f `movups xmm3,[rax+0x48]` | V |
+| +0x58  | 12   | vec3+float | mVec58 - vec3 (+0x58, +0x5C) + padding | 0x666b891/0x666b897 `movss/movsd [r14+0x20/0x18]` | V |
+| +0x64  | 16   | vec4 | mVec64 - uniform data (static 0x129F9288) | 0x666f2fe `movups xmm0,[rax+0x64]` | V |
+| +0x78  | 8    | ptr  | mMesh78 - Mesh-like pointer (pointee+0x40 checked) | 0x666d4b1 `mov rsi,[r15+0x78]` | V |
+| +0x80  | 2    | u16  | (unnamed in header) - used as lookup count | 0x666d610 `mov si,[r15+0x80]` | V |
+| +0x88  | 2    | u16  | mWord88 - record word | 0x666f36e `mov si,[rax+0x88]` | V |
+| +0xC8  | 1    | byte | mByteC8 - flag (==1 check) | 0x666d9c0 `cmp byte ptr [r15+0xC8],1` | V |
+| +0xC9  | 1    | byte | mByteC9 - flag | [UNVERIFIED] not directly read in any chunk | [UNVERIFIED] |
 
 **Element structure (BlitFlipbookElementLayout-like, stride 0x40):**
-| Offset | Size | Type | Description |
-|--------|------|------|-------------|
-| +0x00 | 8 | ptr | mObject - mesh object |
-| +0x08 | 16 | SharedRefPair | mTexture - texture reference |
-| +0x18 | 8 | double | mFrameU - frame position |
-| +0x20 | 4 | float | mFrameLerp - frame lerp |
-| +0x24 | 16 | bytes | mBlock24 - 16 bytes data |
+| Offset | Size | Type | Description (code-inferred) | First Read Site | Verified |
+|--------|------|------|-----------------------------|-----------------|----------|
+| +0x00  | 8    | ptr  | mObject - mesh object | 0x666b942 `mov rsi,[r14]` | V |
+| +0x08  | 16   | SharedRefPair | mTexture - texture reference | 0x666b858 `lea r8,[r14+8]` | V |
+| +0x18  | 8    | double | mFrameU - frame position | 0x666b897 `movsd xmm1,[r14+0x18]` | V |
+| +0x20  | 4    | float | mFrameLerp - frame lerp | 0x666b891 `movss xmm0,[r14+0x20]` | V |
+| +0x24  | 16   | bytes | mBlock24 - 16 bytes data | 0x666ba25 `movups xmm0,[r14+0x24]` | V |
+
+**Frame ctx / visitor fields READ (not part of description):**
+| Location | Size | Use | First Read Site |
+|----------|------|-----|-----------------|
+| [r12] | 8 | frame ctx | throughout |
+| [rbx+0x3B8] | 8 | visitor field | 0x666bb00 |
+| [rdi+0x98] | 8 | early check | 0x666b622 |
+| [rbp+0x668] | 8 | SHARED SPILL SLOT = description | 0x666b6ef |
+| [r15+0x40] | 8 | frame ctx+0x40 | 0x666dbba |
+| [r15+0x68] | 8 | frame ctx+0x68 | 0x666dbbe |
+| [r15+0x84] | 4 | frame ctx+0x84 | 0x666c96f |
+| [r15+0x0C] | 16 | frame ctx+0x0C mat4 row0 | 0x666d090 |
+| [r15+0x1C] | 16 | frame ctx+0x1C mat4 row1 | 0x666d09c |
+| [r15+0x2C] | 16 | frame ctx+0x2C mat4 row2 | 0x666d0a8 |
+| [r15+0x3C] | 16 | frame ctx+0x3C mat4 row3 | 0x666d0b4 |
+| [r15+0x4C] | 2 | frame ctx+0x4C u16 | 0x666d0c7 |
+| [r15+0x5F0] | 1 | frame ctx+0x5F0 byte | 0x666d179 |
+| [r15+0x5E0] | 16 | frame ctx+0x5E0 vec4 | 0x666d186 |
+| [r15+0x08] | 4 | frame ctx+0x08 float | 0x666cfe1 |
+| [r15+0x1AC..0x1AF] | 4 | frame ctx flag bytes | 0x666d912/0x666d932/0x666d94a/0x666d962 |
 
 ---
 
 ### COMPLETE VERIFICATION
-Run: `python tools/sigs/verify_oc.py docs/progress/oc_U-D7c.md`
+Run: `python tools/sigs/verify_oc.py docs/progress/oc_U-D7c.md` → 3994/3994 match

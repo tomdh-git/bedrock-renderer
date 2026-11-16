@@ -1,5 +1,5 @@
 ## NEXT
-Continue sub_bc57460 pass body from 0xbc57cd7 (end of chunk 1)
+Continue sub_bc57460 pass body from 0xbc584de (end of chunk 2)
 
 ## Step 1: String Search Results
 [V] String search completed via rdis str for LightVolume, Light, Cluster, zLights, VoxelBuffer, LightLookup
@@ -1102,7 +1102,7 @@ loc_bc57cd7:  ; from bc57c5a
 9. 0xAA6580 (sub_aa6580) - called twice
 10. 0x1999390 (sub_1999390) - unknown
 
-### Chunk 2: 0xbc57cd7..0xbc594d7 (continuation - actual disassembly)
+### Chunk 2: 0xbc57cd7..0xbc584de (continuation - from actual rdis output)
 ```
 0xbc57cd7  cmp r15,rdi                                   
 0xbc57cda  je 0xBC5890F                                  ; -> loc_bc5890f
