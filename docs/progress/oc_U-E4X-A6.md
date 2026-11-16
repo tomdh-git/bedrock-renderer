@@ -1,0 +1,624 @@
+# Unit U-E4X-A6: chunk extractor body A — lines 3501..4013 of docs/data/listings/e4_A.txt
+## NEXT
+Next line to do: 3501
+Base RVA: 0x66ee95d; end RVA at line 4013: 0x66ef2ff
+Context: body A = variant kind dispatch inline body of ChunkGeometry extractor at 0x66ea3d0 (docs/functions/66ea3d0.md)
+
+### lines 3501..3540
+```asm
+0x66ee95d  mov rax,[rbp+0x1448]
+0x66ee964  mov [r15],rax
+0x66ee967  lea rcx,[r15+8]
+0x66ee96b  lea rdx,[rbp+0x1450]
+0x66ee972  call 0xE869FF0
+0x66ee977  nop
+0x66ee978  mov rax,[rbp+0x14C8]
+0x66ee97f  mov [r15+0x80],rax
+0x66ee986  mov qword ptr [rbp+0x14C8],0
+0x66ee991  add qword ptr [rbx+0x770],0x88
+0x66ee99c  jmp 0x66EEC6C
+0x66ee9a1  lea rcx,[rbx+0x858]
+0x66ee9a8  call 0x6760E60
+0x66ee9ad  nop
+0x66ee9ae  mov rcx,[0x1233E1B0]
+0x66ee9b5  mov rax,[rcx]
+0x66ee9b8  mov rax,[rax+0x10]
+0x66ee9bc  movzx edx,byte ptr [rbp+0x16D0]
+0x66ee9c3  call qword ptr [0xF99FFA0]
+0x66ee9c9  nop
+0x66ee9ca  mov eax,[rbx+0x858]
+0x66ee9d0  not eax
+0x66ee9d2  add eax,[rbx+0x860]
+0x66ee9d8  mov [rbp+0x1146],ax
+0x66ee9df  mov rcx,[0x1233E1B0]
+0x66ee9e6  mov rax,[rcx]
+0x66ee9e9  mov rax,[rax+0x10]
+0x66ee9ed  mov dl,0x4A
+0x66ee9ef  call qword ptr [0xF99FFA0]
+0x66ee9f5  mov [rbp+0x16D0],al
+0x66ee9fb  lea rcx,[rbx+0x648]
+0x66eea02  lea rdx,[rbp+0x1528]
+0x66eea09  call 0x675FB30
+0x66eea0e  nop
+0x66eea0f  mov rcx,[0x1233E1B0]
+0x66eea16  mov rax,[rcx]
+0x66eea19  mov rax,[rax+0x10]
+0x66eea1d  movzx edx,byte ptr [rbp+0x16D0]
+0x66eea24  call qword ptr [0xF99FFA0]
+0x66eea2a  nop
+```
+Meaning: Store entry header at [r15] from [rbp+0x1448], call 0xE869FF0(&r15+8, &[rbp+0x1450]) to copy descriptor [V], store [rbp+0x14C8] at [r15+0x80], zero [rbp+0x14C8], advance builder cursor [rbx+0x770] by 0x88, jump 0x66EEC6C [V]. Fallback path (cursor full): release via 0x6760E60(&[rbx+0x858]) [V]. Query feature flag via vtable [0xF99FFA0](ctx, byte [rbp+0x16D0]) twice, store result back at [rbp+0x16D0] [V]. Compute packed index: (~[rbx+0x858] + [rbx+0x860]) -> [rbp+0x1146] [V]. Call 0x675FB30(&[rbx+0x648], &[rbp+0x1528]) to copy block header [V]. Callee RVAs: 0xe869ff0, 0x6760e60, [0xF99FFA0], 0x675fb30 [V].
+
+## NEXT
+Next line to do: 3541 (phase 1 of 13 complete)
+
+### lines 3541..3580
+```asm
+0x66eea2b  mov eax,[rbx+0x650]
+0x66eea31  sub eax,[rbx+0x648]
+0x66eea37  shr eax,3
+0x66eea3a  imul eax,0xFFFF8E39
+0x66eea40  dec eax
+0x66eea42  mov [rbp+0x1172],ax
+0x66eea49  lea rcx,[rbx+0x780]
+0x66eea50  lea rdx,[rbp+0x14D0]
+0x66eea57  call 0x675F3B0
+0x66eea5c  nop
+0x66eea5d  mov qword ptr [rbp+0x1130],0x2005009
+0x66eea68  mov eax,[rbx+0x788]
+0x66eea6e  sub eax,[rbx+0x780]
+0x66eea74  shr eax,3
+0x66eea77  imul eax,0xFFFF8BA3
+0x66eea7d  dec eax
+0x66eea7f  mov [rbp+0x1158],ax
+0x66eea86  mov rcx,[0x1233E1B0]
+0x66eea8d  mov rax,[rcx]
+0x66eea90  mov rax,[rax+0x10]
+0x66eea94  mov dl,0x4A
+0x66eea96  call qword ptr [0xF99FFA0]
+0x66eea9c  nop
+0x66eea9d  mov [rbp+0x16D0],al
+0x66eeaa3  mov r15,[rbx+0x770]
+0x66eeaaa  cmp r15,[rbx+0x778]
+0x66eeab1  je 0x66EECE6
+0x66eeab7  mov rax,[rbp+0x1448]
+0x66eeabe  mov [r15],rax
+0x66eeac1  lea rcx,[r15+8]
+0x66eeac5  lea rdx,[rbp+0x1450]
+0x66eeacc  call 0xE869FF0
+0x66eead1  nop
+0x66eead2  mov rax,[rbp+0x14C8]
+0x66eead9  mov [r15+0x80],rax
+0x66eeae0  mov qword ptr [rbp+0x14C8],0
+0x66eeaeb  add qword ptr [rbx+0x770],0x88
+0x66eeaf6  jmp 0x66EECFD
+0x66eeafb  lea rcx,[rbx+0x858]
+0x66eeb02  call 0x6760E60
+0x66eeb07  nop
+```
+Meaning: Compute block count (([rbx+0x650]-[rbx+0x648])>>3)*magic - 1 -> [rbp+0x1172] [V]. Copy source block 0x675F3B0(&[rbx+0x780], &[rbp+0x14D0]) [V]. Store tag 0x2005009 at [rbp+0x1130] [V]. Compute second count (([rbx+0x788]-[rbx+0x780])>>3)*magic - 1 -> [rbp+0x1158] [V]. Query flag 0x4A via vcall [0xF99FFA0] [V]. If cursor [rbx+0x770] < end [rbx+0x778]: store [rbp+0x1448] at [r15], call 0xE869FF0(&r15+8, &[rbp+0x1450]) copy descriptor, store [rbp+0x14C8] at [r15+0x80], zero it, advance cursor by 0x88, jump 0x66EECFD [V]. Else release 0x6760E60(&[rbx+0x858]) [V]. Callee RVAs: 0x675f3b0, [0xF99FFA0], 0xe869ff0, 0x6760e60 [V].
+
+## NEXT
+Next line to do: 3581 (phase 2 of 13 complete)
+
+### lines 3581..3620
+```asm
+0x66eeb07  nop
+0x66eeb08  mov rcx,[0x1233E1B0]
+0x66eeb0f  mov rax,[rcx]
+0x66eeb12  mov rax,[rax+0x10]
+0x66eeb16  movzx edx,byte ptr [rbp+0x16D0]
+0x66eeb1d  call qword ptr [0xF99FFA0]
+0x66eeb23  nop
+0x66eeb24  mov qword ptr [rbp+0x1130],0x4009
+0x66eeb2f  mov eax,[rbx+0x858]
+0x66eeb35  not eax
+0x66eeb37  add eax,[rbx+0x860]
+0x66eeb3d  mov [rbp+0x1146],ax
+0x66eeb44  mov rcx,[0x1233E1B0]
+0x66eeb4b  mov rax,[rcx]
+0x66eeb4e  mov rax,[rax+0x10]
+0x66eeb52  mov dl,0x4A
+0x66eeb54  call qword ptr [0xF99FFA0]
+0x66eeb5a  mov [rbp+0x16D0],al
+0x66eeb60  lea rcx,[rbx+0x648]
+0x66eeb67  lea rdx,[rbp+0x1530]
+0x66eeb6e  call 0x675FB30
+0x66eeb73  nop
+0x66eeb74  mov rcx,[0x1233E1B0]
+0x66eeb7b  mov rax,[rcx]
+0x66eeb7e  mov rax,[rax+0x10]
+0x66eeb82  movzx edx,byte ptr [rbp+0x16D0]
+0x66eeb89  call qword ptr [0xF99FFA0]
+0x66eeb8f  nop
+0x66eeb90  mov eax,[rbx+0x650]
+0x66eeb96  sub eax,[rbx+0x648]
+0x66eeb9c  shr eax,3
+0x66eeb9f  imul eax,0xFFFF8E39
+0x66eeba5  dec eax
+0x66eeba7  mov [rbp+0x1172],ax
+0x66eebae  lea rcx,[rbx+0x780]
+0x66eebb5  lea rdx,[rbp+0x14D8]
+0x66eebbc  call 0x675F3B0
+0x66eebc1  nop
+0x66eebc2  mov eax,[rbx+0x788]
+0x66eebc8  sub eax,[rbx+0x780]
+0x66eebce  shr eax,3
+0x66eebd1  imul eax,0xFFFF8BA3
+0x66eebd7  dec eax
+0x66eebd9  mov [rbp+0x1158],ax
+0x66eebe0  mov rcx,[0x1233E1B0]
+0x66eebe7  mov rax,[rcx]
+0x66eebea  mov rax,[rax+0x10]
+0x66eebee  mov dl,0x4A
+0x66eebf0  call qword ptr [0xF99FFA0]
+0x66eebf6  nop
+0x66eebf7  mov [rbp+0x16D0],al
+```
+Meaning: Query flag 0x4A via vcall [0xF99FFA0] [V]. Store tag 0x4009 at [rbp+0x1130] [V]. Compute packed index (~[rbx+0x858] + [rbx+0x860]) -> [rbp+0x1146] [V]. Query flag 0x4A again [V]. Call 0x675FB30(&[rbx+0x648], &[rbp+0x1530]) copy block [V]. Compute block count1 -> [rbp+0x1172] [V]. Copy source block 0x675F3B0(&[rbx+0x780], &[rbp+0x14D8]) [V]. Compute block count2 -> [rbp+0x1158] [V]. Query flag 0x4A via vcall [0xF99FFA0] [V]. Callee RVAs: [0xF99FFA0], 0x675fb30, 0x675f3b0 [V].
+
+## NEXT
+Next line to do: 3621 (phase 3 of 13 complete)
+
+### lines 3621..3660
+```asm
+0x66eebfd  mov r15,[rbx+0x770]
+0x66eec04  cmp r15,[rbx+0x778]
+0x66eec0b  je 0x66EED77
+0x66eec11  mov rax,[rbp+0x1450]
+0x66eec18  mov [r15],rax
+0x66eec1b  lea rcx,[r15+8]
+0x66eec1f  lea rdx,[rbp+0x1458]
+0x66eec26  call 0xE869FF0
+0x66eec2b  nop
+0x66eec2c  mov rax,[rbp+0x14D0]
+0x66eec33  mov [r15+0x80],rax
+0x66eec3a  mov qword ptr [rbp+0x14D0],0
+0x66eec45  add qword ptr [rbx+0x770],0x88
+0x66eec50  jmp 0x66EED8E
+0x66eec55  lea rcx,[rbx+0x768]
+0x66eec5c  mov rdx,r15
+0x66eec5f  lea r8,[rbp+0x1448]
+0x66eec66  call 0x6760710
+0x66eec6b  nop
+0x66eec6c  mov rcx,[0x1233E1B0]
+0x66eec73  mov rax,[rcx]
+0x66eec76  mov rax,[rax+0x10]
+0x66eec7a  movzx edx,byte ptr [rbp+0x16D0]
+0x66eec81  call qword ptr [0xF99FFA0]
+0x66eec87  nop
+0x66eec88  mov eax,[rbx+0x770]
+0x66eec8e  sub eax,[rbx+0x768]
+0x66eec94  shr eax,3
+0x66eec97  imul eax,0xFFFFF0F1
+0x66eec9d  dec eax
+0x66eec9f  mov [rbp+0x115A],ax
+0x66eeca6  mov rcx,[0x1233E1B0]
+0x66eecad  mov rax,[rcx]
+0x66eecb0  mov rax,[rax+0x10]
+0x66eecb4  mov dl,0x4A
+0x66eecb6  call qword ptr [0xF99FFA0]
+0x66eecbc  nop
+0x66eecbd  mov [rbp+0x16D0],al
+```
+Meaning: If cursor [rbx+0x770] < end [rbx+0x778]: store [rbp+0x1450] at [r15], call 0xE869FF0(&r15+8, &[rbp+0x1458]) copy descriptor [V], store [rbp+0x14D0] at [r15+0x80], zero it, advance cursor by 0x88, jump 0x66EED8E [V]. Else call 0x6760710(&[rbx+0x768], r15, &[rbp+0x1448]) to handle full cursor [V]. Query flag 0x4A via vcall [0xF99FFA0] [V]. Compute packed count (([rbx+0x770]-[rbx+0x768])>>3)*magic - 1 -> [rbp+0x115A] [V]. Query flag 0x4A again [V]. Callee RVAs: 0xe869ff0, 0x6760710, [0xF99FFA0] [V].
+
+## NEXT
+Next line to do: 3661 (phase 4 of 13 complete)
+
+### lines 3661..3700
+```asm
+0x66eeca6  mov rcx,[0x1233E1B0]
+0x66eecad  mov rax,[rcx]
+0x66eecb0  mov rax,[rax+0x10]
+0x66eecb4  mov dl,0x4A
+0x66eecb6  call qword ptr [0xF99FFA0]
+0x66eecbc  nop
+0x66eecbd  mov [rbp+0x16D0],al
+0x66eecc3  mov rdx,[rbx+0x2D8]
+0x66eecca  cmp rdx,[rbx+0x2E0]
+0x66eecd1  je 0x66EEE37
+0x66eecd7  inc rdx
+0x66eecda  mov [rbx+0x2D8],rdx
+0x66eece1  jmp 0x66EEE47
+0x66eece6  lea rcx,[rbx+0x768]
+0x66eeced  mov rdx,r15
+0x66eecf0  lea r8,[rbp+0x1448]
+0x66eecf7  call 0x6760710
+0x66eecfc  nop
+0x66eecfd  mov rcx,[0x1233E1B0]
+0x66eed04  mov rax,[rcx]
+0x66eed07  mov rax,[rax+0x10]
+0x66eed0b  movzx edx,byte ptr [rbp+0x16D0]
+0x66eed12  call qword ptr [0xF99FFA0]
+0x66eed18  nop
+0x66eed19  mov eax,[rbx+0x770]
+0x66eed1f  sub eax,[rbx+0x768]
+0x66eed25  shr eax,3
+0x66eed28  imul eax,0xFFFFF0F1
+0x66eed2e  dec eax
+0x66eed30  mov [rbp+0x115A],ax
+0x66eed37  mov rcx,[0x1233E1B0]
+0x66eed3e  mov rax,[rcx]
+0x66eed41  mov rax,[rax+0x10]
+0x66eed45  mov dl,0x4A
+0x66eed47  call qword ptr [0xF99FFA0]
+0x66eed4d  nop
+0x66eed4e  mov [rbp+0x16D0],al
+0x66eed54  mov rdx,[rbx+0x608]
+```
+Meaning: Query flag 0x4A via vcall [0xF99FFA0] [V]. If counter [rbx+0x2D8] < limit [rbx+0x2E0]: increment counter, jump 0x66EEE47 [V]. Else call 0x6760710(&[rbx+0x768], r15, &[rbp+0x1448]) to flush full buffer [V]. Query flag 0x4A via vcall [0xF99FFA0] [V]. Compute packed count (([rbx+0x770]-[rbx+0x768])>>3)*magic - 1 -> [rbp+0x115A] [V]. Query flag 0x4A via vcall [0xF99FFA0] [V]. Load counter ptr [rbx+0x608]. Callee RVAs: [0xF99FFA0], 0x6760710 [V].
+
+## NEXT
+Next line to do: 3701 (phase 5 of 13 complete)
+
+### lines 3701..3740
+```asm
+0x66eed5b  cmp rdx,[rbx+0x610]
+0x66eed62  je 0x66EEED6
+0x66eed68  inc rdx
+0x66eed6b  mov [rbx+0x608],rdx
+0x66eed72  jmp 0x66EEEE6
+0x66eed77  lea rcx,[rbx+0x768]
+0x66eed7e  mov rdx,r15
+0x66eed81  lea r8,[rbp+0x1450]
+0x66eed88  call 0x6760710
+0x66eed8d  nop
+0x66eed8e  mov rcx,[0x1233E1B0]
+0x66eed95  mov rax,[rcx]
+0x66eed98  mov rax,[rax+0x10]
+0x66eed9c  movzx edx,byte ptr [rbp+0x16D0]
+0x66eeda3  call qword ptr [0xF99FFA0]
+0x66eeda9  nop
+0x66eedaa  mov qword ptr [rbp+0x1130],0x2007009
+0x66eedb5  mov eax,[rbx+0x770]
+0x66eedbb  sub eax,[rbx+0x768]
+0x66eedc1  shr eax,3
+0x66eedc4  imul eax,0xFFFFF0F1
+0x66eedca  dec eax
+0x66eedcc  mov [rbp+0x115A],ax
+0x66eedd3  mov rcx,[0x1233E1B0]
+0x66eedda  mov rax,[rcx]
+0x66eeddd  mov rax,[rax+0x10]
+0x66eede1  mov dl,0x4A
+0x66eede3  call qword ptr [0xF99FFA0]
+0x66eede9  nop
+0x66eedea  mov [rbp+0x16D0],al
+0x66eedf0  mov rdx,[rbx+0x680]
+0x66eedf7  cmp rdx,[rbx+0x688]
+0x66eedfe  je 0x66EEF6F
+0x66eee04  movss xmm0,[rbp+0x1444]
+0x66eee0c  movss [rdx],xmm0
+0x66eee10  movss xmm0,[rbp+0x1448]
+0x66eee18  movss [rdx+4],xmm0
+0x66eee1d  movss xmm0,[rbp+0x144C]
+0x66eee25  movss [rdx+8],xmm0
+0x66eee2a  add qword ptr [rbx+0x680],0xC
+0x66eee32  jmp 0x66EEF83
+```
+Meaning: If counter [rbx+0x608] < limit [rbx+0x610]: increment, jump 0x66EEEE6 [V]. Else call 0x6760710(&[rbx+0x768], r15, &[rbp+0x1450]) to flush [V]. Query flag 0x4A via vcall [0xF99FFA0] [V]. Store tag 0x2007009 at [rbp+0x1130] [V]. Compute packed count (([rbx+0x770]-[rbx+0x768])>>3)*magic - 1 -> [rbp+0x115A] [V]. Query flag 0x4A via vcall [0xF99FFA0] [V]. If vec counter [rbx+0x680] < limit [rbx+0x688]: store 3 floats [rbp+0x1444/0x1448/0x144C] at [rdx], advance by 0xC, jump 0x66EEF83 [V]. Callee RVAs: [0xF99FFA0], 0x6760710 [V].
+
+## NEXT
+Next line to do: 3741 (phase 6 of 13 complete)
+
+### lines 3741..3780
+```asm
+0x66eee37  mov rcx,rbx
+0x66eee3a  add rcx,0x2D0
+0x66eee41  call 0x6760E60
+0x66eee46  nop
+0x66eee47  mov rcx,[0x1233E1B0]
+0x66eee4e  mov rax,[rcx]
+0x66eee51  mov rax,[rax+0x10]
+0x66eee55  movzx edx,byte ptr [rbp+0x16D0]
+0x66eee5c  call qword ptr [0xF99FFA0]
+0x66eee62  nop
+0x66eee63  mov rax,0x4000000002007009
+0x66eee6d  mov [rbp+0x1130],rax
+0x66eee74  mov eax,[rbx+0x2D0]
+0x66eee7a  not eax
+0x66eee7c  add eax,[rbx+0x2D8]
+0x66eee82  mov [rbp+0x11BC],ax
+0x66eee89  mov rcx,[0x1233E1B0]
+0x66eee90  mov rax,[rcx]
+0x66eee93  mov rax,[rax+0x10]
+0x66eee97  mov dl,0x4A
+0x66eee99  call qword ptr [0xF99FFA0]
+0x66eee9f  nop
+0x66eeea0  mov [rbp+0x16D0],al
+0x66eeea6  mov rdx,[rbx+8]
+0x66eeeaa  cmp rdx,[rbx+0x10]
+0x66eeeae  je 0x66EEFFD
+0x66eeeb4  mov r8d,0xC8
+0x66eeeba  mov rcx,rdx
+0x66eeebd  lea rdx,[rbp+0x1130]
+0x66eeec4  call 0xEEC6EC0
+0x66eeec9  add qword ptr [rbx+8],0xC8
+0x66eeed1  jmp 0x66EF00D
+0x66eeed6  mov rcx,rbx
+0x66eeed9  add rcx,0x600
+0x66eeee0  call 0x6760E60
+0x66eeee5  nop
+0x66eeee6  mov rcx,[0x1233E1B0]
+0x66eeeed  mov rax,[rcx]
+0x66eeef0  mov rax,[rax+0x10]
+0x66eeef4  movzx edx,byte ptr [rbp+0x16D0]
+0x66eeefb  call qword ptr [0xF99FFA0]
+0x66eef01  nop
+```
+Meaning: Call 0x6760E60(&[rbx+0x2D0]) to release/flush [V]. Query flag 0x4A via vcall [0xF99FFA0] [V]. Store tag 0x4000000002007009 at [rbp+0x1130] [V]. Compute packed index (~[rbx+0x2D0] + [rbx+0x2D8]) -> [rbp+0x11BC] [V]. Query flag 0x4A via vcall [0xF99FFA0] [V]. If buffer [rbx+8] < end [rbx+0x10]: call 0xEEC6EC0(rdx, &[rbp+0x1130], 0xC8) to write 0xC8 bytes, advance by 0xC8, jump 0x66EF00D [V]. Else call 0x6760E60(&[rbx+0x600]) to flush [V]. Query flag 0x4A via vcall [0xF99FFA0] [V]. Callee RVAs: 0x6760e60, [0xF99FFA0], 0xeec6ec0 [V].
+
+## NEXT
+Next line to do: 3781 (phase 7 of 13 complete)
+
+### lines 3781..3820
+```asm
+0x66eef02  mov qword ptr [rbp+0x1130],0x12007009
+0x66eef0d  mov eax,[rbx+0x600]
+0x66eef13  not eax
+0x66eef15  add eax,[rbx+0x608]
+0x66eef1b  mov [rbp+0x1178],ax
+0x66eef22  mov rcx,[0x1233E1B0]
+0x66eef29  mov rax,[rcx]
+0x66eef2c  mov rax,[rax+0x10]
+0x66eef30  mov dl,0x4A
+0x66eef32  call qword ptr [0xF99FFA0]
+0x66eef38  nop
+0x66eef39  mov [rbp+0x16D0],al
+0x66eef3f  mov rdx,[rbx+8]
+0x66eef43  cmp rdx,[rbx+0x10]
+0x66eef47  je 0x66EF04F
+0x66eef4d  mov r8d,0xC8
+0x66eef53  mov rcx,rdx
+0x66eef56  lea rdx,[rbp+0x1130]
+0x66eef5d  call 0xEEC6EC0
+0x66eef62  add qword ptr [rbx+8],0xC8
+0x66eef6a  jmp 0x66EF05F
+0x66eef6f  lea rcx,[rbx+0x678]
+0x66eef76  lea r8,[rbp+0x1444]
+0x66eef7d  call 0x1770A70
+0x66eef82  nop
+0x66eef83  mov rcx,[0x1233E1B0]
+0x66eef8a  mov rax,[rcx]
+0x66eef8d  mov rax,[rax+0x10]
+0x66eef91  movzx edx,byte ptr [rbp+0x16D0]
+0x66eef98  call qword ptr [0xF99FFA0]
+0x66eef9e  nop
+0x66eef9f  mov eax,[rbx+0x680]
+0x66eefa5  sub eax,[rbx+0x678]
+0x66eefab  shr eax,2
+0x66eefae  imul eax,0xFFFFAAAB
+0x66eefb4  dec eax
+0x66eefb6  mov [rbp+0x116E],ax
+0x66eefbd  mov rcx,[0x1233E1B0]
+0x66eefc4  mov rax,[rcx]
+0x66eefc7  mov rax,[rax+0x10]
+0x66eefcb  mov dl,0x4A
+0x66eefcd  call qword ptr [0xF99FFA0]
+0x66eefd3  nop
+0x66eefd4  mov [rbp+0x16D0],al
+```
+Meaning: Store tag 0x12007009 at [rbp+0x1130] [V]. Compute packed index (~[rbx+0x600] + [rbx+0x608]) -> [rbp+0x1178] [V]. Query flag 0x4A via vcall [0xF99FFA0] [V]. If buffer [rbx+8] < end [rbx+0x10]: call 0xEEC6EC0(rdx, &[rbp+0x1130], 0xC8) write block, advance by 0xC8, jump 0x66EF05F [V]. Else call 0x1770A70(&[rbx+0x678], &[rbp+0x1444]) to flush vec buffer [V]. Query flag 0x4A via vcall [0xF99FFA0] [V]. Compute packed vec count (([rbx+0x680]-[rbx+0x678])>>2)*magic - 1 -> [rbp+0x116E] [V]. Query flag 0x4A via vcall [0xF99FFA0] [V]. Callee RVAs: [0xF99FFA0], 0xeec6ec0, 0x1770a70 [V].
+
+## NEXT
+Next line to do: 3821 (phase 8 of 13 complete)
+
+### lines 3821..3860
+```asm
+0x66eefd4  mov [rbp+0x16D0],al
+0x66eefda  mov rdx,[rbx+0x608]
+0x66eefe1  cmp rdx,[rbx+0x610]
+0x66eefe8  je 0x66EF098
+0x66eefee  inc rdx
+0x66eeff1  mov [rbx+0x608],rdx
+0x66eeff8  jmp 0x66EF0A8
+0x66eeffd  mov rcx,rbx
+0x66ef000  lea r8,[rbp+0x1130]
+0x66ef007  call 0x5ABA6D0
+0x66ef00c  nop
+0x66ef00d  mov rcx,[0x1233E1B0]
+0x66ef014  mov rax,[rcx]
+0x66ef017  mov rax,[rax+0x10]
+0x66ef01b  movzx edx,byte ptr [rbp+0x16D0]
+0x66ef022  call qword ptr [0xF99FFA0]
+0x66ef028  nop
+0x66ef029  lea rcx,[rbp+0x1440]
+0x66ef030  call 0x67E1840
+0x66ef035  lea rcx,[rbp+0xF70]
+0x66ef03c  call 0x67E23F0
+0x66ef041  test r12b,r12b
+0x66ef044  jne 0x66EF170
+0x66ef04a  jmp 0x66EF1B0
+0x66ef04f  mov rcx,rbx
+0x66ef052  lea r8,[rbp+0x1130]
+0x66ef059  call 0x5ABA6D0
+0x66ef05e  nop
+0x66ef05f  mov rcx,[0x1233E1B0]
+0x66ef066  mov rax,[rcx]
+0x66ef069  mov rax,[rax+0x10]
+0x66ef06d  movzx edx,byte ptr [rbp+0x16D0]
+0x66ef074  call qword ptr [0xF99FFA0]
+0x66ef07a  nop
+0x66ef07b  lea rcx,[rbp+0x1440]
+0x66ef082  call 0x67E1840
+0x66ef087  lea rcx,[rbp+0xF70]
+0x66ef08e  call 0x67E23F0
+0x66ef093  jmp 0x66EF170
+```
+Meaning: Query flag 0x4A via vcall [0xF99FFA0] [V]. If counter [rbx+0x608] < limit [rbx+0x610]: increment, jump 0x66EF0A8 [V]. Else call 0x5ABA6D0(&[rbx], &[rbp+0x1130]) to flush [V]. Query flag 0x4A via vcall [0xF99FFA0] [V]. Call 0x67E1840(&[rbp+0x1440]) destroy geometry [V]; call 0x67E23F0(&[rbp+0xF70]) release shared_ptr [V]; if r12b!=0 jump 0x66EF170 else jump 0x66EF1B0 [V]. Else path (counter full): call 0x5ABA6D0(&[rbx], &[rbp+0x1130]) [V]. Query flag 0x4A via vcall [0xF99FFA0] [V]. Call 0x67E1840(&[rbp+0x1440]) destroy [V]; call 0x67E23F0(&[rbp+0xF70]) release [V]; jump 0x66EF170 [V]. Callee RVAs: [0xF99FFA0], 0x5aba6d0, 0x67e1840, 0x67e23f0 [V].
+
+## NEXT
+Next line to do: 3861 (phase 9 of 13 complete)
+
+### lines 3861..3900
+```asm
+0x66ef098  mov rcx,rbx
+0x66ef09b  add rcx,0x600
+0x66ef0a2  call 0x6760E60
+0x66ef0a7  nop
+0x66ef0a8  mov rcx,[0x1233E1B0]
+0x66ef0af  mov rax,[rcx]
+0x66ef0b2  mov rax,[rax+0x10]
+0x66ef0b6  movzx edx,byte ptr [rbp+0x16D0]
+0x66ef0bd  call qword ptr [0xF99FFA0]
+0x66ef0c3  nop
+0x66ef0c4  mov qword ptr [rbp+0x1130],0x12807009
+0x66ef0cf  mov eax,[rbx+0x600]
+0x66ef0d5  not eax
+0x66ef0d7  add eax,[rbx+0x608]
+0x66ef0dd  mov [rbp+0x1178],ax
+0x66ef0e4  mov rcx,[0x1233E1B0]
+0x66ef0eb  mov rax,[rcx]
+0x66ef0ee  mov rax,[rax+0x10]
+0x66ef0f2  mov dl,0x4A
+0x66ef0f4  call qword ptr [0xF99FFA0]
+0x66ef0fa  nop
+0x66ef0fb  mov [rbp+0x16D0],al
+0x66ef101  mov rdx,[rbx+8]
+0x66ef105  cmp rdx,[rbx+0x10]
+0x66ef109  je short 0x66EF12A
+0x66ef10b  mov r8d,0xC8
+0x66ef111  mov rcx,rdx
+0x66ef114  lea rdx,[rbp+0x1130]
+0x66ef11b  call 0xEEC6EC0
+0x66ef120  add qword ptr [rbx+8],0xC8
+0x66ef128  jmp short 0x66EF13A
+0x66ef12a  mov rcx,rbx
+0x66ef12d  lea r8,[rbp+0x1130]
+0x66ef134  call 0x5ABA6D0
+0x66ef139  nop
+```
+Meaning: Call 0x6760E60(&[rbx+0x600]) flush buffer [V]. Query flag 0x4A via vcall [0xF99FFA0] [V]. Store tag 0x12807009 at [rbp+0x1130] [V]. Compute packed index (~[rbx+0x600] + [rbx+0x608]) -> [rbp+0x1178] [V]. Query flag 0x4A via vcall [0xF99FFA0] [V]. If buffer [rbx+8] < end [rbx+0x10]: call 0xEEC6EC0(rdx, &[rbp+0x1130], 0xC8) write block, advance by 0xC8, jump 0x66EF13A [V]. Else call 0x5ABA6D0(&[rbx], &[rbp+0x1130]) flush [V]. Callee RVAs: 0x6760e60, [0xF99FFA0], 0xeec6ec0, 0x5aba6d0 [V].
+
+## NEXT
+Next line to do: 3901 (phase 10 of 13 complete)
+
+### lines 3901..3940
+```asm
+0x66ef13a  mov rcx,[0x1233E1B0]
+0x66ef141  mov rax,[rcx]
+0x66ef144  mov rax,[rax+0x10]
+0x66ef148  movzx edx,byte ptr [rbp+0x16D0]
+0x66ef14f  call qword ptr [0xF99FFA0]
+0x66ef155  nop
+0x66ef156  lea rcx,[rbp+0x1440]
+0x66ef15d  call 0x67E1660
+0x66ef162  lea rcx,[rbp+0xF70]
+0x66ef169  call 0x67E1660
+0x66ef16e  xchg ax,ax
+0x66ef170  mov rbx,[rbp+0x1428]
+0x66ef177  test rbx,rbx
+0x66ef17a  je short 0x66EF1B0
+0x66ef17c  lock dec dword ptr [rbx+8]
+0x66ef180  jne short 0x66EF1B0
+0x66ef182  mov rax,[rbx]
+0x66ef185  mov rax,[rax]
+0x66ef188  mov rcx,rbx
+0x66ef18b  call qword ptr [0xF99FFA0]
+0x66ef191  lock dec dword ptr [rbx+0xC]
+0x66ef195  jne short 0x66EF1B0
+0x66ef197  mov rax,[rbx]
+0x66ef19a  mov rax,[rax+8]
+0x66ef19e  mov rcx,rbx
+0x66ef1a1  call qword ptr [0xF99FFA0]
+0x66ef1a7  nop [rax+rax]
+0x66ef1b0  cmp byte ptr [rbp+0xDF0],3
+0x66ef1b7  jne short 0x66EF1F0
+0x66ef1b9  mov rbx,[rbp+0xDE8]
+0x66ef1c0  test rbx,rbx
+0x66ef1c3  je short 0x66EF1F0
+0x66ef1c5  lock dec dword ptr [rbx+8]
+0x66ef1c9  jne short 0x66EF1F0
+0x66ef1cb  mov rax,[rbx]
+0x66ef1ce  mov rax,[rax]
+0x66ef1d1  mov rcx,rbx
+0x66ef1d4 call qword ptr [0xF99FFA0]
+0x66ef1da  lock dec dword ptr [rbx+0xC]
+0x66ef1de  jne short 0x66EF1F0
+0x66ef1e0  mov rax,[rbx]
+0x66ef1e3  mov rax,[rax+8]
+0x66ef1e7  mov rcx,rbx
+0x66ef1ea call qword ptr [0xF99FFA0]
+0x66ef1f0
+```
+Meaning: Query flag 0x4A via vcall [0xF99FFA0] [V]. Destroy geometry 0x67E1660(&[rbp+0x1440]), release 0x67E1660(&[rbp+0xF70]) [V]. Release shared_ptr [rbp+0x1428]: lock dec [rbx+8], if 0 call dtor via [0xF99FFA0]([rbx]), lock dec [rbx+0xC], if 0 call dtor via [0xF99FFA0]([rbx+8]) [V]. If [rbp+0xDF0]==3: release shared_ptr [rbp+0xDE8] similarly [V]. Callee RVAs: [0xF99FFA0], 0x67e1660 [V].
+
+## NEXT
+Next line to do: 3941 (phase 11 of 13 complete)
+
+### lines 3941..3980
+```asm
+0x66ef1f0  mov r15,[rbp+0xDC0]
+0x66ef1f7  test r15,r15
+0x66ef1fa  je 0x66EC630
+0x66ef200  mov r12,[rbp+0xDC8]
+0x66ef207  jmp short 0x66EF214
+0x66ef209  nop [rax]
+0x66ef210  add r15,0x28
+0x66ef214  cmp r15,r12
+0x66ef217  je 0x66EC630
+0x66ef21d  cmp byte ptr [r15+0x18],2
+0x66ef222  jne short 0x66EF210
+0x66ef224  mov rbx,[r15+8]
+0x66ef228  test rbx,rbx
+0x66ef22b  je short 0x66EF210
+0x66ef22d  lock dec dword ptr [rbx+8]
+0x66ef231  jne short 0x66EF210
+0x66ef233  mov rax,[rbx]
+0x66ef236  mov rax,[rax]
+0x66ef239  mov rcx,rbx
+0x66ef23c call qword ptr [0xF99FFA0]
+0x66ef242  lock dec dword ptr [rbx+0xC]
+0x66ef246  jne short 0x66EF210
+0x66ef248  mov rax,[rbx]
+0x66ef24b  mov rax,[rax+8]
+0x66ef24f  mov rcx,rbx
+0x66ef252 call qword ptr [0xF99FFA0]
+0x66ef258  jmp short 0x66EF210
+```
+Meaning: Iterate cleanup list [rbp+0xDC0..0xDC8) in 0x28 strides [V]. For each entry with byte [r15+0x18]==2: load shared_ptr rbx=[r15+8], skip if null [V]. Release shared_ptr: lock dec [rbx+8], if 0 call dtor via [0xF99FFA0]([rbx]); lock dec [rbx+0xC], if 0 call dtor via [0xF99FFA0]([rbx+8]) [V]. Jump to 0x66EC630 when list exhausted [V]. Callee RVA: [0xF99FFA0] [V].
+
+## NEXT
+Next line to do: 3981 (phase 12 of 13 complete)
+
+### lines 3981..4013
+```asm
+0x66ef280  add rsi,0x18
+0x66ef284  cmp rsi,rbx
+0x66ef287  je 0x66F6DFD
+0x66ef28d  cmp byte ptr [rsi+0x10],1
+0x66ef291  jne short 0x66EF280
+0x66ef293  mov rdi,[rsi+8]
+0x66ef297  test rdi,rdi
+0x66ef29a  je short 0x66EF280
+0x66ef29c  lock dec dword ptr [rdi+8]
+0x66ef2a0  jne short 0x66EF280
+0x66ef2a2  mov rax,[rdi]
+0x66ef2a5  mov rax,[rax]
+0x66ef2a8  mov rcx,rdi
+0x66ef2ab call qword ptr [0xF99FFA0]
+0x66ef2b1  lock dec dword ptr [rdi+0xC]
+0x66ef2b5  jne short 0x66EF280
+0x66ef2b7  mov rax,[rdi]
+0x66ef2ba  mov rax,[rax+8]
+0x66ef2be  mov rcx,rdi
+0x66ef2c1 call qword ptr [0xF99FFA0]
+0x66ef2c7  jmp short 0x66EF280
+0x66ef2c9  add rdx,rax
+0x66ef2cc  cmp rcx,rdx
+0x66ef2cf  jae short 0x66EF301
+0x66ef2d1  sub ecx,eax
+0x66ef2d3  shr ecx,4
+0x66ef2d6  mov [rbp+0x16BC],cx
+0x66ef2dd  mov byte ptr [rbp+0x16BE],1
+0x66ef2e4  lea rdx,[rbp+0x16BC]
+0x66ef2eb  lea r8,[rbp+0xF70]
+0x66ef2f2  lea rcx,[rbp+0xEF0]
+0x66ef2f9 call 0x5679DB0
+0x66ef2fe nop
+0x66ef2ff  jmp short 0x66EF308
+```
+Meaning: Draw-item release loop: walk entries [rsi..rbx) in 0x18 strides, if byte [rsi+0x10]==1 release shared_ptr at [rsi+8] via [0xF99FFA0] dtor twice [V]. Exit to 0x66F6DFD when list done, or 0x66F6E3B if empty [V]. FogAlpha write: compute slot ((rdx-rax)>>4) -> [rbp+0x16BC], set flag [rbp+0x16BE]=1, call 0x5679DB0(passRecord 0xEF0, &slot, {1,&vec4}) to write zero FogAlpha [V]. Jump to 0x66EF308 (end of body A) [V]. Callee RVAs: [0xF99FFA0], 0x5679db0 [V]. Body A ends at line 4013, RVA 0x66ef2ff.
+
+## NEXT
+Next line to do: 4014 (all phases 1-13 complete, body A ends at line 4013 RVA 0x66ef2ff)

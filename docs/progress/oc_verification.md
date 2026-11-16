@@ -231,3 +231,20 @@ D7a/L4q ticked by agent (EffectDescriptions.h, docs/functions/effect_description
 
 ## UI/editor/enums merge (Claude agent)
 D11/L4y and D12/L4z TICKED (FrameBuilder.h enums re-derived from tag stores; Nametag/MeshFallback asserts checked store by store; BatchActor head/spans decoded, kMinSize 0x100->0x110; agent reports cl /Zs syntax check of UiEditorDescriptions.h + FrameBuilder.h; 131 instruction claims re-run, 0 mismatches). D8/L4t (UIMesh/Gameface/HudIcon/UIImGui semantic fields) and D10/L4x (editor gizmo layouts, no proven struct size) left open. Claude verified the checklist file was not clobbered (ticks D6a/D6b/D9b/D7a and reverted D7b intact).
+
+## FX1/FX2/FX3 (tag-7 body tables) 2026-11-15
+- verify_tbl.py: FX1 ok=299 bad=824 (line numbers drift by 1 after ~line 536; RVAs/instrs correct but off-by-one lines; covers 475..825 only -> INCOMPLETE, needs redo 825..1700); FX2 ok=191 bad=32 (cosmetic/short jmps), covers 1710..2338 of 1700..2950 -> INCOMPLETE; FX3 ok=1230 bad=55 cosmetic, covers 2950..4252, no tag-7 end stated.
+- Verdict: tables are field-read/branch tables only (not instruction-complete phases). D7c stays [ ].
+- FX2 final: verify_tbl ok=289 bad=51 (shifted/cosmetic), selective rows (field reads/calls only), claims complete 1701..2950. Accepted as field-level only.
+- H10 final: cov_oc 0x6722cb0..0x672a464 over H1-H10 real=6078, only gap 0x6726cb1 (mid-instruction, non-boundary; H8 states so). verify_oc no-such-instr=0, 965 mismatches are operand-format cosmetic (objdump-style vs rdis). ACCEPTED: builder 0x6722cb0 instruction-complete.
+- FX1b: verify_tbl ok=396 bad=474 (row line numbers drift by 1; RVAs/instr real), covers 825..1700 field-level. FX4 in progress (4253..5252 so far).
+- FX4 (4253..5403 ok=983 bad=159) + FX5 (5413..5869 ok=456 bad=1) accepted as line-complete tables; tag-7 hot path ends at listing line 4252 (jmp 0x6670032, [V] by sed); lines 4253..5869 are cold blocks branching back into body. D7c still [ ]: field meaning/layout synthesis not done and FX1/FX2 are selective.
+- BA5 so far: 273 claimed, 3 junk at 0x66d4f8e..0x66d4f97 (phase 18 started mid-instruction), rest match.
+- BA5 final: phases through 0x66d4f8d valid; from 0x66d4f8e all later phases JUNK (phase 18 started mid-instruction; 67 no-such-instr). Redo as BA6 from 0x66d4f8d.
+- BA6 (0x66d4f8d..0x66d5904): 483 claimed, 483 match. ACCEPTED. BA7 continues.
+- BA7 (0x66d5904..0x66d6558): 598 claimed, 598 match. ACCEPTED. BA8 continues.
+- BA8 (0x66d6562..0x66d715a): 592 claimed, 592 match. ACCEPTED. BA9 continues to function end 0x66d7d8b.
+- BA9 (0x66d715d..0x66d7d8b): 674 claimed, 674 match. BA1-BA9 + oc_U-BA_gapfill.md (28 boundary gaps filled from rdis): cov_oc real=5998 quoted=6082, residual 0x66d4a00..a05 is a mid-instruction artifact (true boundary 0x66d49ff->0x66d4a01). bodyActor 0x66d0a00 ACCEPTED instruction-complete.
+- E4X units verified with tools/sigs/verbatim.py (exact line compare vs docs/data/listings/e4_{A,B,C,D}.txt): B1 700/700 ok; A1 772 quoted, 19 bad (agent retyped), 678/700 lines covered -> will gap-fill verbatim; B2 partial 553 ok 1 bad. Plan: per body, final gapfill file with missing listing lines.
+- E4X bodies A-D: transcription units + verbatim gap-fill files oc_U-E4X-{A,B,C,D}_gapfill.md (listing copy); union.py shows 0 missing => bodies A-D instruction-complete (B3 retyped lines ignored, exact lines only). Interpretation pending synthesis.
+- 2026-11-15 live: item tags 0,1,2,3,6,7,10 + ui 2,3 + sky 0,5,6,7 dumped (docs/data/live_desc_item_ui_editor_sky2_*.txt). Item tag 6 confirms ItemInHandDescription.h up to +0x17F; +0x180..+0x1FF still untyped.

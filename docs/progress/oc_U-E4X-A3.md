@@ -1,0 +1,797 @@
+# Unit U-E4X-A3: chunk extractor body A — lines 1401..2100 of docs/data/listings/e4_A.txt
+## NEXT
+Unit complete: lines 1401..2100 all 18 phases done (17x40 + 1x20). No further work.
+Base RVA: 0x66ebfda; end RVA at line 2100: 0x66ecde0 (last instruction)
+Context: body A of ChunkGeometry extractor at 0x66ea3d0 (docs/functions/66ea3d0.md)
+
+### lines 1401..1440
+```asm
+0x66ebfda  jg 0x66F886F
+0x66ebfe0  xorps xmm0,xmm0
+0x66ebfe3  movaps [rbp+0x1440],xmm0
+0x66ebfea  mov qword ptr [rbp+0xF70],1
+0x66ebff5  lea rax,[rbp+0x1440]
+0x66ebffc  mov [rbp+0xF78],rax
+0x66ec003  mov rax,[rbp+0xF20]
+0x66ec00a  movzx r8d,word ptr [rbp+0xF2A]
+0x66ec012  mov edx,r8d
+0x66ec015  shl edx,4
+0x66ec018  mov rcx,rax
+0x66ec01b  test r8d,r8d
+0x66ec01e  je 0x66EC0E7
+0x66ec024  mov r8,[0x129FB380]
+0x66ec02b  mov r9,rdx
+0x66ec02e  mov rcx,rax
+0x66ec031  nop [rax+rax]
+0x66ec040  mov r10,[rcx]
+0x66ec043  cmp [r10+0x28],r8
+0x66ec047  je 0x66EC0E7
+0x66ec04d  add rcx,0x10
+0x66ec051  add r9,0xFFFFFFFFFFFFFFF0
+0x66ec055  jne short 0x66EC040
+0x66ec057  jmp 0x66EC11F
+0x66ec05c  cmp r15d,1
+0x66ec060  jne 0x66EC1BC
+0x66ec066  mov rax,[rbx+0x48]
+0x66ec06a  cmp qword ptr [rax],1
+0x66ec06e  jne 0x66EC1BC
+0x66ec074  lea rax,[rbp+0x1650]
+0x66ec07b  mov [rbp+0x1440],rax
+0x66ec082  lea rax,[r13+0x3B0]
+0x66ec089  mov r9,[r13+0x3B8]
+0x66ec090  cmp qword ptr [rbp+0x1690],0xA
+0x66ec098  mov [rsp+0x48],rax
+0x66ec09d  sete [rsp+0x30]
+0x66ec0a2  lea rax,[rbp+0x1440]
+0x66ec0a9  mov [rsp+0x40],rax
+0x66ec0ae  mov eax,[rbp+0x1658]
+0x66ec0b4  mov [rsp+0x38],al
+```
+Meaning: Zero [rbp+0x1440], set [rbp+0xF70]=1, [rbp+0xF78]=&[rbp+0x1440] [V]. Linear search table [rbp+0xF20] of r8d ([rbp+0xF2A]) 16-byte entries for [entry+0x28]==global [0x129FB380]; hit -> 0x66EC0E7, miss/exhausted -> 0x66EC11F [V]. Global [0x129FB380] read [V]. If r15d==1 and *[rbx+0x48]==1: [rbp+0x1440]=&[rbp+0x1650], pack pass {ptr [r13+0x3B0], len [r13+0x3B8], flag ([rbp+0x1690]==0xA -> [rsp+0x30]), byte [rbp+0x1658] -> [rsp+0x38], [rbp+0x1440] -> [rsp+0x40]} [V]. No callee.
+
+### lines 1441..1480
+```asm
+0x66ec0b8  movzx eax,byte ptr [rbp+0x16CF]
+0x66ec0bf  mov [rsp+0x28],al
+0x66ec0c3  lea rax,[rbp+0xEE8]
+0x66ec0ca  mov [rsp+0x20],rax
+0x66ec0cf  mov rcx,r13
+0x66ec0d2  mov rdx,[rbp+0x16A8]
+0x66ec0d9  mov r8,rbx
+0x66ec0dc  call 0x670B6E0
+0x66ec0e1  nop
+0x66ec0e2  jmp 0x66F6E3B
+0x66ec0e7  add rdx,rax
+0x66ec0ea  cmp rcx,rdx
+0x66ec0ed  jae short 0x66EC11F
+0x66ec0ef  sub ecx,eax
+0x66ec0f1  shr ecx,4
+0x66ec0f4  mov [rbp+0x16BC],cx
+0x66ec0fb  mov byte ptr [rbp+0x16BE],1
+0x66ec102  lea rdx,[rbp+0x16BC]
+0x66ec109  lea r8,[rbp+0xF70]
+0x66ec110  lea rcx,[rbp+0xEF0]
+0x66ec117  call 0x5679DB0
+0x66ec11c  nop
+0x66ec11d  jmp short 0x66EC126
+0x66ec11f  mov byte ptr [rbp+0x16BE],0
+0x66ec126  mov rax,[rbp+0xEE8]
+0x66ec12d  mov r8,[rbp+0xEF0]
+0x66ec134  mov [rbp+0xC78],rax
+0x66ec13b  lea rcx,[rbp+0xC80]
+0x66ec142  lea rdx,[rbp+0xEF0]
+0x66ec149  call 0xE86B370
+0x66ec14e  nop
+0x66ec14f  mov qword ptr [rbp+0xCF8],0
+0x66ec15a  mov rax,[rbx+0x48]
+0x66ec15e  mov r8,[rax]
+0x66ec161  lea rax,[r8-5]
+0x66ec165  xor r13d,r13d
+0x66ec168  test rax,0xFFFFFFFFFFFFFFFB
+0x66ec16e  sete r15b
+0x66ec172  xor eax,eax
+0x66ec174  cmp r8,0xC
+```
+Meaning: If r15d==1 && *[rbx+0x48]==1: call 0x670B6E0(rcx=r13 slot, rdx=[rbp+0x16A8] ctx, r8=rbx) -> jump 0x66F6E3B fast path [V]. Else search result at 0x66EC0E7: found -> index=(rdx-rax)/16 stored at [rbp+0x16BC], [rbp+0x16BE]=1, call 0x5679DB0(passRec 0xEF0, {slot 0x16BC,1}, {1,&0xF70}) [V]; not found -> [rbp+0x16BE]=0 [V]. Common: [rbp+0xC78]=[rbp+0xEE8]; call 0xE86B370(&[rbp+0xC80], &[rbp+0xEF0]) [V]; [rbp+0xCF8]=0; rax=[rbx+0x48]; r8=[rax]; rax=r8-5; r15b=((r8-5)&0xFFFFFFFB)==0; cmp r8,0xC [V]. Callee RVAs: 0x670b6e0, 0x5679db0, 0xe86b370 [V].
+
+### lines 1481..1520
+```asm
+0x66ec178  setne dl
+0x66ec17b  sete cl
+0x66ec17e  test [rbp+0x16CF],dl
+0x66ec184  je 0x66EC229
+0x66ec18a  mov al,2
+0x66ec18c  mov [rbp+0x16B0],eax
+0x66ec192  cmp r8,0xA
+0x66ec196  je 0x66EC234
+0x66ec19c  lea rax,[r8-7]
+0x66ec1a0  cmp rax,3
+0x66ec1a4  setb al
+0x66ec1a7  lea rcx,[r8-0xF]
+0x66ec1ab  cmp rcx,2
+0x66ec1af  setb cl
+0x66ec1b2  or cl,al
+0x66ec1b4  mov [rbp+0x16B0],ecx
+0x66ec1ba  jmp short 0x66EC234
+0x66ec1bc  lea rax,[r13+0x3B0]
+0x66ec1c3  mov rcx,[r13+0x3B8]
+0x66ec1ca  cmp qword ptr [rbp+0x1690],0xA
+0x66ec1d2  mov [rsp+0x50],rax
+0x66ec1d7  lea rax,[rbp+0x1650]
+0x66ec1de  mov [rsp+0x48],rax
+0x66ec1e3  sete [rsp+0x38]
+0x66ec1e8  mov eax,[rbp+0x1658]
+0x66ec1ee  mov [rsp+0x40],al
+0x66ec1f2  movzx eax,byte ptr [rbp+0x16CF]
+0x66ec1f9  mov [rsp+0x30],al
+0x66ec1fd  lea rax,[rbp+0xEE8]
+0x66ec204  mov [rsp+0x28],rax
+0x66ec209  mov [rsp+0x20],rcx
+0x66ec20e  mov rcx,r13
+0x66ec211  mov rdx,[rbp+0x16A8]
+0x66ec218  mov r8d,r15d
+0x66ec21b  mov r9,rbx
+0x66ec21e  call 0x6722CB0
+0x66ec223  nop
+0x66ec224  jmp 0x66F6E3B
+0x66ec229  mov al,cl
+0x66ec22b  lea eax,[rax+rax*8]
+```
+Meaning: r15b path ([rbp+0x16CF]&(r8!=0xC)!=0): [rbp+0x16B0]=2 (kind class 2) if r8==0xA else kind=(r8 in 7..9)|(r8 in 15..17) [V]; jump 0x66EC234 [V]. Slow path 0x66ec1bc: pack pass {ptr [r13+0x3B0]->[rsp+0x50], &[rbp+0x1650]->[rsp+0x48], flag ([rbp+0x1690]==0xA)->[rsp+0x38], byte [rbp+0x1658]->[rsp+0x40], byte [rbp+0x16CF]->[rsp+0x30], [rbp+0xEE8]->[rsp+0x28], len [r13+0x3B8]->[rsp+0x20]}; call 0x6722CB0(rcx=r13, rdx=[rbp+0x16A8] ctx, r8d=r15d, r9=rbx) -> jump 0x66F6E3B [V]. Not-taken path 0x66EC229: al=cl; eax=cl*9 (kind index) [V]. Callee RVA: 0x6722cb0 [V].
+
+### lines 1521..1560
+```asm
+0x66ec22e  mov [rbp+0x16B0],eax
+0x66ec234  mov [rbp+0x1698],r8
+0x66ec23b  xorps xmm0,xmm0
+0x66ec23e  movaps [rbp+0x1670],xmm0
+0x66ec245  mov qword ptr [rbp+0x1680],0
+0x66ec250  mov rax,[rbp+0x16C0]
+0x66ec257  mov rax,[rax+0x38]
+0x66ec25b  mov [rbp+0x1440],rax
+0x66ec262  test rax,rax
+0x66ec265  je short 0x66EC28E
+0x66ec267  mov rcx,0xAAAAAAAAAAAAAAB
+0x66ec271  cmp rax,rcx
+0x66ec274  jae 0x66F89AD
+0x66ec27a  lea rcx,[rbp+0x1670]
+0x66ec281  lea rdx,[rbp+0x1440]
+0x66ec288  call 0x678D170
+0x66ec28d  nop
+0x66ec28e  mov rsi,[rbp+0x16A0]
+0x66ec295  lea rdi,[rsi+0x2E8]
+0x66ec29c  mov rcx,rdi
+0x66ec29f  call 0xEEC59F0
+0x66ec2a4  test eax,eax
+0x66ec2a6  jne 0x66F88E1
+0x66ec2ac  cmp dword ptr [rsi+0x334],0x7FFFFFFF
+0x66ec2b6  je 0x66F88EC
+0x66ec2bc  mov [rbp+0x1368],rdi
+0x66ec2c3  mov rax,[rbp+0x16C0]
+0x66ec2ca  mov rax,[rax+0x38]
+0x66ec2ce  test rax,rax
+0x66ec2d1  je 0x66EC539
+0x66ec2d7  mov rcx,[rbp+0x16C0]
+0x66ec2de  mov rdi,[rcx+0x40]
+0x66ec2e2  imul rsi,rax,0x58
+0x66ec2e6  add rsi,rdi
+0x66ec2e9  lea rbx,[rbp+0x1440]
+0x66ec2f0  lea r14,[rbp+0xF70]
+0x66ec2f7  xorps xmm6,xmm6
+0x66ec2fa  jmp short 0x66EC31D
+0x66ec2fc  add rdx,0x18
+0x66ec300  mov [rbp+0x1678],rdx
+```
+Meaning: kind=[rbp+0x16B0]=eax, tag=[rbp+0x1698]=r8 [V]. Zero [rbp+0x1670], [rbp+0x1680] [V]. count=[rbp+0x16C0]+0x38 -> [rbp+0x1440]; if count==0 goto 0x66EC28E; if count>=0xAAAAAAAAAAAAAAB fail 0x66F89AD [V]; else call 0x678D170(&[rbp+0x1670], &count) [V]. rdi=[rbp+0x16A0]+0x2E8; if 0xEEC59F0(rdi)!=0 fail 0x66F88E1; if dword [rsi+0x334]==0x7FFFFFFF fail 0x66F88EC; [rbp+0x1368]=rdi (isAB ptr) [V]. Entry loop: end rsi=[desc+0x40]+count*0x58, stride 0x58 [V]; rbx=&[rbp+0x1440], r14=&[rbp+0xF70]; loop body advances rdx+=0x18, [rbp+0x1678]=rdx [V]. Callee RVAs: 0x678d170, 0xeec59f0 [V].
+
+### lines 1561..1600
+```asm
+0x66ec307  nop [rax+rax]
+0x66ec310  add rdi,0x58
+0x66ec314  cmp rdi,rsi
+0x66ec317  je 0x66EC539
+0x66ec31d  movzx eax,byte ptr [rdi+0x28]
+0x66ec321  test eax,eax
+0x66ec323  je short 0x66EC340
+0x66ec325  cmp eax,1
+0x66ec328  jne 0x66F81D9
+0x66ec32e  lea rax,[rdi+0x18]
+0x66ec332  jmp short 0x66EC344
+0x66ec334  nop [rax+rax]
+0x66ec340  lea rax,[rdi+0x10]
+0x66ec344  mov rax,[rax]
+0x66ec347  test rax,rax
+0x66ec34a  je short 0x66EC310
+0x66ec34c  mov rcx,[rbp+0x16A0]
+0x66ec353  mov rdx,[rcx+0x2D8]
+0x66ec35a  mov r8,[rdx+8]
+0x66ec35e  cmp byte ptr [r8+0x19],0
+0x66ec363  mov rcx,rdx
+0x66ec366  jne short 0x66EC38E
+0x66ec368  mov r9,[rax]
+0x66ec36b  mov rcx,rdx
+0x66ec36e  xchg ax,ax
+0x66ec370  xor r10d,r10d
+0x66ec373  cmp [r8+0x20],r9
+0x66ec377  setl r10b
+0x66ec37b  cmovge rcx,r8
+0x66ec37f  shl r10d,4
+0x66ec383  mov r8,[r8+r10]
+0x66ec387  cmp byte ptr [r8+0x19],0
+0x66ec38c  je short 0x66EC370
+0x66ec38e  cmp byte ptr [rcx+0x19],0
+0x66ec392  jne 0x66EC310
+0x66ec398  cmp rcx,rdx
+0x66ec39b je 0x66EC310
+0x66ec3a1  mov rdx,[rcx+0x20]
+0x66ec3a5  cmp [rax],rdx
+0x66ec3a8  jl 0x66EC310
+```
+Meaning: Loop step: rdi+=0x58; exit to 0x66EC539 when rdi==end rsi [V]. Entry variant resolution: tag [rdi+0x28], tag 0 -> rax=rdi+0x10, tag 1 -> rax=rdi+0x18, else throw 0x66F81D9; skip if *rax==0 [V]. Descendant walk: rdx=[rsi+0x2D8], r8=[rdx+8]; while byte [r8+0x19]==0: r9=[rax]; descend child ([r8+0x20]<r9 ? left : right) via setl/cmovge with stride 16 [V]. Final accept: skip if byte [rcx+0x19]!=0 or rcx==rdx; skip if [rax] < qword [rcx+0x20] [V]. Callee: none.
+
+### lines 1601..1640
+```asm
+0x66ec3ae  mov r12,[rcx+0x28]
+0x66ec3b2  test r12,r12
+0x66ec3b5  je 0x66EC310
+0x66ec3bb  mov rcx,[rbp+0x16C0]
+0x66ec3c2  movzx eax,byte ptr [rcx+0x50]
+0x66ec3c6  mov rcx,[rcx+0x48]
+0x66ec3ca  lea rdx,[r12+8]
+0x66ec3cf  (bad)
+0x66ec3d0  mov ecx,[rcx]
+0x66ec3d2  mov [rbp+0xF70],rcx
+0x66ec3d9  mov [rbp+0xF78],al
+0x66ec3df  mov rcx,rbx
+0x66ec3e2  mov r8,r14
+0x66ec3e5  call 0xBC090B0
+0x66ec3ea  mov rcx,[rbp+0x1440]
+0x66ec3f1  mov rax,[rbp+0x1448]
+0x66ec3f8  mov rdx,[rbp+0x1450]
+0x66ec3ff  xor rdx,rcx
+0x66ec402  mov r8,[rbp+0x1458]
+0x66ec409  xor r8,rax
+0x66ec40c  or r8,rdx
+0x66ec40f  mov rdx,[r12+0x28]
+0x66ec414  cmove rax,rdx
+0x66ec418  sete r8b
+0x66ec41c  cmp rcx,[r12+0x10]
+0x66ec421  sete cl
+0x66ec424  or cl,r8b
+0x66ec427  cmp rax,rdx
+0x66ec42a  sete dl
+0x66ec42d  test cl,dl
+0x66ec42f  je short 0x66EC436
+0x66ec431  xor r12d,r12d
+0x66ec434  jmp short 0x66EC466
+0x66ec436  movaps [rbp+0x1440],xmm6
+0x66ec43d  mov rcx,[rax+8]
+0x66ec441  test rcx,rcx
+0x66ec444  je short 0x66EC450
+0x66ec446  lock inc dword ptr [rcx+8]
+0x66ec44a  mov rcx,[rax+8]
+0x66ec44e  jmp short 0x66EC452
+```
+Meaning: r12=qword [rcx+0x28]; if null skip loop [V]. desc byte [rbp+0x16C0]+0x50->al, dword [rbp+0x16C0]+0x48->ecx; [rbp+0xF70]=ecx (key low), [rbp+0xF78]=al (key high byte) [V]; undecodable byte at 0x66ec3cf printed `(bad)` by disassembler [V]. Call 0xBC090B0(&[rbp+0x1440], &[rbp+0xF70]) key compare [V]. 128-bit key equality: ([rbp+0x1448]^[rbp+0x1440])|([rbp+0x1458]^[rbp+0x1450])==0; if equal rax=[r12+0x28] [V]. Accept if r8b(keys equal)&cl(rcx==[r12+0x10])&dl(rax==[r12+0x28]) [V]. On accept: [rbp+0x1440]=0; shared_ptr=[rax+8] with lock inc [V]. Callee RVA: 0xbc090b0 [V].
+
+### lines 1641..1680
+```asm
+0x66ec450  xor ecx,ecx
+0x66ec452  mov rax,[rax]
+0x66ec455  mov [rbp+0x1440],rax
+0x66ec45c  mov [rbp+0x1448],rcx
+0x66ec463  mov r12b,1
+0x66ec466  mov [rbp+0x1450],r12b
+0x66ec46d  mov rdx,[rbp+0x1678]
+0x66ec474  cmp rdx,[rbp+0x1680]
+0x66ec47b je short 0x66EC4B4
+0x66ec47d  mov byte ptr [rdx+0x10],0
+0x66ec481  test r12b,r12b
+0x66ec484 je 0x66EC2FC
+0x66ec48a movups [rdx],xmm6
+0x66ec48d mov rcx,[rbp+0x1448]
+0x66ec494 test rcx,rcx
+0x66ec497 je short 0x66EC4CF
+0x66ec499 lock inc dword ptr [rcx+8]
+0x66ec49d mov rax,[rbp+0x1440]
+0x66ec4a4 mov r8,[rbp+0x1448]
+0x66ec4ab mov rcx,[rbp+0x1678]
+0x66ec4b2 jmp short 0x66EC4D5
+0x66ec4b4 lea rcx,[rbp+0x1670]
+0x66ec4bb mov r8,rbx
+0x66ec4be call 0x678D3F0
+0x66ec4c3 nop
+0x66ec4c4 test r12b,r12b
+0x66ec4c7 je 0x66EC310
+0x66ec4cd jmp short 0x66EC4EB
+0x66ec4cf mov rcx,rdx
+0x66ec4d2 xor r8d,r8d
+0x66ec4d5 mov [rdx],rax
+0x66ec4d8 mov [rdx+8],r8
+0x66ec4dc mov byte ptr [rdx+0x10],1
+0x66ec4e0 add rcx,0x18
+0x66ec4e4 mov [rbp+0x1678],rcx
+0x66ec4eb mov r12,[rbp+0x1448]
+0x66ec4f2 test r12,r12
+0x66ec4f5 je 0x66EC310
+0x66ec4fb lock dec dword ptr [r12+8]
+0x66ec501 jne 0x66EC310
+```
+Meaning: [rbp+0x1448]=shared_ptr (or 0 after accept), [rbp+0x1450]=accepted flag=1 [V]. Output slot rdx=[rbp+0x1678]; if rdx==[rbp+0x1680] (buffer full): call 0x678D3F0(&[rbp+0x1670], &[rbp+0x1440]) [V]; if !accepted loop 0x66EC310 else jump 0x66EC4EB [V]. Else: byte [rdx+0x10]=0; if accepted: zero [rdx..rdx+0x10], lock inc refcount of [rbp+0x1448] if nonzero, write entry {[rbp+0x1440], [rbp+0x1448] or 0, valid=1} stride 0x18, [rbp+0x1678]+=0x18 [V]. Release: r12=[rbp+0x1448]; lock dec [r12+8]; if nonzero loop 0x66EC310 [V]. Callee RVA: 0x678d3f0 [V].
+
+### lines 1681..1720
+```asm
+0x66ec507  mov rax,[r12]
+0x66ec50b  mov rax,[rax]
+0x66ec50e  mov rcx,r12
+0x66ec511  call qword ptr [0xF99FFA0]
+0x66ec517  lock dec dword ptr [r12+0xC]
+0x66ec51d  jne 0x66EC310
+0x66ec523  mov rax,[r12]
+0x66ec527  mov rax,[rax+8]
+0x66ec52b  mov rcx,r12
+0x66ec52e  call qword ptr [0xF99FFA0]
+0x66ec534  jmp 0x66EC310
+0x66ec539  mov rax,[rbp+0x1698]
+0x66ec540  and rax,0xFFFFFFFFFFFFFFFE
+0x66ec544  mov [rbp+0x16A0],rax
+0x66ec54b  cmp qword ptr [rbp+0x1690],0xA
+0x66ec553  sete bl
+0x66ec556  mov rcx,[rbp+0x1368]
+0x66ec55d  call 0xEEC5A10
+0x66ec562  mov rax,[rbp+0x16C0]
+0x66ec569  mov rdi,[rax+0x40]
+0x66ec56d  imul rcx,[rax+0x38],0x58
+0x66ec572  add rcx,rdi
+0x66ec575  mov [rbp+0x1690],rcx
+0x66ec57c  lea rsi,[rbp+0x1444]
+0x66ec583  add rax,0x78
+0x66ec587  mov [rbp+0x1658],rax
+0x66ec58e  and bl,[rbp+0x16CF]
+0x66ec594  mov [rbp+0x16CF],bl
+0x66ec59a  xor eax,eax
+0x66ec59c  mov ecx,[rbp+0x16B0]
+0x66ec5a2  cmp cl,2
+0x66ec5a5  sete al
+0x66ec5a8  shl eax,0xB
+0x66ec5ab  cmp cl,9
+0x66ec5ae  mov ecx,0x2800
+0x66ec5b3  cmovne ecx,eax
+0x66ec5b6  mov r13b,r15b
+0x66ec5b9  lea eax,[rcx+r13*4+0x8101]
+0x66ec5c1  mov [rbp+0x16D4],eax
+0x66ec5c7  lea r13,[rbp+0x1050]
+```
+Meaning: Shared-ptr release epilogue: vcall qword [0xF99FFA0](r12), lock dec [r12+0xC]; if nonzero loop 0x66EC310, else second vcall qword [0xF99FFA0] and loop [V]. Post-loop: [rbp+0x16A0]=[rbp+0x1698]&~1 (tag&~1) [V]. bl=([rbp+0x1690]==0xA); call 0xEEC5A10([rbp+0x1368]) unlock mutex [V]; end=[desc+0x40]+[desc+0x38]*0x58 -> [rbp+0x1690] (reuse rsi for end) [V]; [rbp+0x1658]=[rbp+0x16C0]+0x78 (terrain ptr) [V]. [rbp+0x16CF] &= bl (fogA&flag) [V]. Render word: eax=(kind==2?0x800:0)<<0xB; ecx=(kind==9)?0x2800:eax; [rbp+0x16D4]=ecx+r15b*4+0x8101 [V]. r13=&[rbp+0x1050] output item base [V]. Callee RVAs: [0xF99FFA0]x2, 0xeec5a10 [V].
+
+### lines 1721..1760
+```asm
+0x66ec5ce  xorps xmm6,xmm6
+0x66ec5d1  movss xmm7,[0xEEC8060]
+0x66ec5d9  movsd xmm8,[0xEFD32F0]
+0x66ec5e2  movaps xmm9,[0xF0A4080]
+0x66ec5ea  movss xmm10,[0xEEC8060]
+0x66ec5f3  movsd xmm11,[0xEFD32F0]
+0x66ec5fc  movss xmm13,[0xEFC13A4]
+0x66ec605  movaps xmm14,[0xF0B8740]
+0x66ec60d  lea r14,[rbp+0x1210]
+0x66ec614  xor ebx,ebx
+0x66ec616  lea r15,[rbp+0xE10]
+0x66ec61d  lea r12,[rbp+0xDB8]
+0x66ec624  jmp short 0x66EC64C
+0x66ec626  nop [rax+rax]
+0x66ec630  mov rbx,[rbp+0x1368]
+0x66ec637  inc rbx
+0x66ec63a  lea r15,[rbp+0xE10]
+0x66ec641  lea r12,[rbp+0xDB8]
+0x66ec648  add rdi,0x58
+0x66ec64c  cmp rdi,[rbp+0x1690]
+0x66ec653 je 0x66EF25A
+0x66ec659  movzx eax,byte ptr [rdi+0x28]
+0x66ec65d  test eax,eax
+0x66ec65f je short 0x66EC680
+0x66ec661  cmp eax,1
+0x66ec664 jne 0x66F815A
+0x66ec66a lea rax,[rdi+0x18]
+0x66ec66e cmp qword ptr [rax],0
+0x66ec672 jne short 0x66EC68A
+0x66ec674 jmp short 0x66EC648
+0x66ec676 nop [rax+rax]
+0x66ec680 lea rax,[rdi+0x10]
+0x66ec684 cmp qword ptr [rax],0
+0x66ec688 je short 0x66EC648
+0x66ec68a movsd xmm15,[rdi+0x3C]
+0x66ec690 mov dword ptr [rbp+0x1440],0x3F800000
+0x66ec69a movups [rsi],xmm6
+0x66ec69d mov dword ptr [rbp+0x1454],0x3F800000
+0x66ec6a7 movups [rsi+0x14],xmm6
+0x66ec6ab movaps xmm0,xmm15
+```
+Meaning: Load xmm constants xmm7=xmm10=1.0f (0xEEC8060), xmm8=xmm11=0.0078125 (0xEFD32F0), xmm9={0,0,-0,-0} (0xF0A4080), xmm13=8.0f (0xEFC13A4), xmm14={8,8,0,0} (0xF0B8740) [V] — same as body B. Entry loop: r14=&[rbp+0x1210] desc, ebx=index 0, r15=&[rbp+0xE10] model, r12=&[rbp+0xDB8] drawlist [V]. Test: exit to 0x66EF25A when rdi==end [rbp+0x1690] [V]. Variant resolution: tag [rdi+0x28], tag0->rax=rdi+0x10, tag1->rax=rdi+0x18, else throw 0x66F815A; skip if *rax==0 [V]. Step: rbx=[rbp+0x1368]+1, rdi+=0x58 [V]. Translation matrix init: xmm15=z=[rdi+0x3C]; [rbp+0x1440]=1.0f, [rsi]=0, [rbp+0x1454]=1.0f, [rsi+0x14]=0 [V]. Callee: none.
+
+### lines 1761..1800
+```asm
+0x66ec6af  mulps xmm0,xmm6
+0x66ec6b2  movaps xmm1,xmm0
+0x66ec6b5  shufps xmm1,xmm0,0xE1
+0x66ec6b9  addps xmm1,xmm15
+0x66ec6bd  movss xmm12,[rdi+0x44]
+0x66ec6c3  movaps xmm2,xmm12
+0x66ec6c7  shufps xmm2,xmm12,0
+0x66ec6cc  mulps xmm2,xmm7
+0x66ec6cf  movaps xmm3,xmm0
+0x66ec6d2  shufps xmm3,xmm0,0x55
+0x66ec6d6  unpcklps xmm0,xmm0
+0x66ec6d9  addps xmm0,xmm3
+0x66ec6dc  addps xmm0,xmm2
+0x66ec6df  addps xmm0,xmm8
+0x66ec6e3  shufps xmm2,xmm2,0x55
+0x66ec6e7  addps xmm2,xmm1
+0x66ec6ea  movaps xmm1,xmm9
+0x66ec6ee  movlhps xmm1,xmm2
+0x66ec6f1  addps xmm1,xmm7
+0x66ec6f4  movups [rbp+0x1468],xmm1
+0x66ec6fb  movlps [rbp+0x1478],xmm0
+0x66ec702  mov rcx,r15
+0x66ec705  mov rdx,[rbp+0x1658]
+0x66ec70c  lea r8,[rbp+0x1440]
+0x66ec713  call 0xAA6580
+0x66ec718  nop
+0x66ec719  movss xmm0,[rdi+0x48]
+0x66ec71e  ucomiss xmm0,xmm10
+0x66ec722  jne short 0x66EC72A
+0x66ec724  jnp 0x66EC7BA
+0x66ec72a  movaps xmm1,xmm0
+0x66ec72d  shufps xmm1,xmm0,0
+0x66ec731  mulps xmm1,xmm7
+0x66ec734  movss [rbp+0x1440],xmm0
+0x66ec73c  movq xmm2,xmm1
+0x66ec740  shufps xmm1,xmm1,0x55
+0x66ec744  movups [rbp+0x1444],xmm1
+0x66ec74b  movss [rbp+0x1454],xmm0
+0x66ec753  movups [rbp+0x1458],xmm1
+0x66ec75a  movdqu [rbp+0x1468],xmm2
+```
+Meaning: Translation matrix T built via shuffles into [rbp+0x1468]/[rbp+0x1478] (same sequence as body B) [V]. Call 0xAA6580(rcx=r15=&[rbp+0xE10] model out, rdx=[rbp+0x1658] desc+0x78 matrix, r8=&[rbp+0x1440] T) -> model = descMat * T [V]. If *(float*)[rdi+0x48] (scale) != 1.0f: build scale matrix S into [rbp+0x1440..0x1478]: s=splat(scale)*1.0f, columns [rbp+0x1444]/[rbp+0x1458], [rbp+0x1440]/[rbp+0x1454]=scale, [rbp+0x1468]=s [V]; else jump 0x66EC7BA [V]. Callee RVA: 0xaa6580 [V].
+
+### lines 1801..1840
+```asm
+0x66ec762  movsd [rbp+0x1478],xmm11
+0x66ec76b  lea rcx,[rbp+0xF70]
+0x66ec772  mov rdx,r15
+0x66ec775  lea r8,[rbp+0x1440]
+0x66ec77c  call 0xAA6580
+0x66ec781  nop
+0x66ec782  movaps xmm0,[rbp+0xF70]
+0x66ec789  movaps xmm1,[rbp+0xF80]
+0x66ec790  movaps xmm2,[rbp+0xF90]
+0x66ec797  movaps xmm3,[rbp+0xFA0]
+0x66ec79e  movaps [rbp+0xE10],xmm0
+0x66ec7a5  movaps [rbp+0xE20],xmm1
+0x66ec7ac  movaps [rbp+0xE30],xmm2
+0x66ec7b3  movaps [rbp+0xE40],xmm3
+0x66ec7ba  mov rax,[rbp+0x16A8]
+0x66ec7c1  mov rdx,[rax]
+0x66ec7c4  mov [rsp+0x20],rdi
+0x66ec7c9  mov rcx,r12
+0x66ec7cc  mov r8,[rbp+0x1388]
+0x66ec7d3  lea r9,[rbp+0xEE8]
+0x66ec7da  call 0x678C4C0
+0x66ec7df  nop
+0x66ec7e0  lea rax,[rbp+0xC78]
+0x66ec7e7  mov [rbp+0x1120],rax
+0x66ec7ee  cmp byte ptr [rbp+0x16BE],1
+0x66ec7f5 jne short 0x66EC851
+0x66ec7f7 movss xmm0,[rdi+0x4C]
+0x66ec7fc xorps xmm1,xmm1
+0x66ec7ff ucomiss xmm0,xmm1
+0x66ec802 jbe short 0x66EC851
+0x66ec804 shufps xmm0,xmm0,0
+0x66ec808 movaps [rbp+0x1440],xmm0
+0x66ec80f mov qword ptr [rbp+0xF70],1
+0x66ec81a lea rax,[rbp+0x1440]
+0x66ec821 mov [rbp+0xF78],rax
+0x66ec828 lea rcx,[rbp+0xEF0]
+0x66ec82f lea rdx,[rbp+0x16BC]
+0x66ec836 lea r8,[rbp+0xF70]
+0x66ec83d call 0x5679DB0
+0x66ec842 nop
+```
+Meaning: [rbp+0x1478]=xmm11 completes scale matrix; call 0xAA6580(&[rbp+0xF70] f70, &[rbp+0xE10] model, &[rbp+0x1440] S) -> model = model * S [V]; store model [rbp+0xE10..0xE40] from f70 [V]. Call 0x678C4C0(rcx=r12=&[rbp+0xDB8] drawlist, rdx=*[rbp+0x16A8] ctx, r8=[rbp+0x1388] desc+0x78, r9=&[rbp+0xEE8], stack [rsp+0x20]=rdi entry) draw-list builder per entry [V]. [rbp+0x1120]=[rbp+0xC78] pack [V]. FogAlpha: if [rbp+0x16BE]==1 and *(float*)[rdi+0x4C] > 0: splat into [rbp+0x1440], [rbp+0xF70]=1, [rbp+0xF78]=&[rbp+0x1440], call 0x5679DB0(passRec 0xEF0, {slot 0x16BC,1}, {1,&vec4}) [V]. Callee RVAs: 0xaa6580, 0x678c4c0, 0x5679db0 [V].
+
+### lines 1841..1880
+```asm
+0x66ec843  lea rax,[rbp+0xEE8]
+0x66ec84a  mov [rbp+0x1120],rax
+0x66ec851  lea rax,[rbp+0x1650]
+0x66ec858  mov [rbp+0xEA8],rax
+0x66ec85f  mov [rbp+0xEB0],r15
+0x66ec866  mov [rbp+0xEB8],r12
+0x66ec86d  lea rax,[rbp+0x1120]
+0x66ec874  mov [rbp+0xEC0],rax
+0x66ec87b  mov rax,[rbp+0x1670]
+0x66ec882  mov [rbp+0x1368],rbx
+0x66ec889  lea rcx,[rbx+rbx*2]
+0x66ec88d  mov byte ptr [rbp+0x1430],0
+0x66ec894  movzx r12d,byte ptr [rax+rcx*8+0x10]
+0x66ec89a  cmp r12b,1
+0x66ec89e jne short 0x66EC8D8
+0x66ec8a0 lea rax,[rax+rcx*8]
+0x66ec8a4 movaps [rbp+0x1420],xmm6
+0x66ec8ab mov rcx,[rax+8]
+0x66ec8af test rcx,rcx
+0x66ec8b2 je short 0x66EC8BE
+0x66ec8b4 lock inc dword ptr [rcx+8]
+0x66ec8b8 mov rcx,[rax+8]
+0x66ec8bc jmp short 0x66EC8C0
+0x66ec8be xor ecx,ecx
+0x66ec8c0 mov rax,[rax]
+0x66ec8c3 mov [rbp+0x1420],rax
+0x66ec8ca mov [rbp+0x1428],rcx
+0x66ec8d1 mov byte ptr [rbp+0x1430],1
+0x66ec8d8 cmp qword ptr [rbp+0x16A0],2
+0x66ec8e0 sete cl
+0x66ec8e3 mov eax,r12d
+0x66ec8e6 xor al,1
+0x66ec8e8 or al,cl
+0x66ec8ea cmp byte ptr [rbp+0x16CF],0
+0x66ec8f1 je 0x66ECB30
+0x66ec8f7 test al,al
+0x66ec8f9 je 0x66ECC9F
+0x66ec8ff addss xmm12,xmm13
+0x66ec904 addps xmm15,xmm14
+0x66ec908 cmp qword ptr [rbp+0x16A0],2
+```
+Meaning: [rbp+0x1120]=[rbp+0xEE8] [V]. Pack draw-item context: [rbp+0xEA8]=[rbp+0x1650], [rbp+0xEB0]=r15 (&[rbp+0xE10] model), [rbp+0xEB8]=r12 (&[rbp+0xDB8] drawlist), [rbp+0xEC0]=&[rbp+0x1120] (pass record ptr) [V]. [rbp+0x1368]=rbx entry index (overwriting isAB slot) [V]; rcx=index*3; valid byte r12d=[rbp+0x1670 + index*8*? + 0x10] from vec_1670 [V]. If valid==1: shared_ptr copy [rax+8] lock inc, [rbp+0x1420/0x1428], valid=1 [V]. Accept flag al=(valid^1)|(kind [rbp+0x16A0]==2) [V]. If fogA [rbp+0x16CF]==0 jump 0x66ECB30; if !al jump 0x66ECC9F; else shift variant: addss xmm12,xmm13 (+8.0f UV scroll), addps xmm15,xmm14 (+{8,8} UV offset) [V]. Callee: none.
+
+### lines 1881..1920
+```asm
+0x66ec910  jne 0x66ECD2D
+0x66ec916  test r12b,r12b
+0x66ec919  je 0x66ECD2D
+0x66ec91f  movlps [rbp+0x1390],xmm15
+0x66ec927  movss [rbp+0x1398],xmm12
+0x66ec930  lea rcx,[rbp+0xEA8]
+0x66ec937  lea rdx,[rbp+0x1130]
+0x66ec93e call 0x67A75D0
+0x66ec943 nop
+0x66ec944 lea rbx,[rbp+0xF70]
+0x66ec94b lea rax,[rbp+0x1390]
+0x66ec952 mov [rsp+0x20],rax
+0x66ec957 mov rcx,rbx
+0x66ec95a lea rdx,[rbp+0x1210]
+0x66ec961 lea r8,[rbp+0x11B8]
+0x66ec968 lea r15,[rbp+0x1130]
+0x66ec96f mov r9,r15
+0x66ec972 call 0x678E1D0
+0x66ec977 nop
+0x66ec978 mov eax,[r14+0x60]
+0x66ec97c mov [r13+0x70],eax
+0x66ec980 movups xmm0,[r14+0x50]
+0x66ec985 movups [r13+0x60],xmm0
+0x66ec98a movzx eax,byte ptr [rbp+0x1274]
+0x66ec991 mov [rbp+0x10C4],al
+0x66ec997 movups xmm0,[rbp+0x1278]
+0x66ec99e movups [rbp+0x10C8],xmm0
+0x66ec9a5 movups xmm0,[r14+0x78]
+0x66ec9aa movups xmm1,[r14+0x88]
+0x66ec9b2 movups xmm2,[r14+0x97]
+0x66ec9ba movups [r13+0xA7],xmm2
+0x66ec9c2 movups [r13+0x98],xmm1
+0x66ec9ca movups [r13+0x88],xmm0
+0x66ec9d2 movzx eax,word ptr [rbp+0x12B8]
+0x66ec9d9 mov [rbp+0x1108],ax
+0x66ec9e0 mov rcx,r15
+0x66ec9e3 call 0x67E23F0
+0x66ec9e8 nop
+0x66ec9e9 mov [rsp+0x20],rbx
+0x66ec9ee lea rcx,[rbp+0x1440]
+```
+Meaning: kind==2 && valid path: [rbp+0x1390]=movlps xmm15 (UV offset), [rbp+0x1398]=xmm12 (UV scroll) [V]. Call 0x67A75D0(&[rbp+0xEA8] ctx pack, &[rbp+0x1130] out) binder [V] (distinct from body B's 0x678cf10). Call 0x678E1D0(rcx=&[rbp+0xF70], rdx=[rbp+0x1210] desc, r8=[rbp+0x11B8] item, r9=&[rbp+0x1130] ctx out) geometry/material [V]. Copy desc fields: [r13+0x70]=[r14+0x60], [r13+0x60]=[r14+0x50], byte [rbp+0x10C4]=[rbp+0x1274], [rbp+0x10C8]=[rbp+0x1278], xmm0/1/2=[r14+0x78/88/97]->[r13+0x88/0x98/0xA7], word [rbp+0x1108]=[rbp+0x12B8] [V]. Call 0x67E23F0(r15=&[rbp+0x1130]) release item [V]. Callee RVAs: 0x67a75d0, 0x678e1d0, 0x67e23f0 [V].
+
+### lines 1921..1960
+```asm
+0x66ec9f5  lea rdx,[rbp+0x1060]
+0x66ec9fc  lea r8,[rbp+0x1008]
+0x66eca03  lea r9,[rbp+0xF80]
+0x66eca0a  call 0x678E420
+0x66eca0f  nop
+0x66eca10  mov eax,[r13+0x70]
+0x66eca14  lea rcx,[rbp+0x1580]
+0x66eca1b  mov [rcx+0x10],eax
+0x66eca1e  movups xmm0,[r13+0x60]
+0x66eca23  movups [rcx],xmm0
+0x66eca26  movzx eax,byte ptr [rbp+0x10C4]
+0x66eca2d  mov [rbp+0x1594],al
+0x66eca33  movups xmm0,[rbp+0x10C8]
+0x66eca3a  movups [rbp+0x1598],xmm0
+0x66eca41  movups xmm0,[r13+0x88]
+0x66eca49  movups xmm1,[r13+0x98]
+0x66eca51  movups xmm2,[r13+0xA7]
+0x66eca59  movups [rsi+0x183],xmm2
+0x66eca60  movups [rsi+0x174],xmm1
+0x66eca67  movups [rsi+0x164],xmm0
+0x66eca6e  movzx eax,word ptr [rbp+0x1108]
+0x66eca75  mov [rbp+0x15D8],ax
+0x66eca7c  mov rax,[rbp+0x16A8]
+0x66eca83  mov rcx,[rax+0x10]
+0x66eca87  mov eax,0x9D0
+0x66eca8c  add rcx,rax
+0x66eca8f  call 0x5ABA5C0
+0x66eca94  nop
+0x66eca95  mov rbx,rax
+0x66eca98  movups [r14-0x28],xmm6
+0x66eca9d  movups [r14-0x38],xmm6
+0x66ecaa2  movups [r14-0x48],xmm6
+0x66ecaa7  movups [r14-0x58],xmm6
+0x66ecaac  movups [r14-0x68],xmm6
+0x66ecab1  movups [r14-0x78],xmm6
+0x66ecab6  movups [r14-0x88],xmm6
+0x66ecabe  movups [r14-0x98],xmm6
+0x66ecac6  movups [r14-0xA8],xmm6
+0x66ecace  movups [r14-0xB8],xmm6
+0x66ecad6  movups [r14-0xC8],xmm6
+```
+Meaning: Call 0x678E420(&model [rbp+0x1440], &out [rbp+0x1060], &tmp [rbp+0x1008], [rbp+0xF80]) item assemble [V] (rsi=[rbp+0x1444] set earlier). Copy staging [rbp+0x1580]: [rcx+0x10]=[r13+0x70], [rcx]=[r13+0x60], byte [rbp+0x1594]=[rbp+0x10C4], [rbp+0x1598]=[rbp+0x10C8], xmm0/1/2=[r13+0x88/0x98/0xA7]->[rsi+0x164/0x174/0x183], word [rbp+0x15D8]=[rbp+0x1108] [V]. Push u16 [rbp+0x15D8] to pass pool *(ctx+0x10)+0x9D0 via 0x5ABA5C0 [V]; rbx=pass ptr. Zero 12 xmm slots [r14-0x28..0xC8] of desc [rbp+0x1210] (r14) [V]. Callee RVAs: 0x678e420, 0x5aba5c0 [V].
+
+### lines 1961..2000
+```asm
+0x66ecade  movups [r14-0xD8],xmm6
+0x66ecae6  mov rcx,[0x1233E1B0]
+0x66ecaed  mov rax,[rcx]
+0x66ecaf0  mov rax,[rax+0x10]
+0x66ecaf4  mov dl,0x4A
+0x66ecaf6  call qword ptr [0xF99FFA0]
+0x66ecafc  nop
+0x66ecafd  mov [rbp+0x16D0],al
+0x66ecb03  mov rdx,[rbx+0x8A8]
+0x66ecb0a  cmp rdx,[rbx+0x8B0]
+0x66ecb11 je 0x66EE59C
+0x66ecb17 movzx eax,word ptr [rbp+0x15D8]
+0x66ecb1e mov [rdx],ax
+0x66ecb21 add qword ptr [rbx+0x8A8],2
+0x66ecb29 jmp 0x66EE5B0
+0x66ecb2e xchg ax,ax
+0x66ecb30 test al,al
+0x66ecb32 je 0x66ECCE6
+0x66ecb38 cmp qword ptr [rbp+0x16A0],2
+0x66ecb40 lea rdx,[rbp+0xF70]
+0x66ecb47 jne 0x66ECEF6
+0x66ecb4d test r12b,r12b
+0x66ecb50 je 0x66ECEF6
+0x66ecb56 lea rcx,[rbp+0xEA8]
+0x66ecb5d mov rbx,rdx
+0x66ecb60 call 0x67A75D0
+0x66ecb65 nop
+0x66ecb66 lea rcx,[rbp+0x1440]
+0x66ecb6d lea rdx,[rbp+0x1050]
+0x66ecb74 lea r8,[rbp+0xFF8]
+0x66ecb7b mov r9,rbx
+0x66ecb7e call 0x678F640
+0x66ecb83 nop
+0x66ecb84 mov eax,[r13+0x60]
+0x66ecb88 lea rcx,[rbp+0x1578]
+0x66ecb8f mov [rcx+0x10],eax
+0x66ecb92 movups xmm0,[r13+0x50]
+0x66ecb97 movups [rcx],xmm0
+0x66ecb9a movzx eax,byte ptr [rbp+0x10B4]
+0x66ecba1 mov [rbp+0x158C],al
+```
+Meaning: Finish zeroing desc [r14-0xD8] (13 xmm slots cleared) [V]. Feature flag 0x4A: rcx=[0x1233E1B0], call qword [0xF99FFA0](rcx, 0x4A) -> [rbp+0x16D0] [V]. Push u16 [rbp+0x15D8] to pool [rbx+0x8A8] (rbx=pass ptr) fast or slow 0x66EE59C; add [rbx+0x8A8],2; jmp 0x66EE5B0 [V]. FogA==0 path 0x66ECB30: if !accept jump 0x66ECCE6; if kind [rbp+0x16A0]!=2 jump 0x66ECEF6; if !valid jump 0x66ECEF6; call 0x67A75D0(&[rbp+0xEA8], rdx=&[rbp+0xF70]) binder [V]; call 0x678F640(&model [rbp+0x1440], &out [rbp+0x1050], &tmp [rbp+0xFF8], rbx) variant descriptor pack [V]. Copy staging [rbp+0x1578]: [rcx+0x10]=[r13+0x60], [rcx]=[r13+0x50], byte [rbp+0x158C]=[rbp+0x10B4] [V]. Callee RVAs: [0xF99FFA0], 0x67a75d0, 0x678f640 [V].
+
+### lines 2001..2040
+```asm
+0x66ecba7  movups xmm0,[rbp+0x10B8]
+0x66ecbae  movups [rbp+0x1590],xmm0
+0x66ecbb5  movups xmm0,[r13+0x78]
+0x66ecbba  movups xmm1,[r13+0x88]
+0x66ecbc2  movups xmm2,[r13+0x97]
+0x66ecbca  movups [rsi+0x17B],xmm2
+0x66ecbd1  movups [rsi+0x16C],xmm1
+0x66ecbd8  movups [rsi+0x15C],xmm0
+0x66ecbdf  movzx eax,word ptr [rbp+0x10F8]
+0x66ecbe6  mov [rbp+0x15D0],ax
+0x66ecbed  mov rax,[rbp+0x16A8]
+0x66ecbf4  mov rcx,[rax+0x10]
+0x66ecbf8  mov eax,0x9D0
+0x66ecbfd  add rcx,rax
+0x66ecc00  call 0x5ABA5C0
+0x66ecc05  nop
+0x66ecc06  mov rbx,rax
+0x66ecc09  movups [r14-0x28],xmm6
+0x66ecc0e  movups [r14-0x38],xmm6
+0x66ecc13  movups [r14-0x48],xmm6
+0x66ecc18  movups [r14-0x58],xmm6
+0x66ecc1d  movups [r14-0x68],xmm6
+0x66ecc22  movups [r14-0x78],xmm6
+0x66ecc27  movups [r14-0x88],xmm6
+0x66ecc2f  movups [r14-0x98],xmm6
+0x66ecc37  movups [r14-0xA8],xmm6
+0x66ecc3f  movups [r14-0xB8],xmm6
+0x66ecc47  movups [r14-0xC8],xmm6
+0x66ecc4f  movups [r14-0xD8],xmm6
+0x66ecc57  mov rcx,[0x1233E1B0]
+0x66ecc5e  mov rax,[rcx]
+0x66ecc61  mov rax,[rax+0x10]
+0x66ecc65  mov dl,0x4A
+0x66ecc67  call qword ptr [0xF99FFA0]
+0x66ecc6d  nop
+0x66ecc6e  mov [rbp+0x16D0],al
+0x66ecc74  mov rdx,[rbx+0x8A8]
+0x66ecc7b  cmp rdx,[rbx+0x8B0]
+0x66ecc82 je 0x66EE49A
+0x66ecc88 movzx eax,word ptr [rbp+0x15D0]
+```
+Meaning: Finish staging [rbp+0x1578]: [rbp+0x1590]=[rbp+0x10B8], xmm0/1/2=[r13+0x78/0x88/0x97]->[rsi+0x15C/0x16C/0x17B], word [rbp+0x15D0]=[rbp+0x10F8] [V]. Push u16 [rbp+0x15D0] to pass pool via 0x5ABA5C0 [V]; rbx=pass ptr. Zero 13 xmm slots [r14-0x28..0xD8] again [V]. Query flag 0x4A again via vcall [0xF99FFA0]([0x1233E1B0], 0x4A) -> [rbp+0x16D0] [V]. Push u16 [rbp+0x15D0] to pool [rbx+0x8A8] fast or slow 0x66EE49A [V]. Callee RVAs: 0x5aba5c0, [0xF99FFA0] [V].
+
+### lines 2041..2080
+```asm
+0x66ecc8f  mov [rdx],ax
+0x66ecc92  add qword ptr [rbx+0x8A8],2
+0x66ecc9a  jmp 0x66EE4AE
+0x66ecc9f  movaps [rbp+0x1370],xmm6
+0x66ecca6  movaps [rbp+0x1660],xmm6
+0x66eccad  cmp qword ptr [rbp+0x1698],9
+0x66eccb5 je short 0x66ECCC5
+0x66eccb7 cmp qword ptr [rbp+0x1698],5
+0x66eccbf jne 0x66ED053
+0x66eccc5 mov rcx,[rbp+0x16C0]
+0x66ecccc mov rax,[rcx+0x28]
+0x66eccd0 test rax,rax
+0x66eccd3 je 0x66ED03F
+0x66eccd9 lock inc dword ptr [rax+8]
+0x66ecce1 jmp 0x66ED041
+0x66ecce6 movaps [rbp+0x1370],xmm6
+0x66ecced movaps [rbp+0x1660],xmm6
+0x66eccf4 cmp qword ptr [rbp+0x1698],9
+0x66eccfc je short 0x66ECD0C
+0x66eccfe cmp qword ptr [rbp+0x1698],5
+0x66ecd06 jne 0x66ED987
+0x66ecd0c mov rcx,[rbp+0x16C0]
+0x66ecd13 mov rax,[rcx+0x28]
+0x66ecd17 test rax,rax
+0x66ecd1a je 0x66ED973
+0x66ecd20 lock inc dword ptr [rax+8]
+0x66ecd28 jmp 0x66ED975
+0x66ecd2d movlps [rbp+0x1390],xmm15
+0x66ecd35 movss [rbp+0x1398],xmm12
+0x66ecd3e lea rcx,[rbp+0xEA8]
+0x66ecd45 lea rdx,[rbp+0x1130]
+0x66ecd4c call 0x67A75D0
+0x66ecd51 nop
+0x66ecd52 lea rbx,[rbp+0xF70]
+0x66ecd59 lea rax,[rbp+0x1390]
+0x66ecd60 mov [rsp+0x20],rax
+0x66ecd65 mov rcx,rbx
+0x66ecd68 lea rdx,[rbp+0x1210]
+```
+Meaning: Finish second pool push: [rdx]=u16 [rbp+0x15D0], add [rbx+0x8A8],2, jmp 0x66EE4AE [V]. Accept==0 path 0x66EC99F: zero [rbp+0x1370], [rbp+0x1660]; if kind [rbp+0x1698] in {9,5}: shared_ptr = [rbp+0x16C0]+0x28 with lock inc (seasons ptr), null-check jumps 0x66ED03F/0x66ED973 [V]; else jump 0x66ED053 / 0x66ED987 [V]. Shift path 0x66ECD2D: [rbp+0x1390]=movlps xmm15 (UV offset), [rbp+0x1398]=xmm12 (UV scroll); call 0x67A75D0(&[rbp+0xEA8], &[rbp+0x1130]) binder [V]; rbx=&[rbp+0xF70]; stack [rsp+0x20]=[rbp+0x1390] (continues) [V]. Callee RVA: 0x67a75d0 [V].
+
+### lines 2081..2100
+```asm
+0x66ecd6f  lea r8,[rbp+0x11B8]
+0x66ecd76  lea r15,[rbp+0x1130]
+0x66ecd7d  mov r9,r15
+0x66ecd80  call 0x678E1D0
+0x66ecd85 nop
+0x66ecd86 mov eax,[r14+0x60]
+0x66ecd8a mov [r13+0x70],eax
+0x66ecd8e movups xmm0,[r14+0x50]
+0x66ecd93 movups [r13+0x60],xmm0
+0x66ecd98 movzx eax,byte ptr [rbp+0x1274]
+0x66ecd9f mov [rbp+0x10C4],al
+0x66ecda5 movups xmm0,[rbp+0x1278]
+0x66ecdac movups [rbp+0x10C8],xmm0
+0x66ecdb3 movups xmm0,[r14+0x78]
+0x66ecdb8 movups xmm1,[r14+0x88]
+0x66ecdc0 movups xmm2,[r14+0x97]
+0x66ecdc8 movups [r13+0xA7],xmm2
+0x66ecdd0 movups [r13+0x98],xmm1
+0x66ecdd8 movups [r13+0x88],xmm0
+0x66ecde0 movzx eax,word ptr [rbp+0x12B8]
+```
+Meaning: Shift path continuation (from 0x66ECD2D): call 0x678E1D0(rcx=&[rbp+0xF70] f70, rdx=[rbp+0x1210] desc, r8=[rbp+0x11B8] item, r9=&[rbp+0x1130] ctx) geometry/material [V] (same signature as phase 13). Copy desc fields: [r13+0x70]=[r14+0x60], [r13+0x60]=[r14+0x50], byte [rbp+0x10C4]=[rbp+0x1274], [rbp+0x10C8]=[rbp+0x1278], xmm0/1/2=[r14+0x78/88/97]->[r13+0x88/0x98/0xA7], eax=word [rbp+0x12B8] (unit ends here at 0x66ecde0) [V]. Callee RVA: 0x678e1d0 [V]. No further instructions in unit (line 2100 = last line).
+
+## NEXT
+Unit complete: lines 1401..2100 all 18 phases done. End RVA at line 2100: 0x66ecde0 (last instruction).
+

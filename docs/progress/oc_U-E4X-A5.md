@@ -1,0 +1,548 @@
+# Unit U-E4X-A5: chunk extractor 0x66ea3d0 body A — lines 2801..3500 of docs/data/listings/e4_A.txt
+## NEXT
+Next line to do: 2841 (phase 1 of 18 complete)
+Base RVA: line 2801 = 0x66edc41; end RVA at line 3500 = 0x66ee957
+Context: body A = 0x66ec126..0x66ef28d (generic kinds), inline when f1688 && !desc[+0xB8] (docs/functions/66ea3d0.md) [V]. RVAs in this file are relative to image base; tags [V]=seen in disassembly [I]=inferred [?]=unknown.
+
+### lines 2801..2840
+```asm
+0x66edc41  jmp short 0x66EDC57
+0x66edc43  lea rcx,[r15+0x8A0]
+0x66edc4a  lea r8,[rbp+0x1630]
+0x66edc51  call 0x1EF6F90
+0x66edc56  nop
+0x66edc57  mov rcx,[0x1233E1B0]
+0x66edc5e  mov rax,[rcx]
+0x66edc61  mov rax,[rax+0x10]
+0x66edc65  movzx edx,byte ptr [rbp+0x16D0]
+0x66edc6c  call qword ptr [0xF99FFA0]
+0x66edc72  nop
+0x66edc73  mov qword ptr [rbp+0x1130],1
+0x66edc7e  mov eax,[r15+0x8A8]
+0x66edc85  sub eax,[r15+0x8A0]
+0x66edc8c  shr eax,1
+0x66edc8e  dec eax
+0x66edc90  mov [rbp+0x1140],ax
+0x66edc97  mov rcx,[0x1233E1B0]
+0x66edc9e  mov rax,[rcx]
+0x66edca1  mov rax,[rax+0x10]
+0x66edca5  mov dl,0x4A
+0x66edca7  call qword ptr [0xF99FFA0]
+0x66edcad  nop
+0x66edcae  mov [rbp+0x16D0],al
+0x66edcb4  mov rdx,[r15+0x758]
+0x66edcbb  cmp rdx,[r15+0x760]
+0x66edcc2  je short 0x66EDD40
+0x66edcc4  lea rcx,[rbp+0x15D8]
+0x66edccb  mov eax,[rcx+0x10]
+0x66edcce  mov [rdx+0x10],eax
+0x66edcd1  movups xmm0,[rcx]
+0x66edcd4  movups [rdx],xmm0
+0x66edcd7  movzx eax,byte ptr [rbp+0x15EC]
+0x66edcde  mov [rdx+0x14],al
+0x66edce1  movss xmm0,[rbp+0x15F0]
+0x66edce9  movss [rdx+0x18],xmm0
+0x66edcee  movss xmm0,[rbp+0x15F4]
+0x66edcf6  movss [rdx+0x1C],xmm0
+0x66edcfb  movss xmm0,[rbp+0x15F8]
+0x66edd03  movss [rdx+0x20],xmm0
+```
+Meaning: Flag 0x4A queried via vcall [0xF99FFA0] (rcx=[0x1233E1B0], dl=0x4A) stored at [rbp+0x16D0] twice (0x66edc6c, 0x66edca7) [V]. Pool free count [rbp+0x1140] = (([r15+0x8A8]-[r15+0x8A0])>>1) - 1 [V]. Pool push at [r15+0x758]: if cursor != end [r15+0x760]: entry [rdx+0x10]=[rcx+0x10], movups [rdx]=[rcx], byte [rdx+0x14]=[rbp+0x15EC], floats [rdx+0x18/1C/20]=[rbp+0x15F0/15F4/15F8] [V]; else slow path call 0x6760A80(&[r15+0x750], &[rbp+0x15D8]) [V].
+
+### lines 2841..2880
+```asm
+0x66edd08  movss xmm0,[rbp+0x15FC]
+0x66edd10  movss [rdx+0x24],xmm0
+0x66edd15  movups xmm0,[rsi+0x1BC]
+0x66edd1c  movups xmm1,[rsi+0x1CC]
+0x66edd23  movups xmm2,[rsi+0x1DB]
+0x66edd2a  movups [rdx+0x28],xmm0
+0x66edd2e  movups [rdx+0x38],xmm1
+0x66edd32  movups [rdx+0x47],xmm2
+0x66edd36  add qword ptr [r15+0x758],0x58
+0x66edd3e  jmp short 0x66EDD54
+0x66edd40  lea rcx,[r15+0x750]
+0x66edd47  lea r8,[rbp+0x15D8]
+0x66edd4e  call 0x6760A80
+0x66edd53  nop
+0x66edd54  mov rcx,[0x1233E1B0]
+0x66edd5b  mov rax,[rcx]
+0x66edd5e  mov rax,[rax+0x10]
+0x66edd62  movzx edx,byte ptr [rbp+0x16D0]
+0x66edd69  call qword ptr [0xF99FFA0]
+0x66edd6f  nop
+0x66edd70  mov eax,[r15+0x758]
+0x66edd77  sub eax,[r15+0x750]
+0x66edd7e  shr eax,3
+0x66edd81  imul eax,0xFFFF8BA3
+0x66edd87  dec eax
+0x66edd89  mov [rbp+0x115C],ax
+0x66edd90  mov rcx,[0x1233E1B0]
+0x66edd97  mov rax,[rcx]
+0x66edd9a  mov rax,[rax+0x10]
+0x66edd9e  mov dl,0x4A
+0x66edda0  call qword ptr [0xF99FFA0]
+0x66edda6  nop
+0x66edda7  mov [rbp+0x16D0],al
+0x66eddad  mov rdx,[r15+0x860]
+0x66eddb4  cmp rdx,[r15+0x868]
+0x66eddbb  je short 0x66EDDC9
+0x66eddbd  inc rdx
+0x66eddc0  mov [r15+0x860],rdx
+0x66eddc7  jmp short 0x66EDDD6
+0x66eddc9  lea rcx,[r15+0x858]
+```
+Meaning: Finish pool entry fill: floats [rdx+0x24]=[rbp+0x15FC], movups [rdx+0x28/38/47]=[rsi+0x1BC/1CC/1DB], [r15+0x758]+=0x58, jmp 0x66EDD54 [V]. Slow path call 0x6760A80(&[r15+0x750], &[rbp+0x15D8]) at 0x66edd4e [V]. Flag 0x4A vcall again -> [rbp+0x16D0] [V]. Second pool count [rbp+0x115C] = (([r15+0x758]-[r15+0x750])>>3)*0xFFFF8BA3 - 1 [V]. Third pool cursor [r15+0x860] vs end [r15+0x868]: if != end: inc rdx, [r15+0x860]=rdx, jmp 0x66EDDD6; else call 0x6760E60(&[r15+0x858]) [V].
+
+### lines 2881..2920
+```asm
+0x66eddd0  call 0x6760E60
+0x66eddd5  nop
+0x66eddd6  mov rcx,[0x1233E1B0]
+0x66edddd  mov rax,[rcx]
+0x66edde0  mov rax,[rax+0x10]
+0x66edde4  movzx edx,byte ptr [rbp+0x16D0]
+0x66eddeb  call qword ptr [0xF99FFA0]
+0x66eddf1  nop
+0x66eddf2  mov eax,[r15+0x858]
+0x66eddf9  not eax
+0x66eddfb  add eax,[r15+0x860]
+0x66ede02  mov [rbp+0x1146],ax
+0x66ede09  mov rcx,[0x1233E1B0]
+0x66ede10  mov rax,[rcx]
+0x66ede13  mov rax,[rax+0x10]
+0x66ede17  mov dl,0x4A
+0x66ede19  call qword ptr [0xF99FFA0]
+0x66ede1f  mov [rbp+0x16D0],al
+0x66ede25  lea rcx,[r15+0x648]
+0x66ede2c  lea rdx,[rbp+0x1588]
+0x66ede33  call 0x675FB30
+0x66ede38  nop
+0x66ede39  mov rcx,[0x1233E1B0]
+0x66ede40  mov rax,[rcx]
+0x66ede43  mov rax,[rax+0x10]
+0x66ede47  movzx edx,byte ptr [rbp+0x16D0]
+0x66ede4e  call qword ptr [0xF99FFA0]
+0x66ede54  nop
+0x66ede55  mov eax,[r15+0x650]
+0x66ede5c  sub eax,[r15+0x648]
+0x66ede63  shr eax,3
+0x66ede66  imul eax,0xFFFF8E39
+0x66ede6c  dec eax
+0x66ede6e  mov [rbp+0x1172],ax
+0x66ede75  lea rcx,[r15+0x780]
+0x66ede7c  lea rdx,[rbp+0x1530]
+0x66ede83  call 0x675F3B0
+0x66ede88  nop
+0x66ede89  mov qword ptr [rbp+0x1130],0x2005009
+0x66ede94  mov eax,[r15+0x788]
+```
+Meaning: Slow path call 0x6760E60(&[r15+0x858]) at 0x66eddc9 [V]. Flag 0x4A vcall -> [rbp+0x16D0] [V]. Count [rbp+0x1146] = (~[r15+0x858]) + [r15+0x860] [V]. Flag 0x4A vcall again [V]. Call 0x675FB30(&[r15+0x648], &[rbp+0x1588]) [V]. Count [rbp+0x1172] = (([r15+0x650]-[r15+0x648])>>3)*0xFFFF8E39 - 1 [V]. Call 0x675F3B0(&[r15+0x780], &[rbp+0x1530]) [V]. [rbp+0x1130] = 0x2005009 [V].
+
+### lines 2921..2960
+```asm
+0x66ede9b  sub eax,[r15+0x780]
+0x66edea2  shr eax,3
+0x66edea5  imul eax,0xFFFF8BA3
+0x66edeab  dec eax
+0x66edead  mov [rbp+0x1158],ax
+0x66edeb4  mov rcx,[0x1233E1B0]
+0x66edebb  mov rax,[rcx]
+0x66edebe  mov rax,[rax+0x10]
+0x66edec2  mov dl,0x4A
+0x66edec4  call qword ptr [0xF99FFA0]
+0x66edeca  mov [rbp+0x16D0],al
+0x66eded0  mov r12,[r15+0x770]
+0x66eded7  cmp r12,[r15+0x778]
+0x66edede  je short 0x66EDF24
+0x66edee0  mov rax,[rbp+0x14A8]
+0x66edee7  mov [r12],rax
+0x66edeeb  lea rcx,[r12+8]
+0x66edef0  lea rdx,[rbp+0x14B0]
+0x66edef7  call 0xE869FF0
+0x66edefc  nop
+0x66edefd  mov rax,[rbp+0x1528]
+0x66edf04  mov [r12+0x80],rax
+0x66edf0c  mov qword ptr [rbp+0x1528],0
+0x66edf17  add qword ptr [r15+0x770],0x88
+0x66edf22  jmp short 0x66EDF3B
+0x66edf24  lea rcx,[r15+0x768]
+0x66edf2b  mov rdx,r12
+0x66edf2e  lea r8,[rbp+0x14A8]
+0x66edf35  call 0x6760710
+0x66edf3a  nop
+0x66edf3b  mov rcx,[0x1233E1B0]
+0x66edf42  mov rax,[rcx]
+0x66edf45  mov rax,[rax+0x10]
+0x66edf49  movzx edx,byte ptr [rbp+0x16D0]
+0x66edf50  call qword ptr [0xF99FFA0]
+0x66edf56  nop
+0x66edf57  mov eax,[r15+0x770]
+0x66edf5e  sub eax,[r15+0x768]
+0x66edf65  shr eax,3
+0x66edf68  imul eax,0xFFFFF0F1
+```
+Meaning: Count [rbp+0x1158] = (([r15+0x788]-[r15+0x780])>>3)*0xFFFF8BA3 - 1 [V]. Flag 0x4A vcall -> [rbp+0x16D0] [V]. Entry push to [r15+0x770]: if cursor != end [r15+0x778]: [r12]=[rbp+0x14A8], call 0xE869FF0(&r12+8, &[rbp+0x14B0]), [r12+0x80]=[rbp+0x1528], zero [rbp+0x1528], [r15+0x770]+=0x88 [V]. Else call 0x6760710(&[r15+0x768], r12, &[rbp+0x14A8]) [V]. Flag 0x4A vcall again [V]. Count [rbp+0x115A] = (([r15+0x770]-[r15+0x768])>>3)*0xFFFFF0F1 - 1 [V].
+
+### lines 2961..3000
+```asm
+0x66edf6e  dec eax
+0x66edf70  mov [rbp+0x115A],ax
+0x66edf77  mov rcx,[0x1233E1B0]
+0x66edf7e  mov rax,[rcx]
+0x66edf81  mov rax,[rax+0x10]
+0x66edf85  mov dl,0x4A
+0x66edf87  call qword ptr [0xF99FFA0]
+0x66edf8d  nop
+0x66edf8e  mov [rbp+0x16D0],al
+0x66edf94  mov rdx,[r15+0x2D8]
+0x66edf9b  cmp rdx,[r15+0x2E0]
+0x66edfa2  je short 0x66EDFB0
+0x66edfa4  inc rdx
+0x66edfa7  mov [r15+0x2D8],rdx
+0x66edfae  jmp short 0x66EDFBD
+0x66edfb0  lea rcx,[r15+0x2D0]
+0x66edfb7  call 0x6760E60
+0x66edfbc  nop
+0x66edfbd  mov rcx,[0x1233E1B0]
+0x66edfc4  mov rax,[rcx]
+0x66edfc7  mov rax,[rax+0x10]
+0x66edfcb  movzx edx,byte ptr [rbp+0x16D0]
+0x66edfd2  call qword ptr [0xF99FFA0]
+0x66edfd8  nop
+0x66edfd9  mov eax,[r15+0x2D0]
+0x66edfe0  not eax
+0x66edfe2  add eax,[r15+0x2D8]
+0x66edfe9  mov [rbp+0x11BC],ax
+0x66edff0  mov rcx,r15
+0x66edff3  add rcx,0x5D0
+0x66edffa  lea rdx,[rbp+0x1440]
+0x66ee001  call 0x678D690
+0x66ee006  nop
+0x66ee007  mov rax,0x4000000042007009
+0x66ee011  mov [rbp+0x1130],rax
+0x66ee018  mov eax,[r15+0x5D8]
+0x66ee01f  sub eax,[r15+0x5D0]
+0x66ee026  shr eax,5
+0x66ee029  imul eax,0xFFFFAAAB
+0x66ee02f  dec eax
+```
+Meaning: Flag 0x4A vcall -> [rbp+0x16D0] [V]. Cursor [r15+0x2D8] vs end [r15+0x2E0]: if != end: inc rdx, [r15+0x2D8]=rdx, jmp 0x66EDFBD; else call 0x6760E60(&[r15+0x2D0]) [V]. Flag 0x4A vcall again [V]. Count [rbp+0x11BC] = (~[r15+0x2D0]) + [r15+0x2D8] [V]. Call 0x678D690(&r15+0x5D0, &[rbp+0x1440]) [V]. [rbp+0x1130] = 0x4000000042007009 [V]. Count [rbp+0x117C] = (([r15+0x5D8]-[r15+0x5D0])>>5)*0xFFFFAAAB - 1 [V].
+
+### lines 3001..3040
+```asm
+0x66ee031  mov [rbp+0x117C],ax
+0x66ee038  mov rcx,[0x1233E1B0]
+0x66ee03f  mov rax,[rcx]
+0x66ee042  mov rax,[rax+0x10]
+0x66ee046  mov dl,0x4A
+0x66ee048  call qword ptr [0xF99FFA0]
+0x66ee04e  nop
+0x66ee04f  mov [rbp+0x16D0],al
+0x66ee055  mov rdx,[r15+8]
+0x66ee059  cmp rdx,[r15+0x10]
+0x66ee05d  je short 0x66EE07E
+0x66ee05f  mov r8d,0xC8
+0x66ee065  mov rcx,rdx
+0x66ee068  lea rdx,[rbp+0x1130]
+0x66ee06f  call 0xEEC6EC0
+0x66ee074  add qword ptr [r15+8],0xC8
+0x66ee07c  jmp short 0x66EE08E
+0x66ee07e  mov rcx,r15
+0x66ee081  lea r8,[rbp+0x1130]
+0x66ee088  call 0x5ABA6D0
+0x66ee08d  nop
+0x66ee08e  mov rcx,[0x1233E1B0]
+0x66ee095  mov rax,[rcx]
+0x66ee098  mov rax,[rax+0x10]
+0x66ee09c  movzx edx,byte ptr [rbp+0x16D0]
+0x66ee0a3  call qword ptr [0xF99FFA0]
+0x66ee0a9  nop
+0x66ee0aa  cmp byte ptr [rbp+0x15C8],1
+0x66ee0b1  jne short 0x66EE105
+0x66ee0b3  mov rcx,[rbp+0x1588]
+0x66ee0ba  test rcx,rcx
+0x66ee0bd  je short 0x66EE105
+0x66ee0bf  mov rdx,[rbp+0x1598]
+0x66ee0c6  sub rdx,rcx
+0x66ee0c9  cmp rdx,0x1000
+0x66ee0d0  jb short 0x66EE0EE
+0x66ee0d2  mov rax,[rcx-8]
+0x66ee0d6  add rcx,0xFFFFFFFFFFFFFFF8
+0x66ee0da  sub rcx,rax
+0x66ee0dd  cmp rcx,0x20
+```
+Meaning: Flag 0x4A vcall -> [rbp+0x16D0] [V]. Block write: if [r15+8] != [r15+0x10]: r8d=0xC8, rcx=[r15+8], rdx=&[rbp+0x1130], call 0xEEC6EC0([r15+8], &[rbp+0x1130]), [r15+8]+=0xC8 [V]; else call 0x5ABA6D0(r15, &[rbp+0x1130]) [V]. Flag 0x4A vcall again [V]. Size check: if byte [rbp+0x15C8]==1 and [rbp+0x1588]!=0: rdx=[rbp+0x1598]-[rbp+0x1588]; if rdx >= 0x1000 goto 0x66EE0EE; else rax=[rcx-8], rcx-=8, rcx-=rax, if rcx>=0x20 goto 0x66F82BB; else rdx|=0x27, rcx=rax [V]. Call 0xE935700(rcx) at 0x66ee0ee [V]. Then [rbp+0x1588] = xmm6 zeroed, [rbp+0x1588+0x10]=0 [V].
+
+### lines 3041..3080
+```asm
+0x66ee0e1  jae 0x66F82BB
+0x66ee0e7  or rdx,0x27
+0x66ee0eb  mov rcx,rax
+0x66ee0ee  call 0xE935700
+0x66ee0f3  lea rax,[rbp+0x1588]
+0x66ee0fa  movups [rax],xmm6
+0x66ee0fd  mov qword ptr [rax+0x10],0
+0x66ee105  lea rcx,[rbp+0x1440]
+0x66ee10c  call 0x678F260
+0x66ee111  lea rcx,[rbp+0xF70]
+0x66ee118  call 0x67E23F0
+0x66ee11d  test rbx,rbx
+0x66ee120  je short 0x66EE150
+0x66ee122  lock dec dword ptr [rbx+8]
+0x66ee126  jne short 0x66EE150
+0x66ee128  mov rax,[rbx]
+0x66ee12b  mov rax,[rax]
+0x66ee12e  mov rcx,rbx
+0x66ee131  call qword ptr [0xF99FFA0]
+0x66ee137  lock dec dword ptr [rbx+0xC]
+0x66ee13b  jne short 0x66EE150
+0x66ee13d  mov rax,[rbx]
+0x66ee140  mov rax,[rax+8]
+0x66ee144  mov rcx,rbx
+0x66ee147  call qword ptr [0xF99FFA0]
+0x66ee14d  nop [rax]
+0x66ee150  mov rbx,[rbp+0x13D0]
+0x66ee157  test rbx,rbx
+0x66ee15a  je short 0x66EE190
+0x66ee15c  lock dec dword ptr [rbx+8]
+0x66ee160  jne short 0x66EE190
+0x66ee162  mov rax,[rbx]
+0x66ee165  mov rax,[rax]
+0x66ee168  mov rcx,rbx
+0x66ee16b  call qword ptr [0xF99FFA0]
+0x66ee171  lock dec dword ptr [rbx+0xC]
+0x66ee175  jne short 0x66EE190
+0x66ee177  mov rax,[rbx]
+0x66ee17a  mov rax,[rax+8]
+0x66ee17e  mov rcx,rbx
+```
+Meaning: If rcx>=0x20 jump 0x66F82BB else rdx|=0x27, rcx=rax [V]. Call 0xE935700(rcx) at 0x66ee0ee [V]. Zero [rbp+0x1588] (movups xmm6, qword[rax+0x10]=0) [V]. Release: call 0x678F260([rbp+0x1440]) [V], call 0x67E23F0([rbp+0xF70]) [V]. Shared_ptr release chain for [rbp+0x13D0]: test rbx; lock dec [rbx+8]; if !=0 goto 0x66EE150; else rax=[rbx], rax=[rax], call [0xF99FFA0](rbx); lock dec [rbx+0xC]; if !=0 goto 0x66EE150; else rax=[rbx], rax=[rax+8], call [0xF99FFA0](rbx) [V]. Then [rbp+0x13C0] release chain starts [V].
+
+### lines 3081..3120
+```asm
+0x66ee181  call qword ptr [0xF99FFA0]
+0x66ee187  nop [rax+rax]
+0x66ee190  mov rbx,[rbp+0x13C0]
+0x66ee197  test rbx,rbx
+0x66ee19a  je short 0x66EE1D0
+0x66ee19c  lock dec dword ptr [rbx+8]
+0x66ee1a0  jne short 0x66EE1D0
+0x66ee1a2  mov rax,[rbx]
+0x66ee1a5  mov rax,[rax]
+0x66ee1a8  mov rcx,rbx
+0x66ee1ab  call qword ptr [0xF99FFA0]
+0x66ee1b1  lock dec dword ptr [rbx+0xC]
+0x66ee1b5  jne short 0x66EE1D0
+0x66ee1b7  mov rax,[rbx]
+0x66ee1ba  mov rax,[rax+8]
+0x66ee1be  mov rcx,rbx
+0x66ee1c1  call qword ptr [0xF99FFA0]
+0x66ee1c7  nop [rax+rax]
+0x66ee1d0  mov rbx,[rbp+0x1398]
+0x66ee1d7  test rbx,rbx
+0x66ee1da  je short 0x66EE210
+0x66ee1dc  lock dec dword ptr [rbx+8]
+0x66ee1e0  jne short 0x66EE210
+0x66ee1e2  mov rax,[rbx]
+0x66ee1e5  mov rax,[rax]
+0x66ee1e8  mov rcx,rbx
+0x66ee1eb  call qword ptr [0xF99FFA0]
+0x66ee1f1  lock dec dword ptr [rbx+0xC]
+0x66ee1f5  jne short 0x66EE210
+0x66ee1f7  mov rax,[rbx]
+0x66ee1fa  mov rax,[rax+8]
+0x66ee1fe  mov rcx,rbx
+0x66ee201  call qword ptr [0xF99FFA0]
+0x66ee207  nop [rax+rax]
+0x66ee210  mov rbx,[rbp+0x1330]
+0x66ee217  test rbx,rbx
+0x66ee21a  je short 0x66EE250
+0x66ee21c  lock dec dword ptr [rbx+8]
+0x66ee220  jne short 0x66EE250
+0x66ee222  mov rax,[rbx]
+```
+Meaning: [rbp+0x13C0] release chain completes: test; lock dec [rbx+8]; jne 0x66EE1D0; else rax=[rbx], rax=[rax], call [0xF99FFA0](rbx); lock dec [rbx+0xC]; jne 0x66EE1D0; else rax=[rbx], rax=[rax+8], call [0xF99FFA0](rbx) [V]. Same pattern repeated for [rbp+0x1398] (exit 0x66EE210) [V], and [rbp+0x1330] release chain starts (exit 0x66EE250) [V]. All release chains call qword ptr [0xF99FFA0] twice [V].
+
+### lines 3121..3160
+```asm
+0x66ee225  mov rax,[rax]
+0x66ee228  mov rcx,rbx
+0x66ee22b  call qword ptr [0xF99FFA0]
+0x66ee231  lock dec dword ptr [rbx+0xC]
+0x66ee235  jne short 0x66EE250
+0x66ee237  mov rax,[rbx]
+0x66ee23a  mov rax,[rax+8]
+0x66ee23e  mov rcx,rbx
+0x66ee241  call qword ptr [0xF99FFA0]
+0x66ee247  nop [rax+rax]
+0x66ee250  mov rbx,[rbp+0x1310]
+0x66ee257  test rbx,rbx
+0x66ee25a  je short 0x66EE290
+0x66ee25c  lock dec dword ptr [rbx+8]
+0x66ee260  jne short 0x66EE290
+0x66ee262  mov rax,[rbx]
+0x66ee265  mov rax,[rax]
+0x66ee268  mov rcx,rbx
+0x66ee26b  call qword ptr [0xF99FFA0]
+0x66ee271  lock dec dword ptr [rbx+0xC]
+0x66ee275  jne short 0x66EE290
+0x66ee277  mov rax,[rbx]
+0x66ee27a  mov rax,[rax+8]
+0x66ee27e  mov rcx,rbx
+0x66ee281  call qword ptr [0xF99FFA0]
+0x66ee287  nop [rax+rax]
+0x66ee290  mov rbx,[rbp+0x12E8]
+0x66ee297  test rbx,rbx
+0x66ee29a  je short 0x66EE2D0
+0x66ee29c  lock dec dword ptr [rbx+8]
+0x66ee2a0  jne short 0x66EE2D0
+0x66ee2a2  mov rax,[rbx]
+0x66ee2a5  mov rax,[rax]
+0x66ee2a8  mov rcx,rbx
+0x66ee2ab  call qword ptr [0xF99FFA0]
+0x66ee2b1  lock dec dword ptr [rbx+0xC]
+0x66ee2b5  jne short 0x66EE2D0
+0x66ee2b7  mov rax,[rbx]
+0x66ee2ba  mov rax,[rax+8]
+0x66ee2be  mov rcx,rbx
+```
+Meaning: [rbp+0x1330] release chain completes [V], then [rbp+0x1310] release chain starts (exit 0x66EE290) [V], then [rbp+0x12E8] release chain starts (exit 0x66EE2D0) [V]. Each calls qword ptr [0xF99FFA0] twice [V].
+
+### lines 3161..3200
+```asm
+0x66ee2eb  call qword ptr [0xF99FFA0]
+0x66ee2f1  lock dec dword ptr [rbx+0xC]
+0x66ee2f5  jne short 0x66EE310
+0x66ee2f7  mov rax,[rbx]
+0x66ee2fa  mov rax,[rax+8]
+0x66ee2fe  mov rcx,rbx
+0x66ee301  call qword ptr [0xF99FFA0]
+0x66ee307  nop [rax+rax]
+0x66ee310  mov rbx,[rbp+0x1668]
+0x66ee317  test rbx,rbx
+0x66ee31a  je short 0x66EE350
+0x66ee31c  lock dec dword ptr [rbx+8]
+0x66ee320  jne short 0x66EE350
+0x66ee322  mov rax,[rbx]
+0x66ee325  mov rax,[rax]
+0x66ee328  mov rcx,rbx
+0x66ee32b  call qword ptr [0xF99FFA0]
+0x66ee331  lock dec dword ptr [rbx+0xC]
+0x66ee335  jne short 0x66EE350
+0x66ee337  mov rax,[rbx]
+0x66ee33a  mov rax,[rax+8]
+0x66ee33e  mov rcx,rbx
+0x66ee341  call qword ptr [0xF99FFA0]
+0x66ee347  nop [rax+rax]
+0x66ee350  mov rbx,[rbp+0x1378]
+0x66ee357  test rbx,rbx
+0x66ee35a  je 0x66EF170
+0x66ee360  lock dec dword ptr [rbx+8]
+0x66ee364  jne 0x66EF170
+0x66ee36a  mov rax,[rbx]
+0x66ee36d  mov rax,[rax]
+0x66ee370  mov rcx,rbx
+0x66ee373  call qword ptr [0xF99FFA0]
+0x66ee379  lock dec dword ptr [rbx+0xC]
+0x66ee37d  jne 0x66EF170
+0x66ee383  mov rax,[rbx]
+0x66ee386  mov rax,[rax+8]
+0x66ee38a  mov rcx,rbx
+0x66ee38d  call qword ptr [0xF99FFA0]
+0x66ee393  jmp 0x66EF170
+```
+Meaning: [rbp+0x12E8] release chain completes (exit 0x66EE310) [V], then [rbp+0x1668] release chain starts (exit 0x66EE350) [V], then [rbp+0x1378] release chain starts (exit 0x66EF170, far branch) [V]. Each calls qword ptr [0xF99FFA0] twice [V].
+
+### lines 3201..3240
+```asm
+0x66ee398  lea rcx,[rbx+0x8A0]
+0x66ee39f  lea r8,[rbp+0x15D0]
+0x66ee3a6  call 0x1EF6F90
+0x66ee3ab  nop
+0x66ee3ac  mov rcx,[0x1233E1B0]
+0x66ee3b3  mov rax,[rcx]
+0x66ee3b6  mov rax,[rax+0x10]
+0x66ee3ba  movzx edx,byte ptr [rbp+0x16D0]
+0x66ee3c1  call qword ptr [0xF99FFA0]
+0x66ee3c7  nop
+0x66ee3c8  (bad)
+0x66ee3c9  mov dword ptr [rbp+0x1130],1
+0x66ee3d3  mov eax,[rbx+0x8A8]
+0x66ee3d9  sub eax,[rbx+0x8A0]
+0x66ee3df  shr eax,1
+0x66ee3e1  dec eax
+0x66ee3e3  mov [rbp+0x1140],ax
+0x66ee3ea  mov rcx,[0x1233E1B0]
+0x66ee3f1  mov rax,[rcx]
+0x66ee3f4  mov rax,[rax+0x10]
+0x66ee3f8  mov dl,0x4A
+0x66ee3fa  call qword ptr [0xF99FFA0]
+0x66ee400  nop
+0x66ee401  mov [rbp+0x16D0],al
+0x66ee407  mov rdx,[rbx+0x758]
+0x66ee40e  cmp rdx,[rbx+0x760]
+0x66ee415  je 0x66EE69E
+0x66ee41b  lea rcx,[rbp+0x1578]
+0x66ee422  mov eax,[rcx+0x10]
+0x66ee425  mov [rdx+0x10],eax
+0x66ee428  movups xmm0,[rcx]
+0x66ee42b  movups [rdx],xmm0
+0x66ee42e  movzx eax,byte ptr [rbp+0x158C]
+0x66ee435  mov [rdx+0x14],al
+0x66ee438  movss xmm0,[rbp+0x1590]
+0x66ee440  movss [rdx+0x18],xmm0
+0x66ee445  movss xmm0,[rbp+0x1594]
+0x66ee44d  movss [rdx+0x1C],xmm0
+0x66ee452  movss xmm0,[rbp+0x1598]
+0x66ee45a  movss [rdx+0x20],xmm0
+```
+Meaning: Call 0x1EF6F90(&[rbx+0x8A0], &[rbp+0x15D0]) slow path [V]. Flag 0x4A vcall -> [rbp+0x16D0] [V]. Bad instruction at 0x66ee3c8 [V] (disassembly artifact). Pool count [rbp+0x1140] = (([rbx+0x8A8]-[rbx+0x8A0])>>1) - 1 [V]. Flag 0x4A vcall again [V]. Pool push at [rbx+0x758]: if cursor == end [rbx+0x760] goto 0x66EE69E slow path; else entry: [rdx+0x10]=[rcx+0x10] (rcx=&[rbp+0x1578]), movups [rdx]=[rcx], byte [rdx+0x14]=[rbp+0x158C], floats [rdx+0x18/1C/20]=[rbp+0x1590/1594/1598] [V].
+
+### lines 3241..3280
+```asm
+0x66ee45f  movss xmm0,[rbp+0x159C]
+0x66ee467  movss [rdx+0x24],xmm0
+0x66ee46c  movups xmm0,[rsi+0x15C]
+0x66ee473  movups xmm1,[rsi+0x16C]
+0x66ee47a  movups xmm2,[rsi+0x17B]
+0x66ee481  movups [rdx+0x28],xmm0
+0x66ee485  movups [rdx+0x38],xmm1
+0x66ee489  movups [rdx+0x47],xmm2
+0x66ee48d  add qword ptr [rbx+0x758],0x58
+0x66ee495  jmp 0x66EE6B2
+0x66ee49a  lea rcx,[rbx+0x8A0]
+0x66ee4a1  lea r8,[rbp+0x15D0]
+0x66ee4a8  call 0x1EF6F90
+0x66ee4ad  nop
+0x66ee4ae  mov rcx,[0x1233E1B0]
+0x66ee4b5  mov rax,[rcx]
+0x66ee4b8  mov rax,[rax+0x10]
+0x66ee4bc  movzx edx,byte ptr [rbp+0x16D0]
+0x66ee4c3  call qword ptr [0xF99FFA0]
+0x66ee4c9  nop
+0x66ee4ca  mov qword ptr [rbp+0x1130],1
+0x66ee4d5  mov eax,[rbx+0x8A8]
+0x66ee4db  sub eax,[rbx+0x8A0]
+0x66ee4e1  shr eax,1
+0x66ee4e3  dec eax
+0x66ee4e5  mov [rbp+0x1140],ax
+0x66ee4ec  mov rcx,[0x1233E1B0]
+0x66ee4f3  mov rax,[rcx]
+0x66ee4f6  mov rax,[rax+0x10]
+0x66ee4fa  mov dl,0x4A
+0x66ee4fc  call qword ptr [0xF99FFA0]
+0x66ee502  nop
+0x66ee503  mov [rbp+0x16D0],al
+0x66ee509  mov rdx,[rbx+0x758]
+0x66ee510  cmp rdx,[rbx+0x760]
+0x66ee517  je 0x66EE72C
+0x66ee51d  lea rcx,[rbp+0x1578]
+0x66ee524  mov eax,[rcx+0x10]
+0x66ee527  mov [rdx+0x10],eax
+0x66ee52a  movups xmm0,[rcx]
+```
+Meaning: Finish pool entry fill: floats [rdx+0x24]=[rbp+0x159C], movups [rdx+0x28/38/47]=[rsi+0x15C/16C/17B], [rbx+0x758]+=0x58, jmp 0x66EE6B2 [V]. Slow path 0x1EF6F90(&[rbx+0x8A0], &[rbp+0x15D0]) at 0x66ee49a [V]. Flag 0x4A vcall -> [rbp+0x16D0] [V]. Pool count [rbp+0x1140] recomputed [V]. Flag 0x4A vcall again [V]. Pool push at [rbx+0x758]: if cursor == end [rbx+0x760] goto 0x66EE72C slow path; else entry: [rdx+0x10]=[rcx+0x10], movups [rdx]=[rcx] [V].
+
+## NEXT
+Next line to do: 3281 (phase 12 of 18 complete)

@@ -1,0 +1,52 @@
+sub_e8142c0  [0xe8142c0..0xe814396)  size 0xd6  0 xrefs in
+  e8142c0  push r15                                      
+  e8142c2  push r14                                      
+  e8142c4  push rsi                                      
+  e8142c5  push rdi                                      
+  e8142c6  push rbx                                      
+  e8142c7  sub rsp,0x20                                  
+  e8142cb  mov edi,r9d                                   
+  e8142ce  mov rsi,rcx                                   
+  e8142d1  movzx eax,dx                                  
+  e8142d4  imul r14,rax,0xF8                             
+  e8142db  movzx eax,r8w                                 
+  e8142df  imul r15,rax,0xB8                             
+  e8142e6  lea rax,[rcx+r15]                             ; R a0+0x0+idx
+  e8142ea  add rax,0xAAA178                              
+  e8142f0  mov [rcx+r14+0xB62178],rax                    ; W a0+0xB62178+idx
+  e8142f8  movzx r8d,byte ptr [rcx+r15+0xAAA228]         ; R a0+0xAAA228+idx
+  e814301  shl r8d,3                                     
+  e814305  lea rdx,[rcx+r15]                             ; R a0+0x0+idx
+  e814309  add rdx,0xAAA188                              
+  e814310  lea rbx,[rcx+r14]                             ; R a0+0x0+idx
+  e814314  add rbx,0xB62188                              
+  e81431b  mov rcx,rbx                                   
+  e81431e  call 0xEBCE390                                ; -> sub_ebce390
+  e814323  movzx eax,byte ptr [rsi+r15+0xAAA228]         ; R a0+0xAAA228+idx
+  e81432c  mov [rsi+r14+0xB62268],al                     ; W a0+0xB62268+idx
+  e814334  cmp di,0xFFFF                                 
+  e814338  je short 0xE81438A                            ; -> loc_e81438a
+  e81433a  add r14,rsi                                   
+  e81433d  add r14,0xB62178                              
+  e814344  add rsi,0xAAA178                              
+  e81434b  movzx ecx,di                                  
+  e81434e  imul rdi,rcx,0xB8                             
+  e814355  lea rcx,[rsi+rdi]                             
+  e814359  mov [r14+8],rcx                               
+  e81435d  movzx r8d,byte ptr [rsi+rdi+0xB0]             
+  e814366  shl r8d,3                                     
+  e81436a  lea rdx,[rsi+rdi]                             
+  e81436e  add rdx,0x10                                  
+  e814372  lea rcx,[rbx+rax*8]                           
+  e814376  call 0xEBCE390                                ; -> sub_ebce390
+  e81437b  movzx eax,byte ptr [rsi+rdi+0xB0]             
+  e814383  add [r14+0xF0],al                             
+
+loc_e81438a:  ; from e814338
+  e81438a  add rsp,0x20                                  
+  e81438e  pop rbx                                       
+  e81438f  pop rdi                                       
+  e814390  pop rsi                                       
+  e814391  pop r14                                       
+  e814393  pop r15                                       
+  e814395  ret                                           
