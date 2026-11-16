@@ -1,0 +1,45 @@
+# Live ledger of opencode units (orchestrator; update on every dispatch/finish). Target concurrency: 6 and rising (dynamic; back off ONLY when a full key rotation is rate-limited)
+# resumed units are watched with: bun run watch.ts --idle=90 <id>   (outcome field is stale after resume)
+# NEVER pkill watchers by pattern (it killed a good one once).
+ses_e1d808833ffefX7zfp0kqIGCyF     U-B6        running (watcher bgd? from earlier)
+ses_e1d7d48dfffezfg942YKyOd0fR     U-C3a       resumed to write the md (idle watcher)
+ses_e1d7d482cffe3f1kAXIhOpZkoA     U-C4b       running
+ses_e1d6c46caffe4h03TQiz55UQbD     U-B3a       running
+ses_e1d6c461cffejsH7bYCAbPeylQ     U-B7c       running
+ses_e1d6c455effeICV3liWt5CuErL     U-C3b       running
+# done+ticked: B5, B4disk(B4), B9b, B7a, B7b, A6c, E2, E7 ...
+U-C4a ses_e1d69c07effeClVMOH4QTS6sax; U-C4b resumed (follow-up) --idle=90
+U-C5a ses_e1d64b32dffe1K2xmru8Pz9MRW; C4b left open (fields +0x18/+0x28 unverified, callers unnamed); C3b resumed
+U-C6 ses_e1d63413affekSb2wxVlrCf7nK; U-B3b ses_e1d6340d8ffejHHdbKDpmwaLx4; B3a,B7c ticked
+U-C7b ses_e1d602447ffeOc0EfdSYnmJRym; C3a ticked
+U-F1b ses_e1d555fddffeFbgP9mbSsRWbl8; U-G1b ses_e1d555fa0ffeUf97ZDwnb3TsNt; B3b,C6 ticked
+U-C7a ses_e1d4f5180ffe6CANF8sIqAJJVj; C7b ticked
+U-F1b2 ses_e1d430d84ffeuoTtaKG7WJ77lO; U-C7a2 ses_e1d430d32ffe7i49Ahr62EJqKu (model nemotron-3-ultra pinned; kilo-auto/free backend dots-3 failing)
+U-F1b2 ses_e1d3d277affejirQE025yOZVFj; U-C7a2 ses_e1d3d276affe7SneAmUIY6AvrV (nemotron-3-ultra via sendpin.ts)
+6 units (2026-11-16): F1b3 ses_e1d256260ffeVHXvGL3mRcJDN2; G1b2 ses_e1d25624fffeiF6KHlu5ZLcD33; C5a2 ses_e1d25623bffeLg51Xi7IoxApBr; C4a2 ses_e1d25621cffeRg4QmtxscLd7Aw; C3b2 ses_e1d256209ffer29mI3eSpRY1Ki; C7a ticked
+A8b ses_e1d250526ffeSw24pAFhSkm71t
+A7c ses_e1d14087dffe2kHwYD4XikBSuk; G1b ticked
+E3 ses_e1d13272bffezzlPjCRnomFT6l; C3b2 left open (contradicts itself: XXH64 vs FNV, record layout inferred)
+F1b4 ses_e1d10adeaffeX3Aq0Jaz4UKwRV (F1b3 judged speculative, left open)
+D9c ses_e1d0e9829ffe2OxRCK7kPIiR6G; C5a2 left open (kind map only inferred from use counts)
+A10 ses_e1d09078effeetxNNDXYsvmtcv; C4a2 blocked (owner ctor unknown), left open
+A8a ses_e1d0833bfffeH7xQjnYxjbWaxU; A7c ticked
+I5a ses_e1d047d9cffe1FMPVjaFMF8r8H; A8b ticked
+E1b ses_e1d03c667ffeMyjvmuj5wlCi8N; E3 ticked; A10 resumed (quota)
+C8 ses_e1cfabdd2ffe35BDAqxNfQQd2L; D9c left open (30 UNVERIFIED, sizes inconsistent)
+H1b ses_e1cf83240ffehFYtrDlA5eEe0L; A10 ticked
+A4b ses_e1cf761abffe9Srug7ts1PWNTP; A12a ses_e1cf76197ffeD0VI46s938Rjsf; E1b resumed; A8a ticked
+C9 ses_e1cf09a8fffeCNpf6w5SSbKYhp; C8 ticked
+E1c ses_e1cedde6fffe2KIgIXW4zupvPW; E1b ticked; H1b resumed
+A12d ses_e1ce49189ffeVCzV1kgSQZV9tu; A12a ticked
+I2a ses_e1ce1d8f7ffetTTpLCARVW1wQr; C9 hook design done but no code (left open)
+D7c ses_e1cdd8802ffexRj7F6TVx2i8HD; E1c ticked
+U-I5a2 ses_e1cd68412ffeZqPeissPcgdk0l
+U-B10c ses_e1cd683e1ffeA61YWQ2uVk23gO
+H1b resumed tails
+U-I4b ses_e1ccac3dbffeZQxLEx5cwJROq6
+U-I1b ses_e1cbc778bffejn6ecrDW2zPdrS
+U-A12c ses_e1cbc7742ffei71zESW25mRgCS
+U-B10d ses_e1cb2c33affeHOGq3OBPYJ5QYp
+U-A12e ses_e1cacbf22ffe4SLQqfRG2xbywR
+U-A12f ses_e1ca3b9ecffesGrzWxCWvhdD7v
