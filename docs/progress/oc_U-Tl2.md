@@ -1,0 +1,332 @@
+## NEXT
+DONE
+
+# UNIT U-Tl2 — texload slice 0x58a172c..0x58a1ba0 (chunk 2 of 4 of texload_58a1310_58a23d0; texload 0x58a1310)
+
+Instruction-complete dossier. Every instruction in the slice belongs to a phase; verbatim lines are copied from the disassembly. Field map lists every distinct [reg+off] load/store offset.
+
+## Phases
+
+### Phase 1: 0x58a172c..0x58a17a7 — allocate a 0x40-byte object via [0xF99FFA0], store vtable [0xF09B320] at +0 and 0x100000001 at +8, save pointer at [rbp+0x68], advance to r15+0x10, call 0x5A4C9B0 then 0x95D860, take r12=[rax], jump to 0x58A1837
+0x58a172c  mov rcx,[0x1233E1A8]
+0x58a1733  mov rax,[rcx]
+0x58a1736  mov rax,[rax+8]
+0x58a173a  mov edx,0x40
+0x58a173f  call qword ptr [0xF99FFA0]
+0x58a1745  nop
+0x58a1746  mov r15,rax
+0x58a1749  test rax,rax
+0x58a174c  je 0x58A230C
+0x58a1752  mov rax,0x100000001
+0x58a175c  mov [r15+8],rax
+0x58a1760  lea rax,[0xF09B320]
+0x58a1767  mov [r15],rax
+0x58a176a  mov [rbp+0x68],r15
+0x58a176e  add r15,0x10
+0x58a1772  mov rcx,r15
+0x58a1775  lea rdx,[rbp-0x28]
+0x58a1779  call 0x5A4C9B0
+0x58a177e  nop
+0x58a177f  mov [rbp-0x40],r15
+0x58a1783  mov rax,[rbp+0x68]
+0x58a1787  mov [rbp-0x38],rax
+0x58a178b  mov rcx,[rbp+0x108]
+0x58a1792  mov rdx,r14
+0x58a1795  lea r8,[rbp-0x40]
+0x58a1799  call 0x95D860
+0x58a179e  nop
+0x58a179f  mov r12,[rax]
+0x58a17a2  jmp 0x58A1837
+0x58a17a7  nop [rax+rax]
+
+### Phase 2: 0x58a17b0..0x58a17fd — gate: [rcx+8]==3 and [rbp-0x28]==2 else jump to 0x58A17FF; check [r13+0x40]>=0x10 else to 0x58A17D0; load [r13+0x28], store to [rbp+0x110], save &[rbp+0x110] to [rsp+0x20], call 0xDA490(cl=1,edx=3,r8d=0x20,r9=[0xF55E910]) then jump to 0x58A1837
+0x58a17b0  mov rcx,[rbp-0x20]
+0x58a17b4  lea rax,[r13+0x28]
+0x58a17b8  cmp qword ptr [rcx+8],3
+0x58a17bd  jne short 0x58A17FF
+0x58a17bf  cmp dword ptr [rbp-0x28],2
+0x58a17c3  jne short 0x58A17FF
+0x58a17c5  cmp qword ptr [r13+0x40],0x10
+0x58a17ca  jb short 0x58A17D0
+0x58a17cc  mov rax,[r13+0x28]
+0x58a17d0  mov [rbp+0x110],rax
+0x58a17d7  lea rax,[rbp+0x110]
+0x58a17de  mov [rsp+0x20],rax
+0x58a17e3  mov cl,1
+0x58a17e5  mov edx,3
+0x58a17ea  mov r8d,0x20
+0x58a17f0  lea r9,[0xF55E910]
+0x58a17f7  call 0xDA490
+0x58a17fc  nop
+0x58a17fd  jmp short 0x58A1837
+
+### Phase 3: 0x58a17ff..0x58a1836 — alternate gate path: if [r13+0x40]<0x10 skip load; store [r13+0x28] to [rbp+0x110], save &[rbp+0x110] to [rsp+0x20], call 0xDA490(cl=1,edx=3,r8d=0x20,r9=[0xF55EC7F])
+0x58a17ff  cmp qword ptr [r13+0x40],0x10
+0x58a1804  jb short 0x58A180A
+0x58a1806  mov rax,[r13+0x28]
+0x58a180a  mov [rbp+0x110],rax
+0x58a1811  lea rax,[rbp+0x110]
+0x58a1818  mov [rsp+0x20],rax
+0x58a181d  mov cl,1
+0x58a181f  mov edx,3
+0x58a1824  mov r8d,0x20
+0x58a182a  lea r9,[0xF55EC7F]
+0x58a1831  call 0xDA490
+0x58a1836  nop
+
+### Phase 4: 0x58a1837..0x58a1880 — flag checks ([rbp+8]==1, [rbp-8]!=0) with destructor call qword ptr [0xF99FFA0]; test dil, test r12; then SIMD setup: movsd xmm0,[rbx+0x1A0], movsd xmm1,[r12+0x18], unpcklps, movaps/orps/subpd against [0xEFC6AF0]
+0x58a1837  cmp byte ptr [rbp+8],1
+0x58a183b  jne short 0x58A1851
+0x58a183d  mov rcx,[rbp-8]
+0x58a1841  test rcx,rcx
+0x58a1844  je short 0x58A1851
+0x58a1846  mov rax,[rbp-0x10]
+0x58a184a  call qword ptr [0xF99FFA0]
+0x58a1850  nop
+0x58a1851  test dil,dil
+0x58a1854  je 0x58A234D
+0x58a185a  test r12,r12
+0x58a185d  je 0x58A15F9
+0x58a1863  movsd xmm0,[rbx+0x1A0]
+0x58a186b  movsd xmm1,[r12+0x18]
+0x58a1872  unpcklps xmm1,xmm8
+0x58a1876  movaps xmm2,[0xEFC6AF0]
+0x58a187d  orps xmm1,xmm2
+0x58a1880  subpd xmm1,xmm2
+
+### Phase 5: 0x58a1884..0x58a194b — cvtpd2ps/divps, shuffles into xmm15/xmm11/xmm10/xmm9; load r13 fields (0x6C,0x64,0x60,0x58,0x84,0x7C) into xmm6/xmm7/eax/[rbp+0x78]/rax/[rbp+0x70]/xmm12/xmm1; call 0x541A8A0; zero-init rsi+0x1CC/0x1D8; load globals [0xEFFE430]/[0xEFFE428]; store xmm15 to [rsi+0x214], xmm11 to [rsi+0x218], xmm10 to [rsi+0x228]
+0x58a1884  cvtpd2ps xmm1,xmm1
+0x58a1888  divps xmm0,xmm1
+0x58a188b  movaps xmm15,xmm0
+0x58a188f  shufps xmm15,xmm0,0x55
+0x58a1894  movaps xmm1,xmm15
+0x58a1898  maxss xmm15,xmm0
+0x58a189d  movss xmm6,[r13+0x6C]
+0x58a18a3  movsd xmm7,[r13+0x64]
+0x58a18a9  mov eax,[r13+0x60]
+0x58a18ad  mov [rbp+0x78],eax
+0x58a18b0  mov rax,[r13+0x58]
+0x58a18b4  mov [rbp+0x70],rax
+0x58a18b8  movss xmm12,[r13+0x84]
+0x58a18c1  mulss xmm12,xmm1
+0x58a18c6  movsd xmm1,[r13+0x7C]
+0x58a18cc  movlhps xmm15,xmm0
+0x58a18d0  shufps xmm15,xmm0,0xE2
+0x58a18d5  mulps xmm15,xmm1
+0x58a18d9  mov rcx,rsi
+0x58a18dc  mov dl,1
+0x58a18de  call 0x541A8A0
+0x58a18e3  lea rax,[rsi+0x1CC]
+0x58a18ea  mov dword ptr [rax+8],0
+0x58a18f1  mov qword ptr [rax],0
+0x58a18f8  mov r14d,[0xEFFE430]
+0x58a18ff  lea rax,[rsi+0x1D8]
+0x58a1906  mov [rax+8],r14d
+0x58a190a  mov r15,[0xEFFE428]
+0x58a1911  mov [rax],r15
+0x58a1914  movaps xmm13,xmm15
+0x58a1918  mulps xmm13,xmm8
+0x58a191c  movaps xmm11,xmm13
+0x58a1920  shufps xmm11,xmm13,0x40
+0x58a1925  movaps xmm9,xmm12
+0x58a1929  xorps xmm0,xmm0
+0x58a192c  mulss xmm9,xmm0
+0x58a1931  movss [rsi+0x214],xmm15
+0x58a193a  movups [rsi+0x218],xmm11
+0x58a1942  movaps xmm10,xmm15
+0x58a1946  shufps xmm10,xmm15,0x55
+0x58a194b  movss [rsi+0x228],xmm10
+
+### Phase 6: 0x58a1954..0x58a1a32 — store xmm13/xmm9/xmm12 to [rsi+0x22C/0x234/0x238/0x23C/0x240], movups [0xF0922E0] to [rsi+0x244], set byte [rsi+0x210]=1; negate xmm6/xmm7 via xorps with [0xEF3F050], store to [rbp-0x28]/[rbp-0x20]; call 0x5418CC0(&[rbp-0x28]) and three times call 0x5418960(r8=[0xEFFE440/0xEFFE458/0xEFFE470]) then call 0x5418CC0(rdx=&[rbp+0x70]); zero stack bytes [rbp-0x14],[rbp+4],[rbp+0x10],[rbp+0x1C],[rbp+0x22] and dword [rbp+0x24]
+0x58a1954  shufps xmm13,xmm13,0x55
+0x58a1959  movlps [rsi+0x22C],xmm13
+0x58a1961  movss [rsi+0x234],xmm9
+0x58a196a  movss [rsi+0x238],xmm9
+0x58a1973  movss [rsi+0x23C],xmm12
+0x58a197c  movss [rsi+0x240],xmm9
+0x58a1985  movaps xmm0,[0xF0922E0]
+0x58a198c  movups [rsi+0x244],xmm0
+0x58a1993  mov byte ptr [rsi+0x210],1
+0x58a199a  movaps xmm0,xmm6
+0x58a199d  movaps xmm2,[0xEF3F050]
+0x58a19a4  xorps xmm0,xmm2
+0x58a19a7  movaps xmm1,xmm7
+0x58a19aa  xorps xmm1,xmm2
+0x58a19ad  movlps [rbp-0x28],xmm1
+0x58a19b1  movss [rbp-0x20],xmm0
+0x58a19b6  mov rcx,rsi
+0x58a19b9  lea rdx,[rbp-0x28]
+0x58a19bd  call 0x5418CC0
+0x58a19c2  movss xmm1,[r13+0x70]
+0x58a19c8  mov rcx,rsi
+0x58a19cb  lea r8,[0xEFFE440]
+0x58a19d2  call 0x5418960
+0x58a19d7  movss xmm1,[r13+0x74]
+0x58a19dd  mov rcx,rsi
+0x58a19e0  lea r8,[0xEFFE458]
+0x58a19e7  call 0x5418960
+0x58a19ec  movss xmm1,[r13+0x78]
+0x58a19f2  mov rcx,rsi
+0x58a19f5  lea r8,[0xEFFE470]
+0x58a19fc  call 0x5418960
+0x58a1a01  mov rcx,rsi
+0x58a1a04  lea rdx,[rbp+0x70]
+0x58a1a08  call 0x5418CC0
+0x58a1a0d  mov byte ptr [rbp-0x14],0
+0x58a1a11  mov word ptr [rbp-0x10],1
+0x58a1a17  movaps xmm0,[0xF092AF0]
+0x58a1a1e  movups [rbp-0xC],xmm0
+0x58a1a22  mov byte ptr [rbp+4],0
+0x58a1a26  mov byte ptr [rbp+0x10],0
+0x58a1a2a  mov byte ptr [rbp+0x1C],0
+0x58a1a2e  mov byte ptr [rbp+0x22],0
+0x58a1a32  mov dword ptr [rbp+0x24],0
+
+### Phase 7: 0x58a1a39..0x58a1afd — zero bytes [rbp+0x30],[rbp+0x3C],[rbp+0x42]; movups xmm8 to [rbp+0x44] and [rbp+0x50]; [rbp+0x60]=0xF; [rbp-0x28]=0; load [r12+0x18] to [rbp-0x20]; word [rbp-0x18]=0x101; load byte [r13+0x88] to [rbp-0x16], set [rbp-0x15]=1; security-cookie check [0x129CC628] vs [gs:[0x58]+rcx*8+4]; load [r12+0x1C]/[r12+0x18]/[r12+0x10], null-handling, load [r12+8]; build stack args and call 0x4E31290(rcx=[0x129CC624], rdx=rsi, r9=r8)
+0x58a1a39  mov byte ptr [rbp+0x30],0
+0x58a1a3d  mov byte ptr [rbp+0x3C],0
+0x58a1a41  mov byte ptr [rbp+0x42],0
+0x58a1a45  lea rax,[rbp+0x44]
+0x58a1a49  movups [rax+0xC],xmm8
+0x58a1a4e  movups [rax],xmm8
+0x58a1a52  mov qword ptr [rbp+0x60],0xF
+0x58a1a5a  mov qword ptr [rbp-0x28],0
+0x58a1a62  mov rax,[r12+0x18]
+0x58a1a67  mov [rbp-0x20],rax
+0x58a1a6b  mov word ptr [rbp-0x18],0x101
+0x58a1a71  movzx eax,byte ptr [r13+0x88]
+0x58a1a79  mov [rbp-0x16],al
+0x58a1a7c  mov byte ptr [rbp-0x15],1
+0x58a1a80  mov eax,[0x129CC628]
+0x58a1a86  mov ecx,[0x128767C8]
+0x58a1a8c  mov rdx,gs:[0x58]
+0x58a1a95  mov rcx,[rdx+rcx*8]
+0x58a1a99  cmp eax,[rcx+4]
+0x58a1a9f  jg 0x58A231C
+0x58a1aa5  mov eax,[r12+0x1C]
+0x58a1aaa  mov ecx,[r12+0x18]
+0x58a1aaf  mov rdx,[r12+0x10]
+0x58a1ab4  test rdx,rdx
+0x58a1ab7  jne short 0x58A1AC0
+0x58a1ab9  xor r8d,r8d
+0x58a1abc  jmp short 0x58A1AD8
+0x58a1abe  xchg ax,ax
+0x58a1ac0  cmp rdx,0xFFFFFFFFFFFFFFFF
+0x58a1ac4  je 0x58A23AF
+0x58a1aca  mov r8,[r12+8]
+0x58a1acf  test r8,r8
+0x58a1ad2  je 0x58A23AF
+0x58a1ad8  lea rdx,[rbp-0x28]
+0x58a1adc  mov [rsp+0x38],rdx
+0x58a1ae1  mov [rsp+0x30],ax
+0x58a1ae6  mov [rsp+0x28],cx
+0x58a1aeb  mov [rsp+0x20],r8
+0x58a1af0  lea rcx,[0x129CC624]
+0x58a1af7  mov rdx,rsi
+0x58a1afa  mov r9,r8
+0x58a1afd  call 0x4E31290
+
+### Phase 8: 0x58a1b02..0x58a1ba0 — byte flag [rbp-0x16]==1 ? compute cvtsi2ss/maxss/mulss from [r12+0x18],[r12+0x1C] scaled by [0xF0A3FD0] : use xmm14=[0xEEC8060]; store xmm15/xmm11/xmm10/xmm9 to [rbp+0x110/0x114/0x124/0x128/0x130/0x134/0x138/0x13C], movaps [0xF0922E0] to [rbp+0x140], dword [rbp+0x80]=0x3F800000, movups xmm8 to [rbp+0x84]
+0x58a1b02  nop
+0x58a1b03  cmp byte ptr [rbp-0x16],1
+0x58a1b07  movss xmm14,[0xEEC8060]
+0x58a1b10  jne short 0x58A1B3B
+0x58a1b12  mov eax,[r12+0x18]
+0x58a1b17  xorps xmm0,xmm0
+0x58a1b1a  cvtsi2ss xmm0,rax
+0x58a1b1f  mov eax,[r12+0x1C]
+0x58a1b24  xorps xmm14,xmm14
+0x58a1b28  cvtsi2ss xmm14,rax
+0x58a1b2d  maxss xmm14,xmm0
+0x58a1b32  mulss xmm14,[0xF0A3FD0]
+0x58a1b3b  movss [rbp+0x110],xmm15
+0x58a1b44  movups [rbp+0x114],xmm11
+0x58a1b4c  movss [rbp+0x124],xmm10
+0x58a1b55  movlps [rbp+0x128],xmm13
+0x58a1b5d  movss [rbp+0x130],xmm9
+0x58a1b66  movss [rbp+0x134],xmm9
+0x58a1b6f  movss [rbp+0x138],xmm12
+0x58a1b78  movss [rbp+0x13C],xmm9
+0x58a1b81  movaps xmm0,[0xF0922E0]
+0x58a1b88  movaps [rbp+0x140],xmm0
+0x58a1b8f  mov dword ptr [rbp+0x80],0x3F800000
+0x58a1b99  lea rax,[rbp+0x84]
+0x58a1ba0  movups [rax],xmm8
+
+## Field map — every distinct [reg+off] field the code stores or loads
+
+| offset | size | direction | verbatim line | meaning |
+|---|---|---|---|---|
+| rcx+0 | 8 | R | 0x58a1733  mov rax,[rcx] | - |
+| rax+8 | 8 | R | 0x58a1736  mov rax,[rax+8] | - |
+| r15+8 | 8 | W | 0x58a175c  mov [r15+8],rax | - |
+| r15+0 | 8 | W | 0x58a1767  mov [r15],rax | - |
+| rbp+0x68 | 8 | R/W | 0x58a176a  mov [rbp+0x68],r15 ; 0x58a1783  mov rax,[rbp+0x68] | - |
+| rbp-0x40 | 8 | W | 0x58a177f  mov [rbp-0x40],r15 | - |
+| rbp-0x38 | 8 | W | 0x58a1787  mov [rbp-0x38],rax | - |
+| rbp+0x108 | 8 | R | 0x58a178b  mov rcx,[rbp+0x108] | - |
+| rax+0 | 8 | R | 0x58a179f  mov r12,[rax] | - |
+| rbp-0x20 | 4 | R/W | 0x58a17b0  mov rcx,[rbp-0x20] ; 0x58a19b1  movss [rbp-0x20],xmm0 ; 0x58a1a67  mov [rbp-0x20],rax | - |
+| rcx+8 | 8 | R | 0x58a17b8  cmp qword ptr [rcx+8],3 | - |
+| rbp-0x28 | 8 | R/W | 0x58a17bf  cmp dword ptr [rbp-0x28],2 ; 0x58a19ad  movlps [rbp-0x28],xmm1 ; 0x58a1a5a  mov qword ptr [rbp-0x28],0 | - |
+| r13+0x40 | 8 | R | 0x58a17c5  cmp qword ptr [r13+0x40],0x10 ; 0x58a17ff  cmp qword ptr [r13+0x40],0x10 | - |
+| r13+0x28 | 8 | R | 0x58a17cc  mov rax,[r13+0x28] ; 0x58a1806  mov rax,[r13+0x28] | - |
+| rbp+0x110 | 4 | W | 0x58a17d0  mov [rbp+0x110],rax ; 0x58a180a  mov [rbp+0x110],rax ; 0x58a1b3b  movss [rbp+0x110],xmm15 | - |
+| rsp+0x20 | 8 | W | 0x58a17de  mov [rsp+0x20],rax ; 0x58a1818  mov [rsp+0x20],rax ; 0x58a1aeb  mov [rsp+0x20],r8 | - |
+| rbp+8 | 1 | R | 0x58a1837  cmp byte ptr [rbp+8],1 | - |
+| rbp-8 | 8 | R | 0x58a183d  mov rcx,[rbp-8] | - |
+| rbp-0x10 | 8 | R/W | 0x58a1846  mov rax,[rbp-0x10] ; 0x58a1a11  mov word ptr [rbp-0x10],1 | - |
+| rbx+0x1A0 | 8 | R | 0x58a1863  movsd xmm0,[rbx+0x1A0] | - |
+| r12+0x18 | 8 | R | 0x58a186b  movsd xmm1,[r12+0x18] ; 0x58a1a62  mov rax,[r12+0x18] ; 0x58a1aaa  mov ecx,[r12+0x18] | - |
+| r13+0x6C | 4 | R | 0x58a189d  movss xmm6,[r13+0x6C] | - |
+| r13+0x64 | 8 | R | 0x58a18a3  movsd xmm7,[r13+0x64] | - |
+| r13+0x60 | 4 | R | 0x58a18a9  mov eax,[r13+0x60] | - |
+| rbp+0x78 | 4 | W | 0x58a18ad  mov [rbp+0x78],eax | - |
+| r13+0x58 | 8 | R | 0x58a18b0  mov rax,[r13+0x58] | - |
+| rbp+0x70 | 8 | W | 0x58a18b4  mov [rbp+0x70],rax | - |
+| r13+0x84 | 4 | R | 0x58a18b8  movss xmm12,[r13+0x84] | - |
+| r13+0x7C | 8 | R | 0x58a18c6  movsd xmm1,[r13+0x7C] | - |
+| rsi+0x1CC | 8 | W | 0x58a18f1  mov qword ptr [rax],0 | - |
+| rsi+0x1D4 | 4 | W | 0x58a18ea  mov dword ptr [rax+8],0 | - |
+| rsi+0x1D8 | 8 | W | 0x58a1911  mov [rax],r15 | - |
+| rsi+0x1E0 | 4 | W | 0x58a1906  mov [rax+8],r14d | - |
+| rsi+0x210 | 1 | W | 0x58a1993  mov byte ptr [rsi+0x210],1 | - |
+| rsi+0x214 | 4 | W | 0x58a1931  movss [rsi+0x214],xmm15 | - |
+| rsi+0x218 | 16 | W | 0x58a193a  movups [rsi+0x218],xmm11 | - |
+| rsi+0x228 | 4 | W | 0x58a194b  movss [rsi+0x228],xmm10 | - |
+| rsi+0x22C | 8 | W | 0x58a1959  movlps [rsi+0x22C],xmm13 | - |
+| rsi+0x234 | 4 | W | 0x58a1961  movss [rsi+0x234],xmm9 | - |
+| rsi+0x238 | 4 | W | 0x58a196a  movss [rsi+0x238],xmm9 | - |
+| rsi+0x23C | 4 | W | 0x58a1973  movss [rsi+0x23C],xmm12 | - |
+| rsi+0x240 | 4 | W | 0x58a197c  movss [rsi+0x240],xmm9 | - |
+| rsi+0x244 | 16 | W | 0x58a198c  movups [rsi+0x244],xmm0 | - |
+| rbp-0x14 | 1 | W | 0x58a1a0d  mov byte ptr [rbp-0x14],0 | - |
+| rbp-0xC | 16 | W | 0x58a1a1e  movups [rbp-0xC],xmm0 | - |
+| rbp+4 | 1 | W | 0x58a1a22  mov byte ptr [rbp+4],0 | - |
+| rbp+0x10 | 1 | W | 0x58a1a26  mov byte ptr [rbp+0x10],0 | - |
+| rbp+0x1C | 1 | W | 0x58a1a2a  mov byte ptr [rbp+0x1C],0 | - |
+| rbp+0x22 | 1 | W | 0x58a1a2e  mov byte ptr [rbp+0x22],0 | - |
+| rbp+0x24 | 4 | W | 0x58a1a32  mov dword ptr [rbp+0x24],0 | - |
+| rbp+0x30 | 1 | W | 0x58a1a39  mov byte ptr [rbp+0x30],0 | - |
+| rbp+0x3C | 1 | W | 0x58a1a3d  mov byte ptr [rbp+0x3C],0 | - |
+| rbp+0x42 | 1 | W | 0x58a1a41  mov byte ptr [rbp+0x42],0 | - |
+| rbp+0x44 | 16 | W | 0x58a1a4e  movups [rax],xmm8 | - |
+| rbp+0x50 | 16 | W | 0x58a1a49  movups [rax+0xC],xmm8 | - |
+| rbp+0x60 | 8 | W | 0x58a1a52  mov qword ptr [rbp+0x60],0xF | - |
+| rbp-0x16 | 1 | W | 0x58a1a79  mov [rbp-0x16],al | - |
+| rbp-0x15 | 1 | W | 0x58a1a7c  mov byte ptr [rbp-0x15],1 | - |
+| rbp-0x18 | 2 | W | 0x58a1a6b  mov word ptr [rbp-0x18],0x101 | - |
+| r13+0x88 | 1 | R | 0x58a1a71  movzx eax,byte ptr [r13+0x88] | - |
+| rsp+0x38 | 8 | W | 0x58a1adc  mov [rsp+0x38],rdx | - |
+| rsp+0x30 | 2 | W | 0x58a1ae1  mov [rsp+0x30],ax | - |
+| rsp+0x28 | 2 | W | 0x58a1ae6  mov [rsp+0x28],cx | - |
+| rbp+0x114 | 16 | W | 0x58a1b44  movups [rbp+0x114],xmm11 | - |
+| rbp+0x124 | 4 | W | 0x58a1b4c  movss [rbp+0x124],xmm10 | - |
+| rbp+0x128 | 8 | W | 0x58a1b55  movlps [rbp+0x128],xmm13 | - |
+| rbp+0x130 | 4 | W | 0x58a1b5d  movss [rbp+0x130],xmm9 | - |
+| rbp+0x134 | 4 | W | 0x58a1b66  movss [rbp+0x134],xmm9 | - |
+| rbp+0x138 | 4 | W | 0x58a1b6f  movss [rbp+0x138],xmm12 | - |
+| rbp+0x13C | 4 | W | 0x58a1b78  movss [rbp+0x13C],xmm9 | - |
+| rbp+0x140 | 16 | W | 0x58a1b88  movaps [rbp+0x140],xmm0 | - |
+| rbp+0x80 | 4 | W | 0x58a1b8f  mov dword ptr [rbp+0x80],0x3F800000 | - |
+| rbp+0x84 | 16 | W | 0x58a1ba0  movups [rax],xmm8 | - |

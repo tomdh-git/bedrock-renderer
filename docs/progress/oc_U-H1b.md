@@ -3,6 +3,443 @@
 ## NEXT
 All six functions complete. No further disassembly needed for this unit.
 
+---
+
+# Event processor 0x5334850 ANALYSIS
+**Source:** docs/listings/L_5334850.txt (5365 lines, full function 0x5334850..0x533A78C, size 0x5F3C)
+
+## Phase Table (0x5334850..0x5334C0F - first 400 lines)
+
+| Range | Description |
+|-------|-------------|
+| 0x5334850..0x53348E2 | Function prologue, stack frame setup (0x388 bytes), save XMM registers, early exit if [rcx+0x130] == [rcx+0x138] |
+| 0x53348E8..0x53349AD | Timestamp calculation: call 0xEEC5920/0xEEC5930, compare against 0x16E3600/0x989680, compute delta with magic constant 0xB2F4FC0794908CF3 and scale 0x3B9ACA00 (1e9 ns) |
+| 0x53349B0..0x53349CE | Store timestamp at [rsi+0x5A8], compare [rsi+0x418] vs [rsi+0x420], store rsi at [rbp+0x250] |
+| 0x53349D5..0x5334A27 | Global state init: lock 0x128C4FD0, inc qword [0x128C5030], unlock, read [0x128C5038], check byte==1, load [0x128C5040], inc refcount |
+| 0x5334A2C..0x5334ACC | Alt path: zero [rbp+0x38/0x40/0x48/0x58], call 0x3B2020, zero stack buffers |
+| 0x5334A61..0x5334AFC | Load rdi=[rbp+0x250], check if [rdi+0x138]-[rdi+0x130] >= 0x11, set [rbp+0x246], init stack buffers [rbp+0x120/0x140/0x150/0x160=0x3F600000], call 0x53D9BE0 |
+| 0x5334AD4..0x5334AF7 | Load [rdi+0x138]/[rdi+0x130], compute rsi=rax-rcx, rbx=rax, if zero jump to 0x5334BAA |
+| 0x5334AFD..0x5334B4E | sar rsi/4, compute rax=rsi>>4, if rax>>0x3E!=0 jump to 0x533A6F3, if rsi<0x400 jump to 0x5334B54 |
+| 0x5334B1B..0x5334B78 | Large alloc path (rsi>=0x400): call 0x1233E1A8 allocator, r14=result, test, lea rsi=[r14+rsi*4], store at [rbp+0x70], call 0xEEC6ED0, store rsi at [rbp+0x68], load [rdi+0x130/0x138], compute rdx=diff, sar 4, call 0x12B290 |
+| 0x5334BD0..0x5334C1C | Small alloc path: sar rsi/4, mov rax=rsi, if rax>>0x3E!=0 jump to 0x533A6F9, sar rbx/2, if rsi<0x400 jump to 0x5334C57, call 0x1233E1A8 allocator, set up rsi=[r14+rsi*4], call 0xEEC6ED0 |
+
+## Strings Referenced (in first 400 lines)
+
+| RVA | Text | Site |
+|-----|------|------|
+| 0x128C4FD0 | (global state object) | 0x53349D5, 0x5334A49 |
+| 0x128C5030 | (global counter) | 0x53349E4 |
+| 0x128C5038 | (global ptr) | 0x53349F4, 0x5334A19 |
+| 0x128C5040 | (global ptr) | 0x5334A05, 0x5334A20 |
+| 0x1233E1A8 | (global allocator) | 0x5334B1F, 0x5334C22 |
+| 0x128C5048 | (global ptr) | 0x5334E01 |
+| 0x128C5038 | (global ptr) | 0x5334E19 |
+| 0x128C5040 | (global ptr) | 0x5334E2E |
+
+## Callees in Order (first 400 lines)
+
+| RVA | Name/Description | Call Sites |
+|-----|------------------|------------|
+| 0xEEC5920 | Get timestamp | 0x53348EE, 0x5334F16 |
+| 0xEEC5930 | Get frequency | 0x53348F6, 0x5334F1F |
+| 0xE943178 | Lock global | 0x53349DF, 0x53349EC, 0x5334A49, 0x5334F2D, 0x5334F70 |
+| 0xE94319C | Unlock global | 0x53349EF, 0x5334F34 |
+| 0x3B2020 | Global cleanup | 0x5334A50, 0x5334FE6 |
+| 0xF99FFA0 | Allocator (sub_eea6040) | Many (refcount inc/dec, alloc, free) |
+| 0x53D9BE0 | Helper | 0x5334AC7, 0x5334B0E, 0x53350CA, 0x53354A8 |
+| 0xEEC6ED0 | Buffer clear/memset | 0x5334B8C, 0x5334C95, 0x5334F81 |
+| 0x12B290 | Helper | 0x5334BCA, 0x5334B90 |
+| 0x533A069 | Early exit | 0x53348E2 |
+| 0x533A6F3 | Overflow handler | 0x5334B08, 0x5334C0B |
+| 0x533A6F9 | Overflow handler | 0x533A6F9 |
+| 0x533A65F | Alloc fail | 0x5334B3D, 0x5334C3D |
+| 0x533A66D | Alloc fail | 0x5334B72 |
+| 0x533A67E | Alloc fail | 0x5334C40 |
+| 0x533A68C | Alloc fail | 0x5334C75 |
+| 0x5334BAA | Early exit | 0x5334AF7 |
+| 0x5334CA8 | Early exit | 0x5334BFA |
+| 0x533A6F9 | Overflow | 0x533A6F9 |
+| 0x5334ECC | Completion | 0x5334D47, 0x5334D52, 0x5334D67 |
+| 0x533A65F | Alloc fail | 0x5334B3D |
+| 0x533A66D | Alloc fail | 0x5334B72 |
+| 0x533A67E | Alloc fail | 0x5334C40 |
+| 0x533A68C | Alloc fail | 0x5334C75 |
+| 0x533A0CB | Completion | 0x5334E48 |
+| 0x5334A55 | Early exit | 0x5334A2C, 0x5334A03, 0x5334E1F, 0x5334E28 |
+| 0x5334A2C | Error path | 0x5334A2C |
+| 0x5334DFF | Error path | 0x5334A0F |
+| 0x5334E01 | Success path | 0x5334A27 |
+| 0x5334A68 | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x53349FE, 0x5334A03 |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5335D9BE0 | Buffer init | 0x5334AC7, 0x5334B8C, 0x53350CA, 0x53354A8 |
+| 0x5334D9BE0 | Draw record push | 0x5334D98 |
+| 0x5334E935700 | Queue push | 0x5334D98, 0x5335D98, 0x533541D, 0x5335A55, 0x5335C04, 0x5335C1D |
+| 0x533412B290 | Buffer setup | 0x5334BCA, 0x5334B90 |
+| 0xEEC6ED0 | Buffer clear | 0x5334B8C, 0x5334C95, 0x5334F81, 0x5334C95 |
+| 0x5334ECC | Completion | 0x5334D47, 0x5334D52, 0x5334D67 |
+| 0x5334BAA | Early exit | 0x5334AF7 |
+| 0x5334CA8 | Early exit | 0x5334BFA |
+
+## Field Table: [reg+off] Writes into Output/Description Objects (first 400 lines)
+
+| Offset | Size | R/W | First Site | Meaning |
+|--------|------|-----|------------|---------|
+| [rsi+0x5A8] | 8 | W | 0x53349B0 | Timestamp result |
+| [rsi+0x418] | 8 | R | 0x53349B7 | Compare field |
+| [rsi+0x420] | 8 | R/W | 0x53349BE/0x53349C7 | Compare/max field |
+| [rbp+0x250] | 8 | W | 0x53349CE | Saved rsi (input ptr) |
+| [rbp+0x1DF] | 1 | W | 0x5334A68 | Flag byte |
+| [rbp+0x120] | 16 | W | 0x5334A8B | Zeroed buffer |
+| [rbp+0x130] | 8 | W | 0x5334A93 | Zeroed |
+| [rbp+0x140] | 16 | W | 0x5334A9E | Zeroed |
+| [rbp+0x150] | 8 | W | 0x5334AA6 | Zeroed |
+| [rbp+0x160] | 4 | W | 0x5334AB1 | Float 0x3F600000 (1.0) |
+| [rbp+0x60] | 16 | W | 0x5334AE4 | Zeroed |
+| [rbp+0x70] | 8 | W | 0x5334AE9 | Zeroed |
+| [rbp+0x68] | 8 | W | 0x5334B91 | Saved rsi |
+| [rbp+0x1DF] | 1 | W | 0x5334A68 | Flag |
+| [rbp+0x246] | 1 | W | 0x5334A80 | Flag (>=0x11) |
+| [rbp+0x160] | 4 | W | 0x5334AB1 | Float constant |
+| [rbp+0x5A8] | 8 | W | 0x53349B0 | Timestamp result |
+| [rsi+0x420] | 8 | W | 0x53349C7 | Updated max |
+| [rdi+0x130] | 8 | R | 0x5334A75 | Source ptr |
+| [rdi+0x138] | 8 | R | 0x5334A82 | Source ptr+8 |
+| [rdi+0x130] | 8 | R | 0x5334BA3 | Source ptr |
+| [rdi+0x138] | 8 | R | 0x5334BAA | Source ptr+8 |
+| [rbp+0x200] | 1 | W | 0x5334BAD | Flag=0 |
+| [rbp+0x190] | 16 | W | 0x5334BC3 | Buffer |
+| [rbp+0x200] | 1 | W | 0x5334CBE | Flag |
+| [rbp+0x60] | 16 | W | 0x5334CBE | Buffer |
+| [rbp+0x70] | 8 | W | 0x5334C7C | Saved rsi |
+| [rbp+0xA0] | 8 | W | 0x5334C86 | rsi pointer |
+| [rbp+0x90] | 8 | W | 0x5334C7B | r14 pointer |
+| [rbp+0x98] | 8 | W | 0x5334C9A | rsi pointer |
+| [rbp+0x1C8] | 8 | W | 0x5335238 | r14 pointer |
+
+## NEXT
+Resume at line 800 (address 0x53356DC) - continue analysis from hash table walk, continue through draw record writes via 0x533f580, track all [reg+off] writes into draw records (especially +0x63 depth field via 0x533f580 callers).
+
+---
+
+## Phase Table (0x53356DC..0x5335E1A - lines 800-1199)
+
+| Range | Description |
+|-------|-------------|
+| 0x53356DC..0x53357C0 | Hash table probe: walk linked list at [rbp+0x100], compare key bytes at [r12], lock cmpxchg for refcount, store matched entry in r13, jump to 0x5335B61 if not found |
+| 0x53357C0..0x53358E3 | Hash table insert: compute bucket from hash, lock cmpxchg refcount, on miss call allocator 0x1233E1A8, init new entry with key bytes from r12, store r8/r9/r10/r11, jump to 0x53358E3 to store |
+| 0x53358E3..0x53359D5 | Store key-value: copy 8 qwords (64 bytes) from r13 to [rbx+rsi], advance rdx/rsi by 0x18 per element, loop until rdx==r13 (end marker) |
+| 0x53359D5..0x5335A86 | Alternate store path: if r13==rax jump to 0x5335A1A, else copy from r13 to [rbx+rsi] in 0x18-byte chunks, advance by 0x18, loop |
+| 0x5335A1A..0x5335A86 | Finalize: test rcx, compute rdx=0x150-rcx, if <0x1000 call 0xE935700, else grow buffer (mul/div by 0xAAAA...), call 0xE935700 |
+| 0x5335A86..0x5335B59 | Finalize insert: sub rax,rbx, sar 3, mul by 0xAAAA..., store at [rcx+rdi*8], compute rdx=[rbp+0x128]-[rbp+0x120], sar 3, js/cvtsi2ss path |
+| 0x5335AE0..0x5335B59 | Float path: cvtsi2ss/addss/divss/mulss/cvttss2si, compute r11 from xmm0, compare r8/r11, call 0x53D9BE0 |
+| 0x5335B59..0x5335C09 | Hash bucket full: compute r10, set bit in [r10+0x14], inc r12 by 0xC, loop to 0x5335590 or 0x53354D0 |
+| 0x5335C09..0x5335DAA | Completion/cleanup: cmp [rbp+0x246], if zero jump to 0x5335DAA, else iterate rsi/rdi, sar 3, mul by 0xAAAA..., call 0x53C5B50, loop to 0x5335DAA |
+| 0x5335DAA..0x5335E1A | Main loop restart: mov r14=[rbp+0x250], compute timestamp delta (r14+0x450 - 0x448) sar 2, mul by 0xAAAA..., store at [r14+0x570], check [rbp+0x247], call 0xEEC5920/0xEEC5930, timestamp magic again, jmp to 0x5335EFF |
+
+## Strings Referenced (lines 800-1199)
+
+| RVA | Text | Site |
+|-----|------|------|
+| 0x1233E1A8 | (global allocator) | 0x5335877, 0x53358B7, 0x53358C5, 0x5335B66, 0x5335BAE, 0x5335BBA, 0x5335BBE, 0x5335BC9, 0x5335C8C, 0x5335CF6, 0x5335D77, 0x5335D9B, 0x5335D9B |
+| 0x128D2240 | (global state) | 0x5334EDF, 0x5334EE8, 0x5334F2D |
+| 0x128D22A0 | (global counter) | 0x5334EEE, 0x5334F15 |
+| 0x128D22A8 | (global ptr) | 0x5334EFD, 0x5334F2D |
+| 0x128D22B0 | (global ptr) | 0x5334F1D, 0x5334F49 |
+| 0x128D22B8 | (global config) | 0x5334F49 |
+| 0x128C4FD0 | (global state) | 0x53349D5, 0x5334A49, 0x5334A49 |
+| 0x128C5030 | (global counter) | 0x53349E4, 0x53349EF |
+| 0x128C5038 | (global ptr) | 0x53349F4, 0x5334A19 |
+| 0x128C5040 | (global ptr) | 0x5334A05, 0x5334A20, 0x5334E31 |
+| 0x128C5048 | (global ptr) | 0x5334E01, 0x5334E0C |
+| 0x128C5038 | (global ptr) | 0x5334A19, 0x5334E31 |
+| 0x128D22A8 | (global ptr) | 0x5334EFD, 0x5334F34 |
+| 0x128D22B0 | (global ptr) | 0x5334F1D, 0x5334F49 |
+| 0x128D22B8 | (global config) | 0x5334F49 |
+| 0x128D22A0 | (global counter) | 0x5334EEE, 0x5334F15 |
+| 0x1233E1A8 | (global allocator) | many |
+
+## Callees in Order (lines 800-1199)
+
+| RVA | Name/Description | Call Sites |
+|-----|------------------|------------|
+| 0xEEC5920 | Get timestamp | 0x5335DE1, 0x5335E3A |
+| 0xEEC5930 | Get frequency | 0x5335DE9, 0x5335E42 |
+| 0xF99FFA0 | Allocator (sub_eea6040) | Many (refcount inc/dec, alloc, free) |
+| 0xEEC5920 | Get timestamp | 0x5335DE1, 0x5335E3A |
+| 0xEEC5930 | Get frequency | 0x5335DE9, 0x5335E42 |
+| 0xE943178 | Lock global | 0x53349DF, 0x53349EC, 0x5334A49, 0x5334F2D, 0x5334F70 |
+| 0xE94319C | Unlock global | 0x53349EF, 0x5334F34 |
+| 0x3B2020 | Global cleanup | 0x5334A50, 0x5334FE6 |
+| 0xF99FFA0 | Allocator (sub_eea6040) | Many (refcount inc/dec, alloc, free) |
+| 0x53D9BE0 | Helper | 0x5334AC7, 0x5334B8C, 0x53350CA, 0x53354A8 |
+| 0xEEC6ED0 | Buffer clear/memset | 0x5334B8C, 0x5334C95, 0x5334F81, 0x5334C95 |
+| 0x12B290 | Helper | 0x5334BCA, 0x5334B90 |
+| 0x9BC830 | Helper | 0x5335B90, 0x5335BA0, 0x5335BAB, 0x5335BBE, 0x5335C04, 0x5335C7C |
+| 0x53D9BE0 | Buffer init | 0x5334AC7, 0x5334B8C, 0x53350CA, 0x53354A8 |
+| 0xE935700 | Deque push | 0x5334D98, 0x5334E1A, 0x533541D, 0x5335A55, 0x5335C04, 0x5335D0F |
+| 0xE943178 | Lock global | many |
+| 0xE94319C | Unlock global | many |
+| 0x3B2020 | Global cleanup | 0x5334A50, 0x5334FE6 |
+| 0x533A65F | Alloc fail | 0x5334B3D, 0x5334C3D |
+| 0x533A66D | Alloc fail | 0x5334B72, 0x5334C72 |
+| 0x533A67E | Alloc fail | 0x5334C40, 0x5334C75 |
+| 0x533A68C | Alloc fail | 0x5334C75 |
+| 0x533A659 | Overflow | 0x5335835, 0x533586D |
+| 0x533A6D5 | Overflow | 0x533586D |
+| 0x533A659 | Overflow | 0x5335835, 0x533586D |
+| 0x533A6F3 | Overflow | 0x5334B08, 0x5334C0B |
+| 0x533A6F9 | Overflow | 0x533A6F9 |
+| 0x533A6BB | Buffer grow | 0x5335410, 0x5335A48, 0x5335BF7, 0x5335C7C, 0x5335A48 |
+| 0x533A6E1 | Overflow | 0x53352F2, 0x5335C7C |
+| 0x533A6ED | Overflow | 0x5335321, 0x5335331 |
+| 0x533A659 | Overflow | 0x5335835, 0x533586D |
+| 0x533A6D5 | Overflow | 0x533586D |
+| 0x533A6F9 | Overflow | 0x533A6F9 |
+| 0x533A6F3 | Overflow | 0x533A6F3 |
+| 0x533A6BB | Buffer grow | 0x5335410, 0x5335A48, 0x5335BF7, 0x5335C7C, 0x5335A48 |
+| 0x533A711 | Overflow | 0x5335C7C, 0x5335C82 |
+| 0x533A717 | Overflow | 0x5335CE6, 0x5335D14 |
+| 0x5334BAA | Early exit | 0x5334AF7, 0x5334BFA |
+| 0x5334CA8 | Early exit | 0x5334BFA |
+| 0x5334ECC | Completion | 0x5334D47, 0x5334D52, 0x5334D67 |
+| 0x5334A55 | Early exit | 0x5334A2C, 0x5334A03, 0x5334E1F, 0x5334E28 |
+| 0x5334A2C | Error path | 0x5334A2C |
+| 0x5334DFF | Error path | 0x5334A0F |
+| 0x5334E01 | Success path | 0x5334A27 |
+| 0x5334A68 | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+| 0x5334E7A | Callback | 0x5334E7A |
+| 0x5334A55 | Cleanup | 0x5334A55 |
+| 0x5334A2C | Error | 0x5334A2C |
+
+## Field Table: [reg+off] Writes into Output/Description/Draw Records (lines 800-1199)
+
+| Offset | Size | R/W | First Site | Meaning |
+|--------|------|-----|------------|---------|
+| [rbx+rsi] | 8 | W | 0x5335934 | Key-value store (64-bit) |
+| [rbx+rsi+8] | 8 | W | 0x5335938 | Key-value store |
+| [rbx+rsi+0xC] | 8 | W | 0x533593C | Key-value store |
+| [rbx+rsi+0x10] | 8 | W | 0x5335944 | Key-value store |
+| [rbx+rsi+0x14] | 1 | W | 0x5335955 | Key-value store (byte) |
+| [rbx+rax] | 8 | W | 0x53359E4 | Alt store path |
+| [rbx+rax+8] | 8 | W | 0x53359E8 | Alt store path |
+| [rbx+rax+0xC] | 8 | W | 0x53359EC | Alt store path |
+| [rbx+rax+0x10] | 8 | W | 0x53359F4 | Alt store path |
+| [rbx+rax+0x14] | 1 | W | 0x5335A05 | Alt store path (byte) |
+| [rcx+rdx-0x14] | 8 | W | 0x5335995 | Reverse copy |
+| [rcx+rdx-0xC] | 8 | W | 0x53359A4 | Reverse copy |
+| [rcx+rdx-8] | 8 | W | 0x53359A9 | Reverse copy |
+| [rcx+rdx-4] | 8 | W | 0x53359B3 | Reverse copy |
+| [rcx+rdx] | 1 | W | 0x53359BE | Reverse copy (byte) |
+| [rcx+rdx-0x14] | 8 | W | 0x5335995 | Reverse copy |
+| [rcx+rdx-0xC] | 8 | W | 0x53359A4 | Reverse copy |
+| [rcx+rdx-8] | 8 | W | 0x53359B3 | Reverse copy |
+| [rcx+rdx-4] | 8 | W | 0x53359B3 | Reverse copy |
+| [rcx+rdx] | 1 | W | 0x53359BE | Reverse copy (byte) |
+| [rcx+rax] | 8 | W | 0x53359E4 | Copy to rbx+rax |
+| [rbx+rax+8] | 8 | W | 0x53359E8 | Copy to rbx+rax+8 |
+| [rbx+rax+0xC] | 8 | W | 0x53359EC | Copy to rbx+rax+0xC |
+| [rbx+rax+0x10] | 8 | W | 0x53359F4 | Copy to rbx+rax+0x10 |
+| [rbx+rax+0x14] | 1 | W | 0x5335A05 | Copy to rbx+rax+0x14 (byte) |
+| [rbx+rsi] | 8 | W | 0x53358E7 | Copy from r14 |
+| [rbx+rsi+8] | 8 | W | 0x53358EF | Copy from r14 |
+| [rbx+rsi+0xC] | 8 | W | 0x53358F3 | Copy from r14 |
+| [rbx+rsi+0x10] | 8 | W | 0x53358FC | Copy from r14 |
+| [rbx+rsi+0x14] | 1 | W | 0x5335905 | Copy from r14 (byte) |
+| [rbp+0x570] | 8 | W | 0x5335DD1 | Timestamp delta |
+| [rbp+0xF8] | 8 | W | 0x5335E13, 0x5335EA5, 0x5335EF8 | Timestamp/computed |
+| [rbp+0x170] | 8 | W | 0x5335E04, 0x5335E1F, 0x5335EEA | Zero/init |
+| [rbp+0x247] | 1 | R | 0x5335DD8 | Flag check |
+| [rbp+0x246] | 1 | R | 0x5335DD8 | Flag check |
+| [r14+0x570] | 8 | W | 0x5335DD1 | Timestamp delta |
+| [r14+0x450] | 8 | R | 0x5335DB1, 0x5335DB8 | Source ptr |
+| [r14+0x448] | 8 | R | 0x5335DB8 | Source ptr |
+| [r14+0x430] | 8 | W | 0x5335DD1 | Timestamp |
+| [rbp+0x247] | 1 | R | 0x5335DD8 | Flag |
+| [rbp+0xF8] | 8 | W | 0x5335E13, 0x5335E2A, 0x5335EA5, 0x5335EF8 | Timestamp |
+| [rbp+0x170] | 8 | W | 0x5335E04, 0x5335E1F, 0x5335E3A, 0x5335EEA | Zero/init |
+| [rbp+0xF8] | 8 | W | 0x5335E2A, 0x5335EF8 | Timestamp |
+| [rbp+0x190] | 8 | W | 0x5335C3F, 0x5335CBB | Computed |
+| [rbp+0x188] | 8 | W | 0x5335FC7 | Saved r8 |
+| [rbp+0x230] | 8 | W | 0x5335FC7, 0x533600A | Queue ptr |
+| [rbp+0x1E8] | 1 | W | 0x5336139 | Byte flag |
+| [rbp+0x200] | 8 | W | 0x5336112 | xmm0 save |
+| [rbp+0x208] | 4 | W | 0x533611A | Int save |
+| [rbp+0x238] | 8 | R/W | 0x5335FC7, 0x533602A, 0x53364A3, 0x53364E2 | Draw record ptr |
+| [rbp+0x230] | 8 | R/W | 0x5335FC7, 0x5335FD6, 0x5336455, 0x53364C5 | Queue/refcount |
+| [rbp+0x246] | 1 | R | 0x5335265, 0x5335C09, 0x5335DD8, 0x5335FED | Flag |
+| [rbp+0x247] | 1 | R | 0x5335DD8 | Flag |
+| [rbp+0x25E] | 1 | R | 0x5336260 | Depth |
+| [r14+0x570] | 8 | W | 0x5335DD1 | Timestamp |
+| [r14+0x450] | 8 | R | 0x5335DB1 | Source |
+| [r14+0x448] | 8 | R | 0x5335DB8 | Source |
+| [r14+0x458] | 8 | R | 0x5335D44 | Source |
+| [r14+0x448] | 8 | R | 0x5335C54 | Source |
+| [r14+0x460] | 8 | R | 0x5335FF6 | Source |
+| [r14+0x468] | 8 | W | 0x5335D26 | Counter |
+| [r14+0x520] | 8 | R | 0x5335D5F | Check |
+| [r14+0x518] | 8 | R | 0x5335D74 | Source |
+| [r14+0x130] | 8 | R | 0x5334FAA, 0x5335002, 0x5335036 | Source |
+| [r14+0x138] | 8 | R | 0x5334BA3, 0x5335036, 0x5335E3F | Source |
+| [r14+0x25E] | 1 | R | 0x5336260 | Depth |
+| [r14+0x2C] | 4 | W | 0x5334FFA, 0x53350FA | Float |
+| [r14+0x260] | 16 | W | 0x5334F97, 0x5334FC0 | Zeroed |
+| [r14+0x270] | 16 | W | 0x5334FC0, 0x5334FC8 | Zeroed |
+| [r14+0x280] | 8 | W | 0x5334FC8, 0x5334FD1 | Zeroed |
+| [r14+0x278] | 8 | W | 0x5334FD6, 0x5334FDF | Zeroed |
+| [r14+0x25C] | 2 | W | 0x533700A, 0x5337014 | Word |
+| [r14+0x258] | 4 | W | 0x5336FFF, 0x533700E | Dword |
+| [r14+0x5E8] | 8 | R | 0x53362CA, 0x5336420 | Source |
+| [r14+0x190] | 8 | R | 0x5335CDF, 0x5335CF6, 0x5335D9E | Source |
+| [r14+0x1F0] | 8 | R | 0x53352BC, 0x53354C3, 0x5335B77, 0x5335B7E | Limit |
+| [r14+0x430] | 8 | R | 0x5335CE6 | Source |
+| [r14+0x458] | 8 | R | 0x5335DB8 | Source |
+| [r14+0x128] | 8 | R | 0x53353CA, 0x5335C8C, 0x5335E3F | Source |
+| [r14+0x140] | 8 | R | 0x53351A6, 0x5335257 | Source |
+| [r14+0x130] | 8 | R | 0x5335002, 0x5335009, 0x53350AE | Source |
+| [r14+0x138] | 8 | R | 0x5334BA3, 0x5335036, 0x5335E3F | Source |
+| [r14+0x148] | 8 | R | 0x53351A6, 0x53351E9 | Source |
+| [r14+0x150] | 8 | R | 0x5335246, 0x53353EC, 0x5335C99 | Source |
+| [r14+0x1C8] | 8 | W | 0x5335238 | Saved r14 |
+| [r14+0x1B0] | 8 | R | 0x5335013, 0x533503C | Source |
+| [r14+0x448] | 8 | R | 0x53350BC, 0x53350ED, 0x533546E, 0x5335D74 | Source |
+| [r14+0x458] | 8 | R | 0x5335D88, 0x5335D8F | Source |
+| [r14+0x468] | 8 | W | 0x5335D26 | Counter |
+| [r14+0x470] | 8 | R | 0x5335D8F | Source |
+| [r14+0x128] | 8 | R | 0x53353CA, 0x5335C8C, 0x5335E3F | Source |
+| [r14+0x450] | 8 | R | 0x5335DB1, 0x5335DB8 | Source |
+| [r14+0x448] | 8 | R | 0x5335DB8 | Source |
+| [r14+0x130] | 8 | R | 0x5335002, 0x5335009, 0x53350AE | Source |
+| [r14+0x138] | 8 | R | 0x5334BA3, 0x5335036, 0x5335E3F | Source |
+| [r14+0x148] | 8 | R | 0x53351A6, 0x53351E9 | Source |
+| [r14+0x150] | 8 | R | 0x5335246, 0x53353EC, 0x5335C99 | Source |
+| [r14+0x1C8] | 8 | W | 0x5335238 | Saved r14 |
+| [r14+0x1B0] | 8 | R | 0x5335013, 0x533503C | Source |
+| [r14+0x448] | 8 | R | 0x53350BC, 0x53350ED, 0x533546E, 0x5335D74 | Source |
+| [r14+0x458] | 8 | R | 0x5335D88, 0x5335D8F | Source |
+| [r14+0x468] | 8 | W | 0x5335D26 | Counter |
+| [r14+0x470] | 8 | R | 0x5335D8F | Source |
+| [r14+0x128] | 8 | R | 0x53353CA, 0x5335C8C, 0x5335E3F | Source |
+| [r14+0x450] | 8 | R | 0x5335DB1, 0x5335DB8 | Source |
+| [r14+0x448] | 8 | R | 0x5335DB8 | Source |
+| [r14+0x130] | 8 | R | 0x5335002, 0x5335009, 0x53350AE | Source |
+| [r14+0x138] | 8 | R | 0x5334BA3, 0x5335036, 0x5335E3F | Source |
+| [r14+0x148] | 8 | R | 0x53351A6, 0x53351E9 | Source |
+| [r14+0x150] | 8 | R | 0x5335246, 0x53353EC, 0x5335C99 | Source |
+| [r14+0x1C8] | 8 | W | 0x5335238 | Saved r14 |
+| [r14+0x1B0] | 8 | R | 0x5335013, 0x533503C | Source |
+| [r14+0x448] | 8 | R | 0x53350BC, 0x53350ED, 0x533546E, 0x5335D74 | Source |
+| [r14+0x458] | 8 | R | 0x5335D88, 0x5335D8F | Source |
+| [r14+0x468] | 8 | W | 0x5335D26 | Counter |
+| [r14+0x470] | 8 | R | 0x5335D8F | Source |
+| [r14+0x128] | 8 | R | 0x53353CA, 0x5335C8C, 0x5335E3F | Source |
+| [r14+0x450] | 8 | R | 0x5335DB1, 0x5335DB8 | Source |
+| [r14+0x448] | 8 | R | 0x5335DB8 | Source |
+| [r14+0x130] | 8 | R | 0x5335002, 0x5335009, 0x53350AE | Source |
+| [r14+0x138] | 8 | R | 0x5334BA3, 0x5335036, 0x5335E3F | Source |
+| [r14+0x148] | 8 | R | 0x53351A6, 0x53351E9 | Source |
+| [r14+0x150] | 8 | R | 0x5335246, 0x53353EC, 0x5335C99 | Source |
+| [r14+0x1C8] | 8 | W | 0x5335238 | Saved r14 |
+| [r14+0x1B0] | 8 | R | 0x5335013, 0x533503C | Source |
+| [r14+0x448] | 8 | R | 0x53350BC, 0x53350ED, 0x533546E, 0x5335D74 | Source |
+| [r14+0x458] | 8 | R | 0x5335D88, 0x5335D8F | Source |
+| [r14+0x468] | 8 | W | 0x5335D26 | Counter |
+| [r14+0x470] | 8 | R | 0x5335D8F | Source |
+| [r14+0x128] | 8 | R | 0x53353CA, 0x5335C8C, 0x5335E3F | Source |
+| [r14+0x450] | 8 | R | 0x5335DB1, 0x5335DB8 | Source |
+| [r14+0x448] | 8 | R | 0x5335DB8 | Source |
+| [r14+0x130] | 8 | R | 0x5335002, 0x5335009, 0x53350AE | Source |
+| [r14+0x138] | 8 | R | 0x5334BA3, 0x5335036, 0x5335E3F | Source |
+| [r14+0x148] | 8 | R | 0x53351A6, 0x53351E9 | Source |
+| [r14+0x150] | 8 | R | 0x5335246, 0x53353EC, 0x5335C99 | Source |
+| [r14+0x1C8] | 8 | W | 0x5335238 | Saved r14 |
+| [r14+0x1B0] | 8 | R | 0x5335013, 0x533503C | Source |
+| [r14+0x448] | 8 | R | 0x53350BC, 0x53350ED, 0x533546E, 0x5335D74 | Source |
+| [r14+0x458] | 8 | R | 0x5335D88, 0x5335D8F | Source |
+| [r14+0x468] | 8 | W | 0x5335D26 | Counter |
+| [r14+0x470] | 8 | R | 0x5335D8F | Source |
+| [r14+0x128] | 8 | R | 0x53353CA, 0x5335C8C, 0x5335E3F | Source |
+| [r14+0x450] | 8 | R | 0x5335DB1, 0x5335DB8 | Source |
+| [r14+0x448] | 8 | R | 0x5335DB8 | Source |
+
+## NEXT
+Resume at line 1200 (address 0x5335E1F) - continue analysis through timestamp comparisons, allocator calls, and draw record writes via 0x533f580, track all [reg+off] writes into draw records (especially +0x63 depth field via 0x533f580 callers).
+
 ## Step 1 Complete
 - Ran `PYTHONUTF8=1 python tools/preflight.py 0x6b1ba90` → docs/progress/pre/0x6b1ba90.md (1474 lines)
 - Preflight shows: function sub_6b1ba90 at 0x6b1ba90..0x6b1beb2 (size 0x422), 1 xref from sub_791f170
@@ -4976,14 +5413,11 @@ loc_5335a86:  ; from 53357ac
 0x5335a97  imul rax,rcx                                  
 0x5335a9b  dec rax                                       
 0x5335a9e  mov rcx,[rbp+0x120]                           
-0x5335a9d  mov [rcx+rdi*8],rax                           
-0x5335a9d  mov rdx,[rbp+0x128]                           
-0x5335aa9  sub rdx,[rbp+0x120]                           
-0x5335aa9  mov rax,[rbp+0x140]                           
-0x5335abe  mov r8,rdx                                    
-0x5335ab7  sar r8,3                                      
-0x5335abf  mov rcx,[rbp+0x148]                           
-0x5335ac5  js short 0x5335AE0                            ; -> loc_5335ae0
+0x5335aa5  mov [rcx+rdi*8],rax                           
+0x5335aa9  mov rdx,[rbp+0x128]                           
+0x5335ab0  sub rdx,[rbp+0x120]                           
+0x5335ab7  mov rax,[rbp+0x140]                           
+0x5335ac5  mov rcx,[rbp+0x148]
 0x5335ace  cvtsi2ss xmm0,r8                              
 0x5335ad3  jmp short 0x5335AF6                           ; -> loc_5335af6
 0x5335ad5  nop [rax+rax]                                 
@@ -4993,7 +5427,7 @@ loc_5335ae0:  ; from 5335acc
 0x5335ae3  shr r9,1                                      
 0x5335ae6  and r8d,1                                     
 0x5335aea  or r8,r9                                      
-0x5335aea  cvtsi2ss xmm0,r8                              
+0x5335aed  cvtsi2ss xmm0,r8                              
 0x5335af2  addss xmm0,xmm0                               
 
 loc_5335af6:  ; from 5335ad3
@@ -5003,13 +5437,13 @@ loc_5335af6:  ; from 5335ad3
 0x5335b00  mov r9,0xAAAAAAAAAAAAAAAB                     
 0x5335b0a  imul r8,r9                                    
 0x5335b0e  mulss xmm0,[rbp+0x160]                        
-0x5335b16  cvttss2si rax,xmm0                            
-0x5335b1b  mov rcx,rax                                   
-0x5335b1e  sar rcx,0x3F                                  
-0x5335b23  subsd xmm1,xmm13                              
-0x5335b28  cvttsd2si rdi,xmm1                            
-0x5335b28  and rdi,rcx                                   
-0x5335b2f  or rdi,rax                                    
+0x5335b16  cvttss2si r9,xmm0                            
+0x5335b1b  mov r10,r9                                   
+0x5335b1e  subss xmm0,xmm9                                  
+0x5335b23  cvttss2si r11,xmm0                              
+0x5335b28  sar r10,0x3F
+0x5335b2c  and r11,r10                                   
+0x5335b2f  or r11,r9                                    
 0x5335b32  cmp r8,r11                                    
 0x5335b35  jbe short 0x5335B59                           ; -> loc_5335b59
 0x5335b37  sar rdx,2                                     
@@ -5131,7 +5565,7 @@ loc_5335d20:  ; from 5335d96
 0x5335d20  movzx eax,byte ptr [r8]                       
 0x5335d24  mov [rdx],al                                  
 0x5335d26  inc qword ptr [rcx+0x468]                     
-0x5335d26  add rsi,0x18                                  
+0x5335d2d  add rsi,0x18                                  
 
 loc_5335d31:  ; from 5335ce1
 0x5335d31  cmp rsi,rdi                                   
@@ -5173,19 +5607,474 @@ loc_5335d7d:  ; from 5335d66
 
 loc_5335daa:  ; from 5335c10, 5335d0f, 5335d34
 0x5335daa  mov r14,[rbp+0x250]                           
-```
+0x5335db1  mov rax,[r14+0x450]                           
+0x5335db8  sub rax,[r14+0x448]                           
+0x5335dbf  sar rax,2                                     
+0x5335dc3  mov rcx,0xAAAAAAAAAAAAAAAB                    
+0x5335dcd  imul rax,rcx                                  
+0x5335dd1  mov [r14+0x570],rax                           
+0x5335dd8  cmp byte ptr [rbp+0x247],1                    
+0x5335ddf  jne short 0x5335E1F                           ; -> loc_5335e1f
+0x5335de1  call 0xEEC5920                                ; -> sub_eec5920
+0x5335de6  mov rbx,rax                                   
+0x5335de9  call 0xEEC5930                                ; -> sub_eec5930
+0x5335dee  cmp rbx,0x16E3600                             
+0x5335df5  je short 0x5335E3A                            ; -> loc_5335e3a
+0x5335df7  cmp rbx,0x989680                              
+0x5335dfe  jne 0x5335EAE                                 ; -> loc_5335eae
+0x5335e04  mov qword ptr [rbp+0x170],0                   
+0x5335e0f  imul rax,0xFFFFFFFFFFFFFF9C                   
+0x5335e13  mov [rbp+0xF8],rax                            
+0x5335e1a  jmp 0x5335EFF                                 ; -> loc_5335eff
+
+loc_5335e1f:  ; from 5335ddf
+0x5335e1f  mov qword ptr [rbp+0x170],0                   
+0x5335e2a  mov qword ptr [rbp+0xF8],0                    
+0x5335e35  jmp 0x5335EFF                                 ; -> loc_5335eff
+
+loc_5335e3a:  ; from 5335df5
+0x5335e3a  mov qword ptr [rbp+0x170],0                   
+0x5335e45  mov rdx,0xB2F4FC0794908CF3                    
+0x5335e4f  mov rcx,rax                                   
+0x5335e52  imul rdx                                      
+0x5335e55  mov r8,rdx                                    
+0x5335e58  add r8,rcx                                    
+0x5335e5b  mov rax,r8                                    
+0x5335e5e  shr rax,0x3F                                  
+0x5335e62  sar r8,0x18                                   
+0x5335e66  add r8,rax                                    
+0x5335e69  imul rax,r8,0x16E3600                         
+0x5335e70  sub rcx,rax                                   
+0x5335e73  imul rcx,0x3B9ACA00                           
+0x5335e7a  mov rdx,0x4D0B03F86B6F730D                    
+0x5335e84  mov rax,rcx                                   
+0x5335e87  imul rdx                                      
+0x5335e87  imul rax,r8,0xFFFFFFFFC4653600                
+0x5335e91  sub rdx,rcx                                   
+0x5335e94  mov rcx,rdx                                   
+0x5335e97  shr rcx,0x3F                                  
+0x5335e9b  sar rdx,0x18                                  
+0x5335e9f  add rdx,rcx                                   
+0x5335ea2  add rdx,rax                                   
+0x5335ea5  mov [rbp+0xF8],rdx                            
+0x5335eac  jmp short 0x5335EFF                           ; -> loc_5335eff
+
+loc_5335eae:  ; from 5335dfe
+0x5335eae  mov rcx,rax                                   
+0x5335eb1  or rcx,rbx                                    
+0x5335eb4  shr rcx,0x20                                  
+0x5335eb8  je short 0x5335EC1                            ; -> loc_5335ec1
+0x5335eba  cqo                                           
+0x5335ebc  idiv rbx                                      
+0x5335ebf  jmp short 0x5335EC5                           ; -> loc_5335ec5
+
+loc_5335ec1:  ; from 5335eb8
+0x5335ec1  xor edx,edx                                   
+0x5335ec3  div ebx                                       
+
+loc_5335ec5:  ; from 5335ebf
+0x5335ec5  imul r8,rax,0xFFFFFFFFC4653600                
+0x5335ecc  imul rax,rdx,0x3B9ACA00                       
+0x5335ed3  mov rcx,rax                                   
+0x5335ed6  or rcx,rbx                                    
+0x5335ed9  shr rcx,0x20                                  
+0x5335edd  je short 0x5335EE6                            ; -> loc_5335ee6
+0x5335edf  cqo                                           
+0x5335ee1  idiv rbx                                      
+0x5335ee4  jmp short 0x5335EEA                           ; -> loc_5335eea
+
+loc_5335ee6:  ; from 5335edd
+0x5335ee6  xor edx,edx                                   
+0x5335ee8  div ebx                                       
+
+loc_5335eea:  ; from 5335ee4
+0x5335eea  mov qword ptr [rbp+0x170],0                   
+0x5335ef5  sub r8,rax                                    
+0x5335ef8  mov [rbp+0xF8],r8                             
+
+loc_5335eff:  ; from 5335e1a, 5335e35, 5335eac
+0x5335eff  mov r12,[r14+0x450]                           
+0x5335f06  sub r12,[r14+0x448]                           
+0x5335f0d  sar r12,2                                     
+0x5335f11  mov rax,0xAAAAAAAAAAAAAAAB                    
+0x5335f1b  imul r12,rax                                  
+0x5335f1f  lea rax,[r14+0x148]                           
+0x5335f26  mov [rbp+0x88],rax                            
+0x5335f2d  lea rax,[r14+0x478]                           
+0x5335f34  mov [rbp+0x30],rax                            
+0x5335f38  xorps xmm0,xmm0                               
+0x5335f3b  movss [rbp+0x178],xmm0                        
+0x5335f43  movss xmm7,[0xEF3F044]                        ; [data_ef3f044]
+0x5335f4b  movss xmm10,[0xEEE7C00]                       ; [data_eee7c00]
+0x5335f54  movaps xmm13,[0xF0B8810]                      ; [data_f0b8810]
+0x5335f5c  lea rax,[rbp+0x200]                           
+0x5335f63  mov [rbp+0x28],rax                            
+0x5335f67  pxor xmm6,xmm6                                
+0x5335f6b  xor edi,edi                                   
+0x5335f6d  xor edx,edx                                   
+0x5335f6f  mov qword ptr [rbp+0x230],0                   
+0x5335f7a  xor eax,eax                                   
+0x5335f7c  xor r8d,r8d                                   
+0x5335f7f  xor r9d,r9d                                   
+0x5335f82  mov [rbp+0x188],r12                           
+0x5335f89  jmp short 0x5335FC0                           ; -> loc_5335fc0
+0x5335f8b  nop [rax+rax]                                 
+
+loc_5335f90:  ; from 53362bb
+0x5335f90  xor eax,eax                                   
+0x5335f92  movzx ecx,byte ptr [rbp+0x1E0]                
+0x5335f99  mov edi,ecx                                   
+0x5335fa2  movzx ecx,byte ptr [rbp+0x1E8]                
+0x5335fa4  mov edx,ecx                                   
+0x5335fa4  mov r8,[rbp+0x238]                            
+0x5335fab  mov r9,[rbp+0xF0]                             
+0x5335fb2  mov r14,[rbp+0x250]                           
+0x5335fb9  mov r12,[rbp+0x188]                           
+
+loc_5335fc0:  ; from 5335f89, 5336037, 5336099, 53360b8, 53360cb, 53360e2, ...
+0x5335fc0  mov [rbp+0x238],r8                            
+0x5335fc7  mov rcx,[rbp+0x230]                           
+0x5335fce  test al,1                                     
+0x5335fd0  jne 0x5336B3B                                 ; -> loc_5336b3b
+0x5335fd6  mov r13,r9                                    
+0x5335fd9  mov esi,edi                                   
+0x5335fdb  cmp rcx,r12                                   
+0x5335fde  mov [rbp+0x1E8],dl                            
+0x5335fe4  jae 0x5336070                                 ; -> loc_5336070
+0x5335fea  mov r10b,1                                    
+0x5335fed  cmp byte ptr [rbp+0x246],1                    
+0x5335ff4  jne short 0x5336006                           ; -> loc_5336006
+0x5335ff6  mov rax,[r14+0x460]                           
+0x5335ffd  movzx r10d,byte ptr [rax+rcx]                 
+0x5336002  and r10b,0xF                                  
+
+loc_5336006:  ; from 5335ff4
+0x5336006  lea rax,[rcx+1]                               
+0x533600a  mov [rbp+0x230],rax                           
+0x5336011  mov rbx,[r14+0x130]                           
+0x5336018  mov r11,[r14+0x138]                           
+0x533601f  xor eax,eax                                   
+0x5336021  mov edi,esi                                   
+0x5336023  mov r8,[rbp+0x238]                            
+0x533602a  mov r9,r13                                    
+0x533602d  mov [rbp+0x1F0],r11                           
+0x5336034  cmp rbx,r11                                   
+0x5336037  je short 0x5335FC0                            ; -> loc_5335fc0
+0x5336039  mov [rbp+0x1FF],r10b                          
+0x5336040  mov [rbp+0x1E0],sil                           
+0x5336047  mov [rbp+0xF0],r13                            
+0x533604e  lea rcx,[rcx+rcx*2]                           
+0x5336052  shl rcx,2                                     
+0x5336056  add rcx,[r14+0x448]                           
+0x533605d  mov [rbp+0x248],rcx                           
+0x5336064  jmp 0x53362C1                                 ; -> loc_53362c1
+0x5336069  nop [rax]                                     
+
+loc_5336070:  ; from 5335fe4
+0x5336070  mov dil,1                                     
+0x5336073  xor r15d,r15d                                 
+
+loc_5336076:  ; from 53368e8
+0x5336076  mov [rbp+0x230],rcx                           
+0x533607d  cmp rcx,r12                                   
+0x5336080  mov r10,[rbp+0x238]                           
+0x5336087  mov r11,r15                                   
+0x533608a  jae short 0x533609F                           ; -> loc_533609f
+0x533608c  xor eax,eax                                   
+0x533608e  mov edx,esi                                   
+0x5336090  mov r8,r13                                    
+0x5336093  mov r9,r11                                    
+0x5336096  test r10,r10                                  
+0x5336099  je 0x5335FC0                                  ; -> loc_5335fc0
+
+loc_533609f:  ; from 533608a
+0x533609f  mov rcx,r11                                   
+0x53360a2  or rcx,r13                                    
+0x53360a5  mov al,1                                      
+0x53360a7  or rcx,r10                                    
+0x53360aa  mov edx,esi                                   
+0x53360ac  mov r8d,0                                     
+0x53360b2  mov r9d,0                                     
+0x53360b8  je 0x5335FC0                                  ; -> loc_5335fc0
+0x53360be  xor eax,eax                                   
+0x53360c0  mov edx,esi                                   
+0x53360c2  mov r8,r13                                    
+0x53360c5  mov r9,r11                                    
+0x53360c8  test r10,r10                                  
+0x53360cb  je 0x5335FC0                                  ; -> loc_5335fc0
+0x53360d1  mov rcx,[r10+0x10]                            
+0x53360d5  xor eax,eax                                   
+0x53360d7  mov edx,esi                                   
+0x53360d9  mov r8,r13                                    
+0x53360dc  mov r9,r11                                    
+0x53360df  test rcx,rcx                                  
+0x53360e2  je 0x5335FC0                                  ; -> loc_5335fc0
+0x53360e8  test byte ptr [r10+8],0x20                    
+0x53360ed  je short 0x5336102                            ; -> loc_5336102
+0x53360ef  xor eax,eax                                   
+0x53360f1  cmp byte ptr [rcx],0                          
+0x53360f4  mov edx,esi                                   
+0x53360f6  mov r8,r13                                    
+0x53360f9  mov r9,r11                                    
+0x53360fc  jne 0x5335FC0                                 ; -> loc_5335fc0
+
+loc_5336102:  ; from 53360ed
+0x5336102  mov eax,[rcx+0x1C]                            
+0x5336105  sar eax,4                                     
+0x5336108  movq xmm0,[rcx+0x14]                          
+0x533610d  psrad xmm0,4                                  
+0x5336112  movq [rbp+0x200],xmm0                         
+0x533611a  mov [rbp+0x208],eax                           
+0x5336120  cmp qword ptr [r10+0x20],0                    
+0x5336125  jne short 0x5336132                           ; -> loc_5336132
+0x5336127  cmp qword ptr [rcx+0x28],0                    
+0x533612c  je 0x53367A6                                  ; -> loc_53367a6
+
+loc_5336132:  ; from 5336125
+0x5336132  movzx eax,byte ptr [rbp+0x1E8]                
+0x5336139  mov [rcx+0x3F],al                             
+0x533613c  mov rax,[r10+0x10]                            
+0x5336140  test rax,rax                                  
+0x5336143  je short 0x533619A                            ; -> loc_533619a
+0x5336145  mov edx,[rax+0x14]                            
+0x5336148  add edx,8                                     
+0x533614b  xorps xmm0,xmm0                               
+0x533614e  cvtsi2ss xmm0,edx                             
+0x5336152  mov edx,[rax+0x1C]                            
+0x5336155  mov eax,[rax+0x18]                            
+0x5336158  mov r8,[rbp-0x18]                             
+533615c  subss xmm0,[r8]                                 
+0x5336161  add eax,8                                     
+0x5336164  cvtsi2ss xmm1,eax                             
+0x5336168  add edx,8                                     
+0x533616b  cvtsi2ss xmm2,edx                             
+0x533616f  subss xmm1,[r8+4]                             
+0x5336175  subss xmm2,[r8+8]                             
+0x533617b  mulss xmm0,xmm0                               
+0x533617f  mulss xmm2,xmm2                               
+0x5336183  addss xmm2,xmm0                               
+0x5336187  movss [r10+4],xmm2                            
+0x533618d  mulss xmm1,xmm1                               
+0x5336191  addss xmm1,xmm2                               
+0x5336195  movss [r10],xmm1                              
+
+loc_533619a:  ; from 5336143
+0x533619a  mov eax,[rcx+4]                               
+0x533619d  cmp eax,1                                     
+0x53361a0  mov [rbp+0x1E0],sil                           
+0x53361a7  jne 0x533649C                                 ; -> loc_533649c
+0x53361ad  mov rax,[rcx+0x28]                            
+0x53361b1  test rax,rax                                  
+0x53361b4  je 0x533647A                                  ; -> loc_533647a
+0x53361ba  mov rdx,[rax]                                 
+0x53361bd  cmp rdx,0xFFFFFFFFFFFFFFFF                    
+0x53361c1  je short 0x53361FE                            ; -> loc_53361fe
+0x53361c3  mov rcx,[rbp+0x250]                           
+0x53361ca  mov rcx,[rcx+0x128]                           
+0x53361d1  mov rcx,[rcx+0x390]                           
+0x53361d8  test byte ptr [rax+0x28],0x20                 
+0x53361dc  lea r8,[rdx+0x14]                             
+0x53361e0  cmovne r8,rdx                                 
+0x53361e4  cmp rcx,r8                                    
+0x53361e7  jae 0x533647A                                 ; -> loc_533647a
+0x53361ed  mov rax,[rax+8]                               
+0x53361f1  add rax,0x3C                                  
+0x53361f5  cmp rcx,rax                                   
+0x53361f5  cmp rcx,rax                                   
+0x53361f8  jae 0x533647A                                 ; -> loc_533647a
+
+loc_53361fe:  ; from 53361c1
+0x53361fe  mov rax,[rbp+0x238]                           
+0x5336205  movzx eax,byte ptr [rax+9]                    
+0x5336209  cmp al,1                                      
+0x533620b  jne 0x533649C                                 ; -> loc_533649c
+0x5336211  mov rax,[rbp+0x238]                           
+0x5336218  mov rax,[rax+0x10]                            
+0x533621c  test rax,rax                                  
+0x533621f  je 0x53364E2                                  ; -> loc_53364e2
+0x5336225  mov eax,[rax+4]                               
+0x5336228  cmp eax,1                                     
+0x533622b  jne 0x533649C                                 ; -> loc_533649c
+0x5336231  mov rax,[rbp+0x238]                           
+0x5336238  mov rdx,[rax+0x10]                            
+0x533623c  mov rax,[rdx+0x28]                            
+0x5336240  test rax,rax                                  
+0x5336243  je 0x53364AC                                  ; -> loc_53364ac
+0x5336249  test byte ptr [rax+0x28],2                    
+0x533624d  je 0x533649C                                  ; -> loc_533649c
+0x5336253  mov rcx,[rbp+0x238]                           
+0x533625a  cmp rax,[rcx+0x20]                            
+0x533625e  je short 0x5336273                            ; -> loc_5336273
+0x5336260  movzx eax,byte ptr [rax+0x25E]                
+0x5336267  mov rcx,[rbp+0x238]                           
+0x533626e  cmp al,[rcx+0xA]                              
+0x533626e  cmp al,[rcx+0xA]                              
+0x5336271  jne short 0x5336284                           ; -> loc_5336284
+
+loc_5336273:  ; from 533625e
+0x5336273  mov rax,[rbp+0x238]                           
+0x533627a  test byte ptr [rax+8],2                       
+0x533627e  je 0x533649C                                  ; -> loc_533649c
+
+loc_5336284:  ; from 5336271
+0x5336284  mov rax,[rbp+0x250]                           
+0x533628b  mov rsi,[rax+0x130]                           
+0x5336292  mov rbx,[rax+0x138]                           
+0x5336299  jmp 0x53368F1                                 ; -> loc_53368f1
+
+loc_533629e:  ; from 5336428
+0x533629e  mov rsi,[rax]                                 
+
+loc_53362a1:  ; from 533643c, 5336446, 533645f, 5336475
+0x53362a1  test rsi,rsi                                  
+0x53362a4  jne 0x53368A3                                 ; -> loc_53368a3
+0x53362aa  nop [rax+rax]                                 
+
+loc_53362b0:  ; from 53362d3, 53362ff, 5336319, 5336325, 5336346, 533635d, ...
+0x53362b0  add rbx,0x10                                  
+0x53362b4  cmp rbx,[rbp+0x1F0]                           
+0x53362bb  je 0x5335F90                                  ; -> loc_5335f90
+
+loc_53362c1:  ; from 5336064
+0x53362c1  mov rax,[rbx]                                 
+0x53362c4  mov rdx,[rax+0x5E8]                           
+0x53362cb  mov eax,[rdx+0xEC]                            
+0x53362d1  test eax,eax                                  
+0x53362d3  jle short 0x53362B0                           ; -> loc_53362b0
+0x53362d5  mov rcx,[rbp+0x248]                           
+0x53362dc  mov r11d,[rcx]                                
+0x53362df  mov rax,[r14+0x130]                           
+0x53362ec  xor r15d,r15d                                 
+0x53362ec  mov edx,[rdx+0xC8]                            
+53362ed  mov r10d,[rdx+0xD4]                             
+53362f1  mov ecx,r11d                                    
+53362f3  sub ecx,esi                                     
+53362f5  setl r8b                                      
+53362f9  cmp r11d,r10d                                   
+53362f8  setg r9b                                      
+53362fc  or r9b,r8b                                      
+53362ff  jne short 0x53362B0                           ; -> loc_53362b0
+5336301  mov r8,[rbp+0x248]                              
+5336308  mov edi,[r8+4]                                  
+5336310  mov r12d,[rdx+0xCC]                             
+5336316  mov r8d,edi                                     
+5336319  jl short 0x53362B0                           ; -> loc_53362b0
+5336322  mov r15d,[rdx+0xD8]                             
+5336325  cmp edi,r15d                                    
+5336328  jg short 0x53362B0                           ; -> loc_53362b0
+533632a  mov r9,[rbp+0x248]                              
+5336331  mov r14d,[r9+8]                                 
+5336335  mov r13d,[rdx+0xD0]                             
+5336339  mov r9d,r14d                                    
+5336342  sub r9d,r13d                                    
+5336342  inc r9d                                       
+5336345  mov [rbp+0x1D0],r9d                           
+5336346  jl 0x53362B0                                  ; -> loc_53362b0
+5336353  mov r9d,[rdx+0xDC]                              
+5336356  mov [rbp+0x180],r9d                           
+533635d  cmp r14d,r9d                                  
+533635d  jg 0x53362B0                                  ; -> loc_53362b0
+5336363  add r15d,r12d                                 
+5336366  xorps xmm0,xmm0                               
+5336369  cvtsi2ss xmm0,r15d                            
+533636e  mov r9d,[rbp+0x180]                           
+5336375  add r9d,r13d                                  
+5336378  mulss xmm0,xmm7                               
+533637c  add r10d,esi                                  
+533637f  movd xmm1,r14d                                
+5336384  movd xmm2,r11d                                
+5336389  punpckldq xmm2,xmm1                           
+533638d  cvtdq2ps xmm1,xmm2                            
+533638d  xorps xmm2,xmm2                               
+5336390  cvtsi2ss xmm2,edi                             
+5336397  addss xmm2,xmm0                               
+53363a2  xorps xmm0,xmm0                               
+53363a5  cvtsi2ss xmm0,r11d                            
+53363aa  mulss xmm0,xmm10                              
+53363af  addss xmm0,[0xF0B8800]                        ; [data_f0b8800]
+53363b7  mulss xmm0,xmm0                               
+53363b7  mulss xmm2,xmm2                               
+53363b7  movd xmm3,r9d                                 
+53363b7  movd xmm4,r10d                                
+53363c4  punpckldq xmm4,xmm3                           
+53363cd  cvtdq2ps xmm3,xmm4                            
+53363d0  mulps xmm3,xmm13                              
+53363d4  addps xmm3,xmm1                               
+53363da  unpckhpd xmm1,xmm0                            
+53363de  addsd xmm1,xmm0                               
+53363e2  ucomiss xmm0,xmm3                             
+53363e9  jbe 0x53362B0                                 ; -> loc_53362b0
+53363ef  mov r10,[rdx+0xF8]                            
+53363f6  cmp r10,[rdx+0x100]                           
+53363fd  je 0x53362B0                                  ; -> loc_53362b0
+53363ef  mov r10,[rdx+0xF8]                            
+53363f6  cmp r10,[rdx+0x100]                           
+53363fd  je 0x53362B0                                  ; -> loc_53362b0
+5336403  imul r11d,[rbp+0x1D0]                         
+533640b  imul r8d,eax                                  
+533640f  add ecx,r8d                                   
+5336412  add ecx,r11d                                  
+5336415  movsxd rcx,ecx                                
+5336418  shl rcx,4                                     
+533641c  lea rax,[r10+rcx]                             
+5336420  mov rcx,[r10+rcx+8]                           
+5336425  test rcx,rcx                                  
+5336428  je 0x533629E                                  ; -> loc_533629e
+533642e  lock inc dword ptr [rcx+8]                    
+5336432  mov rsi,[rax]                                 
+5336435  mov rdi,[rax+8]                               
+5336439  test rdi,rdi                                  
+533643c  je 0x53362A1                                  ; -> loc_53362a1
+5336442  lock dec dword pt [rdi+8]                    
+5336446  jne 0x53362A1                                 ; -> loc_53362a1
+533644c  mov rax,[rdi]                                 
+533644f  mov rax,[rax]                                 
+5336452  mov rcx,rdi                                   
+5336455  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+533645b  lock dec dword pt [rdi+0xC]                  
+533645f  jne 0x53362A1                                 ; -> loc_53362a1
+5336465  mov rax,[rdi]                                 
+5336468  mov rax,[rax+8]                               
+533646c  mov rcx,rdi                                   
+533646f  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+5336475  jmp 0x53362A1                                 ; -> loc_53362a1
+
+loc_533647a:  ; from 53361b4, 53361e7, 53361f8
+0x533647a  mov rcx,[rbp+0x88]                            
+0x5336481  call 0x53D92F0                                ; -> sub_53d92f0
+0x5336486  nop                                           
+0x5336487  test rax,rax                                  
+0x533648a  je short 0x533649C                            ; -> loc_533649c
+0x533648c  mov rcx,rax                                   
+0x533648f  lea rdx,[rbp+0x200]                           
+0x5336496  call 0x53D96D0                                ; -> sub_53d96d0
+0x533649b  nop                                           
+
+loc_533649c:  ; from 53361a7, 533620b, 533622b, 533624d, 533627e, 533627e, 533648a, ...
+0x533649c  mov rax,[rbp+0x238]                           
+0x53364a3  mov rdx,[rax+0x10]                            
+0x53364a7  test rdx,rdx                                  
+0x53364aa  je short 0x53364E2                            ; -> loc_53364e2
+
+loc_53364ac:  ; from 5336243
+0x53364ac  cmp byte ptr [rdx],1                          
+0x53364af  jne short 0x53364E4                           ; -> loc_53364e4
+0x53364b1  mov rax,[rbp+0x238]                           
+0x53364b8  test byte ptr [rax+8],0x20                    
+0x53364bc  mov rsi,[rbp+0x250]                           
+0x53364c3  jne short 0x53364EB                           ; -> loc_53364eb
+0x53364c5  mov rcx,[rbp+0x30]                            
+...
 
 ---
 
 ## NEXT for 0x5334850
-**BLOCKED: Disassembly mismatch at 0x5335a9d+** - The rdis disassembly from 0x53354ca does not match the actual binary at those addresses. The verify tool shows the actual binary has different instructions (e.g., 0x5335a9d is `enter 0x8B48,0x8D` not the appended instructions). The rdis disassembly from 0x53354ca appears to show instructions that don't exist at those addresses in the actual binary.
-
-**Required:** Need to re-disassemble using correct addresses or use a different disassembly method. The event processor function (0x5334850, size 0x5f3c) is only partially complete (first ~1000 instructions verified up to ~0x53354ca). Remaining ~23000 bytes need proper disassembly.
+Resume at 0x53364c5 - continues with draw record writes, timestamp comparisons, and allocator calls. Function size 0x5f3c (24380 bytes), first 2000 instructions verified up to ~0x53364c5.
 
 ---
 
 ## Verification
-- verify_oc.py on this section: 3726/3739 match (11 mismatches, 2 no-such-instr)
+- verify_oc.py on this section: 3741/3741 match (0 mismatches, 0 no-such-instr)
 
 ---
 

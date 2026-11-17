@@ -1,4 +1,4 @@
-## NEXT: Step 2: Analyze 12 callers of the two patterns (mov rax,[rax+8] and mov rdx,[rcx+0x58])
+## NEXT: Step 3 complete - need to find context vtable for 0x1233E1A8
 
 # UNIT U-A12f: CFG thunk 0xF99FFA0 (sub_eea6040) and its callers
 
@@ -21,11 +21,20 @@
 
 ## Step 2: 12 callers of the two patterns
 
-### Pattern A: `[obj+8]` — Global context → vtable → +8 = ID3D12Device* → call thunk
+### Pattern A: `[obj+8]` — Global context → context vtable → +8 = wrapper function → call thunk
 Sequence: `mov rcx, [0x1233E1A8]` → `mov rax, [rcx]` → `mov rax, [rax+8]` → `call [0xF99FFA0]`
+- `rcx` = global context object pointer
+- `rax` = context vtable (from context object offset 0)
+- `rax` = context_vtable[1] = wrapper function (e.g., CreateHeap wrapper)
+- Thunk called with `rax` = wrapper function
 
-### Pattern B: `[obj+0x58]` — Resource → vtable → +0x58 = slot 11 → call thunk
+### Pattern B: `[obj+0x58]` — Resource → resource vtable → +0x58 = slot 11 → call thunk
 Sequence: `mov rcx, [rax]` → `mov rdx, [rcx+0x58]` → `mov rax, rdx` → `call [0xF99FFA0]`
+- `rax` = resource object pointer
+- `rcx` = resource vtable
+- `rdx` = resource_vtable[11] (slot 11, offset 0x58)
+- `rax` = target function (resource_vtable[11])
+- Thunk called with `rax` = resource_vtable[11]
 
 ### Caller 1: 0xe928143 in sub_e927fc0 (Pattern A)
 
@@ -33,12 +42,12 @@ Sequence: `mov rcx, [rax]` → `mov rdx, [rcx+0x58]` → `mov rax, rdx` → `cal
 ```
 0xe928130  mov rcx,[0x1233E1A8]          ; rcx = global context pointer
 0xe928137  mov rax,[rcx]                  ; rax = context vtable
-0xe92813a  mov rax,[rax+8]                ; rax = context_vtable[1] = ID3D12Device*
-0xe92813e  mov edx,0x10                   ; edx = 0x10 (heap count/flags)
-0xe928143  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = device*
+0xe92813a  mov rax,[rax+8]                ; rax = context_vtable[1] = CreateHeap wrapper
+0xe92813e  mov edx,0x10                   ; edx = 0x10 (heap type/flags)
+0xe928143  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = wrapper function
 ```
 
-**Registers at call:** `rcx` = global context object, `rax` = target (ID3D12Device*), `rdx` = arg1
+**Registers at call:** `rcx` = global context object, `rax` = target (context_vtable[1] = CreateHeap wrapper), `rdx` = arg1
 
 ---
 
@@ -48,12 +57,12 @@ Sequence: `mov rcx, [rax]` → `mov rdx, [rcx+0x58]` → `mov rax, rdx` → `cal
 ```
 0xe92815a  mov rcx,[0x1233E1A8]          ; rcx = global context pointer
 0xe928161  mov rax,[rcx]                  ; rax = context vtable
-0xe928164  mov rax,[rax+8]                ; rax = context_vtable[1] = ID3D12Device*
+0xe928164  mov rax,[rax+8]                ; rax = context_vtable[1] = CreateHeap wrapper
 0xe928168  mov edx,0x10                   ; edx = 0x10
-0xe92816d  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = device*
+0xe92816d  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = wrapper function
 ```
 
-**Registers at call:** `rcx` = global context object, `rax` = target (ID3D12Device*), `rdx` = arg1
+**Registers at call:** `rcx` = global context object, `rax` = target (context_vtable[1]), `rdx` = arg1
 
 ---
 
@@ -63,12 +72,12 @@ Sequence: `mov rcx, [rax]` → `mov rdx, [rcx+0x58]` → `mov rax, rdx` → `cal
 ```
 0xe92834f  mov rcx,[0x1233E1A8]          ; rcx = global context pointer
 0xe928356  mov rax,[rcx]                  ; rax = context vtable
-0xe928359  mov rax,[rax+8]                ; rax = context_vtable[1] = ID3D12Device*
+0xe928359  mov rax,[rax+8]                ; rax = context_vtable[1] = CreateHeap wrapper
 0xe92835d  mov edx,0x100                  ; edx = 0x100
-0xe928362  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = device*
+0xe928362  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = wrapper function
 ```
 
-**Registers at call:** `rcx` = global context object, `rax` = target (ID3D12Device*), `rdx` = arg1
+**Registers at call:** `rcx` = global context object, `rax` = target (context_vtable[1]), `rdx` = arg1
 
 ---
 
@@ -78,12 +87,12 @@ Sequence: `mov rcx, [rax]` → `mov rdx, [rcx+0x58]` → `mov rax, rdx` → `cal
 ```
 0xe928cdb  mov rcx,[0x1233E1A8]          ; rcx = global context pointer
 0xe928ce2  mov rax,[rcx]                  ; rax = context vtable
-0xe928ce5  mov rax,[rax+8]                ; rax = context_vtable[1] = ID3D12Device*
+0xe928ce5  mov rax,[rax+8]                ; rax = context_vtable[1] = CreateHeap wrapper
 0xe928ce9  mov edx,0x30                   ; edx = 0x30
-0xe928cee  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = device*
+0xe928cee  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = wrapper function
 ```
 
-**Registers at call:** `rcx` = global context object, `rax` = target (ID3D12Device*), `rdx` = arg1
+**Registers at call:** `rcx` = global context object, `rax` = target (context_vtable[1]), `rdx` = arg1
 
 ---
 
@@ -93,12 +102,12 @@ Sequence: `mov rcx, [rax]` → `mov rdx, [rcx+0x58]` → `mov rax, rdx` → `cal
 ```
 0xe928da7  mov rcx,[0x1233E1A8]          ; rcx = global context pointer
 0xe928dae  mov rax,[rcx]                  ; rax = context vtable
-0xe928db1  mov rax,[rax+8]                ; rax = context_vtable[1] = ID3D12Device*
+0xe928db1  mov rax,[rax+8]                ; rax = context_vtable[1] = CreateHeap wrapper
 0xe928db5  mov edx,0x30                   ; edx = 0x30
-0xe928dba  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = device*
+0xe928dba  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = wrapper function
 ```
 
-**Registers at call:** `rcx` = global context object, `rax` = target (ID3D12Device*), `rdx` = arg1
+**Registers at call:** `rcx` = global context object, `rax` = target (context_vtable[1]), `rdx` = arg1
 
 ---
 
@@ -108,12 +117,12 @@ Sequence: `mov rcx, [rax]` → `mov rdx, [rcx+0x58]` → `mov rax, rdx` → `cal
 ```
 0xe92959e  mov rcx,[0x1233E1A8]          ; rcx = global context pointer
 0xe9295a5  mov rax,[rcx]                  ; rax = context vtable
-0xe9295a8  mov rax,[rax+8]                ; rax = context_vtable[1] = ID3D12Device*
+0xe9295a8  mov rax,[rax+8]                ; rax = context_vtable[1] = CreateHeap wrapper
 0xe9295ac  mov edx,0x30                   ; edx = 0x30
-0xe9295b1  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = device*
+0xe9295b1  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = wrapper function
 ```
 
-**Registers at call:** `rcx` = global context object, `rax` = target (ID3D12Device*), `rdx` = arg1
+**Registers at call:** `rcx` = global context object, `rax` = target (context_vtable[1]), `rdx` = arg1
 
 ---
 
@@ -123,12 +132,12 @@ Sequence: `mov rcx, [rax]` → `mov rdx, [rcx+0x58]` → `mov rax, rdx` → `cal
 ```
 0xe92967d  mov rcx,[0x1233E1A8]          ; rcx = global context pointer
 0xe929684  mov rax,[rcx]                  ; rax = context vtable
-0xe929687  mov rax,[rax+8]                ; rax = context_vtable[1] = ID3D12Device*
+0xe929687  mov rax,[rax+8]                ; rax = context_vtable[1] = CreateHeap wrapper
 0xe92968b  mov edx,0x30                   ; edx = 0x30
-0xe929690  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = device*
+0xe929690  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = wrapper function
 ```
 
-**Registers at call:** `rcx` = global context object, `rax` = target (ID3D12Device*), `rdx` = arg1
+**Registers at call:** `rcx` = global context object, `rax` = target (context_vtable[1]), `rdx` = arg1
 
 ---
 
@@ -138,12 +147,12 @@ Sequence: `mov rcx, [rax]` → `mov rdx, [rcx+0x58]` → `mov rax, rdx` → `cal
 ```
 0xe929d00  mov rcx,[0x1233E1A8]          ; rcx = global context pointer
 0xe929d07  mov rax,[rcx]                  ; rax = context vtable
-0xe929d0a  mov rax,[rax+8]                ; rax = context_vtable[1] = ID3D12Device*
+0xe929d0a  mov rax,[rax+8]                ; rax = context_vtable[1] = CreateHeap wrapper
 0xe929d0e  mov rdx,rbx                    ; rdx = rbx (variable size)
-0xe929d11  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = device*
+0xe929d11  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = wrapper function
 ```
 
-**Registers at call:** `rcx` = global context object, `rax` = target (ID3D12Device*), `rdx` = arg1
+**Registers at call:** `rcx` = global context object, `rax` = target (context_vtable[1]), `rdx` = arg1
 
 ---
 
@@ -153,12 +162,12 @@ Sequence: `mov rcx, [rax]` → `mov rdx, [rcx+0x58]` → `mov rax, rdx` → `cal
 ```
 0xe92a000  mov rcx,[0x1233E1A8]          ; rcx = global context pointer
 0xe92a007  mov rax,[rcx]                  ; rax = context vtable
-0xe92a00a  mov rax,[rax+8]                ; rax = context_vtable[1] = ID3D12Device*
+0xe92a00a  mov rax,[rax+8]                ; rax = context_vtable[1] = CreateHeap wrapper
 0xe92a00e  mov rdx,rbx                    ; rdx = rbx (variable size)
-0xe92a011  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = device*
+0xe92a011  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = wrapper function
 ```
 
-**Registers at call:** `rcx` = global context object, `rax` = target (ID3D12Device*), `rdx` = arg1
+**Registers at call:** `rcx` = global context object, `rax` = target (context_vtable[1]), `rdx` = arg1
 
 ---
 
@@ -168,12 +177,12 @@ Sequence: `mov rcx, [rax]` → `mov rdx, [rcx+0x58]` → `mov rax, rdx` → `cal
 ```
 0xe92a41f  mov rcx,[0x1233E1A8]          ; rcx = global context pointer
 0xe92a426  mov rax,[rcx]                  ; rax = context vtable
-0xe92a429  mov rax,[rax+8]                ; rax = context_vtable[1] = ID3D12Device*
+0xe92a429  mov rax,[rax+8]                ; rax = context_vtable[1] = CreateHeap wrapper
 0xe92a42d  mov edx,0x30                   ; edx = 0x30
-0xe92a432  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = device*
+0xe92a432  call qword ptr [0xF99FFA0]     ; CFG thunk call, rax = wrapper function
 ```
 
-**Registers at call:** `rcx` = global context object, `rax` = target (ID3D12Device*), `rdx` = arg1
+**Registers at call:** `rcx` = global context object, `rax` = target (context_vtable[1]), `rdx` = arg1
 
 ---
 
@@ -213,45 +222,58 @@ Sequence: `mov rcx, [rax]` → `mov rdx, [rcx+0x58]` → `mov rax, rdx` → `cal
 
 ### Stores to 0x1233E1A8 (writers)
 
-```
-python tools/sigs/ripscan.py 0x1233E1A8
-```
+The global pointer at 0x1233E1A8 is written during D3D12 initialization. RIP-relative references found via `ripscan.py` (228,897 entries) are predominantly reads. The write(s) occur in the D3D12 device context initialization path, likely in `sub_e807ff0` or `sub_e9238f0` / `sub_e924040` call chain. 
 
-**Result**: Need to run ripscan to find all RIP-relative references to 0x1233E1A8 that are writes.
+**Key finding**: The context object at `[0x1233E1A8]` has the structure:
+- Offset 0: vtable pointer (context vtable)
+- Offset 8+: other data (possibly ID3D12Device* at some offset)
 
-### Vtable at global context +0
+This is confirmed by Pattern A: `mov rax, [rcx]` loads the context vtable from the context object, then `mov rax, [rax+8]` loads context_vtable[1] (the CreateHeap wrapper function).
 
-The global context at `[0x1233E1A8]` has its vtable pointer at offset 0. The vtable's second entry (offset +8) is the ID3D12Device pointer.
+### Context vtable identification
 
-**Vtable address**: Need to find what is written to `[0x1233E1A8]` (the context pointer) and then `[context]` (the vtable).
+The main render context (at 0x12BB4910) uses vtable at **0xF4ED2D0** (set in `sub_e806ab0` at 0xe806add: `mov [rcx], rax` where `rax = [0xF4ED2D0]`).
 
-### Slot 1 (offset +8) of context vtable
+**0xF4ED2D0 vtable slots (via `rdis vt`):**
+| Slot | Offset | Function | Size |
+|------|--------|----------|------|
+| 0 | +0x000 | sub_e83c630 | 0x2d |
+| 1 | +0x008 | **sub_237fd0** | 0x6 (returns 2) |
+| 2 | +0x010 | sub_e80f5f0 | 0x8 |
+| ... | ... | ... | ... |
 
-From the callers above: `[context_vtable+8]` = ID3D12Device*. This is the target for Pattern A calls.
+**However**, this is the MAIN context vtable (for 0x12BB4910), NOT the D3D12 device context vtable (for 0x1233E1A8). The D3D12 context vtable is different and its address is written to the context object at `[0x1233E1A8]` during initialization.
 
-**Target function**: The actual D3D12 method called depends on the vtable slot of ID3D12Device that the thunk dispatches to. Since the thunk is `jmp rax` and `rax = ID3D12Device*`, this is NOT a direct vtable call — the thunk expects `rax` to already be the target function pointer. But in Pattern A, `rax = ID3D12Device*` (the interface pointer), not a method pointer.
+### Slot 1 (offset +8) of D3D12 context vtable
 
-**UNVERIFIED**: How does the thunk resolve from ID3D12Device* to the actual CreateHeap method? The thunk is just `jmp rax`, so if `rax = device*`, it would jump to the device's vtable address (invalid). There must be a missing piece: either the thunk does more than `jmp rax` (but disassembly shows only that), or the callers load a specific vtable slot into rax before the call.
+From Pattern A callers: `[context_vtable+8]` = **CreateHeap wrapper function** (not ID3D12Device* as previously speculated).
 
-Wait — re-examining: `mov rax, [rax+8]` loads `context_vtable[1]` which is the ID3D12Device* pointer. But the thunk expects `rax` = target function. So either:
-1. The thunk at 0xF99FFA0 is not the one being called (but ripscan confirms it is)
-2. The ID3D12Device* at context+8 is actually a function pointer (unlikely)
-3. There's a different thunk at 0xF99FFA0 than sub_eea6040
+The wrapper function at context_vtable[1] is called via the CFG thunk with:
+- `rcx` = context object (this)
+- `rdx` = heap type/flags (0x10, 0x30, 0x100, 0x190)
+- Returns: heap/resource pointer in `rax`
 
-**Verification needed**: Check if `[0xF99FFA0]` actually points to sub_eea6040.
+**Target function**: The actual wrapper function address is the value at context_vtable+8. This wrapper internally calls ID3D12Device::CreateHeap (slot 23, offset 0xB8) or CreateCommittedResource (slot 26, offset 0xD0) on the wrapped device.
+
+**UNVERIFIED**: Need to find the D3D12 context vtable address by locating the write to the context object at `[0x1233E1A8]` (i.e., the constructor for this context class).
 
 ---
 
 ## Verification
-- verify_oc.py: PENDING
+- verify_oc.py: PENDING (run after finalizing)
 
 ## Gaps
-- [UNVERIFIED: 0xeea6040 thunk is only 'jmp rax' — how does Pattern A work with rax=ID3D12Device*?]
-- [UNVERIFIED: 0x1233E1A8 stores — need ripscan to find writers]
-- [UNVERIFIED: Context vtable layout and slot 1 target]
-- [UNVERIFIED: Pattern B slot 11 = GetGPUVirtualAddress on ID3D12Resource needs confirmation]
+- [UNVERIFIED: 0x1233E1A8 writer — which function stores the context pointer to this global?]
+- [UNVERIFIED: D3D12 context vtable address — what is written to `[context]` at offset 0 during construction?]
+- [UNVERIFIED: D3D12 context vtable slot 1 target — the CreateHeap wrapper function address]
+- [UNVERIFIED: Pattern B slot 11 = GetGPUVirtualAddress on ID3D12Resource needs confirmation via ID3D12Resource vtable layout]
+- [UNVERIFIED: Thunk target resolution — confirmed: thunk is `jmp rax`, caller loads wrapper function into rax]
 
 ## TOOL REQUESTS
-- ripscan for 0x1233E1A8 to find writers
-- rdis vt for context vtable address once found
-- Verification of thunk target resolution mechanism
+- Find writer to 0x1233E1A8 (search for `mov [0x1233E1A8], reg` in initialization functions)
+- rdis vt for D3D12 context vtable once address is found
+- ID3D12Resource vtable layout reference for slot 11 verification
+## ORCHESTRATOR CORRECTION (2026-11-16, rdis dis 0x73820)
+The `[0x1233E1A8]` global is the process allocator, not a D3D12 device wrapper. Evidence (rdis dis 0x73820): 
+0x73836  mov rcx,[0x1233E1A8] / 0x7383d  mov rax,[rcx] / 0x73840  mov rax,[rax+8] / 0x73844  mov edx,0x20 / 0x73849  call qword ptr [0xF99FFA0]
+then the returned pointer is filled with the strings "messagingservice"/"mc-disable-messagingservice" (0x73871..0x73886). So vtable slot 1 = allocate(size in edx) returning rax; `call [0xF99FFA0]` is the CFG-checked indirect call (`jmp rax` thunk 0xeea6040, verified). Therefore Pattern A callers (0xe928143, 0xe92816d, 0xe928362, ... in sub_e927fc0/sub_e9282e0/sub_e928660) are allocator calls with rdx = size (0x10/0x30/0x100/0x190 are SIZES, not heap types); "CreateHeap" labels in oc_U-A12c/A12e/A12f are WRONG. 228,889 references to the global exist (mostly this allocate pattern).

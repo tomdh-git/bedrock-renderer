@@ -7,8 +7,6 @@
 // Stars (tag 6), Sky (tag 5), CelestialBody (tag 7) and EndSky (tag 3) are added from docs/functions/66560f0_sky_cases.md (case bodies decoded from
 // listings docs/data/listings/sky_*.txt). Atmosphere (tag 0), Clouds (tag 1) and Weather (tag 9) are covered by the last three structs (1 and 9 are read in their tail-call targets).
 
-#include <cstddef>
-#include <cstdint>
 
 namespace mce::framebuilder::skyvis {
 

@@ -1,0 +1,321 @@
+## NEXT
+DONE — 0x4e1a9c7..0x4e1ae50 fully covered: 9 phases (all 250 instructions verbatim), 25-row [reg+off] field store/load table, verify_oc clean.
+
+## Unit U-Am3 — atlas_meta_parse 0x4e1a0a0, slice 0x4e1a9c7..0x4e1ae50 (chunk 3 of 7)
+
+Source listing: docs/progress/_part_Am3.txt — 250 instructions from 0x4e1a9c7 to 0x4e1ae50 (slice ends at `cmp rax,0xFFF / jb short 0x4E1AE6D`; continuation is chunk 4). Static analysis only; RVAs are image-base RVAs of Minecraft.Windows.exe 1.26.62.01. Every phase and field claim is [V] (seen in the provided listing) unless tagged [I]/[?]. The listing is the ground truth for sizes, offsets and verbatim instruction text.
+
+### Phase 1 — 0x4e1a9c7..0x4e1aa69
+0x4e1a9c7..0x4e1aa69: Loads string pointer [rbp+0x130] and size [rbp+0x148], then selects rsi=rdi when size >= 0x10 (cmovae) [V]; calls IAT slot [0xF9A9100] with edx=0 and r8d=0x10 [V]; when the size path is taken it adjusts rdi by the heap header ([rdi-8] minus 8) and frees through 0xE935700 [V]; finally it unpacks esi into four dword lanes (movdqa/psrld/punpckldq/pand against [0xF08C710], shufps), converts to float with cvtdq2ps, divides by the constant vector at [0xF0837E0] and stores the four floats at global [0x123C0B80] [V].
+0x4e1a9c7  mov rdi,[rbp+0x130]
+0x4e1a9ce  mov rbx,[rbp+0x148]
+0x4e1a9d5  cmp rbx,0x10
+0x4e1a9d9  cmovae rsi,rdi
+0x4e1a9dd  mov rcx,rsi
+0x4e1a9e0  xor edx,edx
+0x4e1a9e2  mov r8d,0x10
+0x4e1a9e8  call qword ptr [0xF9A9100]
+0x4e1a9ee  mov esi,eax
+0x4e1a9f0  cmp rbx,0x10
+0x4e1a9f4  jb short 0x4E1AA2A
+0x4e1a9f6  lea rdx,[rbx+1]
+0x4e1a9fa  cmp rdx,0x1000
+0x4e1aa01  jb short 0x4E1AA22
+0x4e1aa03  mov rax,[rdi-8]
+0x4e1aa07  add rdi,0xFFFFFFFFFFFFFFF8
+0x4e1aa0b  sub rdi,rax
+0x4e1aa0e  cmp rdi,0x20
+0x4e1aa12  jae 0x4E1BFC5
+0x4e1aa18  add rbx,0x28
+0x4e1aa1c  mov rdx,rbx
+0x4e1aa1f  mov rdi,rax
+0x4e1aa22  mov rcx,rdi
+0x4e1aa25  call 0xE935700
+0x4e1aa2a  movd xmm0,esi
+0x4e1aa2e  shr esi,0x10
+0x4e1aa31  movdqa xmm1,xmm0
+0x4e1aa35  psrld xmm1,8
+0x4e1aa3a  punpckldq xmm1,xmm0
+0x4e1aa3e  pand xmm1,[0xF08C710]
+0x4e1aa46  movzx eax,sil
+0x4e1aa4a  movd xmm2,eax
+0x4e1aa4e  psrld xmm0,0x18
+0x4e1aa53  shufps xmm0,xmm1,0xD4
+0x4e1aa57  punpckldq xmm1,xmm2
+0x4e1aa5b  shufps xmm1,xmm0,0x21
+0x4e1aa5f  cvtdq2ps xmm0,xmm1
+0x4e1aa62  divps xmm0,[0xF0837E0]
+0x4e1aa69  movups [0x123C0B80],xmm0
+
+### Phase 2 — 0x4e1aa70..0x4e1aae6
+0x4e1aa70..0x4e1aae6: Calls 0xE9315D0(rcx=&[rbp+0x310], rdx=global 0xF847A07) and 0xE932FA0(rcx=[rbp+0x350], rdx=&[rbp+0x2D0], r8=global 0xF5634B8, r9=&[rbp+0x310]) [V]; then zeroes the [rbp+0x130] small-string struct (16-byte clear, size=0, capacity=0xF) and calls 0xE932140(rcx=&[rbp+0x2D0], rdx=&[rbp+0x88], r8=&[rbp+0x130]) [V].
+0x4e1aa70  lea rdx,[0xF847A07]
+0x4e1aa77  lea rcx,[rbp+0x310]
+0x4e1aa7e  call 0xE9315D0
+0x4e1aa83  nop
+0x4e1aa84  lea r8,[0xF5634B8]
+0x4e1aa8b  lea rdx,[rbp+0x2D0]
+0x4e1aa92  lea r9,[rbp+0x310]
+0x4e1aa99  mov rcx,[rbp+0x350]
+0x4e1aaa0  call 0xE932FA0
+0x4e1aaa5  nop
+0x4e1aaa6  xorps xmm0,xmm0
+0x4e1aaa9  movaps [rbp+0x130],xmm0
+0x4e1aab0  mov qword ptr [rbp+0x140],0
+0x4e1aabb  mov qword ptr [rbp+0x148],0xF
+0x4e1aac6  lea rcx,[rbp+0x2D0]
+0x4e1aacd  lea rdi,[rbp+0x88]
+0x4e1aad4  lea rsi,[rbp+0x130]
+0x4e1aadb  mov rdx,rdi
+0x4e1aade  mov r8,rsi
+0x4e1aae1  call 0xE932140
+0x4e1aae6  nop
+
+### Phase 3 — 0x4e1aae7..0x4e1ab98
+0x4e1aae7..0x4e1ab98: Reloads size [rbp+0x148]; if >= 0x10 it heap-adjusts [rbp+0x130] via [rcx-8] and frees it through 0xE935700 [V]; calls 0xE9319A0 twice on &[rbp+0x2D0] and &[rbp+0x310] [V]; loads [rbp+0x98] into rax, and when rax >= 0x11 computes capacity r15 = max(0x16, r14|0xF) with r14 = rax-1, otherwise jumps to 0x4E1ABD4 [V].
+0x4e1aae7  mov rax,[rbp+0x148]
+0x4e1aaee  cmp rax,0x10
+0x4e1aaf2  jb short 0x4E1AB2C
+0x4e1aaf4  mov rcx,[rbp+0x130]
+0x4e1aafb  lea rdx,[rax+1]
+0x4e1aaff  cmp rdx,0x1000
+0x4e1ab06  jb short 0x4E1AB27
+0x4e1ab08  mov r8,[rcx-8]
+0x4e1ab0c  add rcx,0xFFFFFFFFFFFFFFF8
+0x4e1ab10  sub rcx,r8
+0x4e1ab13  cmp rcx,0x20
+0x4e1ab17  jae 0x4E1BFC5
+0x4e1ab1d  add rax,0x28
+0x4e1ab21  mov rdx,rax
+0x4e1ab24  mov rcx,r8
+0x4e1ab27  call 0xE935700
+0x4e1ab2c  lea rcx,[rbp+0x2D0]
+0x4e1ab33  call 0xE9319A0
+0x4e1ab38  lea rcx,[rbp+0x310]
+0x4e1ab3f  call 0xE9319A0
+0x4e1ab44  mov rax,[rbp+0x98]
+0x4e1ab4b  test rax,rax
+0x4e1ab4e  je 0x4E1ACA9
+0x4e1ab54  xorps xmm0,xmm0
+0x4e1ab57  movaps [rbp+0x130],xmm0
+0x4e1ab5e  mov r14,rax
+0x4e1ab61  dec r14
+0x4e1ab64  js 0x4E1BFE5
+0x4e1ab6a  mov r13,[rbp+0x88]
+0x4e1ab71  mov rbx,[rbp+0xA0]
+0x4e1ab78  mov r15d,0xF
+0x4e1ab7e  mov r12,rsi
+0x4e1ab81  cmp rax,0x11
+0x4e1ab85  jb short 0x4E1ABD4
+0x4e1ab87  mov rax,r14
+0x4e1ab8a  or rax,0xF
+0x4e1ab8e  cmp rax,0x17
+0x4e1ab92  mov r15d,0x16
+0x4e1ab98  cmovae r15,rax
+
+### Phase 4 — 0x4e1ab9c..0x4e1abfb
+0x4e1ab9c..0x4e1abfb: If (r14|0xF) < 0xFFF it allocates r15+0x28 bytes via 0x392920, otherwise r15+1 bytes [V]; the large branch aligns the block up by 32 (add 0x27, and -0x20) and back-stores the original size at [r12-8] [V]; it installs buffer r12 at [rbp+0x130], length r14 at [rbp+0x140] and capacity r15 at [rbp+0x148] [V], copies r14 bytes from rdi+1 into the new buffer via 0xEEC6EC0(rcx=r12, rdx=rdi+1, r8=r14) and null-terminates [r12+r14]=0 [V].
+0x4e1ab9c  cmp rax,0xFFF
+0x4e1aba2  jb short 0x4E1ABC0
+0x4e1aba4  lea rcx,[r15+0x28]
+0x4e1aba8  call 0x392920
+0x4e1abad  nop
+0x4e1abae  mov r12,rax
+0x4e1abb1  add r12,0x27
+0x4e1abb5  and r12,0xFFFFFFFFFFFFFFE0
+0x4e1abb9  mov [r12-8],rax
+0x4e1abbe  jmp short 0x4E1ABCD
+0x4e1abc0  lea rcx,[r15+1]
+0x4e1abc4  call 0x392920
+0x4e1abc9  nop
+0x4e1abca  mov r12,rax
+0x4e1abcd  mov [rbp+0x130],r12
+0x4e1abd4  cmp rbx,0x10
+0x4e1abd8  cmovae rdi,r13
+0x4e1abdc  inc rdi
+0x4e1abdf  mov [rbp+0x140],r14
+0x4e1abe6  mov [rbp+0x148],r15
+0x4e1abed  mov rcx,r12
+0x4e1abf0  mov rdx,rdi
+0x4e1abf3  mov r8,r14
+0x4e1abf6  call 0xEEC6EC0
+0x4e1abfb  mov byte ptr [r12+r14],0
+
+### Phase 5 — 0x4e1ac00..0x4e1aca2
+0x4e1ac00..0x4e1aca2: Repeats the pointer/size load and IAT call [0xF9A9100] on the (possibly new) [rbp+0x130] buffer, with the same conditional heap-adjust and free via 0xE935700 [V]; then converts esi into four float32 lanes and divides by [0xF0837E0], storing the vec4 at global [0x123C0B70] (a different global than phase 1's [0x123C0B80]) [V].
+0x4e1ac00  mov rdi,[rbp+0x130]
+0x4e1ac07  mov rbx,[rbp+0x148]
+0x4e1ac0e  cmp rbx,0x10
+0x4e1ac12  cmovae rsi,rdi
+0x4e1ac16  mov rcx,rsi
+0x4e1ac19  xor edx,edx
+0x4e1ac1b  mov r8d,0x10
+0x4e1ac21  call qword ptr [0xF9A9100]
+0x4e1ac27  mov esi,eax
+0x4e1ac29  cmp rbx,0x10
+0x4e1ac2d  jb short 0x4E1AC63
+0x4e1ac2f  lea rdx,[rbx+1]
+0x4e1ac33  cmp rdx,0x1000
+0x4e1ac3a  jb short 0x4E1AC5B
+0x4e1ac3c  mov rax,[rdi-8]
+0x4e1ac40  add rdi,0xFFFFFFFFFFFFFFF8
+0x4e1ac44  sub rdi,rax
+0x4e1ac47  cmp rdi,0x20
+0x4e1ac4b  jae 0x4E1BFC5
+0x4e1ac51  add rbx,0x28
+0x4e1ac55  mov rdx,rbx
+0x4e1ac58  mov rdi,rax
+0x4e1ac5b  mov rcx,rdi
+0x4e1ac5e  call 0xE935700
+0x4e1ac63  movd xmm0,esi
+0x4e1ac67  shr esi,0x10
+0x4e1ac6a  movdqa xmm1,xmm0
+0x4e1ac6e  psrld xmm1,8
+0x4e1ac73  punpckldq xmm1,xmm0
+0x4e1ac77  pand xmm1,[0xF08C710]
+0x4e1ac7f  movzx eax,sil
+0x4e1ac83  movd xmm2,eax
+0x4e1ac87  psrld xmm0,0x18
+0x4e1ac8c  shufps xmm0,xmm1,0xD4
+0x4e1ac90  punpckldq xmm1,xmm2
+0x4e1ac94  shufps xmm1,xmm0,0x21
+0x4e1ac98  cvtdq2ps xmm0,xmm1
+0x4e1ac9b  divps xmm0,[0xF0837E0]
+0x4e1aca2  movups [0x123C0B70],xmm0
+
+### Phase 6 — 0x4e1aca9..0x4e1ad12
+0x4e1aca9..0x4e1ad12: Calls 0xE933210(rcx=[rbp+0x350], rdx=global 0xF5D16A0); on al==0 it jumps to 0x4E1ADC3, otherwise calls 0xE932EB0 with the same arguments [V]; resets [rbp+0x130] (clear, size=0, cap=0xF) and calls 0xE932140(rcx=eax return of 0xE932EB0, rdx=&[rbp+0x2D0], r8=&[rbp+0x130]) [V].
+0x4e1aca9  lea rdx,[0xF5D16A0]
+0x4e1acb0  mov rcx,[rbp+0x350]
+0x4e1acb7  call 0xE933210
+0x4e1acbc  nop
+0x4e1acbd  test al,al
+0x4e1acbf  je 0x4E1ADC3
+0x4e1acc5  lea rdx,[0xF5D16A0]
+0x4e1accc  mov rcx,[rbp+0x350]
+0x4e1acd3  call 0xE932EB0
+0x4e1acd8  nop
+0x4e1acd9  xorps xmm0,xmm0
+0x4e1acdc  movaps [rbp+0x130],xmm0
+0x4e1ace3  mov qword ptr [rbp+0x140],0
+0x4e1acee  mov qword ptr [rbp+0x148],0xF
+0x4e1acf9  lea rsi,[rbp+0x2D0]
+0x4e1ad00  lea r8,[rbp+0x130]
+0x4e1ad07  mov rcx,rax
+0x4e1ad0a  mov rdx,rsi
+0x4e1ad0d  call 0xE932140
+0x4e1ad12  nop
+
+### Phase 7 — 0x4e1ad13..0x4e1ad5a
+0x4e1ad13..0x4e1ad5a: Reloads size [rbp+0x148] and rbx=[rbp+0x2C8] [V]; if size >= 0x10 it heap-adjusts [rbp+0x130] via [rcx-8] and frees through 0xE935700 [V].
+0x4e1ad13  mov rax,[rbp+0x148]
+0x4e1ad1a  cmp rax,0x10
+0x4e1ad1e  mov rbx,[rbp+0x2C8]
+0x4e1ad25  jb short 0x4E1AD5F
+0x4e1ad27  mov rcx,[rbp+0x130]
+0x4e1ad2e  lea rdx,[rax+1]
+0x4e1ad32  cmp rdx,0x1000
+0x4e1ad39  jb short 0x4E1AD5A
+0x4e1ad3b  mov r8,[rcx-8]
+0x4e1ad3f  add rcx,0xFFFFFFFFFFFFFFF8
+0x4e1ad43  sub rcx,r8
+0x4e1ad46  cmp rcx,0x20
+0x4e1ad4a  jae 0x4E1BFC5
+0x4e1ad50  add rax,0x28
+0x4e1ad54  mov rdx,rax
+0x4e1ad57  mov rcx,r8
+0x4e1ad5a  call 0xE935700
+
+### Phase 8 — 0x4e1ad5f..0x4e1ade9
+0x4e1ad5f..0x4e1ade9: Zeroes [rbp+0x140] and [rbp+0x130] with movaps [V]; loads rdi=[rbp+0x2E0] and, when qword [rbp+0x2E8] >= 0x10, rsi=[rbp+0x2D0] [V]; negative rdi bails to 0x4E1BFEB and rdi > 0xF jumps to 0x4E1AE36 [V]; otherwise it stores length rdi at [rbp+0x140], capacity 0xF at [rbp+0x148], copies 16 bytes from [rsi] into [rbp+0x130] via movups and jumps to 0x4E1AEA4 [V]; from 0x4E1ADC3 it loads rax=[rbp+0x358], follows [rax+0x48] (taking [rax+0x30] when [rax+0x48] >= 0x10 else rax+0x30) [V], stores that pointer at [rbp+0x130] and stores &[rbp+0x130] at [rsp+0x20] [V].
+0x4e1ad5f  xorps xmm0,xmm0
+0x4e1ad62  movaps [rbp+0x140],xmm0
+0x4e1ad69  movaps [rbp+0x130],xmm0
+0x4e1ad70  mov rdi,[rbp+0x2E0]
+0x4e1ad77  cmp qword ptr [rbp+0x2E8],0x10
+0x4e1ad7f  jb short 0x4E1AD88
+0x4e1ad81  mov rsi,[rbp+0x2D0]
+0x4e1ad88  test rdi,rdi
+0x4e1ad8b  lea r15,[rbp+0x310]
+0x4e1ad92  js 0x4E1BFEB
+0x4e1ad98  cmp rdi,0xF
+0x4e1ad9c  ja 0x4E1AE36
+0x4e1ada2  mov [rbp+0x140],rdi
+0x4e1ada9  mov qword ptr [rbp+0x148],0xF
+0x4e1adb4  movups xmm0,[rsi]
+0x4e1adb7  movaps [rbp+0x130],xmm0
+0x4e1adbe  jmp 0x4E1AEA4
+0x4e1adc3  mov rax,[rbp+0x358]
+0x4e1adca  cmp qword ptr [rax+0x48],0x10
+0x4e1adcf  jb short 0x4E1ADD7
+0x4e1add1  mov rax,[rax+0x30]
+0x4e1add5  jmp short 0x4E1ADDB
+0x4e1add7  add rax,0x30
+0x4e1addb  mov [rbp+0x130],rax
+0x4e1ade2  lea rax,[rbp+0x130]
+0x4e1ade9  mov [rsp+0x20],rax
+
+### Phase 9 — 0x4e1adee..0x4e1ae50
+0x4e1adee..0x4e1ae50: Sets up call 0xDA490 with r9=global 0xF55DDDD, cl=1, edx=3, r8d=0xC and stack argument [rsp+0x20]=&[rbp+0x130] [V]; the fall-through at 0x4e1ae08 zeroes the 128-byte object at rax=[rbp+0x2C0] with eight movups stores at [rax+0x00]..[rax+0x70] stride 0x10 and jumps to 0x4E1BF1B [V]; block 0x4e1ae36 (reached when rdi > 0xF) computes rbx = max(0x16, rdi|0xF) [V] and the slice ends at `cmp rax,0xFFF / jb short 0x4E1AE6D` [V].
+0x4e1adee  lea r9,[0xF55DDDD]
+0x4e1adf5  mov cl,1
+0x4e1adf7  mov edx,3
+0x4e1adfc  mov r8d,0xC
+0x4e1ae02  call 0xDA490
+0x4e1ae07  nop
+0x4e1ae08  xorps xmm0,xmm0
+0x4e1ae0b  mov rax,[rbp+0x2C0]
+0x4e1ae12  movups [rax+0x70],xmm0
+0x4e1ae16  movups [rax+0x60],xmm0
+0x4e1ae1a  movups [rax+0x50],xmm0
+0x4e1ae1e  movups [rax+0x40],xmm0
+0x4e1ae22  movups [rax+0x30],xmm0
+0x4e1ae26  movups [rax+0x20],xmm0
+0x4e1ae2a  movups [rax+0x10],xmm0
+0x4e1ae2e  movups [rax],xmm0
+0x4e1ae31  jmp 0x4E1BF1B
+0x4e1ae36  mov rax,rdi
+0x4e1ae39  or rax,0xF
+0x4e1ae3d  cmp rax,0x17
+0x4e1ae41  mov ebx,0x16
+0x4e1ae46  cmovae rbx,rax
+0x4e1ae4a  cmp rax,0xFFF
+0x4e1ae50  jb short 0x4E1AE6D
+
+## Field table — every [reg+off] store/load in slice 0x4e1a9c7..0x4e1ae50
+
+| offset | size | read/store address | verbatim `0xRVA  instr` line(s) | meaning |
+|---|---|---|---|---|
+| rbp+0x130 | 16 (movaps stores) / 8 (qword loads/stores) | R [rbp+0x130] @ 0x4e1a9c7; W [rbp+0x130] @ 0x4e1aaa9; R [rbp+0x130] @ 0x4e1aaf4; W [rbp+0x130] @ 0x4e1ab57; W [rbp+0x130] @ 0x4e1abcd; R [rbp+0x130] @ 0x4e1ac00; W [rbp+0x130] @ 0x4e1acdc; W [rbp+0x130] @ 0x4e1adb7; W [rbp+0x130] @ 0x4e1addb | `0x4e1a9c7  mov rdi,[rbp+0x130]`<br>`0x4e1aaa9  movaps [rbp+0x130],xmm0`<br>`0x4e1aaf4  mov rcx,[rbp+0x130]`<br>`0x4e1ab57  movaps [rbp+0x130],xmm0`<br>`0x4e1abcd  mov [rbp+0x130],r12`<br>`0x4e1ac00  mov rdi,[rbp+0x130]`<br>`0x4e1acdc  movaps [rbp+0x130],xmm0`<br>`0x4e1adb7  movaps [rbp+0x130],xmm0`<br>`0x4e1addb  mov [rbp+0x130],rax` | - |
+| rbp+0x140 | 16 (movaps store) / 8 (qword stores) | W [rbp+0x140] @ 0x4e1aab0; W [rbp+0x140] @ 0x4e1abdf; W [rbp+0x140] @ 0x4e1ace3; W [rbp+0x140] @ 0x4e1ad62 | `0x4e1aab0  mov qword ptr [rbp+0x140],0`<br>`0x4e1abdf  mov [rbp+0x140],r14`<br>`0x4e1ace3  mov qword ptr [rbp+0x140],0`<br>`0x4e1ad62  movaps [rbp+0x140],xmm0` | - |
+| rbp+0x148 | 8 | R [rbp+0x148] @ 0x4e1a9ce; W [rbp+0x148] @ 0x4e1aabb; W [rbp+0x148] @ 0x4e1abe6; R [rbp+0x148] @ 0x4e1ac07; W [rbp+0x148] @ 0x4e1acee | `0x4e1a9ce  mov rbx,[rbp+0x148]`<br>`0x4e1aabb  mov qword ptr [rbp+0x148],0xF`<br>`0x4e1abe6  mov [rbp+0x148],r15`<br>`0x4e1ac07  mov rbx,[rbp+0x148]`<br>`0x4e1acee  mov qword ptr [rbp+0x148],0xF` | - |
+| rbp+0x350 | 8 | R [rbp+0x350] @ 0x4e1aa99; R [rbp+0x350] @ 0x4e1acb0 | `0x4e1aa99  mov rcx,[rbp+0x350]`<br>`0x4e1acb0  mov rcx,[rbp+0x350]` | - |
+| rbp+0x88 | 8 | R [rbp+0x88] @ 0x4e1ab89 | `0x4e1ab89  mov r13,[rbp+0x88]` | - |
+| rbp+0xA0 | 8 | R [rbp+0xA0] @ 0x4e1ab71 | `0x4e1ab71  mov rbx,[rbp+0xA0]` | - |
+| rbp+0x98 | 8 | R [rbp+0x98] @ 0x4e1ab44 | `0x4e1ab44  mov rax,[rbp+0x98]` | - |
+| rbp+0x2D0 | 8 | R [rbp+0x2D0] @ 0x4e1ad81 | `0x4e1ad81  mov rsi,[rbp+0x2D0]` | - |
+| rbp+0x2C8 | 8 | R [rbp+0x2C8] @ 0x4e1ad1e | `0x4e1ad1e  mov rbx,[rbp+0x2C8]` | - |
+| rbp+0x2E0 | 8 | R [rbp+0x2E0] @ 0x4e1ad70 | `0x4e1ad70  mov rdi,[rbp+0x2E0]` | - |
+| rbp+0x2E8 | 8 | R [rbp+0x2E8] @ 0x4e1ad77 | `0x4e1ad77  cmp qword ptr [rbp+0x2E8],0x10` | - |
+| rdi-0x8 | 8 | R [rdi-8] @ 0x4e1aa03; R [rdi-8] @ 0x4e1ac3c | `0x4e1aa03  mov rax,[rdi-8]`<br>`0x4e1ac3c  mov rax,[rdi-8]` | - |
+| rcx-0x8 | 8 | R [rcx-8] @ 0x4e1ab08; R [rcx-8] @ 0x4e1ad3b | `0x4e1ab08  mov r8,[rcx-8]`<br>`0x4e1ad3b  mov r8,[rcx-8]` | - |
+| r12-0x8 | 8 | W [r12-8] @ 0x4e1abb9 | `0x4e1abb9  mov [r12-8],rax` | - |
+| r12+0x00 ([r12+r14]) | 1 | W [r12+r14] @ 0x4e1abfb | `0x4e1abfb  mov byte ptr [r12+r14],0` | - |
+| rsi+0x00 | 16 | R [rsi] @ 0x4e1adb4 | `0x4e1adb4  movups xmm0,[rsi]` | - |
+| rsp+0x20 | 8 | W [rsp+0x20] @ 0x4e1ade9 | `0x4e1ade9  mov [rsp+0x20],rax` | - |
+| rax+0x70 | 16 | W [rax+0x70] @ 0x4e1ae12 | `0x4e1ae12  movups [rax+0x70],xmm0` | - |
+| rax+0x60 | 16 | W [rax+0x60] @ 0x4e1ae16 | `0x4e1ae16  movups [rax+0x60],xmm0` | - |
+| rax+0x50 | 16 | W [rax+0x50] @ 0x4e1ae1a | `0x4e1ae1a  movups [rax+0x50],xmm0` | - |
+| rax+0x40 | 16 | W [rax+0x40] @ 0x4e1ae1e | `0x4e1ae1e  movups [rax+0x40],xmm0` | - |
+| rax+0x30 | 16 | W [rax+0x30] @ 0x4e1ae22 | `0x4e1ae22  movups [rax+0x30],xmm0` | - |
+| rax+0x20 | 16 | W [rax+0x20] @ 0x4e1ae26 | `0x4e1ae26  movups [rax+0x20],xmm0` | - |
+| rax+0x10 | 16 | W [rax+0x10] @ 0x4e1ae2a | `0x4e1ae2a  movups [rax+0x10],xmm0` | - |
+| rax+0x00 | 16 | W [rax] @ 0x4e1ae2e | `0x4e1ae2e  movups [rax],xmm0` | - |
+
+Notes on accesses not in the table (not [reg+off] fields): absolute loads [0xF08C710] (pand xmm1, 0x4e1aa3e and 0x4e1ac77, 16 bytes) and [0xF0837E0] (divps xmm0, 0x4e1aa62 and 0x4e1ac9b, 16 bytes); absolute stores [0x123C0B80] (movups, 0x4e1aa69, 16 bytes) and [0x123C0B70] (movups, 0x4e1aca2, 16 bytes) — these are the two vec4 results of the SIMD number parse [V]. Fields [rbp+0x2D0] and [rbp+0x310] are computed by lea only (0x4e1aa8b/0x4e1aac6/0x4e1ab2c/0x4e1acf9 and 0x4e1aa77/0x4e1aa92/0x4e1ab38/0x4e1ad8b) and are never loaded or stored in this slice [V]. The index-form store [r12+r14] (0x4e1abfb) and plain [rsi] load (0x4e1adb4) are tabled above as r12+0x00 (indexed by r14) and rsi+0x00 [V]. Calls in slice: IAT [0xF9A9100] (0x4e1a9e8, 0x4e1ac21), direct 0xE935700 (0x4e1aa25, 0x4e1ab27, 0x4e1ac5e, 0x4e1ad5a), 0xE9315D0 (0x4e1aa7e), 0xE932FA0 (0x4e1aaa0), 0xE932140 (0x4e1aae1, 0x4e1ad0d), 0xE9319A0 (0x4e1ab33, 0x4e1ab3f), 0x392920 (0x4e1aba8, 0x4e1abc4), 0xEEC6EC0 (0x4e1abf6), 0xE933210 (0x4e1acb7), 0xE932EB0 (0x4e1acd3), 0xDA490 (0x4e1ae02) [V]. Branch targets leaving the slice: 0x4E1AA2A, 0x4E1AA22, 0x4E1BFC5, 0x4E1AB2C, 0x4E1AB27, 0x4E1BFE5, 0x4E1ABD4, 0x4E1ABC0, 0x4E1AC63, 0x4E1AC5B, 0x4E1ADC3, 0x4E1AD5F, 0x4E1AD5A, 0x4E1AD88, 0x4E1AE36 (entered at 0x4e1ae36 from 0x4e1ad9c), 0x4E1BFEB, 0x4E1AEA4, 0x4E1AE6D, 0x4E1BF1B — none are part of this slice [V]. No strings, field names or symbolic info appear in the slice, so every meaning cell is '-'.
+
+Open questions: none — every instruction is assigned to a phase and every [reg+off] load/store is tabled [V].
+
+## TOOL REQUESTS
+
+None.

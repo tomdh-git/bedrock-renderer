@@ -1,0 +1,218 @@
+﻿sub_e819750  [0xe819750..0xe81b750)  size 0x2000  0 xrefs in
+  e819750  push r15                                      
+  e819752  push r14                                      
+  e819754  push r13                                      
+  e819756  push r12                                      
+  e819758  push rsi                                      
+  e819759  push rdi                                      
+  e81975a  push rbp                                      
+  e81975b  push rbx                                      
+  e81975c  sub rsp,0x88                                  
+  e819763  mov r15d,r8d                                  
+  e819766  lea eax,[r15*4]                               
+  e81976e  cmp eax,6                                     
+  e819771  jb 0xE819B35                                  ; -> loc_e819b35
+  e819777  mov r14,rdx                                   
+  e81977a  mov r13,rcx                                   
+  e81977d  mov rbx,[rcx+0x19F58]                         ; R a0+0x19F58
+  e819784  mov edi,eax                                   
+  e819786  mov rax,[rdx+0x10]                            ; R a1+0x10
+  e81978a  movzx ecx,word ptr [rax+0x10]                 ; R *(a1+0x10)+0x10
+  e81978e  cmp rcx,0xFFF                                 
+  e819795  ja 0xE81984E                                  ; -> loc_e81984e
+  e81979b  mov eax,ecx                                   
+  e81979d  shr eax,6                                     
+  e8197a0  mov rdx,[rbx+rax*8+0x48]                      ; R *(a0+0x19F58)+0x48+idx
+  e8197a5  mov r8d,1                                     
+  e8197ab  shl r8,cl                                     
+  e8197ae  bt rdx,rcx                                    
+  e8197b2  jae short 0xE819822                           ; -> loc_e819822
+  e8197b4  mov eax,[rbx+rcx*8+0x24C]                     ; R *(a0+0x19F58)+0x24C+idx
+  e8197bb  cmp eax,0x400                                 
+  e8197c0  je 0xE81984E                                  ; -> loc_e81984e
+  e8197c6  mov rdx,[rbx+0x30]                            ; R *(a0+0x19F58)+0x30
+  e8197ca  mov dword ptr [rbx+rcx*8+0x24C],0x400         ; W *(a0+0x19F58)+0x24C+idx
+  e8197d5  mov r8,[rbx+0x38]                             ; R *(a0+0x19F58)+0x38
+  e8197d9  imul rcx,0x78                                 
+  e8197dd  mov rcx,[r8+rcx]                              ; R *(*(a0+0x19F58)+0x38)+0x0+idx
+  e8197e1  mov qword ptr [rsp+0x40],0                    
+  e8197ea  mov [rsp+0x48],rcx                            
+  e8197ef  mov dword ptr [rsp+0x50],0xFFFFFFFF           
+  e8197f7  mov [rsp+0x54],eax                            
+  e8197fb  mov dword ptr [rsp+0x58],0x400                
+  e819803  mov rax,[rdx]                                 ; R *(*(a0+0x19F58)+0x30)+0x0
+  e819806  mov rax,[rax+0xD0]                            ; R *(*(*(a0+0x19F58)+0x30)+0x0)+0xD0
+  e81980d  lea r8,[rsp+0x40]                             
+  e819812  mov rcx,rdx                                   
+  e819815  mov edx,1                                     
+  e81981a  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e819820  jmp short 0xE81984E                           ; -> loc_e81984e
+
+loc_e819822:  ; from e8197b2
+  e819822  or rdx,r8                                     
+  e819825  mov [rbx+rax*8+0x48],rdx                      
+  e81982a  movzx eax,word ptr [rbx+0x40]                 
+  e81982e  mov [rbx+rax*2+0x8248],cx                     
+  e819836  inc eax                                       
+  e819838  mov [rbx+0x40],ax                             
+  e81983c  mov rax,0x40000000400                         
+  e819846  mov [rbx+rcx*8+0x248],rax                     
+
+loc_e81984e:  ; from e819795, e8197c0, e819820
+  e81984e  mov esi,0xAAAAAAAB                            
+  e819853  mov rax,[r14+8]                               
+  e819857  movzx ecx,word ptr [rax+0x12]                 
+  e81985b  cmp rcx,0xFFF                                 
+  e819862  ja 0xE819934                                  ; -> loc_e819934
+  e819868  mov rax,[r13+0x19F58]                         
+  e81986f  mov edx,ecx                                   
+  e819871  shr edx,6                                     
+  e819874  mov r8,[rax+rdx*8+0xA258]                     
+  e81987c  mov r9d,1                                     
+  e819882  shl r9,cl                                     
+  e819885  bt r8,rcx                                     
+  e819889  jae short 0xE8198FF                           ; -> loc_e8198ff
+  e81988b  mov r8d,[rax+rcx*8+0xA45C]                    
+  e819893  cmp r8d,0x400                                 
+  e81989a  je 0xE819934                                  ; -> loc_e819934
+  e8198a0  mov rdx,[rax+0x30]                            
+  e8198a4  mov dword ptr [rax+rcx*8+0xA45C],0x400        
+  e8198af  mov rax,[rax+0xA248]                          
+  e8198b6  shl ecx,7                                     
+  e8198b9  mov rax,[rax+rcx]                             
+  e8198bd  mov qword ptr [rsp+0x40],0                    
+  e8198c6  mov [rsp+0x48],rax                            
+  e8198cb  mov dword ptr [rsp+0x50],0xFFFFFFFF           
+  e8198d3  mov [rsp+0x54],r8d                            
+  e8198d8  mov dword ptr [rsp+0x58],0x400                
+  e8198e0  mov rax,[rdx]                                 
+  e8198e3  mov rax,[rax+0xD0]                            
+  e8198ea  lea r8,[rsp+0x40]                             
+  e8198ef  mov rcx,rdx                                   
+  e8198f2  mov edx,1                                     
+  e8198f7  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e8198fd  jmp short 0xE819934                           ; -> loc_e819934
+
+loc_e8198ff:  ; from e819889
+  e8198ff  or r8,r9                                      
+  e819902  mov [rax+rdx*8+0xA258],r8                     
+  e81990a  movzx edx,word ptr [rax+0xA250]               
+  e819911  mov [rax+rdx*2+0x12458],cx                    
+  e819919  inc edx                                       
+  e81991b  mov [rax+0xA250],dx                           
+  e819922  mov rdx,0x40000000400                         
+  e81992c  mov [rax+rcx*8+0xA458],rdx                    
+
+loc_e819934:  ; from e819862, e81989a, e8198fd
+  e819934  mov [rsp+0x78],rbx                            
+  e819939  imul rdi,rsi                                  
+  e81993d  mov rax,[r14+0x10]                            
+  e819941  movzx ecx,word ptr [rax+0x10]                 
+  e819945  imul rbx,rcx,0x78                             
+  e819949  mov r12,[rax]                                 
+  e81994c  mov [rsp+0x80],r15                            
+  e819954  add r15d,r15d                                 
+  e819957  mov [rsp+0x38],r13                            
+  e81995c  mov rcx,[r13+0x238]                           
+  e819963  add rcx,8                                     
+  e819967  lea rdx,[rsp+0x40]                            
+  e81996c  mov r9d,0x10                                  
+  e819972  mov r8,r15                                    
+  e819975  call 0xE8360F0                                ; -> sub_e8360f0
+  e81997a  mov r13d,[rsp+0x50]                           
+  e81997f  mov rax,[rsp+0x40]                            
+  e819984  mov rsi,[rsp+0x48]                            
+  e819989  mov rcx,[rax+0x10]                            
+  e81998d  add rcx,r13                                   
+  e819990  xor ebp,ebp                                   
+  e819992  cmp dword ptr [rax+0x1C],2                    
+  e819996  mov rax,[rax]                                 
+  e819999  mov [rsp+0x70],rax                            
+  e81999e  cmove rbp,rcx                                 
+  e8199a2  test rsi,rsi                                  
+  e8199a5  je short 0xE8199D2                            ; -> loc_e8199d2
+  e8199a7  lock dec dword ptr [rsi+8]                    
+  e8199ab  jne short 0xE8199D2                           ; -> loc_e8199d2
+  e8199ad  mov rax,[rsi]                                 
+  e8199b0  mov rax,[rax]                                 
+  e8199b3  mov rcx,rsi                                   
+  e8199b6  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e8199bc  lock dec dword ptr [rsi+0xC]                  
+  e8199c0  jne short 0xE8199D2                           ; -> loc_e8199d2
+  e8199c2  mov rax,[rsi]                                 
+  e8199c5  mov rax,[rax+8]                               
+  e8199c9  mov rcx,rsi                                   
+  e8199cc  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+
+loc_e8199d2:  ; from e8199a5, e8199ab, e8199c0
+  e8199d2  shr rdi,0x22                                  
+  e8199d6  mov rax,[rsp+0x38]                            
+  e8199db  lea rsi,[rax+rbx]                             
+  e8199df  add rsi,0x93A178                              
+  e8199e6  test r12,r12                                  
+  e8199e9  je short 0xE8199F9                            ; -> loc_e8199f9
+  e8199eb  mov rcx,rbp                                   
+  e8199ee  mov rdx,r12                                   
+  e8199f1  mov r8,r15                                    
+  e8199f4  call 0xEEC6EC0                                ; -> sub_eec6ec0
+
+loc_e8199f9:  ; from e8199e9
+  e8199f9  mov rdx,[rsi]                                 
+  e8199fc  test rdx,rdx                                  
+  e8199ff  mov rbx,[rsp+0x78]                            
+  e819a04  je short 0xE819A29                            ; -> loc_e819a29
+  e819a06  mov rcx,[rbx+0x30]                            
+  e819a0a  mov rax,[rcx]                                 
+  e819a0d  mov rax,[rax+0x78]                            
+  e819a11  mov [rsp+0x28],r15                            
+  e819a16  mov [rsp+0x20],r13                            
+  e819a1b  xor r8d,r8d                                   
+  e819a1e  mov r9,[rsp+0x70]                             
+  e819a23  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+
+loc_e819a29:  ; from e819a04
+  e819a29  mov rax,[r14+8]                               
+  e819a2d  movzx ebp,word ptr [rax+0x12]                 
+  e819a31  shl ebp,7                                     
+  e819a34  mov r15,[rax]                                 
+  e819a37  movzx eax,word ptr [r14+0x1C]                 
+  e819a3c  imul edi,eax                                  
+  e819a3f  mov rax,[rsp+0x38]                            
+  e819a44  mov rcx,[rax+0x238]                           
+  e819a4b  add rcx,8                                     
+  e819a4f  lea rdx,[rsp+0x40]                            
+  e819a54  mov r9d,0x10                                  
+  e819a5a  mov r8,rdi                                    
+  e819a5d  call 0xE8360F0                                ; -> sub_e8360f0
+  e819a62  mov r13d,[rsp+0x50]                           
+  e819a67  mov rax,[rsp+0x40]                            
+  e819a6c  mov rsi,[rsp+0x48]                            
+  e819a71  mov rcx,[rax+0x10]                            
+  e819a75  add rcx,r13                                   
+  e819a78  xor r12d,r12d                                 
+  e819a7b  cmp dword ptr [rax+0x1C],2                    
+  e819a7f  mov r14,[rax]                                 
+  e819a82  cmove r12,rcx                                 
+  e819a86  test rsi,rsi                                  
+  e819a89  je short 0xE819AB6                            ; -> loc_e819ab6
+  e819a8b  lock dec dword ptr [rsi+8]                    
+  e819a8f  jne short 0xE819AB6                           ; -> loc_e819ab6
+  e819a91  mov rax,[rsi]                                 
+  e819a94  mov rax,[rax]                                 
+  e819a97  mov rcx,rsi                                   
+  e819a9a  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e819aa0  lock dec dword ptr [rsi+0xC]                  
+  e819aa4  jne short 0xE819AB6                           ; -> loc_e819ab6
+  e819aa6  mov rax,[rsi]                                 
+  e819aa9  mov rax,[rax+8]                               
+  e819aad  mov rcx,rsi                                   
+  e819ab0  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+
+loc_e819ab6:  ; from e819a89, e819a8f, e819aa4
+  e819ab6  mov rax,[rsp+0x38]                            
+  e819abb  lea rsi,[rax+rbp]                             
+  e819abf  add rsi,0x9B2178                              
+  e819ac6  test r15,r15                                  
+  e819ac9  je short 0xE819AD9                            ; -> loc_e819ad9
+  e819acb  mov rcx,r12                                   
+  ... (--max 200)

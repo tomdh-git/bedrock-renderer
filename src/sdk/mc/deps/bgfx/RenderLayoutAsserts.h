@@ -97,6 +97,7 @@ inline constexpr Constant kFrameGraphGenerate[] = {
 inline constexpr Constant kTaskDispatch[] = {
     {0x298, "DragonFrameResources task vector begin"},
     {0x2A0, "DragonFrameResources task vector end"},
+    {0xFFFFFF80, "task entry stride 0x80 (sub r12,-0x80 at 0xE900412)"},
 };
 inline constexpr Constant kDrawExecutor[] = {
     {0x94700, "FrameOffsets::kSortedItems"},
