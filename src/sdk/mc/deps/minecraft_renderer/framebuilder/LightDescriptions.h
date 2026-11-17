@@ -8,8 +8,6 @@
 // type in their source-location record (tag 3 LightPoint, 4 ShadowAtlasFrame, 6 VoxelVolume, 7 TransitioningVoxelVolume; GameplayMetadata is
 // tag 2 from the clone 0x53e5910, byte store 0x53e5fb4). LightPoint (tag 3) is not typed here.
 
-#include <cstddef>
-#include <cstdint>
 
 namespace mce::framebuilder::lightvis {
 

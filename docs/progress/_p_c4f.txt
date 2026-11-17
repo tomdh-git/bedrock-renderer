@@ -1,0 +1,5 @@
+Read docs/OPENCODE_BRIEF.md hard rules. RULES: never ask questions; no subagents (no task tool); no tools.rtools.*; if a tool call fails or hangs once, do not repeat it: write [UNVERIFIED: ...] and move on; at most 8 tool calls total.
+UNIT U-C4f (file docs/progress/oc_U-C4f.md). Step 1: create that file immediately with first line "## NEXT" and second line "step 2".
+Step 2: read docs/progress/pre/0xa78940.md (listing of the IntraFrameAllocator allocate function 0xa78940, this = rcx at entry, copied to r15). Find EVERY instruction using [r15+off] (and any other register that is a copy of rcx/this: check the first 15 instructions).
+Step 3: write a table: offset | size | R/W | first address | verbatim `0xRVA  instr` line. Copy verbatim. Include offsets +0x00,+0x08,+0x18,+0x28,+0x30,+0x40,+0x48 especially. No names unless an instruction or string shows it.
+Step 4: set the "## NEXT" text to "DONE" and give a 3-line final message.

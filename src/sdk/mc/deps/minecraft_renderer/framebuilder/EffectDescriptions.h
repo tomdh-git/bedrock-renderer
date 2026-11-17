@@ -8,8 +8,6 @@
 // consumers decoded so far) the comment says "stored only". Descriptions.h keeps the older RenderXxxDescription types (several of its field NAMES are [I]); the
 // corrections found here are listed in the md (section 9).
 
-#include <cstddef>
-#include <cstdint>
 
 namespace mce::framebuilder::effectvis {
 

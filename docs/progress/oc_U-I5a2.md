@@ -1,5 +1,5 @@
 ## NEXT
-Unit COMPLETE: Function 0x6664a00 fully reversed (0x6664a00..0x6668106, 0x3b10 bytes). All 68 phases + 5 gaps + tail documented. verify_oc.py: 2768/2768 match.
+Unit COMPLETE: Function 0x6664a00 fully reversed (0x6664a00..0x6668106 hot path + 0x6668107..0x6668510 cold blocks). 68 phases + 5 gaps + cold blocks documented. verify_oc.py: 2907/2907 match.
 
 ## Step 0 Complete: Preflight and BGFX_MAP 6ce
 - Ran `PYTHONUTF8=1 python tools/preflight.py 0x6664a00 --n 300`
@@ -3605,6 +3605,652 @@ Purpose: Continues array cleanup loop. If [rbp+0x3E0]==1, deallocates [rbp+0x3A0
 | [rbp+0x42A] | 2 | ax | 0x6667ef0 | Draw cmd count | [V] |
 | [rbp+0x520] | 1 | al | 0x6667f0e | Alloc result | [V] |
 | [rsi+8] | 8 | +0xC8 | 0x6667f33 | Advance | [V] |
+
+---
+
+## Gap Fill-ins (Strictly Between Quoted Addresses)
+
+### Gap 1: 0x6665213..0x6665354 (between Phase 12 end 0x6665213 and Phase 13 start 0x6665354)
+```
+0x6665213  jmp short 0x666524C                           ; -> loc_666524c
+0x6665215  add rdx,rax                                   
+0x6665218  cmp rcx,rdx                                   
+0x666521b  jae short 0x666524C                           ; -> loc_666524c
+0x666521d  sub ecx,eax                                   
+0x666521f  shr ecx,4                                     
+0x6665222  mov [rbp+0x50],cx                             
+0x6665226  mov byte ptr [rbp+0x52],1                     
+0x666522a  lea rdx,[rbp+0x50]                            
+0x666522e  lea r8,[rbp+0x400]                            
+0x6665235  lea rcx,[rbp+0xE8]                            
+0x666523c  call 0x5679DB0                                ; -> sub_5679db0
+0x6665241  nop                                           
+0x6665242  mov rax,[rbp+0x520]                           
+0x6665249  mov r8,[rax]                                  
+0x666524c  mov rsi,[r8]                                  
+0x666524f  mov rax,[rsi+0x60]                            
+0x6665253  sub rax,[rsi+0x58]                            
+0x6665257  shr rax,2                                     
+0x666525b  imul eax,0xAAAAAAAB                           
+0x6665261  test eax,eax                                  
+0x6665263  je short 0x666529B                            ; -> loc_666529b
+0x6665265  mov edx,0x250                                 
+0x666526a  add rdx,[rbp+0xE0]                            
+0x6665271  lea rcx,[rbp+0x1E0]                           
+0x6665278  xor r8d,r8d                                   
+0x666527b  call 0xBBD7C70                                ; -> sub_bbd7c70
+0x6665280  nop                                           
+0x6665281  lea rdx,[rbp+0x1E0]                           
+0x6665288  mov rcx,rsi                                   
+0x666528b  call 0x4DEDD00                                ; -> sub_4dedd00
+0x6665290  nop                                           
+0x6665291  mov rax,[rbp+0x520]                           
+0x6665298  mov r8,[rax]                                  
+0x666529b  xorps xmm6,xmm6                               
+0x666529e  movaps [rbp+0x190],xmm6                       
+0x66652a5  mov qword ptr [rbp+0x1A0],0                   
+0x66652b0  mov rax,[r8+0x18]                             
+0x66652b4  mov [rbp+0x1E0],rax                           
+0x66652bb  test rax,rax                                  
+0x66652be  mov [rbp+0x1D8],r13                           
+0x66652c5  mov [rbp+0x518],rsi                           
+0x66652cc  je short 0x6665304                            ; -> loc_6665304
+0x66652ce  shr rax,0x3A                                  
+0x66652d2  jne 0x6668455                                 ; -> sub_6668455
+0x66652d8  lea rcx,[rbp+0x190]                           
+0x66652df  lea rdx,[rbp+0x1E0]                           
+0x66652e6  call 0x4E69050                                ; -> sub_4e69050
+0x66652eb  nop                                           
+0x66652ec  mov rcx,[rbp+0x520]                           
+0x66652f3  mov r8,[rcx]                                  
+0x66652f6  mov rax,[r8+0x18]                             
+0x66652fa  shl rax,2                                     
+0x66652fe  lea rsi,[rax+rax*2]                           
+0x6665302  jmp short 0x666530D                           ; -> loc_666530d
+0x6665304  xor esi,esi                                   
+0x6665306  mov rcx,[rbp+0x520]                           
+0x666530d  mov r15,[r8+0x20]                             
+0x6665311  add rsi,r15                                   
+0x6665314  lea rbx,[rbp+0x404]                           
+0x666531b  lea rdi,[rcx+8]                               
+0x666531f  movss xmm7,[0xEEC8060]                        ; [data_eec8060]
+0x6665327  movsd xmm8,[0xEFD32F0]                        ; [data_efd32f0]
+0x6665330  movaps xmm9,[0xF0A4080]                       ; [data_f0a4080]
+0x6665338  lea r12,[rbp+0x1E0]                           
+0x666533f  lea r13,[rbp+0x400]                           
+0x6665346  cmp r15,rsi                                   
+0x6665349  jne 0x6665444                                 ; -> loc_6665444
+0x666534f  jmp 0x66654F4                                 ; -> loc_66654f4
+```
+
+### Gap 2: 0x66658be..0x6665922 (between Phase 21 end 0x66658be and Phase 22 start 0x6665922)
+```
+0x66658be  jmp short 0x66658E7                           ; -> loc_66658e7
+0x66658c0  mov rcx,[0x1233E1A8]                          ; [data_1233e1a8]
+0x66658c7  mov rax,[rcx]                                 
+0x66658ca  mov rax,[rax+8]                               
+0x66658ce  mov rdx,r15                                   
+0x66658d1  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+0x66658d7  nop                                           
+0x66658d8  mov r12,rax                                   
+0x66658db  mov r13,r14                                   
+0x66658de  test rax,rax                                  
+0x66658e1  je 0x66681A5                                  ; -> sub_66681a5
+0x66658e7  mov [rbp+0x270],r12                           
+0x66658ee  lea r14,[r12+r15]                             
+0x66658f2  mov [rbp+0x280],r14                           
+0x66658f9  mov rcx,r12                                   
+0x66658fc  mov rdx,rdi                                   
+0x66658ff  mov r8,r15                                    
+0x6665902  call 0xEEC6DE0                                ; -> sub_eec6de0
+0x6665907  mov [rbp+0x278],r14                           
+0x666590e  mov r14,r13                                   
+0x6665911  mov r13,rbx                                   
+0x6665914  mov r12,[rbp+0x508]                           
+0x666591b  mov rbx,[rbp+0x518]                           
+```
+
+### Gap 3: 0x6666565..0x666658c (between Phase 23 end 0x6666565 and Phase 24 start 0x666658c)
+```
+0x6666565  jne short 0x666658C                           ; -> loc_666658c
+0x6666567  mov rax,[rdi]                                 
+0x666656a  mov rax,[rax]                                 
+0x666656d  mov rcx,rdi                                   
+0x6666570  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+0x6666576  lock dec dword ptr [rdi+0xC]                  
+0x666657a  jne short 0x666658C                           ; -> loc_666658c
+0x666657c  mov rax,[rdi]                                 
+0x666657f  mov rax,[rax+8]                               
+0x6666583  mov rcx,rdi                                   
+0x6666586  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+```
+
+### Gap 4: 0x6666e4c..0x6666f58 (between Phase 47 end 0x6666e4c and Phase 48 start 0x6666f58)
+```
+0x6666e4c  call 0xE86B370                                ; -> sub_e86b370
+0x6666e51  nop                                           
+0x6666e52  mov qword ptr [rbp+0xD0],0                    
+0x6666e5d  mov dword ptr [rbp+0x190],0x3F800000          
+0x6666e67  lea rax,[rbp+0x194]                           
+0x6666e6e  movups [rax],xmm6                             
+0x6666e71  mov dword ptr [rbp+0x1A4],0x3F800000          
+0x6666e7b  movups [rax+0x14],xmm6                        
+0x6666e7f  mov dword ptr [rbp+0x1B8],0x3F800000          
+0x6666e89  movups [rax+0x28],xmm6                        
+0x6666e8d  mov dword ptr [rbp+0x1CC],0x3F800000          
+0x6666e97  mov byte ptr [rbp+0x1D0],0                    
+0x6666e9e  mov [rbp+0x1E2],si                            
+0x6666ea5  mov rax,0x200000000                           
+0x6666eaf  mov [rbp+0x1E4],rax                           
+0x6666eb6  mov byte ptr [rbp+0x1EC],7                    
+0x6666ebd  mov dword ptr [rbp+0x1F0],0                   
+0x6666ec7  mov word ptr [rbp+0x1F4],0                    
+0x6666ed0  mov byte ptr [rbp+0x1F6],8                    
+0x6666ed7  mov dword ptr [rbp+0x1F8],0                   
+0x6666ee1  mov byte ptr [rbp+0x1FC],1                    
+0x6666ee8  movups [rbp+0x200],xmm7                       
+0x6666eef  mov dword ptr [rbp+0x210],0                   
+0x6666ef9  mov qword ptr [rbp+0x214],0                   
+0x6666f04  mov byte ptr [rbp+0x21C],8                    
+0x6666f0b  mov qword ptr [rbp+0x220],0                   
+0x6666f16  mov dword ptr [rbp+0x228],0                   
+0x6666f20  mov byte ptr [rbp+0x22C],8                    
+0x6666f27  mov qword ptr [rdi+0x54],0                    
+0x6666f2f  mov qword ptr [rdi+0x4E],0                    
+0x6666f37  mov byte ptr [rbp+0x23E],0xFF                 
+0x6666f3e  mov rax,[rbp+0x50]                            
+0x6666f42  mov [rbp+0x240],rax                           
+0x6666f49  lea rcx,[rbp+0x248]                           
+0x6666f50  mov rdx,rbx                                   
+0x6666f53  call 0xE869FF0                                ; -> sub_e869ff0
+```
+
+### Gap 5: 0x6667be9..0x6667bff (between Phase 62 end 0x6667be9 and Phase 63 start 0x6667bff)
+```
+0x6667be9  jmp short 0x6667BFF                           ; -> loc_6667bff
+0x6667beb  lea r8,[rbp+0x2D0]                            
+0x6667bf2  lea rcx,[rsi+0x690]                           
+0x6667bf9  call 0x1EF6F90                                ; -> sub_1ef6f90
+0x6667bfe  nop                                           
+```
+
+---
+
+## Cold Blocks: 0x6668107..0x6668510 (Out-of-line error/allocation-failure paths after main ret at 0x6668106)
+
+Each block: sets ECX=allocation size → calls sub_9BC830 (allocator failure handler) → jmp back to hot-path site.
+
+```
+0x6668107  mov ecx,0x20                                  
+0x666810c  call 0x9BC830                                 ; -> sub_9bc830
+0x6668111  nop                                           
+0x6668112  jmp 0x6665960                                 ; -> sub_6665960  (hot: 0x6665960 alloc 0x20 fail)
+0x6668117  mov ecx,0x20                                  
+0x666811c  call 0x9BC830                                 ; -> sub_9bc830
+0x6668121  nop                                           
+0x6668122  jmp 0x666640C                                 ; -> sub_666640c  (hot: 0x666640c alloc 0x20 fail)
+0x6668127  mov ecx,0x30                                  
+0x666812c  call 0x9BC830                                 ; -> sub_9bc830
+0x6668131  nop                                           
+0x6668132  jmp 0x6665A14                                 ; -> sub_6665a14  (hot: 0x6665a14 alloc 0x30 fail)
+0x6668137  mov ecx,0x70                                  
+0x666813c  call 0x9BC830                                 ; -> sub_9bc830
+0x6668141  nop                                           
+0x6668142  jmp 0x6665A72                                 ; -> sub_6665a72  (hot: 0x6665a72 alloc 0x70 fail)
+0x6668147  mov ecx,0x128                                 
+0x666814c  call 0x9BC830                                 ; -> sub_9bc830
+0x6668151  nop                                           
+0x6668152  jmp 0x6665B18                                 ; -> sub_6665b18  (hot: 0x6665b18 alloc 0x128 fail)
+0x6668157  mov ecx,0xA8                                  
+0x666815c  call 0x9BC830                                 ; -> sub_9bc830
+0x6668161  nop                                           
+0x6668162  jmp 0x6665B5E                                 ; -> sub_6665b5e  (hot: 0x6665b5e alloc 0xA8 fail)
+0x6668167  mov ecx,0x30                                  
+0x666816c  call 0x9BC830                                 ; -> sub_9bc830
+0x6668171  nop                                           
+0x6668172  jmp 0x66664BA                                 ; -> sub_66664ba  (hot: 0x66664ba alloc 0x30 fail)
+0x6668177  mov ecx,0x18                                  
+0x666817c  call 0x9BC830                                 ; -> sub_9bc830
+0x6668181  nop                                           
+0x6668182  jmp 0x6666518                                 ; -> sub_6666518  (hot: 0x6666518 alloc 0x18 fail)
+0x6668187  mov ecx,0xA0                                  
+0x666818c  call 0x9BC830                                 ; -> sub_9bc830
+0x6668191  nop                                           
+0x6668192  jmp 0x66665B2                                 ; -> sub_66665b2  (hot: 0x66665b2 alloc 0xA0 fail)
+0x6668197  mov rcx,r13                                   
+0x666819a  call 0x9BC830                                 ; -> sub_9bc830
+0x666819f  nop                                           
+0x66681a0  jmp 0x66658AB                                 ; -> sub_66658ab  (hot: 0x66658ab alloc 0xA8? fail, rcx=r13)
+0x66681a5  mov rcx,r15                                   
+0x66681a8  call 0x9BC830                                 ; -> sub_9bc830
+0x66681ad  nop                                           
+0x66681ae  xor r12d,r12d                                 
+0x66681b1  jmp 0x66658E7                                 ; -> sub_66658e7  (hot: 0x66658e7 alloc fail, rcx=r15)
+0x66681b6  mov rcx,r13                                   
+0x66681b9  call 0x9BC830                                 ; -> sub_9bc830
+0x66681be  nop                                           
+0x66681bf  jmp 0x6666364                                 ; -> sub_6666364  (hot: 0x6666364 alloc 0xA0? fail, rcx=r13)
+0x66681c4  mov rcx,r15                                   
+0x66681c7  call 0x9BC830                                 ; -> sub_9bc830
+0x66681cc  nop                                           
+0x66681cd  xor r12d,r12d                                 
+0x66681d0  jmp 0x6666374                                 ; -> sub_6666374  (hot: 0x6666374 alloc fail, rcx=r15)
+0x66681d5  mov rcx,rsi                                   
+0x66681d8  call 0x9BC830                                 ; -> sub_9bc830
+0x66681dd  nop                                           
+0x66681de  jmp 0x6665BF5                                 ; -> sub_6665bf5  (hot: 0x6665bf5 alloc 0x18? fail, rcx=rsi)
+0x66681e3  mov rcx,rsi                                   
+0x66681e6  call 0x9BC830                                 ; -> sub_9bc830
+0x66681eb  nop                                           
+0x66681ec  xor r15d,r15d                                 
+0x66681ef  jmp 0x6665D04                                 ; -> sub_6665d04  (hot: 0x6665d04 alloc fail, rcx=rsi)
+0x66681f4  mov rcx,rsi                                   
+0x66681f7  call 0x9BC830                                 ; -> sub_9bc830
+0x66681fc  nop                                           
+0x66681fd  jmp 0x6666687                                 ; -> sub_6666687  (hot: 0x6666687 alloc fail, rcx=rsi)
+0x6668202  mov rcx,rsi                                   
+0x6668205  call 0x9BC830                                 ; -> sub_9bc830
+0x666820a  nop                                           
+0x666820b  xor r15d,r15d                                 
+0x666820e  jmp 0x66666B3                                 ; -> sub_66666b3  (hot: 0x66666b3 alloc fail, rcx=rsi)
+0x6668213  call 0x75B60                                  ; -> sub_75b60  (no return to hot path)
+0x6668218  nop                                           
+0x6668219  mov qword ptr [rsp+0x20],0                    
+0x6668222  xor ecx,ecx                                   
+0x6668224  xor edx,edx                                   
+0x6668226  xor r8d,r8d                                   
+0x6668229  xor r9d,r9d                                   
+0x666822c  call qword ptr [0xF9A8C78]                    ; [data_f9a8c78]
+0x6668232  lea rcx,[0x129F8F50]                          ; [data_129f8f50]
+0x6668239  call 0xE938CB0                                ; -> sub_e938cb0
+0x666823e  cmp dword ptr [0x129F8F50],0xFFFFFFFF         ; [data_129f8f50]
+0x6668245  jne 0x6664AD7                                 ; -> sub_6664ad7  (rejoin UIImGui)
+0x666824b  xorps xmm0,xmm0                               
+0x666824e  movaps [rbp+0x40],xmm0                        
+0x6668252  lea rax,[0xF5AD096]                           ; [data_f5ad096] "Debug/ImGui"
+0x6668259  mov [rbp+0x390],rax                           
+0x6668260  mov qword ptr [rbp+0x398],0xB                 
+0x666826b  lea rcx,[0x129F8F40]                          ; [data_129f8f40]
+0x6668272  lea rdx,[rbp+0x390]                           
+0x6668279  lea r8,[rbp+0x40]                             
+0x666827d  call 0x5668AC0                                ; -> sub_5668ac0
+0x6668282  nop                                           
+0x6668283  lea rcx,[0x129F8F50]                          ; [data_129f8f50]
+0x666828a  call 0xE938D70                                ; -> sub_e938d70
+0x666828f  jmp 0x6664AD7                                 ; -> sub_6664ad7
+0x6668294  lea rcx,[0x129F9398]                          ; [data_129f9398]
+0x666829b  call 0xE938CB0                                ; -> sub_e938cb0
+0x66682a0  cmp dword ptr [0x129F9398],0xFFFFFFFF         ; [data_129f9398]
+0x66682a7  jne 0x6664D7D                                 ; -> sub_6664d7d  (rejoin UI/Blit)
+0x66682ad  xorps xmm0,xmm0                               
+0x66682b0  movaps [rbp+0x4E0],xmm0                       
+0x66682b7  lea rax,[0xF539A95]                           ; [data_f539a95] "UI/Blit"
+0x66682be  mov [rbp+0x40],rax                            
+0x66682c2  mov qword ptr [rbp+0x48],7                    
+0x66682ca  lea rcx,[0x129F9388]                          ; [data_129f9388]
+0x66682d1  lea rdx,[rbp+0x40]                            
+0x66682d5  lea r8,[rbp+0x4E0]                            
+0x66682dc  call 0x5668AC0                                ; -> sub_5668ac0
+0x66682e1  nop                                           
+0x66682e2  lea rcx,[0x129F9398]                          ; [data_129f9398]
+0x66682e9  call 0xE938D70                                ; -> sub_e938d70
+0x66682ee  jmp 0x6664D7D                                 ; -> sub_6664d7d
+0x66682f3  call 0x1166E0                                 ; -> sub_1166e0
+0x66682f8  nop                                           
+0x66682f9  call 0x75740                                  ; -> sub_75740
+0x66682fe  nop                                           
+0x66682ff  lea rcx,[0x129CA5E0]                          ; [data_129ca5e0]
+0x6668306  call 0xE938CB0                                ; -> sub_e938cb0
+0x666830b  cmp dword ptr [0x129CA5E0],0xFFFFFFFF         ; [data_129ca5e0]
+0x6668312  jne 0x6664B65                                 ; -> sub_6664b65  (rejoin UI/Blit alt)
+0x6668318  lea rcx,[0x129CA568]                          ; [data_129ca568]
+0x666831f  call 0x567DB00                                ; -> sub_567db00
+0x6668324  nop                                           
+0x6668325  lea rcx,[0x567DBA0]                           ; [sub_567dba0]
+0x666832c  call 0xE935740                                ; -> sub_e935740
+0x6668331  lea rcx,[0x129CA5E0]                          ; [data_129ca5e0]
+0x6668338  call 0xE938D70                                ; -> sub_e938d70
+0x666833d  jmp 0x6664B65                                 ; -> sub_6664b65
+0x6668342  lea rcx,[0x129CA5E0]                          ; [data_129ca5e0]
+0x6668349  call 0xE938CB0                                ; -> sub_e938cb0
+0x666834e  cmp dword ptr [0x129CA5E0],0xFFFFFFFF         ; [data_129ca5e0]
+0x6668355  jne 0x6664E0B                                 ; -> sub_6664e0b  (rejoin UI/Blit alt2)
+0x666835b  lea rcx,[0x129CA568]                          ; [data_129ca568]
+0x6668362  call 0x567DB00                                ; -> sub_567db00
+0x6668367  nop                                           
+0x6668368  lea rcx,[0x567DBA0]                           ; [sub_567dba0]
+0x666836f  call 0xE935740                                ; -> sub_e935740
+0x6668374  lea rcx,[0x129CA5E0]                          ; [data_129ca5e0]
+0x666837b  call 0xE938D70                                ; -> sub_e938d70
+0x6668380  jmp 0x6664E0B                                 ; -> sub_6664e0b
+0x6668385  xorps xmm0,xmm0                               
+0x6668388  movups [rbp+0x408],xmm0                       
+0x666838f  lea rax,[0xF08E738]                           ; [data_f08e738]
+0x6668396  mov [rbp+0x400],rax                           
+0x666839d  lea rdx,[0xFB3B080]                           ; [data_fb3b080]
+0x66683a4  lea rcx,[rbp+0x400]                           
+0x66683ab  call 0xEEC6D80                                ; -> sub_eec6d80
+0x66683b0  nop                                           
+0x66683b1  xorps xmm0,xmm0                               
+0x66683b4  movups [rbp+0x1E8],xmm0                       
+0x66683bb  lea rax,[0xF08E738]                           ; [data_f08e738]
+0x66683c2  mov [rbp+0x1E0],rax                           
+0x66683c9  lea rdx,[0xFB3B080]                           ; [data_fb3b080]
+0x66683d0  lea rcx,[rbp+0x1E0]                           
+0x66683d7  call 0xEEC6D80                                ; -> sub_eec6d80
+0x66683dc  nop                                           
+0x66683dd  lea rcx,[0x129F8F60]                          ; [data_129f8f60]
+0x66683e4  call 0xE938CB0                                ; -> sub_e938cb0
+0x66683e9  cmp dword ptr [0x129F8F60],0xFFFFFFFF         ; [data_129f8f60]
+0x66683f0  jne 0x6666C4E                                 ; -> sub_6666c4e  (rejoin UIImGui element loop)
+0x66683f6  lea rdx,[0xF5ACD53]                           ; [data_f5acd53] "ImGuiProj"
+0x66683fd  lea rdi,[rbp+0x1E0]                           
+0x6668404  mov rcx,rdi                                   
+0x6668407  call 0x79580                                  ; -> sub_79580
+0x666840c  nop                                           
+0x666840d  mov r8,[rbp+0x1F0]                            
+0x6668414  cmp qword ptr [rbp+0x1F8],0x10                
+0x666841c  jb short 0x6668425                            ; -> loc_6668425
+0x666841e  mov rdi,[rbp+0x1E0]                           
+0x6668425  test r8,r8                                    
+0x6668428  je short 0x6668467                            ; -> loc_6668467
+0x666842a  mov eax,r8d                                   
+0x666842d  and eax,3                                     
+0x6668430  mov rcx,0x100000001B3                         
+0x666843a  cmp r8,4                                      
+0x666843e  jae short 0x6668473                           ; -> loc_6668473
+0x6668440  mov rdx,0xCBF29CE484222325                    
+0x666844a  xor r9d,r9d                                   
+0x666844d  jmp short 0x66684C5                           ; -> loc_66684c5
+0x666844f  call 0x75B60                                  ; -> sub_75b60
+0x6668454  nop                                           
+0x6668455  call 0x75B60                                  ; -> sub_75b60
+0x666845a  nop                                           
+0x666845b  call 0x75720                                  ; -> sub_75720
+0x6668460  nop                                           
+0x6668461  call 0x75720                                  ; -> sub_75720
+0x6668466  nop                                           
+0x6668467  mov rdx,0xCBF29CE484222325                    
+0x6668471  jmp short 0x66684E5                           ; -> loc_66684e5
+0x6668473  and r8,0xFFFFFFFFFFFFFFFC                     
+0x6668477  mov rdx,0xCBF29CE484222325                    
+0x6668481  xor r9d,r9d                                   
+0x6668484  movzx r10d,byte ptr [rdi+r9]                  
+0x6668489  xor r10,rdx                                   
+0x666848c  imul r10,rcx                                  
+0x6668490  movzx edx,byte ptr [rdi+r9+1]                 
+0x6668496  xor rdx,r10                                   
+0x6668499  imul rdx,rcx                                  
+0x666849d  movzx r10d,byte ptr [rdi+r9+2]                
+0x66684a3  xor r10,rdx                                   
+0x66684a6  imul r10,rcx                                  
+0x66684aa  movzx edx,byte ptr [rdi+r9+3]                 
+0x66684b0  xor rdx,r10                                   
+0x66684b3  imul rdx,rcx                                  
+0x66684b7  add r9,4                                      
+0x66684bb  cmp r8,r9                                     
+0x66684be  jne short 0x6668484                           ; -> loc_6668484
+0x66684c0  test rax,rax                                  
+0x66684c3  je short 0x66684E5                            ; -> loc_66684e5
+0x66684c5  add rdi,r9                                    
+0x66684c8  xor r8d,r8d                                   
+0x66684cb  mov r9,rdx                                    
+0x66684ce  movzx edx,byte ptr [rdi+r8]                   
+0x66684d3  xor rdx,r9                                    
+0x66684d6  imul rdx,rcx                                  
+0x66684da  inc r8                                        
+0x66684dd  mov r9,rdx                                    
+0x66684e0  cmp rax,r8                                    
+0x66684e3  jne short 0x66684CE                           ; -> loc_66684ce
+0x66684e5  mov [0x129F8F58],rdx                          ; [data_129f8f58]
+0x66684ec  lea rcx,[rbp+0x1E0]                           
+0x66684f3  call 0x73150                                  ; -> sub_73150
+0x66684f8  lea rcx,[0x129F8F60]                          ; [data_129f8f60]
+0x66684ff  call 0xE938D70                                ; -> sub_e938d70
+0x6668504  mov r12,[rbp+0x508]                           
+0x666850b  jmp 0x6666C4E                                 ; -> sub_6666c4e  (rejoin UIImGui element loop)
+```
+
+---
+
+## Final String Reference Table (All Phases + Gaps + Cold)
+
+| String RVA | Text | Call Site RVA | Callee After |
+|------------|------|---------------|--------------|
+| 0xF5AD096 | "Debug/ImGui" | 0x6664ae9, 0x6668252, 0x6668322, 0x66683e8, 0x66684b5 (lea rax) | 0x675E440, 0x5668AC0 (sub_675e440, sub_5668ac0) |
+| 0xF539A95 | "UI/Blit" | 0x6664d8f, 0x66682b7, 0x6668387, 0x6668456 (lea rax) | 0x675E440, 0x5668AC0 (sub_675e440, sub_5668ac0) |
+| 0xF58B3B6 | "Unnamed Transaction" | 0x6665986, 0x6666432 (movups xmm0) | 0xEEC6E70 (sub_eec6e70) |
+| 0xF58B3C5 | "tion" | 0x666597d, 0x6666429 (mov eax) | 0xEEC6E70 (sub_eec6e70) |
+| 0xF8407B6 | (format string) | 0x6665d92, 0x666673e (lea r9) | 0xA0850 (sub_a0850) |
+| 0xF5BF71C | "ImGuiProj" | 0x66683f6 (lea rax) | 0x5668AC0 (sub_5668ac0) |
+| 0xF0F9C30 | (vtable) | 0x6665a29, 0x66660dc, 0x66660f4 (lea rax) | — |
+| 0xF0F9C50 | (vtable) | 0x66660dc, 0x66660f4 (lea rax) | — |
+| 0xF0F9C60 | (vtable) | 0x66664cf (lea rax) | — |
+| 0xF0F9C80 | (vtable) | 0x666660f, 0x666662b (lea rax) | — |
+| 0xF2BEE70 | (vtable) | 0x6665b2a (lea rax) | — |
+| 0xF2BEE88 | (vtable) | 0x66665bd (lea rax) | — |
+| 0xF2BF468 | (jump table) | 0x6664a5c (lea rcx) | — |
+| 0xF2BF47C | (jump table) | 0x6667006, 0x6667076 (lea rdx) | — |
+| 0xF2BF48C | (jump table) | 0x6665c96 (lea rdx) | — |
+| 0xEF40DE0 | (xmm const) | 0x6664c90 (movaps xmm0) | — |
+
+---
+
+## Final [reg+off] Write Table (Non-Stack, Output Descriptions/Records)
+
+| Offset | Size | Source | Instruction (RVA) | Meaning | Tag |
+|--------|------|--------|-------------------|---------|-----|
+| [rbp+0x520] | 8 | r9 (arg2+0x0) | 0x6664aab, 0x6664d51 | UIImGui/UI/Blit: desc base pointer | [V] |
+| [rbp+0x400] | 8 | string RVA | 0x6664af0, 0x6664d96 | Pass name string pointer | [V] |
+| [rbp+0x408] | 8 | length | 0x6664af7, 0x6664d9d | Pass name length | [V] |
+| [rbp+0x4D0] | 8 | call result | 0x6664b2d | Pass object (Debug/ImGui) | [V] |
+| [rbp+0x390] | 8 | call result | 0x6664dd3 | Pass object (UI/Blit) | [V] |
+| [rbp+0x520] | 1 | cl/r12b/dil | 0x6664c44, 0x6664c4a, 0x6664c51 | Extracted desc bytes | [V] |
+| [rbp+0x224] | 1 | 0 | 0x6664c0e | Zero init | [V] |
+| [rbp+0x400] | 16 | xmm/const | 0x6664c61, 0x6664c97, 0x6664ca9, 0x6664e85 | SIMD init | [V] |
+| [rbp+0x1E0] | 16 | [0xEF40DE0] | 0x6664c97 | Constant xmm load | [V] |
+| [rbp+0x400] | 8 | r12/r15 | 0x6664e9b, 0x6664ea2 | Alt path resource | [V] |
+| [rbp+0x1E0] | 16 | xmm0 | 0x6664fcf | Zero xmm | [V] |
+| [rbp+0xE0] | 8 | rax | 0x66650a8 | Resource ptr | [V] |
+| [rbp+0x160] | 8 | rbx | 0x66650c6 | Save rbx | [V] |
+| [rbp+0x258] | 8 | 0 | 0x6665040 | Zero init | [V] |
+| [rbp+0x400] | 2 | ax | 0x666516c | Computed element index | [V] |
+| [rbp+0x402] | 1 | 1 | 0x6665173 | Flag | [V] |
+| [rbp+0x1EC] | 1 | 0 | 0x666517a | Flag | [V] |
+| [rbp+0x1E0] | 16 | [r8+0x28] broadcast | 0x66651b8 | Float from source+0x28 | [V] |
+| [rbp+0x400] | 8 | 1 | 0x66651bf | Constant 1 | [V] |
+| [rbp+0x408] | 8 | rsi | 0x66651ca | Save rsi | [V] |
+| [rdx+0x00..0x3C] | 16x4 | [rbp+0x1E0..0x21C] | 0x6665368..0x666542a | Matrix write (16 floats) | [V] |
+| [rbx+0x00] | 16 | xmm6 | 0x666544e | Constant xmm6 store | [V] |
+| [rbx+0x14] | 16 | xmm6 | 0x666545b | Constant xmm6 store | [V] |
+| [rbp+0x428] | 16 | xmm2 | 0x66654a6 | Computed SIMD result | [V] |
+| [rbp+0x438] | 8 | xmm1 (low) | 0x66654ad | Computed SIMD result | [V] |
+| [r13+0x3B0] | 2 | bx+1 | 0x666551a | Increment counter | [V] |
+| [rbp+0x1A0] | 8 | 0 | 0x6665529 | Zero | [V] |
+| [rbp+0x3A0] | 16 | [rbp+0x190] | 0x6665545 | Matrix save | [V] |
+| [rbp+0x190] | 16 | 0 | 0x666553e | Zero | [V] |
+| [rbp+0x3B0] | 8 | [rbp+0x1A0] | 0x666554c | Save previous | [V] |
+| [rbp+0x3E0] | 1 | 1 | 0x6665553 | Flag = 1 | [V] |
+| [rbp+0x4D0] | 16 | 0 | 0x6665565 | Zero | [V] |
+| [rbp+0x4D0] | 8 | [rcx+0x1B8] | 0x666559e | Resource pointer | [V] |
+| [rbp+0x4D8] | 8 | rax | 0x66655ac | Resource swap | [V] |
+| [rbp+0x260] | 2 | r8w | 0x666581e | Save | [V] |
+| [rbp+0x268] | 4 | r12d | 0x6665833 | Save | [V] |
+| [rbp+0x270] | 16 | 0 | 0x6665848 | Zero | [V] |
+| [rbp+0x280] | 8 | 0 | 0x666584f | Zero | [V] |
+| [rbp+0x270] | 8 | r12 (alloc) | 0x66658e7 | Allocated buffer | [V] |
+| [rbp+0x280] | 8 | r14 (end) | 0x66658f2 | Buffer end | [V] |
+| [rbp+0x278] | 8 | r14 | 0x6665907 | Buffer end (dup) | [V] |
+| [rdi+0x00..0x0F] | 16 | "Unnamed Transaction" | 0x666598d, 0x6666439 | Transaction name | [V] |
+| [rdi+0x0F] | 4 | "tion" | 0x6665983, 0x666642f | Transaction name suffix | [V] |
+| [rdi+0x10] | 8 | 0x13 | 0x6665967, 0x6666413 | Transaction field | [V] |
+| [rdi+0x18] | 8 | 0x1F | 0x6665972, 0x666641e | Transaction field | [V] |
+| [rdi+0x13] | 1 | 0 | 0x6665990, 0x666643c | Transaction field | [V] |
+| [rbp+0x3A0] | 16 | 0 | 0x66659ad, 0x6666459 | Zero | [V] |
+| [rdi+0x08] | 8 | 0x100000001 | 0x6665a1e, 0x66664c4 | Refcount init | [V] |
+| [rdi+0x00] | 8 | 0xF0F9C30 | 0x6665a29, 0x66660dc, 0x66660f4 | Vtable pointer | [V] |
+| [rdi+0x10..0x6F] | 96 | 0 | 0x6665a3d..0x6665a8c, 0x66669a3 | Zero init | [V] |
+| [rdi+0x00] | 2 | 0xFFFF | 0x6665a90, 0x6666530 | Word init | [V] |
+| [rdi+0x0C] | 2 | 0xFFFF | 0x6665a95, 0x6666535 | Word init | [V] |
+| [rax+0x28] | 8 | rdi | 0x6665aa2, 0x666653c | Link objects | [V] |
+| [rbp+0xE0] | 8 | rcx | 0x6665ab4, 0x6666bcd | Save pointer | [V] |
+| [rbp+0xE8] | 8 | rax | 0x6665abb, 0x6666b6e | Swap | [V] |
+| [rbp+0x518] | 8 | rdi (alloc) | 0x6665b18, 0x6666b18 | Large alloc | [V] |
+| [rbp+0x400] | 8 | 0xF2BEE70 | 0x6665b31, 0x66665c4 | Vtable | [V] |
+| [rbp+0x408] | 8 | 0 | 0x6665b1f, 0x6666555 | Zero | [V] |
+| [rdi+0x78] | 8 | 0 | 0x6665b5e, 0x666662e | Zero field | [V] |
+| [rbp+0x3A0] | 8 | r15 | 0x6665d04, 0x6666d04 | Large alloc result | [V] |
+| [rbp+0x3B0] | 8 | rbx | 0x6665d0b, 0x6666d0b | Size | [V] |
+| [rbp+0x3B8] | 8 | r12 | 0x6665d12, 0x6666d12 | Capacity | [V] |
+| [r15+rbx] | 1 | 0 | 0x6665d27, 0x6666d27 | Null terminator | [V] |
+| [rbp+0x190] | 16 | 0 | 0x6665d2f, 0x6666d2f | Zero | [V] |
+| [rbp+0x190] | 1 | 0x3C | 0x6665d4c, 0x6666d4c | Byte init | [V] |
+| [rbp+0x1A0] | 8 | 1 | 0x6665d36, 0x6666d36 | Init | [V] |
+| [rbp+0x1A8] | 8 | 0xF | 0x6665d41, 0x6666d41 | Init | [V] |
+| [rdi+0x00] | 2 | 0x203E | 0x6665dc2, 0x6666777 | Write "> " | [V] |
+| [rdi+0x02] | 1 | 0 | 0x6665dc8, 0x666677d | Null terminator | [V] |
+| [rbp+0xE0] | 16 | [rdi] | 0x6665ddb, 0x6666ddb | Save xmm0 | [V] |
+| [rbp+0xF0] | 16 | [rdi+0x10] | 0x6665dd4, 0x6666dd4 | Save xmm1 | [V] |
+| [rdi+0x10] | 8 | 0 | 0x6665de2, 0x6666797 | Reset string len | [V] |
+| [rdi+0x18] | 8 | 0xF | 0x6665dea, 0x666679f | Reset string cap | [V] |
+| [rdi+0x00] | 1 | 0 | 0x6665df2, 0x66667a7 | Reset first char | [V] |
+| [rbp+0xF0] | 8 | 0 | 0x6665e55, 0x666686c | Zero buffer ptr | [V] |
+| [rbp+0xF8] | 8 | 0xF | 0x6665e60, 0x6666877 | Reset cap | [V] |
+| [rbp+0xE0] | 1 | 0 | 0x6665e6b, 0x6666882 | Zero first char | [V] |
+| [rbp+0x60] | 8 | 0 | 0x6665eb1, 0x66668b1 | Zero len | [V] |
+| [rbp+0x68] | 8 | 0xF | 0x6665eb9, 0x666687f | Reset cap | [V] |
+| [rbp+0x50] | 1 | 0 | 0x6665ec1, 0x66668c1 | Zero first char | [V] |
+| [r15+0x00] | 8 | 0xF0F9C50 | 0x66660dc/0x66660f4 | Vtable | [V] |
+| [r15+0x08] | 8 | [rbp+0xE0] | 0x66660df | Ptr | [V] |
+| [r15+0x10] | 8 | rdi | 0x66660e3 | Ptr | [V] |
+| [r15+0x18] | 16 | 0 | 0x6666106 | Zero | [V] |
+| [r15+0x18..0x118] | 16x10 | 0 | 0x6666148..0x66661a5 | Zero init | [V] |
+| [r15+0x90] | 8 | 0xF | 0x6666162 | SSO cap | [V] |
+| [r15+0x118] | 8 | 0 | 0x66661ad | Zero | [V] |
+| [r15+0x120] | 8 | rsi | 0x66661b8 | Link to rbx+0x9B0 | [V] |
+| [rbp+0x400] | 8 | r15 | 0x66661fe | Save transaction | [V] |
+| [rdi+0x10] | 1 | 1 | 0x6666255 | Flag | [V] |
+| [rbp+0x170] | 8 | rdi | 0x666629b | Save | [V] |
+| [rbp+0x178] | 8 | rax | 0x66662a2 | Save | [V] |
+| [rbp+0x4E8] | 8 | r12 (alloc) | 0x66663a0 | copySrcB buffer | [V] |
+| [rbp+0x4F8] | 8 | rsi (end) | 0x66663ab | Buffer end | [V] |
+| [rbp+0x4F0] | 8 | rsi | 0x66663c0 | memcpy result | [V] |
+| [rbp+0x50] | 8 | r15 | 0x66666b3 | Large alloc ptr | [V] |
+| [rbp+0x60] | 8 | rbx | 0x66666b7 | Size | [V] |
+| [rbp+0x68] | 8 | r12 | 0x66666bb | Capacity | [V] |
+| [r15+rbx] | 1 | 0 | 0x66666cd | Null terminator | [V] |
+| [rbp+0x3A0] | 16 | 0 | 0x66666d5 | Zero | [V] |
+| [rbp+0x3B0] | 8 | 1 | 0x66666dc | Len | [V] |
+| [rbp+0x3B8] | 8 | 0xF | 0x66666e7 | Cap | [V] |
+| [rbp+0x3A0] | 1 | 0x3C | 0x66666f2 | Byte init | [V] |
+| [rdx+rax] | 2 | 0x203E | 0x6666777 | Write "> " | [V] |
+| [rdx+rax+2] | 1 | 0 | 0x666677d | Null | [V] |
+| [rbp+0xF0] | 8 | rdx | 0x6666760 | Updated len | [V] |
+| [rbp+0x410] | 8 | 0 | 0x666680a | Zero | [V] |
+| [rbp+0x418] | 8 | 0xF | 0x6666815 | Cap | [V] |
+| [rbp+0x400] | 1 | 0 | 0x6666820 | Char | [V] |
+| [rbp+0xF0] | 8 | 0 | 0x666686c | Zero | [V] |
+| [rbp+0xF8] | 8 | 0xF | 0x6666877 | Cap | [V] |
+| [rbp+0xE0] | 1 | 0 | 0x6666882 | Char | [V] |
+| [rdi] | 8 | 0xF0F9C80 | 0x66669a0 | Vtable | [V] |
+| [rdi+0x08] | 16 | 0 | 0x66669a3 | Zero | [V] |
+| [rdi+0x18] | 16 | 0 | 0x66669b1 | Zero | [V] |
+| [rdi+0x18] | 8 | rax | 0x66669ee | Ptr | [V] |
+| [rdi+0x58..0x90] | 16x3 | 0 | 0x66669f2..0x66669fe | Zero init | [V] |
+| [rdi+0x88] | 8 | 0 | 0x66669fe | Zero | [V] |
+| [rdi+0x90] | 8 | 0xF | 0x6666a09 | SSO cap | [V] |
+| [rdi+0x98] | 8 | rsi | 0x6666a14 | Link | [V] |
+| [rbp+0x1E0] | 8 | 0 | 0x66669e3 | Zero | [V] |
+| [rbp+0x1E0] | 8 | rdi | 0x6666a5b | Save object | [V] |
+| [rdi+0x10] | 1 | 1 | 0x6666ab2 | Flag | [V] |
+| [rbp+0x180] | 8 | rdi | 0x6666af8 | Save | [V] |
+| [rbp+0x188] | 8 | rax | 0x6666aff | Save | [V] |
+| [rbp+0xE0] | 8 | [[rbp+0x1E0]+0x18] | 0x6666bcd | Resource ptr | [V] |
+| [rbp+0x518] | 8 | r15+rax*40 | 0x6666c84 | Array end | [V] |
+| [rbp+0x4E0] | 16 | 0 | 0x6666cd8 | Zero | [V] |
+| [rbp+0x4E0] | 8 | [rbp+0x180] | 0x6666d09 | Ptr | [V] |
+| [rbp+0x4E8] | 8 | [rbp+0x188] | 0x6666d10 | Ptr | [V] |
+| [rbp+0x30] | 16 | 0 | 0x6666d17 | Zero | [V] |
+| [rbp+0x30] | 8 | [rbp+0x170] | 0x6666d49 | Ptr | [V] |
+| [rbp+0x38] | 8 | [rbp+0x178] | 0x6666d4d | Ptr | [V] |
+| [rbp+0x50] | 8 | [rbp+0xE0] | 0x6666e3e | Ptr | [V] |
+| [rbp+0x2C0] | 8 | [rbp+0xD0] | 0x6666f60 | Ptr | [V] |
+| [rbp+0xD0] | 8 | 0 | 0x6666f67 | Zero | [V] |
+| [rbp+0x2C8] | 4 | 1.0 | 0x6666f72 | Float | [V] |
+| [rdi+0xEA] | 16 | 0 | 0x6666f7c | Zero | [V] |
+| [rbp+0x2DC] | 4 | 1.0 | 0x6666f83 | Float | [V] |
+| [rdi+0xFE] | 16 | 0 | 0x6666f8d | Zero | [V] |
+| [rbp+0x2F0] | 4 | 1.0 | 0x6666f94 | Float | [V] |
+| [rdi+0x112] | 16 | 0 | 0x6666f9e | Zero | [V] |
+| [rbp+0x304] | 4 | 1.0 | 0x6666fa5 | Float | [V] |
+| [rbp+0x308] | 1 | 0 | 0x6666faf | Byte | [V] |
+| [rbp+0x310] | 16 | [rbp+0x3A0] | 0x6666fcf | Matrix | [V] |
+| [rbp+0x3B0] | 16 | 0 | 0x6666fd6 | Zero | [V] |
+| [rbp+0x320] | 16 | [rbp+0x3B0] | 0x6666fdd | Matrix | [V] |
+| [rbp+0x330] | 8 | [rbp+0x3C0] | 0x6666feb | Ptr | [V] |
+| [rbp+0x348] | 1 | 0xFF | 0x6666ff2 | Byte | [V] |
+| [rbp+0x338] | 8 | [rbp+0x3C8] | 0x666701d | Ptr | [V] |
+| [rdi+0x156] | 16 | [rbp+0x3C8] | 0x6667030 | Copy | [V] |
+| [rdi+0x156] | 16 | 0 | 0x6667039 | Zero | [V] |
+| [rdi+0x17E] | 8 | [rbp+0x3C8+0x28] | 0x6667081 | ImGui field | [V] |
+| [rdi+0x16E] | 16 | [rbp+0x3C8+0x18] | 0x666708c | ImGui field | [V] |
+| [rbp+0x408..0x4B8] | 16x12 | 0 | 0x66670af..0x66670e7 | Zero ImGui state | [V] |
+| [rbp+0x428] | 2 | ax | 0x6667115 | Draw cmd count | [V] |
+| [rbp+0x520] | 1 | al | 0x6667132, 0x66671a8, 0x6667232, 0x6667268, 0x6667370, 0x66673ff, 0x6667499, 0x6667517, 0x6667567, 0x666774a, 0x6667a3d, 0x6667ac4, 0x6667b3a, 0x6667c14, 0x6667c54, 0x6667d46, 0x6667dc8, 0x6667e0c, 0x6667ec1, 0x6667f0e, 0x6667f65 | Alloc result byte | [V] |
+| [rbp+0x400] | 8 | flags | 0x6667168, 0x6667330, 0x6667460, 0x6667717, 0x6667c1b, 0x6667d91, 0x6667ec8 | ImGui flags | [V] |
+| [rbp+0x442] | 2 | ax | 0x666718a | Vertex count | [V] |
+| [rbp+0x42A] | 2 | ax | 0x666724a | Draw cmd count | [V] |
+| [rbp+0x42C] | 2 | ax | 0x6667352 | Draw cmd count | [V] |
+| [rbp+0x444] | 2 | ax | 0x66673e1 | Index count | [V] |
+| [rbp+0x43C] | 2 | ax | 0x666747b | Attr count | [V] |
+| [rbp+0x41C] | 2 | ax | 0x66674fa | Buffer calc | [V] |
+| [rbp+0x480] | 2 | ax | 0x6667e21 | Buffer calc | [V] |
+| [rbp+0x410] | 2 | ax | 0x6667aa7 | Index count | [V] |
+| [rbp+0x42A] | 2 | ax | 0x6667ef0 | Draw cmd count | [V] |
+| [rdx] | 2 | [rbp+0x328] | 0x6667a5a | Index write | [V] |
+| [rdx] | 4 | [rbp+0x2D8] | 0x6667b56 | Index write | [V] |
+| [rdx] | 2 | [rbp+0x2D0] | 0x6667bde | Vertex attr | [V] |
+| [rsi+0x8A8] | 8 | +2 | 0x6667a5d | Advance pointer | [V] |
+| [rsi+0x638] | 8 | +4 | 0x6667b58 | Advance pointer | [V] |
+| [rsi+0x698] | 8 | +2 | 0x6667be1 | Advance pointer | [V] |
+| [rsi+0x758] | 8 | +0x58 | 0x66672f2, 0x6667cde | Advance pointer | [V] |
+| [rsi+0x818] | 8 | +1 | 0x6667d5f | Advance pointer | [V] |
+| [rsi+0x368] | 8 | +1 | 0x6667de1 | Advance pointer | [V] |
+| [rsi+0x770] | 8 | +0x88 | 0x66671f2, 0x6667e85 | Advance pointer | [V] |
+| [rsi+8] | 8 | +0xC8 | 0x666776f, 0x6667f33 | Advance | [V] |
+| [rbx+0x770] | 8 | +0x88 | 0x66671f2, 0x6667e85 | Advance pointer | [V] |
+| [rbx+0x758] | 8 | +0x58 | 0x66672f2, 0x6667cde | Advance pointer | [V] |
+| [rbx+0x638] | 8 | +4 | 0x666738e | Advance pointer | [V] |
+| [rbx+0x698] | 8 | +2 | 0x666741f | Advance pointer | [V] |
+| [rbx+0x818] | 8 | +1 | 0x66674b2 | Advance pointer | [V] |
+| [rbx+0x3B0] | 8 | r15+1 | 0x6667533 | Inc counter | [V] |
+| [rbx+0x3A8] | 8 | rdi | 0x66676c4 | New buffer | [V] |
+| [rbx+0x3B0] | 8 | rdi+r8 | 0x66676d5 | New end | [V] |
+| [rbx+0x3B8] | 8 | r13+rdi | 0x66676df | New cap | [V] |
+| [rbx+0x08] | 8 | +0xC8 | 0x666776f | Advance | [V] |
+| [rdi] | 8 | [rbp+0x240] | 0x66671c5, 0x6667e5c | Draw cmd write | [V] |
+| [rdi+0x80] | 8 | [rbp+0x2C0] | 0x66671e0, 0x6667e73 | Draw cmd field | [V] |
+| [rdi+0x00] | 8 | [rbp+0x1E0] | 0x6667e5c | Draw cmd write | [V] |
+| [rdi+0x10] | 4 | [r8+0x10] | 0x666728c, 0x6667c75 | Vertex field | [V] |
+| [rdi+0x00] | 16 | [r8] | 0x6667292, 0x6667c7c | Vertex data | [V] |
+| [rdi+0x14] | 1 | [rbp+0x1FC] | 0x666729c, 0x6667c86 | Vertex byte | [V] |
+| [rdi+0x18] | 4 | [rbp+0x200] | 0x66672a7, 0x6667c91 | Vertex float | [V] |
+| [rdi+0x1C] | 4 | [rbp+0x204] | 0x66672b4, 0x6667c9e | Vertex float | [V] |
+| [rdi+0x20] | 4 | [rbp+0x208] | 0x66672c1, 0x6667cab | Vertex float | [V] |
+| [rdi+0x24] | 4 | [rbp+0x20C] | 0x66672ce, 0x6667cb8 | Vertex float | [V] |
+| [rdi+0x28] | 16 | [rbp+0x1E2+0x2E] | 0x66672e6, 0x6667cd2 | Vertex xmm | [V] |
+| [rdi+0x38] | 16 | [rbp+0x1E2+0x3E] | 0x66672ea, 0x6667cd6 | Vertex xmm | [V] |
+| [rdi+0x47] | 16 | [rbp+0x1E2+0x4D] | 0x66672ee, 0x6667cda | Vertex xmm | [V] |
+| [rdi+0x10] | 4 | [rbp+0x1E8+0x10] | 0x666728c | Vertex field | [V] |
+| [rdi+0x00] | 16 | [rbp+0x1E8] | 0x6667292 | Vertex data | [V] |
+| [rdi+0x14] | 1 | [rbp+0x1FC] | 0x666729c | Vertex byte | [V] |
+| [rdi+0x18] | 4 | [rbp+0x200] | 0x66672a7 | Vertex float | [V] |
+| [rdi+0x1C] | 4 | [rbp+0x204] | 0x66672b4 | Vertex float | [V] |
+| [rdi+0x20] | 4 | [rbp+0x208] | 0x66672c1 | Vertex float | [V] |
+| [rdi+0x24] | 4 | [rbp+0x20C] | 0x66672ce | Vertex float | [V] |
+| [rdi+0x28] | 16 | [rbp+0x1E2+0x2E] | 0x66672e6 | Vertex xmm | [V] |
+| [rdi+0x38] | 16 | [rbp+0x1E2+0x3E] | 0x66672ea | Vertex xmm | [V] |
+| [rdi+0x47] | 16 | [rbp+0x1E2+0x4D] | 0x66672ee | Vertex xmm | [V] |
 
 ---
 

@@ -1,0 +1,5 @@
+Read docs/OPENCODE_BRIEF.md hard rules. RULES: never ask questions; no subagents (no task tool); no tools.rtools.*; if a tool call fails or hangs once, do not repeat it: write [UNVERIFIED: ...] and move on; at most 8 tool calls total.
+UNIT U-C4b (file docs/progress/oc_U-C4b.md). Step 1: create that file immediately with first line "## NEXT" and second line "step 2".
+Step 2: read docs/progress/pre/0xe9002e0.md (a precomputed bundle for function 0xe9002e0, which ends the frame / works on the DragonFrameResources object). Find which register holds the DragonFrameResources object ("this" = rcx at entry, copied to some register) and list EVERY [thisreg+offset] access in the bundle's listing.
+Step 3: write a table to your file: offset | size (from movzx/movss/qword etc.) | read or write | first address | verbatim `0xRVA  instr` line. Copy lines verbatim from the bundle. Do not name fields unless an instruction or string shows it. Known: vector<shared_ptr<Task>> at +0x298/+0x2A0.
+Step 4: replace the "## NEXT" text with "DONE" and give a 3-line final message.

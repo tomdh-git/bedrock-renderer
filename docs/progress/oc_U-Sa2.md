@@ -1,0 +1,366 @@
+## NEXT
+DONE
+
+# U-Sa2 — effect_shadow_extractor_alt_66a6830, chunk 2 of 7, slice 0x66a6d1b..0x66a71cc
+
+Source: docs/progress/_part_Sa2.txt (orchestrator-computed listing). Every instruction in the slice is covered by a phase below; no instruction is skipped. Verbatim `0xRVA  instr` lines are copied from the input data.
+
+## Phase 1: 0x66a6d1b..0x66a6dcb
+
+Loop body over the element array: bounds-check `rsi` vs `r15`, extract x from `[rsi+0x10]`, scale by `xmm6`, fan the components with `shufps`/`unpcklps` and accumulate into `xmm1`/`xmm0`/`xmm2`, store the packed results to `[rbp+0x280]`..`[rbp+0x2B8]` and `[rbp+0xF8]`/`[rbp+0x108]`, write `1.0f` (`0x3F800000`) to `[rbp+0xD0]` and `[rbp+0xE4]`, store `xmm8` to `[r14]` and `[r14+0x14]`, then load y/z from `[rsi+4]`/`[rsi+0xC]` and finish the vector math before calling `0xAA6580` with `(rcx=r12, rdx=r13, r8=rdi)`.
+
+0x66a6d1b  cmp rsi,r15
+0x66a6d1e  je 0x66A6E30
+0x66a6d24  movss xmm0,[rsi+0x10]
+0x66a6d29  movaps xmm1,xmm0
+0x66a6d2c  shufps xmm1,xmm0,0
+0x66a6d30  mulps xmm1,xmm6
+0x66a6d33  movss [rbp+0x280],xmm0
+0x66a6d3b  movq xmm2,xmm1
+0x66a6d3f  shufps xmm1,xmm1,0x55
+0x66a6d43  movups [rbp+0x284],xmm1
+0x66a6d4a  movss [rbp+0x294],xmm0
+0x66a6d52  movups [rbp+0x298],xmm1
+0x66a6d59  movdqu [rbp+0x2A8],xmm2
+0x66a6d61  movlps [rbp+0x2B8],xmm7
+0x66a6d68  mov dword ptr [rbp+0xD0],0x3F800000
+0x66a6d72  movups [r14],xmm8
+0x66a6d76  mov dword ptr [rbp+0xE4],0x3F800000
+0x66a6d80  movups [r14+0x14],xmm8
+0x66a6d85  movsd xmm0,[rsi+4]
+0x66a6d8a  movaps xmm1,xmm0
+0x66a6d8d  mulps xmm1,xmm8
+0x66a6d91  movaps xmm2,xmm1
+0x66a6d94  shufps xmm2,xmm1,0xE1
+0x66a6d98  addps xmm2,xmm0
+0x66a6d9b  movss xmm0,[rsi+0xC]
+0x66a6da0  shufps xmm0,xmm0,0
+0x66a6da4  mulps xmm0,xmm6
+0x66a6da7  movaps xmm3,xmm1
+0x66a6daa  shufps xmm3,xmm1,0x55
+0x66a6dae  unpcklps xmm1,xmm1
+0x66a6db1  addps xmm1,xmm3
+0x66a6db4  addps xmm1,xmm0
+0x66a6db7  addps xmm1,xmm7
+0x66a6dba  shufps xmm0,xmm0,0x55
+0x66a6dbe  addps xmm0,xmm2
+0x66a6dc1  movaps xmm2,xmm9
+0x66a6dc5  movlhps xmm2,xmm0
+0x66a6dc8  addps xmm2,xmm6
+0x66a6dcb  movups [rbp+0xF8],xmm2
+
+## Phase 2: 0x66a6dd2..0x66a6e2a
+
+Store the last accumulator to `[rbp+0x108]`, set up `(rcx=r12, rdx=r13, r8=rdi)` and call `0xAA6580` a second time, then call it again with `(rcx=[rbp+0x360], rdx=r12, r8=rbx)`; compare `[rbp+0x568]` to `[rbp+0x570]` and branch back to the loop head on mismatch, otherwise call `0x4E69370` on `([rbp+0x560],[rbp+0x360])`, advance `rsi` by `0x14` and repeat until `rsi==r15`.
+
+0x66a6dd2  movlps [rbp+0x108],xmm1
+0x66a6dd9  mov rcx,r12
+0x66a6ddc  mov rdx,r13
+0x66a6ddf  mov r8,rdi
+0x66a6de2  call 0xAA6580
+0x66a6de7  nop
+0x66a6de8  lea rcx,[rbp+0x360]
+0x66a6def  mov rdx,r12
+0x66a6df2  mov r8,rbx
+0x66a6df5  call 0xAA6580
+0x66a6dfa  nop
+0x66a6dfb  mov rdx,[rbp+0x568]
+0x66a6e02  cmp rdx,[rbp+0x570]
+0x66a6e09  jne 0x66A6C40
+0x66a6e0f  lea rcx,[rbp+0x560]
+0x66a6e16  lea r8,[rbp+0x360]
+0x66a6e1d  call 0x4E69370
+0x66a6e22  nop
+0x66a6e23  add rsi,0x14
+0x66a6e27  cmp rsi,r15
+0x66a6e2a  jne 0x66A6D24
+
+## Phase 3: 0x66a6e30..0x66a6e99
+
+Post-loop teardown: grab `[rbp+0x578]`→`rbx` and `[rbx]`→`rsi`, load `[rbp+0x348]`→`rax`, zero and store `xmm0` to `[rbp+0x360]`, refcount-inc `[rax+8]`; load `rdi=[rbp+0x368]`, reload `xmm0` from `[rax]` into `[rbp+0x360]`, then refcount-dec `[rdi+8]` and on release call `[0xF99FFA0]` twice (destructor, then dec `[rdi+0xC]` and a second `[0xF99FFA0]`).
+
+0x66a6e30  mov rbx,[rbp+0x578]
+0x66a6e37  mov rsi,[rbx]
+0x66a6e3a  mov rax,[rbp+0x348]
+0x66a6e41  xorps xmm0,xmm0
+0x66a6e44  movaps [rbp+0x360],xmm0
+0x66a6e4b  mov rcx,[rax+8]
+0x66a6e4f  test rcx,rcx
+0x66a6e52  je short 0x66A6E9B
+0x66a6e54  lock inc dword ptr [rcx+8]
+0x66a6e58  mov rdi,[rbp+0x368]
+0x66a6e5f  movups xmm0,[rax]
+0x66a6e62  movaps [rbp+0x360],xmm0
+0x66a6e69  test rdi,rdi
+0x66a6e6c  je short 0x66A6EB0
+0x66a6e6e  lock dec dword ptr [rdi+8]
+0x66a6e72  jne short 0x66A6EB0
+0x66a6e74  mov rax,[rdi]
+0x66a6e77  mov rax,[rax]
+0x66a6e7a  mov rcx,rdi
+0x66a6e7d  call qword ptr [0xF99FFA0]
+0x66a6e83  lock dec dword ptr [rdi+0xC]
+0x66a6e87  jne short 0x66A6EB0
+0x66a6e89  mov rax,[rdi]
+0x66a6e8c  mov rax,[rax+8]
+0x66a6e90  mov rcx,rdi
+0x66a6e93  call qword ptr [0xF99FFA0]
+0x66a6e99  jmp short 0x66A6EB0
+
+## Phase 4: 0x66a6e9b..0x66a6f14
+
+If the refcount pointer was null, store `[rax]` into `[rbp+0x360]` and zero `[rbp+0x368]`; then read the vtable chain `[rbp+0x360]`→`[rax+0x18]`→`[rax]` and cache `[rbp+0x48]`, call `0xE86B370` with `(rcx=[rbp+0x50], r8=[rsi], rdx=[rax+0x170])`, save `[rbp+0xC8]=rsi`, and run another refcount-dec release sequence on `[rbp+0x368]` with `[0xF99FFA0]` calls.
+
+0x66a6e9b  mov rax,[rax]
+0x66a6e9e  mov [rbp+0x360],rax
+0x66a6ea5  mov qword ptr [rbp+0x368],0
+0x66a6eb0  mov rax,[rbp+0x360]
+0x66a6eb7  mov rax,[rax+0x18]
+0x66a6ebb  mov rax,[rax]
+0x66a6ebe  mov [rbp+0x48],rax
+0x66a6ec2  lea rcx,[rbp+0x50]
+0x66a6ec6  mov r8,[rsi]
+0x66a6ec9  mov rdx,[rax+0x170]
+0x66a6ed0  call 0xE86B370
+0x66a6ed5  nop
+0x66a6ed6  mov [rbp+0xC8],rsi
+0x66a6edd  mov rdi,[rbp+0x368]
+0x66a6ee4  test rdi,rdi
+0x66a6ee7  je short 0x66A6F14
+0x66a6ee9  lock dec dword ptr [rdi+8]
+0x66a6eed  jne short 0x66A6F14
+0x66a6eef  mov rax,[rdi]
+0x66a6ef2  mov rax,[rax]
+0x66a6ef5  mov rcx,rdi
+0x66a6ef8  call qword ptr [0xF99FFA0]
+0x66a6efe  lock dec dword ptr [rdi+0xC]
+0x66a6f02  jne short 0x66A6F14
+0x66a6f04  mov rax,[rdi]
+0x66a6f07  mov rax,[rax+8]
+0x66a6f0b  mov rcx,rdi
+0x66a6f0e  call qword ptr [0xF99FFA0]
+0x66a6f14  mov rsi,[rbx]
+
+## Phase 5: 0x66a6f17..0x66a6fbb
+
+Repeat the acquire/release pattern: `rsi=[rbx]`, `rax=[rbp+0x348]`, zero `[rbp+0x360]`, refcount-inc `[rax+8]`, `rdi=[rbp+0x368]`, load `[rax]` into `[rbp+0x360]`, refcount-dec `[rdi+8]` release with `[0xF99FFA0]` calls; then `[rbp+0x360]`→`[rax+0x18]`→`[rax]` stored to `[rbp+0xD0]`, call `0xE86B370` on `([rbp+0xD8],[rsi],[rax+0x170])`, save `[rbp+0x150]=rsi`, and refcount-dec `[rbp+0x368]` release.
+
+0x66a6f17  mov rax,[rbp+0x348]
+0x66a6f1e  xorps xmm0,xmm0
+0x66a6f21  movaps [rbp+0x360],xmm0
+0x66a6f28  mov rcx,[rax+8]
+0x66a6f2c  test rcx,rcx
+0x66a6f2f  je short 0x66A6F78
+0x66a6f31  lock inc dword ptr [rcx+8]
+0x66a6f35  mov rdi,[rbp+0x368]
+0x66a6f3c  movups xmm0,[rax]
+0x66a6f3f  movaps [rbp+0x360],xmm0
+0x66a6f46  test rdi,rdi
+0x66a6f49  je short 0x66A6F8D
+0x66a6f4b  lock dec dword ptr [rdi+8]
+0x66a6f4f  jne short 0x66A6F8D
+0x66a6f51  mov rax,[rdi]
+0x66a6f54  mov rax,[rax]
+0x66a6f57  mov rcx,rdi
+0x66a6f5a  call qword ptr [0xF99FFA0]
+0x66a6f60  lock dec dword ptr [rdi+0xC]
+0x66a6f64  jne short 0x66A6F8D
+0x66a6f66  mov rax,[rdi]
+0x66a6f69  mov rax,[rax+8]
+0x66a6f6d  mov rcx,rdi
+0x66a6f70  call qword ptr [0xF99FFA0]
+0x66a6f76  jmp short 0x66A6F8D
+0x66a6f78  mov rax,[rax]
+0x66a6f7b  mov [rbp+0x360],rax
+0x66a6f82  mov qword ptr [rbp+0x368],0
+0x66a6f8d  mov rax,[rbp+0x360]
+0x66a6f94  mov rax,[rax+0x18]
+0x66a6f98  mov rax,[rax]
+0x66a6f9b  mov [rbp+0xD0],rax
+0x66a6fa2  lea r13,[rbp+0xD8]
+0x66a6fa9  mov r8,[rsi]
+0x66a6fac  mov rdx,[rax+0x170]
+0x66a6fb3  mov rcx,r13
+0x66a6fb6  call 0xE86B370
+0x66a6fbb  nop
+
+## Phase 6: 0x66a6fc3..0x66a7053
+
+Refcount-dec `[rbp+0x368]` release (final `[0xF99FFA0]` pair), then compute the element count from `[rbp+0x580]`→`r12` (`([r12+0x60]-[r12+0x58])>>2 * 0xAAAAAAAB`); if nonzero call `0xBBD7C70` on `(rdx=[rbp+0xD0]+0x250, rcx=[rbp+0x360], r8=0)` and `0x4DEDD00` on `(rcx=r12, rdx=[rbp+0x360])`; zero `[rbp+0x500]` and `[rbp+0x510]`.
+
+0x66a6fc3  mov rdi,[rbp+0x368]
+0x66a6fca  test rdi,rdi
+0x66a6fcd  je short 0x66A6FFA
+0x66a6fcf  lock dec dword ptr [rdi+8]
+0x66a6fd3  jne short 0x66A6FFA
+0x66a6fd5  mov rax,[rdi]
+0x66a6fd8  mov rax,[rax]
+0x66a6fdb  mov rcx,rdi
+0x66a6fde  call qword ptr [0xF99FFA0]
+0x66a6fe4  lock dec dword ptr [rdi+0xC]
+0x66a6fe8  jne short 0x66A6FFA
+0x66a6fea  mov rax,[rdi]
+0x66a6fed  mov rax,[rax+8]
+0x66a6ff1  mov rcx,rdi
+0x66a6ff4  call qword ptr [0xF99FFA0]
+0x66a6ffa  mov rax,[rbp+0x580]
+0x66a7001  mov r12,[rax+0x28]
+0x66a7005  mov rax,[r12+0x60]
+0x66a700a  sub rax,[r12+0x58]
+0x66a700f  shr rax,2
+0x66a7013  imul eax,0xAAAAAAAB
+0x66a7019  test eax,eax
+0x66a701b  je short 0x66A7049
+0x66a701d  mov edx,0x250
+0x66a7022  add rdx,[rbp+0xD0]
+0x66a7029  lea rcx,[rbp+0x360]
+0x66a7030  xor r8d,r8d
+0x66a7033  call 0xBBD7C70
+0x66a7038  nop
+0x66a7039  lea rdx,[rbp+0x360]
+0x66a7040  mov rcx,r12
+0x66a7043  call 0x4DEDD00
+0x66a7048  nop
+0x66a7049  xorps xmm0,xmm0
+0x66a704c  movaps [rbp+0x500],xmm0
+0x66a7053  mov qword ptr [rbp+0x510],0
+
+## Phase 7: 0x66a705e..0x66a7133
+
+Compute `([rbp+0x568]-[rbp+0x560])>>6` and call `0x6760560` with `(&[rbp+0x500],&[rbp+0x560],&[rbp+0x568])`; set byte `[rbp+0x540]=1`, load `[rbp+0x358]`→`rax` and `mov si` from `[rax+0x18]`, call `0x4DE9FA0` on `(rcx=r12, rdx=&[rbp+0x158])`, then call `0x66A6190` on `(rcx=&[rbp+0x280], r8=&[rbp+0x158], rdx=[rax])`.
+
+0x66a705e  mov rdx,[rbp+0x568]
+0x66a7065  sub rdx,[rbp+0x560]
+0x66a706c  sar rdx,6
+0x66a7070  lea rcx,[rbp+0x500]
+0x66a7077  lea r8,[rbp+0x560]
+0x66a707e  lea r9,[rbp+0x568]
+0x66a7085  call 0x6760560
+0x66a708a  nop
+0x66a708b  mov byte ptr [rbp+0x540],1
+0x66a7092  mov rax,[rbp+0x358]
+0x66a7099  mov si,[rax+0x18]
+0x66a709d  lea rdx,[rbp+0x158]
+0x66a70a4  mov rcx,r12
+0x66a70a7  call 0x4DE9FA0
+0x66a70ac  nop
+0x66a70ad  mov rax,[rbp+0x578]
+0x66a70b4  mov rdx,[rax]
+0x66a70b7  lea rcx,[rbp+0x280]
+0x66a70be  lea r8,[rbp+0x158]
+0x66a70c5  call 0x66A6190
+0x66a70ca  nop
+
+## Phase 8: 0x66a70cb..0x66a71cc
+
+Initialize a descriptor block at `[rbp+0x360]`..`[rbp+0x488]` with word/dword/byte stores (`0,0,8,2,1,2,0,0`), `movups` zero to `[rbp+0x37C]`, dword `0` to `[rbp+0x38C]`, load a constant from `[0xEF1D470]` into `xmm6` and store its low part to `[rbp+0x390]`, byte `8` to `[rbp+0x398]`, qword `0x200000000` to `[rbp+0x39C]` and `[rbp+0x3AC]`, dword `0` to `[rbp+0x3A4]`/`[rbp+0x3B4]`, byte `8` to `[rbp+0x3A8]`, word `0x101` to `[rbp+0x3B8]`, byte `1` to `[rbp+0x3BA]`, store `[rbp+0xD0]` to `[rbp+0x3C0]`, call `0xE869FF0` on `(&[rbp+0x3C8],r13)`, then `[rbp+0x150]`→`[rbp+0x440]` and zero `[rbp+0x150]`, byte `0xFF` to `[rbp+0x488]`, and branch on byte `[rbp+0x540]`.
+
+0x66a70cb  mov word ptr [rbp+0x360],0
+0x66a70d4  mov dword ptr [rbp+0x364],0
+0x66a70de  mov byte ptr [rbp+0x368],8
+0x66a70e5  mov dword ptr [rbp+0x36C],2
+0x66a70ef  mov word ptr [rbp+0x370],1
+0x66a70f8  mov byte ptr [rbp+0x372],2
+0x66a70ff  mov dword ptr [rbp+0x374],0
+0x66a7109  mov byte ptr [rbp+0x378],0
+0x66a7110  xorps xmm0,xmm0
+0x66a7113  movups [rbp+0x37C],xmm0
+0x66a711a  mov dword ptr [rbp+0x38C],0
+0x66a7124  movss xmm6,[0xEF1D470]
+0x66a712c  movlps [rbp+0x390],xmm6
+0x66a7133  mov byte ptr [rbp+0x398],8
+0x66a713a  mov rbx,0x200000000
+0x66a7144  mov [rbp+0x39C],rbx
+0x66a714b  mov dword ptr [rbp+0x3A4],0
+0x66a7155  mov byte ptr [rbp+0x3A8],8
+0x66a715c  mov [rbp+0x3AC],rbx
+0x66a7163  mov dword ptr [rbp+0x3B4],0
+0x66a716d  mov word ptr [rbp+0x3B8],0x101
+0x66a7176  mov byte ptr [rbp+0x3BA],1
+0x66a717d  mov rax,[rbp+0xD0]
+0x66a7184  mov [rbp+0x3C0],rax
+0x66a718b  lea rcx,[rbp+0x3C8]
+0x66a7192  mov rdx,r13
+0x66a7195  call 0xE869FF0
+0x66a719a  nop
+0x66a719b  mov rax,[rbp+0x150]
+0x66a71a2  mov [rbp+0x440],rax
+0x66a71a9  mov qword ptr [rbp+0x150],0
+0x66a71b4  mov byte ptr [rbp+0x488],0xFF
+0x66a71bb  movzx eax,byte ptr [rbp+0x540]
+0x66a71c2  movzx ecx,al
+0x66a71c5  cmp ecx,1
+0x66a71c8  jg short 0x66A7208
+0x66a71ca  test ecx,ecx
+0x66a71cc  jne short 0x66A721D
+
+## Field table: every [reg+off] field stored or loaded
+
+One row per distinct field (base+offset). Size comes from the instruction. Direction: R = load/read, W = store/write. Verbatim lines list every site for that field. Meaning is given only where an instruction immediate or string shows it, otherwise `-`.
+
+| offset | size | direction | verbatim instruction line(s) | meaning |
+|---|---|---|---|---|
+| rbp+0x280 | 4 | W | 0x66a6d33  movss [rbp+0x280],xmm0 | - |
+| rbp+0x284 | 16 | W | 0x66a6d43  movups [rbp+0x284],xmm1 | - |
+| rbp+0x294 | 4 | W | 0x66a6d4a  movss [rbp+0x294],xmm0 | - |
+| rbp+0x298 | 16 | W | 0x66a6d52  movups [rbp+0x298],xmm1 | - |
+| rbp+0x2A8 | 16 | W | 0x66a6d59  movdqu [rbp+0x2A8],xmm2 | - |
+| rbp+0x2B8 | 8 | W | 0x66a6d61  movlps [rbp+0x2B8],xmm7 | - |
+| rbp+0xD0 | 4/8 | RW | 0x66a6d68  mov dword ptr [rbp+0xD0],0x3F800000<br>0x66a6f9b  mov [rbp+0xD0],rax<br>0x66a7022  add rdx,[rbp+0xD0]<br>0x66a717d  mov rax,[rbp+0xD0] | stores 1.0f (0x3F800000); reused as pointer [V] |
+| rbp+0xE4 | 4 | W | 0x66a6d76  mov dword ptr [rbp+0xE4],0x3F800000 | stores 1.0f (0x3F800000) [V] |
+| rbp+0xF8 | 16 | W | 0x66a6dcb  movups [rbp+0xF8],xmm2 | - |
+| rbp+0x108 | 8 | W | 0x66a6dd2  movlps [rbp+0x108],xmm1 | - |
+| rbp+0x150 | 8 | RW | 0x66a6fbc  mov [rbp+0x150],rsi<br>0x66a719b  mov rax,[rbp+0x150]<br>0x66a71a9  mov qword ptr [rbp+0x150],0 | - |
+| rbp+0x348 | 8 | R | 0x66a6e3a  mov rax,[rbp+0x348]<br>0x66a6f17  mov rax,[rbp+0x348] | - |
+| rbp+0x358 | 8 | R | 0x66a7092  mov rax,[rbp+0x358] | - |
+| rbp+0x360 | 16/8/2 | RW | 0x66a6e44  movaps [rbp+0x360],xmm0<br>0x66a6e62  movaps [rbp+0x360],xmm0<br>0x66a6e9e  mov [rbp+0x360],rax<br>0x66a6eb1  mov rax,[rbp+0x360]<br>0x66a6f21  movaps [rbp+0x360],xmm0<br>0x66a6f3f  movaps [rbp+0x360],xmm0<br>0x66a6f7b  mov [rbp+0x360],rax<br>0x66a6f8d  mov rax,[rbp+0x360]<br>0x66a70cb  mov word ptr [rbp+0x360],0 | scratch pointer slot [V] |
+| rbp+0x364 | 4 | W | 0x66a70d4  mov dword ptr [rbp+0x364],0 | - |
+| rbp+0x368 | 8/1 | RW | 0x66a6e58  mov rdi,[rbp+0x368]<br>0x66a6ea5  mov qword ptr [rbp+0x368],0<br>0x66a6edd  mov rdi,[rbp+0x368]<br>0x66a6f35  mov rdi,[rbp+0x368]<br>0x66a6f82  mov qword ptr [rbp+0x368],0<br>0x66a6fc3  mov rdi,[rbp+0x368]<br>0x66a70de  mov byte ptr [rbp+0x368],8 | refcounted object pointer [V] |
+| rbp+0x36C | 4 | W | 0x66a70e5  mov dword ptr [rbp+0x36C],2 | - |
+| rbp+0x370 | 2 | W | 0x66a70ef  mov word ptr [rbp+0x370],1 | - |
+| rbp+0x372 | 1 | W | 0x66a70f8  mov byte ptr [rbp+0x372],2 | - |
+| rbp+0x374 | 4 | W | 0x66a70ff  mov dword ptr [rbp+0x374],0 | - |
+| rbp+0x378 | 1 | W | 0x66a7109  mov byte ptr [rbp+0x378],0 | - |
+| rbp+0x37C | 16 | W | 0x66a7113  movups [rbp+0x37C],xmm0 | - |
+| rbp+0x38C | 4 | W | 0x66a711a  mov dword ptr [rbp+0x38C],0 | - |
+| rbp+0x390 | 8 | W | 0x66a712c  movlps [rbp+0x390],xmm6 | - |
+| rbp+0x398 | 1 | W | 0x66a7133  mov byte ptr [rbp+0x398],8 | - |
+| rbp+0x39C | 8 | W | 0x66a7144  mov [rbp+0x39C],rbx | - |
+| rbp+0x3A4 | 4 | W | 0x66a714b  mov dword ptr [rbp+0x3A4],0 | - |
+| rbp+0x3A8 | 1 | W | 0x66a7155  mov byte ptr [rbp+0x3A8],8 | - |
+| rbp+0x3AC | 8 | W | 0x66a715c  mov [rbp+0x3AC],rbx | - |
+| rbp+0x3B4 | 4 | W | 0x66a7163  mov dword ptr [rbp+0x3B4],0 | - |
+| rbp+0x3B8 | 2 | W | 0x66a716d  mov word ptr [rbp+0x3B8],0x101 | - |
+| rbp+0x3BA | 1 | W | 0x66a7176  mov byte ptr [rbp+0x3BA],1 | - |
+| rbp+0x3C0 | 8 | W | 0x66a7184  mov [rbp+0x3C0],rax | - |
+| rbp+0x440 | 8 | W | 0x66a71a2  mov [rbp+0x440],rax | - |
+| rbp+0x488 | 1 | W | 0x66a71b4  mov byte ptr [rbp+0x488],0xFF | - |
+| rbp+0x500 | 16 | W | 0x66a704c  movaps [rbp+0x500],xmm0 | - |
+| rbp+0x510 | 8 | W | 0x66a7053  mov qword ptr [rbp+0x510],0 | zeroed qword [-] |
+| rbp+0x540 | 1 | RW | 0x66a708b  mov byte ptr [rbp+0x540],1<br>0x66a71bb  movzx eax,byte ptr [rbp+0x540] | flag byte set to 1 [-] |
+| rbp+0x560 | 8 | R | 0x66a7065  sub rdx,[rbp+0x560] | - |
+| rbp+0x568 | 8 | R | 0x66a6dfb  mov rdx,[rbp+0x568]<br>0x66a705e  mov rdx,[rbp+0x568] | - |
+| rbp+0x570 | 8 | R | 0x66a6e02  cmp rdx,[rbp+0x570] | - |
+| rbp+0x578 | 8 | R | 0x66a6e30  mov rbx,[rbp+0x578]<br>0x66a70ad  mov rax,[rbp+0x578] | - |
+| rax+0x0 | 16/8 | R | 0x66a6e5f  movups xmm0,[rax]<br>0x66a6e74  mov rax,[rdi]<br>0x66a6e77  mov rax,[rax]<br>0x66a6eef  mov rax,[rdi]<br>0x66a6ef2  mov rax,[rax]<br>0x66a6f51  mov rax,[rdi]<br>0x66a6f54  mov rax,[rax]<br>0x66a6f98  mov rax,[rax]<br>0x66a6fd8  mov rax,[rax]<br>0x66a6fed  mov rax,[rax+8]<br>0x66a6f3c  movups xmm0,[rax] | - |
+| rax+0x8 | 8 | R | 0x66a6e4b  mov rcx,[rax+8]<br>0x66a6e8c  mov rax,[rax+8]<br>0x66a6f07  mov rax,[rax+8]<br>0x66a6f28  mov rcx,[rax+8] | - |
+| rax+0x18 | 8/2 | R | 0x66a6eb7  mov rax,[rax+0x18]<br>0x66a6f94  mov rax,[rax+0x18]<br>0x66a7099  mov si,[rax+0x18] | - |
+| rax+0x170 | 8 | R | 0x66a6ec9  mov rdx,[rax+0x170]<br>0x66a6fac  mov rdx,[rax+0x170] | - |
+| rbx+0x0 | 8 | R | 0x66a6e37  mov rsi,[rbx]<br>0x66a6f14  mov rsi,[rbx] | - |
+| rcx+0x8 | 4 | W | 0x66a6e54  lock inc dword ptr [rcx+8]<br>0x66a6f31  lock inc dword ptr [rcx+8] | refcount increment [V] |
+| rdi+0x0 | 8 | R | 0x66a6e74  mov rax,[rdi]<br>0x66a6e89  mov rax,[rdi]<br>0x66a6eef  mov rax,[rdi]<br>0x66a6f04  mov rax,[rdi]<br>0x66a6f51  mov rax,[rdi]<br>0x66a6f66  mov rax,[rdi]<br>0x66a6fd5  mov rax,[rdi]<br>0x66a6fea  mov rax,[rdi] | - |
+| rdi+0x8 | 4 | W | 0x66a6e6e  lock dec dword ptr [rdi+8]<br>0x66a6ee9  lock dec dword ptr [rdi+8]<br>0x66a6f4b  lock dec dword ptr [rdi+8]<br>0x66a6fcf  lock dec dword ptr [rdi+8] | refcount decrement (release) [V] |
+| rdi+0xC | 4 | W | 0x66a6e83  lock dec dword ptr [rdi+0xC]<br>0x66a6efe  lock dec dword ptr [rdi+0xC] | refcount decrement (weak) [V] |
+| rsi+0x0 | 8 | R | 0x66a6ec6  mov r8,[rsi]<br>0x66a6fa9  mov r8,[rsi] | - |
+| rsi+0x4 | 8 | R | 0x66a6d85  movsd xmm0,[rsi+4] | - |
+| rsi+0xC | 4 | R | 0x66a6d9b  movss xmm0,[rsi+0xC] | - |
+| rsi+0x10 | 4 | R | 0x66a6d24  movss xmm0,[rsi+0x10] | - |
+| r12+0x28 | 8 | R | 0x66a7001  mov r12,[rax+0x28] | - |
+| r12+0x58 | 8 | R | 0x66a700a  sub rax,[r12+0x58] | - |
+| r12+0x60 | 8 | R | 0x66a7005  mov rax,[r12+0x60] | - |
+| r14+0x0 | 16 | W | 0x66a6d72  movups [r14],xmm8 | - |
+| r14+0x14 | 16 | W | 0x66a6d80  movups [r14+0x14],xmm8 | - |
+
+## TOOL REQUESTS
+
+None — all input data was precomputed by the orchestrator; no helper script was needed.

@@ -11,8 +11,6 @@
 // Gaps are explicit `mPadXX` members that carry NO meaning and are never written/read at that offset in the listed code. Producer views are
 // write-views: sizeof is the aligned end of the last store and is cross-checked against the consumer (the visitor copy length or the next local).
 
-#include <cstddef>
-#include <cstdint>
 
 namespace mce::framebuilder::lightgame {
 

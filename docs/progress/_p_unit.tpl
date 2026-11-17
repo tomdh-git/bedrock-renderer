@@ -1,0 +1,5 @@
+Read docs/OPENCODE_BRIEF.md hard rules. RULES: never ask questions; no subagents (no task tool); no tools.rtools.*; if a tool call fails or hangs once do not repeat it, write [UNVERIFIED: ...] and move on; use bash only.
+UNIT @U@ (file docs/progress/oc_@U@.md). Step 1: create the file now: first line "## NEXT", second line "step 2".
+GOAL: @GOAL@
+Method (all commands from the repo root, PYTHONUTF8=1): (a) stores: python tools/sigs/stores.py @CLONE@ lists every store into [reg+off] of the clone/producer listing; (b) reads: python tools/sigs/casewalk.py @VIS@ @HEAD@ @REG@ lists every [@REG@+off] read on the visitor path; docs/progress/oc_U-D8d.md is a finished example of the output format to follow (read it first, 1 call). (c) join them: offset | size | store site | read site | name only if an instruction/string shows it. Copy every instruction VERBATIM as `0xRVA  instr` (two spaces after the address); run python tools/sigs/verify_oc.py docs/progress/oc_@U@.md before finishing and fix mismatches.
+Final: set the "## NEXT" text to "DONE" and send a 3-line final message. At most 15 tool calls.

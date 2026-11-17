@@ -6,8 +6,6 @@
 // fields in the padding); sizeof is NOT asserted because the real size is not proven (the producers reuse one stack object for four gizmo types, see the doc). Meanings are
 // [I] unless the field comment says [V]. Tags and group slots live in FrameBuilder.h; the already-typed layouts (UIMesh, HudIcon, Gameface, MeshFallback, Nametag) stay in
 // Descriptions.h / GamefaceDescription.h and are only given the roles this pass found.
-#include <cstddef>
-#include <cstdint>
 
 namespace bluey::uieditor {
 
