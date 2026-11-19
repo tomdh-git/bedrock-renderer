@@ -1,0 +1,95 @@
+name: CI & Release
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["*v*", "1.*"]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    name: Package SDK & Reversal Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare bundle
+        run: |
+          mkdir -p dist/bedrock-renderer-sdk/include
+          mkdir -p dist/bedrock-renderer-sdk/docs
+
+          # Copy headers maintaining include structure
+          cp -r src/sdk/mc dist/bedrock-renderer-sdk/include/
+          cp Layout.h dist/bedrock-renderer-sdk/include/
+          cp OffsetProvider.h dist/bedrock-renderer-sdk/include/
+          cp Sigs.json dist/bedrock-renderer-sdk/
+          cp README.md dist/bedrock-renderer-sdk/
+
+          # Copy reversal documentation
+          cp -r docs/* dist/bedrock-renderer-sdk/docs/
+
+          # Package zip
+          cd dist
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG_NAME="${GITHUB_REF_NAME}"
+          else
+            TAG_NAME="latest-1.26.62"
+          fi
+          ZIP_NAME="bedrock-renderer-sdk-${TAG_NAME}.zip"
+          zip -r "${ZIP_NAME}" bedrock-renderer-sdk
+          echo "ZIP_PATH=dist/${ZIP_NAME}" >> $GITHUB_ENV
+          echo "RELEASE_TAG=${TAG_NAME}" >> $GITHUB_ENV
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bedrock-renderer-sdk
+          path: ${{ env.ZIP_PATH }}
+
+  # Tagged release (e.g., 1.26.62-v0.1.0-alpha)
+  release-tag:
+    name: Publish Tagged Release
+    needs: package
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: bedrock-renderer-sdk
+          path: dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+
+  # Rolling pre-release on push to main (latest-1.26.62)
+  release-latest:
+    name: Publish Rolling Latest
+    needs: package
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: bedrock-renderer-sdk
+          path: dist
+
+      - name: Update Rolling Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-1.26.62
+          name: "bedrock-renderer 1.26.62 (Rolling Latest)"
+          body: |
+            Automated continuous release for Minecraft Bedrock **1.26.62.01** renderer reversal and SDK headers.
+            Updated on commit `${{ github.sha }}`.
+          prerelease: true
+          files: dist/*.zip
