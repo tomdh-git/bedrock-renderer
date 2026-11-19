@@ -18,8 +18,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Prepare bundle
+      - name: Prepare bundle & Generate Changelog
         run: |
           mkdir -p dist/bedrock-renderer-sdk/include
           mkdir -p dist/bedrock-renderer-sdk/docs
@@ -45,12 +47,31 @@ jobs:
           zip -r "${ZIP_NAME}" bedrock-renderer-sdk
           echo "ZIP_PATH=dist/${ZIP_NAME}" >> $GITHUB_ENV
           echo "RELEASE_TAG=${TAG_NAME}" >> $GITHUB_ENV
+          cd ..
+
+          # Generate Changelog
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+            if [ -n "$PREV_TAG" ]; then
+              echo "## 🚀 What's Changed since $PREV_TAG" > dist/CHANGELOG.md
+              git log "$PREV_TAG..HEAD" --pretty=format:"* %s ([%h](https://github.com/${{ github.repository }}/commit/%H))" >> dist/CHANGELOG.md
+            else
+              echo "## 🚀 What's Changed" > dist/CHANGELOG.md
+              git log -n 15 --pretty=format:"* %s ([%h](https://github.com/${{ github.repository }}/commit/%H))" >> dist/CHANGELOG.md
+            fi
+          else
+            echo "## 🚀 Recent Changes (Rolling Latest)" > dist/CHANGELOG.md
+            git log -n 10 --pretty=format:"* %s ([%h](https://github.com/${{ github.repository }}/commit/%H))" >> dist/CHANGELOG.md
+            echo -e "\n\n---\n*Automated rolling release for Minecraft Bedrock **1.26.62.01** renderer reversal and SDK headers.*" >> dist/CHANGELOG.md
+          fi
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: bedrock-renderer-sdk
-          path: ${{ env.ZIP_PATH }}
+          path: |
+            ${{ env.ZIP_PATH }}
+            dist/CHANGELOG.md
 
   # Tagged release (e.g., 1.26.62-v0.1.0-alpha)
   release-tag:
@@ -68,7 +89,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*.zip
-          generate_release_notes: true
+          body_path: dist/CHANGELOG.md
+          make_latest: true
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
 
   # Rolling pre-release on push to main (latest-1.26.62)
@@ -88,8 +110,7 @@ jobs:
         with:
           tag_name: latest-1.26.62
           name: "bedrock-renderer 1.26.62 (Rolling Latest)"
-          body: |
-            Automated continuous release for Minecraft Bedrock **1.26.62.01** renderer reversal and SDK headers.
-            Updated on commit `${{ github.sha }}`.
+          body_path: dist/CHANGELOG.md
+          make_latest: true
           prerelease: true
           files: dist/*.zip
