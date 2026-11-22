@@ -75,7 +75,7 @@ submit(RendererContext* this, Frame* frame, r8, r9):   // rcx = context, rdx = F
     // prologue + timers (QPC x2)
     // frame begin / state reset: 0xe81d660
     // descriptor/upload ring begin: 0xe8360f0 x3
-    // per-view setup: 0xe818490 x3
+    // retire (fence wait + deferred-release drain, NOT per-view setup; corrected 2026-11-21 oc_U-EN1e): 0xe818490 x3
     // clear / RT transitions: 0xe820910
 
     // ---- per-draw consumer ----
@@ -1927,7 +1927,7 @@ Two Frame instances are spaced 0xE749C0 apart. The render thread signals ctx+0x8
 ### 8c. State a replacement must preserve
 
 - PSO builder 0xe81dc60: decodes draw state to a D3D12 PSO desc, key mask known [B4]. Replacement draws route through it or rebuild an equivalent key.
-- Per-view setup 0xe818490 (called three times inside submit [6t]); frame begin, descriptor/upload ring begin, clear/RT transitions surround the per-draw consumer [section 0 example].
+- Retire 0xe818490 (fence wait + deferred-release drain; was mislabelled "per-view setup", corrected oc_U-EN1e) (called three times inside submit [6t]); frame begin, descriptor/upload ring begin, clear/RT transitions surround the per-draw consumer [section 0 example].
 - Disk cache 0xe8feb10: shader/texture blobs are served from it; a replacement must consume or invalidate it consistently [B4].
 - D3D12 65-slot interface [6f; K-P5]: slot 6 Present, slot 60 reset, slot 59 shutdown, slot 7 TDR, slot 50 submit stats/timers, slot 26 CreateTexture, slot 22 CreateShader, slot 24 CreateProgram, slots 14/16/17 vertex/index buffer, slot 35 CreateFrameBuffer, slots 36-38 uniform, slot 30 readTexture.
 
@@ -1965,7 +1965,7 @@ Existing surfaces the replacement touches, with status.
 - 0xe82e230 submit (RendererContextD3D12, slot 50 stats/timers): hook target for submit takeover; submit takes Frame* in rdx [I per K-P6].
 - 0xe81dc60 PSO builder: decodes draw state to a D3D12 PSO desc [B4].
 - 0xe821120 draw executor: per-draw consumer; batched flush at 0xe81b720 [6ej] [V].
-- 0xe818490 per-view setup: called inside submit [6t] [I].
+- 0xe818490 retire (fence SetEventOnCompletion + WaitForSingleObjectEx INFINITE, deferred-release drain, ring pop): called at the 3 submit sites [V, oc_U-EN1e]; the earlier "per-view setup" label was wrong.
 - 0xe8feb10 disk cache: shader/texture blob cache [B4] — pending integration.
 - 0x66d9af0 BatchActor extractor: actor-to-draw source; D1+ dossier [6u].
 - 0x55f1450 VV giant function (VibrantVisualsFrameRenderer builder) [L6] [I].

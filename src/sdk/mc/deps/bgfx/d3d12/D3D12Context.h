@@ -13,8 +13,9 @@ struct D3D12Rvas {
     static constexpr uintptr_t kDrawExecutorWrapper = 0xE83C390; // [I]
     static constexpr uintptr_t kDrawExecutor = 0xE821120;    // [V] item loop; matrix cache 6dq
     static constexpr uintptr_t kPsoBuilder = 0xE81E860;      // [V] key mask 0x0707007FFFFFF0FF
-    static constexpr uintptr_t kResetHandler = 0xE81A610;    // [V] slot 60 (RTX 0xE83EC70)
-    static constexpr uintptr_t kDeviceLostHandler = 0xE8102B0; // [I] slot 7: TDR/device-lost with DRED report
+    static constexpr uintptr_t kShutdownHandler = 0xE80DEC0;    // [V] slot 59 shutdown/resetResources (RTX 0xE83E980)
+    static constexpr uintptr_t kResetHandler = 0xE81A610;       // [V] slot 60 (RTX 0xE83EC70)
+    static constexpr uintptr_t kDeviceLostHandler = 0xE8102B0;  // [I] slot 7: TDR/device-lost with DRED report
     static constexpr uintptr_t kInit = 0xE807FF0;            // [V] slot 58 ("d3d12.dll")
     // Slots 42-45 (M1c, 1.26.62.01). [V RVA/slots] Semantics partially reversed; see docs/functions/0xe817cf0.md..0xe8189c0.md.
     static constexpr uintptr_t kSlot42 = 0xE817CF0;          // [V] cmd byte 21: per-context uniform/value alloc+store + handle-map tail helper

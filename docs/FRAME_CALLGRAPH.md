@@ -17,9 +17,9 @@ All RVAs are 1.26.62.01 unless noted. Tags: [V] read in the disassembly, [I] inf
 | A3d | GraphicsTasks Execute 0xc25fc50 | D2 | A3c, Render lambda 0xc267200 | `GraphicsTasks*` (+0x140 context) | runs task runner then **bgfx frame() 0xbc65800** [V] |
 | A4 | bgfx `Context::frame(capture)` 0xbc65800 | D2 | A3d (also 0xbc660a0 shutdown, 0xbc63c80) | `(Context*, flags edx)` | writes present record into surface tail block, waits N-1 on sem ctx+0x100, copies timing, calls swap 0xbc66de0 [V] |
 | A4a | Swap 0xbc66de0 | D2 | A4 | `Context*` | memcpy view remap (0x200), view structs (0x14000), view flags (0x100) into the submit Frame; drains destroy queues; ++Frame+0xE746D8 [V] |
-| A5 | Frame renderer lambda 0x67c9c20 ("Frame renderer - Frame") | D1 | task system (vtable at .rdata 0xf2beb90) [I]; not a direct call | closure `rsi`: Context at `[[rsi+0x20]]`, DFR at `[rsi+0x10]+0x268` | sets up 7 resource sets, then calls A6 with an EMPTY names vector [V 6ep] |
-| A6 | `BgfxContext::endFrame` 0xc270460 | D2 | A5 at 0x67ca3cd | `(BgfxContext*, DragonFrameResources&, Declarator&, IntraFrameAllocator&, vector<HashedString>&& (empty))` | |
-| A7 | Frame-graph generate 0xc273420 | D1 | A6 | `(S* {ctx+0x38,+0x40/+0x48,+0x50,IFA}, out, Declarator, names)` | per-pass loop 0xc277e8c..0xc2793fe; ordering stage skipped (names empty); stable_sort 0xc280ca0/0xc280010 on key +0x78 [V] |
+| A5 | Frame renderer lambda 0x67c9c20 ("Frame renderer - Frame") | D2 | task system via vtable slot 0 of .rdata vtable 0xf2beb90 [V]; not a direct call; dispatch mechanism [I] | closure `rsi`: Context at `[[rsi+0x20]]`, DFR at `[rsi+0x10]+0x268` | sets up 7 resource sets, then calls A6 at 0x67ca3cd with rcx=bgfxCtx, rdx=DFR, r8=Declarator, r9=allocator; names vector EMPTY [V]; dossier docs/functions/67c9c20.md |
+| A6 | `BgfxContext::endFrame` 0xc270460 | D2 | A5 at 0x67ca3cd | `(BgfxContext*, DragonFrameResources&, Declarator&, IntraFrameAllocator&, vector<HashedString>&& (empty))` | calls A7 at 0xc270521 then A8 at 0xc270554 [V] |
+| A7 | Frame-graph generate/encode 0xc273420 | D2 | A6 at 0xc270521 | `(S* {ctx+0x38,+0x40/+0x48,+0x50,IFA}, out, Declarator, names)` | per-pass loop 0xc277e8c..0xc2793fe; ordering stage skipped (names empty); stable_sort 0xc280ca0/0xc280010 on key +0x78 [V]; dossier docs/functions/c273420.md (innermost dep sub-steps callee-delegated [I]) |
 | A8 | Task dispatch 0xe9002e0 | D2 | A6 | `(TaskList*, args)` | TaskList of 0x80-byte entries (18 in a sampled world frame); registers kind-1 tasks into DFR+0x298/+0x2A0 [V live+static] |
 | A9 | Pass task bodies (object+0x70 std::function) | D0/D1 | A8 via vtbl | per-task `{obj, ctrl, kind, name}` | e.g. Scene/HUD per-view setup 0x568CD90 writes view rect/matrices/sort mode [V static] |
 | A10 | `Encoder::submit` family 0xbc60740 (+variants 0xbc61140, 0xbc61560, 0xbc618e0 = 6cr values +0xC00) | D2 | extractors and pass bodies (callers 0x569a3a0, 0x56ad350, 0x56ad810, 0xbcc39b0..) | `(Encoder*, viewId, program, occlusionQuery, depth, preserveState)` | allocates draw slot (CAS Frame+0xDC57E8), writes key/header/0x540 RenderDraw [V] |
@@ -31,7 +31,7 @@ All RVAs are 1.26.62.01 unless noted. Tags: [V] read in the disassembly, [I] inf
 |---|---|---|---|---|---|
 | B1 | Thread proc 0xbc65720 | D2 | created by 0xbc63690 ("bgfx - renderer backend thread") | `Context*` | loops `renderFrame(5000)` until Exiting [V] |
 | B2 | `Context::renderFrame(msecs)` 0xbc63150 | D2 | B1 (and 0xbc63060, swap 0xbc66de0 in single-thread mode) | `(Context*, msecs)` | order of calls: device-reset notifications -> sem wait ctx+0x80 -> 0xbc68840 -> cmdPre exec -> submit -> cmdPost exec -> sem post ctx+0x100 [V] |
-| B3 | 0xbc68840 | D1 | B2 at 0xbc63340 | `Context*` | block of 9 memset+call groups; render-thread frame prep [?] |
+| B3 | Render-thread begin/init step 0xbc68840 | D2 | B2 at 0xbc63340 (+B4) | `Context*` | TLS render-thread identity vs magic 0x78666762 [V]; surface wait table + call 0xEBDBC90 [V]; dossier docs/functions/bc68840.md |
 | B4 | Command interpreter 0xbc68e40 | D2 | B2 (cmdPre at 0xbc6337b, cmdPost at 0xbc633c4) | `(Context*, CommandBuffer*)` | 40-entry jump table (0xf449638) -> RendererContext virtuals (createTexture = slot 26 etc.) [V] |
 | B5 | Renderer slot 50 `submit` | D2 | B2 at 0xbc633a8 (`[rax+0x190]`) | `(RendererContextD3D12*, Frame*, ...)` | RTX override 0xe83d440 wraps the base 0xe82e230 [V] |
 | B5a | `RendererContextD3D12::submit` base 0xe82e230 | D2 | B5 override | `(this, Frame*)` | stage map 6t [V order] |
@@ -42,6 +42,7 @@ All RVAs are 1.26.62.01 unless noted. Tags: [V] read in the disassembly, [I] inf
 
 ## What the table still lacks (so M3b stays [~])
 
-- A1/A2 groups have no per-type dossier yet (M1d); A5 Frame renderer lambda, A7 generate and B3 are D1, A9 pass bodies are mostly D0.
-- The link from the task system to A5 (who invokes 0x67c9c20) and from B5a to the executor wrapper 0xe83c390 are [I]/[?].
+- A1/A2 groups have no per-type dossier yet (M1d; separate unit); A9 pass bodies mostly D0 (separate unit). A5/A7/B3 are D2 (dossiers in docs/functions/).
+- Link task system -> A5: RESOLVED [V]: `rdis callers 0x67c9c20` = zero direct callers; invoked via vtable slot 0 of .rdata vtable 0xf2beb90 (slot 0 = sub_67c9c20, push rbp, size 0x966); dispatch mechanism [I].
+- Link B5a submit -> executor wrapper 0xe83c390: RESOLVED negative [V]: submit body 0xe82e230 has no reference to 0xe83c390; at 0xe83159f submit does `lea r9,[0xE83C390]` then `0xe8315ad  call qword ptr [0xF99FFA0]` (indirect dispatch via CFG thunk, rcx via [0x12adf808], rdx task object [rbp+0x1590], r9=&wrapper); `rdis callers 0xe83c390` = zero; wrapper's sole callee is 0xe821120 [V]. Executor runs as a dispatched job from submit, not submit's direct callee.
 - Frame-to-frame hand-off between thread A and B is by semaphores (ctx+0x80 "frame ready", ctx+0x100 "frame consumed") plus the Frame pair at ctx+0x1cfd0c0/+0x1cfd0c8 [V 6as].

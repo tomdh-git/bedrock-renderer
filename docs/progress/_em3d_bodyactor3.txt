@@ -1,0 +1,820 @@
+sub_66d16c0  [0x66d16c0..0x66d36c0)  size 0x2000  0 xrefs in
+
+loc_66d16c0:  ; from 66d16d1
+  66d16c0  mov r10,[rcx]                                 ; R a0+0x0
+  66d16c3  cmp [r10+0x28],r8                             ; R *(a0+0x0)+0x28
+  66d16c7  je short 0x66D16D5                            ; -> loc_66d16d5
+  66d16c9  add rcx,0x10                                  
+  66d16cd  add r9,0xFFFFFFFFFFFFFFF0                     
+  66d16d1  jne short 0x66D16C0                           ; -> loc_66d16c0
+  66d16d3  jmp short 0x66D170B                           ; -> loc_66d170b
+
+loc_66d16d5:  ; from 66d16c7
+  66d16d5  add rdx,rax                                   
+  66d16d8  cmp rcx,rdx                                   
+  66d16db  jae short 0x66D170B                           ; -> loc_66d170b
+  66d16dd  sub ecx,eax                                   
+  66d16df  shr ecx,4                                     
+  66d16e2  mov [rbp+0x4D0],cx                            
+  66d16e9  mov byte ptr [rbp+0x4D2],1                    
+  66d16f0  lea rdx,[rbp+0x4D0]                           
+  66d16f7  lea r8,[rbp+0x7E0]                            
+  66d16fe  lea rcx,[rbp+0xCE8]                           
+  66d1705  call 0x5679DB0                                ; -> sub_5679db0
+  66d170a  nop                                           
+
+loc_66d170b:  ; from 66d16d3, 66d16db
+  66d170b  mov rbx,[rbp+0xD90]                           
+  66d1712  test ebx,0x4000                               
+  66d1718  mov r14,[rbp+0xD78]                           
+  66d171f  je 0x66D17F9                                  ; -> loc_66d17f9
+  66d1725  mov eax,[0x129F8FD0]                          ; [data_129f8fd0]
+  66d172b  mov ecx,[0x128767C8]                          ; [data_128767c8]
+  66d1731  mov rdx,gs:[0x58]                             
+  66d173a  mov rcx,[rdx+rcx*8]                           
+  66d173e  cmp eax,[rcx+4]                               
+  66d1744  jg 0x66D67A9                                  ; -> sub_66d67a9
+  66d174a  movaps xmm0,[0xEF40DE0]                       ; [data_ef40de0]
+  66d1751  movaps [rbp+0xA50],xmm0                       
+  66d1758  mov qword ptr [rbp+0x7E0],1                   
+  66d1763  lea rax,[rbp+0xA50]                           
+  66d176a  mov [rbp+0x7E8],rax                           
+  66d1771  mov rax,[rbp+0xD18]                           
+  66d1778  movzx r8d,word ptr [rbp+0xD22]                
+  66d1780  mov edx,r8d                                   
+  66d1783  shl edx,4                                     
+  66d1786  mov rcx,rax                                   
+  66d1789  test r8d,r8d                                  
+  66d178c  je short 0x66D17B5                            ; -> loc_66d17b5
+  66d178e  mov r8,[0x129F8FC8]                           ; [data_129f8fc8]
+  66d1795  mov r9,rdx                                    
+  66d1798  mov rcx,rax                                   
+  66d179b  nop [rax+rax]                                 
+
+loc_66d17a0:  ; from 66d17b1
+  66d17a0  mov r10,[rcx]                                 
+  66d17a3  cmp [r10+0x28],r8                             
+  66d17a7  je short 0x66D17B5                            ; -> loc_66d17b5
+  66d17a9  add rcx,0x10                                  
+  66d17ad  add r9,0xFFFFFFFFFFFFFFF0                     
+  66d17b1  jne short 0x66D17A0                           ; -> loc_66d17a0
+  66d17b3  jmp short 0x66D17EB                           ; -> loc_66d17eb
+
+loc_66d17b5:  ; from 66d178c, 66d17a7
+  66d17b5  add rdx,rax                                   
+  66d17b8  cmp rcx,rdx                                   
+  66d17bb  jae short 0x66D17EB                           ; -> loc_66d17eb
+  66d17bd  sub ecx,eax                                   
+  66d17bf  shr ecx,4                                     
+  66d17c2  mov [rbp+0x4D0],cx                            
+  66d17c9  mov byte ptr [rbp+0x4D2],1                    
+  66d17d0  lea rdx,[rbp+0x4D0]                           
+  66d17d7  lea r8,[rbp+0x7E0]                            
+  66d17de  lea rcx,[rbp+0xCE8]                           
+  66d17e5  call 0x5679DB0                                ; -> sub_5679db0
+  66d17ea  nop                                           
+
+loc_66d17eb:  ; from 66d17b3, 66d17bb
+  66d17eb  mov rbx,[rbp+0xD90]                           
+  66d17f2  mov r14,[rbp+0xD78]                           
+
+loc_66d17f9:  ; from 66d171f
+  66d17f9  cmp byte ptr [r14+0x130],1                    
+  66d1801  mov r15,[rbp+0xE20]                           
+  66d1808  jne 0x66D189C                                 ; -> loc_66d189c
+  66d180e  mov eax,[0x129F8FE0]                          ; [data_129f8fe0]
+  66d1814  mov ecx,[0x128767C8]                          ; [data_128767c8]
+  66d181a  mov rdx,gs:[0x58]                             
+  66d1823  mov rcx,[rdx+rcx*8]                           
+  66d1827  cmp eax,[rcx+4]                               
+  66d182d  jg 0x66D681B                                  ; -> sub_66d681b
+  66d1833  mov rax,[r14+0x70]                            
+  66d1837  mov [rbp+0xA50],rax                           
+  66d183e  cmp rax,0xFFFFFFFFFFFFFFFF                    
+  66d1842  je 0x66D5F14                                  ; -> sub_66d5f14
+  66d1848  mov [rbp+0xA58],r14                           
+  66d184f  mov rax,[rbp+0xD18]                           
+  66d1856  movzx r8d,word ptr [rbp+0xD22]                
+  66d185e  mov edx,r8d                                   
+  66d1861  shl edx,4                                     
+  66d1864  mov rcx,rax                                   
+  66d1867  test r8d,r8d                                  
+  66d186a  je 0x66D193C                                  ; -> loc_66d193c
+  66d1870  mov r8,[0x129F8FD8]                           ; [data_129f8fd8]
+  66d1877  mov r9,rdx                                    
+  66d187a  mov rcx,rax                                   
+  66d187d  nop [rax]                                     
+
+loc_66d1880:  ; from 66d1895
+  66d1880  mov r10,[rcx]                                 
+  66d1883  cmp [r10+0x28],r8                             
+  66d1887  je 0x66D193C                                  ; -> loc_66d193c
+  66d188d  add rcx,0x10                                  
+  66d1891  add r9,0xFFFFFFFFFFFFFFF0                     
+  66d1895  jne short 0x66D1880                           ; -> loc_66d1880
+  66d1897  jmp 0x66D1972                                 ; -> loc_66d1972
+
+loc_66d189c:  ; from 66d1808
+  66d189c  cmp byte ptr [r15+0x118],1                    
+  66d18a4  jne 0x66D1CE2                                 ; -> loc_66d1ce2
+  66d18aa  mov eax,[0x129F9010]                          ; [data_129f9010]
+  66d18b0  mov ecx,[0x128767C8]                          ; [data_128767c8]
+  66d18b6  mov rdx,gs:[0x58]                             
+  66d18bf  mov rcx,[rdx+rcx*8]                           
+  66d18c3  cmp eax,[rcx+4]                               
+  66d18c9  jg 0x66D6B4F                                  ; -> sub_66d6b4f
+  66d18cf  mov rax,[r15+0x80]                            
+  66d18d6  mov [rbp+0xA50],rax                           
+  66d18dd  cmp rax,0xFFFFFFFFFFFFFFFF                    
+  66d18e1  je 0x66D5F14                                  ; -> sub_66d5f14
+  66d18e7  mov [rbp+0xA58],r15                           
+  66d18ee  mov rax,[rbp+0xD18]                           
+  66d18f5  movzx r8d,word ptr [rbp+0xD22]                
+  66d18fd  mov edx,r8d                                   
+  66d1900  shl edx,4                                     
+  66d1903  mov rcx,rax                                   
+  66d1906  test r8d,r8d                                  
+  66d1909  je 0x66D1B07                                  ; -> loc_66d1b07
+  66d190f  mov r8,[0x129F9008]                           ; [data_129f9008]
+  66d1916  mov r9,rdx                                    
+  66d1919  mov rcx,rax                                   
+  66d191c  nop [rax]                                     
+
+loc_66d1920:  ; from 66d1935
+  66d1920  mov r10,[rcx]                                 
+  66d1923  cmp [r10+0x28],r8                             
+  66d1927  je 0x66D1B07                                  ; -> loc_66d1b07
+  66d192d  add rcx,0x10                                  
+  66d1931  add r9,0xFFFFFFFFFFFFFFF0                     
+  66d1935  jne short 0x66D1920                           ; -> loc_66d1920
+  66d1937  jmp 0x66D1B3D                                 ; -> loc_66d1b3d
+
+loc_66d193c:  ; from 66d186a, 66d1887
+  66d193c  add rdx,rax                                   
+  66d193f  cmp rcx,rdx                                   
+  66d1942  jae short 0x66D1972                           ; -> loc_66d1972
+  66d1944  sub ecx,eax                                   
+  66d1946  shr ecx,4                                     
+  66d1949  mov [rbp+0x7E0],cx                            
+  66d1950  mov byte ptr [rbp+0x7E2],1                    
+  66d1957  lea rdx,[rbp+0x7E0]                           
+  66d195e  lea r8,[rbp+0xA50]                            
+  66d1965  lea rcx,[rbp+0xCE8]                           
+  66d196c  call 0x5679DB0                                ; -> sub_5679db0
+  66d1971  nop                                           
+
+loc_66d1972:  ; from 66d1897, 66d1942
+  66d1972  mov eax,[0x129F8FF0]                          ; [data_129f8ff0]
+  66d1978  mov ecx,[0x128767C8]                          ; [data_128767c8]
+  66d197e  mov rdx,gs:[0x58]                             
+  66d1987  mov rcx,[rdx+rcx*8]                           
+  66d198b  cmp eax,[rcx+4]                               
+  66d1991  jg 0x66D688D                                  ; -> sub_66d688d
+  66d1997  mov rcx,[rbp+0xD78]                           
+  66d199e  mov rax,[rcx+0xE8]                            
+  66d19a5  mov [rbp+0xA50],rax                           
+  66d19ac  cmp rax,0xFFFFFFFFFFFFFFFF                    
+  66d19b0  je 0x66D5F14                                  ; -> sub_66d5f14
+  66d19b6  lea rax,[rcx+0x78]                            
+  66d19ba  mov [rbp+0xA58],rax                           
+  66d19c1  mov rax,[rbp+0xD18]                           
+  66d19c8  movzx r8d,word ptr [rbp+0xD22]                
+  66d19d0  mov edx,r8d                                   
+  66d19d3  shl edx,4                                     
+  66d19d6  mov rcx,rax                                   
+  66d19d9  test r8d,r8d                                  
+  66d19dc  je short 0x66D1A05                            ; -> loc_66d1a05
+  66d19de  mov r8,[0x129F8FE8]                           ; [data_129f8fe8]
+  66d19e5  mov r9,rdx                                    
+  66d19e8  mov rcx,rax                                   
+  66d19eb  nop [rax+rax]                                 
+
+loc_66d19f0:  ; from 66d1a01
+  66d19f0  mov r10,[rcx]                                 
+  66d19f3  cmp [r10+0x28],r8                             
+  66d19f7  je short 0x66D1A05                            ; -> loc_66d1a05
+  66d19f9  add rcx,0x10                                  
+  66d19fd  add r9,0xFFFFFFFFFFFFFFF0                     
+  66d1a01  jne short 0x66D19F0                           ; -> loc_66d19f0
+  66d1a03  jmp short 0x66D1A3B                           ; -> loc_66d1a3b
+
+loc_66d1a05:  ; from 66d19dc, 66d19f7
+  66d1a05  add rdx,rax                                   
+  66d1a08  cmp rcx,rdx                                   
+  66d1a0b  jae short 0x66D1A3B                           ; -> loc_66d1a3b
+  66d1a0d  sub ecx,eax                                   
+  66d1a0f  shr ecx,4                                     
+  66d1a12  mov [rbp+0x7E0],cx                            
+  66d1a19  mov byte ptr [rbp+0x7E2],1                    
+  66d1a20  lea rdx,[rbp+0x7E0]                           
+  66d1a27  lea r8,[rbp+0xA50]                            
+  66d1a2e  lea rcx,[rbp+0xCE8]                           
+  66d1a35  call 0x5679DB0                                ; -> sub_5679db0
+  66d1a3a  nop                                           
+
+loc_66d1a3b:  ; from 66d1a03, 66d1a0b
+  66d1a3b  mov eax,[0x129F9000]                          ; [data_129f9000]
+  66d1a41  mov ecx,[0x128767C8]                          ; [data_128767c8]
+  66d1a47  mov rdx,gs:[0x58]                             
+  66d1a50  mov rcx,[rdx+rcx*8]                           
+  66d1a54  cmp eax,[rcx+4]                               
+  66d1a5a  jg 0x66D6971                                  ; -> sub_66d6971
+  66d1a60  mov rax,[rbp+0xD78]                           
+  66d1a67  add rax,0xF0                                  
+  66d1a6d  mov qword ptr [rbp+0xA50],4                   
+  66d1a78  mov [rbp+0xA58],rax                           
+  66d1a7f  mov rax,[rbp+0xD18]                           
+  66d1a86  movzx r8d,word ptr [rbp+0xD22]                
+  66d1a8e  mov edx,r8d                                   
+  66d1a91  shl edx,4                                     
+  66d1a94  mov rcx,rax                                   
+  66d1a97  test r8d,r8d                                  
+  66d1a9a  je short 0x66D1AC8                            ; -> loc_66d1ac8
+  66d1a9c  mov r8,[0x129F8FF8]                           ; [data_129f8ff8]
+  66d1aa3  mov r9,rdx                                    
+  66d1aa6  mov rcx,rax                                   
+  66d1aa9  nop [rax]                                     
+
+loc_66d1ab0:  ; from 66d1ac1
+  66d1ab0  mov r10,[rcx]                                 
+  66d1ab3  cmp [r10+0x28],r8                             
+  66d1ab7  je short 0x66D1AC8                            ; -> loc_66d1ac8
+  66d1ab9  add rcx,0x10                                  
+  66d1abd  add r9,0xFFFFFFFFFFFFFFF0                     
+  66d1ac1  jne short 0x66D1AB0                           ; -> loc_66d1ab0
+  66d1ac3  jmp 0x66D1CDB                                 ; -> loc_66d1cdb
+
+loc_66d1ac8:  ; from 66d1a9a, 66d1ab7
+  66d1ac8  add rdx,rax                                   
+  66d1acb  cmp rcx,rdx                                   
+  66d1ace  jae 0x66D1CDB                                 ; -> loc_66d1cdb
+  66d1ad4  sub ecx,eax                                   
+  66d1ad6  shr ecx,4                                     
+  66d1ad9  mov [rbp+0x7E0],cx                            
+  66d1ae0  mov byte ptr [rbp+0x7E2],1                    
+  66d1ae7  lea rdx,[rbp+0x7E0]                           
+  66d1aee  lea r8,[rbp+0xA50]                            
+  66d1af5  lea rcx,[rbp+0xCE8]                           
+  66d1afc  call 0x5679DB0                                ; -> sub_5679db0
+  66d1b01  nop                                           
+  66d1b02  jmp 0x66D1CDB                                 ; -> loc_66d1cdb
+
+loc_66d1b07:  ; from 66d1909, 66d1927
+  66d1b07  add rdx,rax                                   
+  66d1b0a  cmp rcx,rdx                                   
+  66d1b0d  jae short 0x66D1B3D                           ; -> loc_66d1b3d
+  66d1b0f  sub ecx,eax                                   
+  66d1b11  shr ecx,4                                     
+  66d1b14  mov [rbp+0x7E0],cx                            
+  66d1b1b  mov byte ptr [rbp+0x7E2],1                    
+  66d1b22  lea rdx,[rbp+0x7E0]                           
+  66d1b29  lea r8,[rbp+0xA50]                            
+  66d1b30  lea rcx,[rbp+0xCE8]                           
+  66d1b37  call 0x5679DB0                                ; -> sub_5679db0
+  66d1b3c  nop                                           
+
+loc_66d1b3d:  ; from 66d1937, 66d1b0d
+  66d1b3d  mov eax,[0x129F9020]                          ; [data_129f9020]
+  66d1b43  mov ecx,[0x128767C8]                          ; [data_128767c8]
+  66d1b49  mov rdx,gs:[0x58]                             
+  66d1b52  mov rcx,[rdx+rcx*8]                           
+  66d1b56  cmp eax,[rcx+4]                               
+  66d1b5c  jg 0x66D6BC1                                  ; -> sub_66d6bc1
+  66d1b62  mov rcx,[rbp+0xE20]                           
+  66d1b69  mov rax,[rcx+0x108]                           
+  66d1b70  mov [rbp+0xA50],rax                           
+  66d1b77  cmp rax,0xFFFFFFFFFFFFFFFF                    
+  66d1b7b  je 0x66D5F14                                  ; -> sub_66d5f14
+  66d1b81  lea rax,[rcx+0x88]                            
+  66d1b88  mov [rbp+0xA58],rax                           
+  66d1b8f  mov rax,[rbp+0xD18]                           
+  66d1b96  movzx r8d,word ptr [rbp+0xD22]                
+  66d1b9e  mov edx,r8d                                   
+  66d1ba1  shl edx,4                                     
+  66d1ba4  mov rcx,rax                                   
+  66d1ba7  test r8d,r8d                                  
+  66d1baa  je short 0x66D1BD5                            ; -> loc_66d1bd5
+  66d1bac  mov r8,[0x129F9018]                           ; [data_129f9018]
+  66d1bb3  mov r9,rdx                                    
+  66d1bb6  mov rcx,rax                                   
+  66d1bb9  nop [rax]                                     
+
+loc_66d1bc0:  ; from 66d1bd1
+  66d1bc0  mov r10,[rcx]                                 
+  66d1bc3  cmp [r10+0x28],r8                             
+  66d1bc7  je short 0x66D1BD5                            ; -> loc_66d1bd5
+  66d1bc9  add rcx,0x10                                  
+  66d1bcd  add r9,0xFFFFFFFFFFFFFFF0                     
+  66d1bd1  jne short 0x66D1BC0                           ; -> loc_66d1bc0
+  66d1bd3  jmp short 0x66D1C0B                           ; -> loc_66d1c0b
+
+loc_66d1bd5:  ; from 66d1baa, 66d1bc7
+  66d1bd5  add rdx,rax                                   
+  66d1bd8  cmp rcx,rdx                                   
+  66d1bdb  jae short 0x66D1C0B                           ; -> loc_66d1c0b
+  66d1bdd  sub ecx,eax                                   
+  66d1bdf  shr ecx,4                                     
+  66d1be2  mov [rbp+0x7E0],cx                            
+  66d1be9  mov byte ptr [rbp+0x7E2],1                    
+  66d1bf0  lea rdx,[rbp+0x7E0]                           
+  66d1bf7  lea r8,[rbp+0xA50]                            
+  66d1bfe  lea rcx,[rbp+0xCE8]                           
+  66d1c05  call 0x5679DB0                                ; -> sub_5679db0
+  66d1c0a  nop                                           
+
+loc_66d1c0b:  ; from 66d1bd3, 66d1bdb
+  66d1c0b  mov eax,[0x129F9030]                          ; [data_129f9030]
+  66d1c11  mov ecx,[0x128767C8]                          ; [data_128767c8]
+  66d1c17  mov rdx,gs:[0x58]                             
+  66d1c20  mov rcx,[rdx+rcx*8]                           
+  66d1c24  cmp eax,[rcx+4]                               
+  66d1c2a  jg 0x66D6C39                                  ; -> sub_66d6c39
+  66d1c30  mov rax,[rbp+0xE20]                           
+  66d1c37  movups xmm0,[rax+0x110]                       
+  66d1c3e  shufps xmm0,xmm0,0                            
+  66d1c42  movaps [rbp+0xA50],xmm0                       
+  66d1c49  mov qword ptr [rbp+0x7E0],1                   
+  66d1c54  lea rax,[rbp+0xA50]                           
+  66d1c5b  mov [rbp+0x7E8],rax                           
+  66d1c62  mov rax,[rbp+0xD18]                           
+  66d1c69  movzx r8d,word ptr [rbp+0xD22]                
+  66d1c71  mov edx,r8d                                   
+  66d1c74  shl edx,4                                     
+  66d1c77  mov rcx,rax                                   
+  66d1c7a  test r8d,r8d                                  
+  66d1c7d  je short 0x66D1CA5                            ; -> loc_66d1ca5
+  66d1c7f  mov r8,[0x129F9028]                           ; [data_129f9028]
+  66d1c86  mov r9,rdx                                    
+  66d1c89  mov rcx,rax                                   
+  66d1c8c  nop [rax]                                     
+
+loc_66d1c90:  ; from 66d1ca1
+  66d1c90  mov r10,[rcx]                                 
+  66d1c93  cmp [r10+0x28],r8                             
+  66d1c97  je short 0x66D1CA5                            ; -> loc_66d1ca5
+  66d1c99  add rcx,0x10                                  
+  66d1c9d  add r9,0xFFFFFFFFFFFFFFF0                     
+  66d1ca1  jne short 0x66D1C90                           ; -> loc_66d1c90
+  66d1ca3  jmp short 0x66D1CDB                           ; -> loc_66d1cdb
+
+loc_66d1ca5:  ; from 66d1c7d, 66d1c97
+  66d1ca5  add rdx,rax                                   
+  66d1ca8  cmp rcx,rdx                                   
+  66d1cab  jae short 0x66D1CDB                           ; -> loc_66d1cdb
+  66d1cad  sub ecx,eax                                   
+  66d1caf  shr ecx,4                                     
+  66d1cb2  mov [rbp+0x4D0],cx                            
+  66d1cb9  mov byte ptr [rbp+0x4D2],1                    
+  66d1cc0  lea rdx,[rbp+0x4D0]                           
+  66d1cc7  lea r8,[rbp+0x7E0]                            
+  66d1cce  lea rcx,[rbp+0xCE8]                           
+  66d1cd5  call 0x5679DB0                                ; -> sub_5679db0
+  66d1cda  nop                                           
+
+loc_66d1cdb:  ; from 66d1ac3, 66d1ace, 66d1b02, 66d1ca3, 66d1cab
+  66d1cdb  mov rbx,[rbp+0xD90]                           
+
+loc_66d1ce2:  ; from 66d18a4
+  66d1ce2  mov eax,[0x129F9040]                          ; [data_129f9040]
+  66d1ce8  mov ecx,[0x128767C8]                          ; [data_128767c8]
+  66d1cee  mov rdx,gs:[0x58]                             
+  66d1cf7  mov rcx,[rdx+rcx*8]                           
+  66d1cfb  cmp eax,[rcx+4]                               
+  66d1d01  jg 0x66D61DA                                  ; -> sub_66d61da
+  66d1d07  test ebx,0x1000                               
+  66d1d0d  jne short 0x66D1D78                           ; -> loc_66d1d78
+  66d1d0f  xorps xmm0,xmm0                               
+  66d1d12  movaps [rbp+0xA50],xmm0                       
+  66d1d19  mov qword ptr [rbp+0x7E0],1                   
+  66d1d24  lea rax,[rbp+0xA50]                           
+  66d1d2b  mov [rbp+0x7E8],rax                           
+  66d1d32  mov rax,[rbp+0xD18]                           
+  66d1d39  movzx r8d,word ptr [rbp+0xD22]                
+  66d1d41  mov edx,r8d                                   
+  66d1d44  shl edx,4                                     
+  66d1d47  mov rcx,rax                                   
+  66d1d4a  test r8d,r8d                                  
+  66d1d4d  je 0x66D1DE5                                  ; -> loc_66d1de5
+  66d1d53  mov r8,[0x129F9038]                           ; [data_129f9038]
+  66d1d5a  mov r9,rdx                                    
+  66d1d5d  mov rcx,rax                                   
+
+loc_66d1d60:  ; from 66d1d71
+  66d1d60  mov r10,[rcx]                                 
+  66d1d63  cmp [r10+0x28],r8                             
+  66d1d67  je short 0x66D1DE5                            ; -> loc_66d1de5
+  66d1d69  add rcx,0x10                                  
+  66d1d6d  add r9,0xFFFFFFFFFFFFFFF0                     
+  66d1d71  jne short 0x66D1D60                           ; -> loc_66d1d60
+  66d1d73  jmp 0x66D1E53                                 ; -> loc_66d1e53
+
+loc_66d1d78:  ; from 66d1d0d
+  66d1d78  movaps xmm0,[0xEF40DE0]                       ; [data_ef40de0]
+  66d1d7f  movaps [rbp+0xA50],xmm0                       
+  66d1d86  mov qword ptr [rbp+0x7E0],1                   
+  66d1d91  lea rax,[rbp+0xA50]                           
+  66d1d98  mov [rbp+0x7E8],rax                           
+  66d1d9f  mov rax,[rbp+0xD18]                           
+  66d1da6  movzx r8d,word ptr [rbp+0xD22]                
+  66d1dae  mov edx,r8d                                   
+  66d1db1  shl edx,4                                     
+  66d1db4  mov rcx,rax                                   
+  66d1db7  test r8d,r8d                                  
+  66d1dba  je short 0x66D1E1D                            ; -> loc_66d1e1d
+  66d1dbc  mov r8,[0x129F9038]                           ; [data_129f9038]
+  66d1dc3  mov r9,rdx                                    
+  66d1dc6  mov rcx,rax                                   
+  66d1dc9  nop [rax]                                     
+
+loc_66d1dd0:  ; from 66d1de1
+  66d1dd0  mov r10,[rcx]                                 
+  66d1dd3  cmp [r10+0x28],r8                             
+  66d1dd7  je short 0x66D1E1D                            ; -> loc_66d1e1d
+  66d1dd9  add rcx,0x10                                  
+  66d1ddd  add r9,0xFFFFFFFFFFFFFFF0                     
+  66d1de1  jne short 0x66D1DD0                           ; -> loc_66d1dd0
+  66d1de3  jmp short 0x66D1E53                           ; -> loc_66d1e53
+
+loc_66d1de5:  ; from 66d1d4d, 66d1d67
+  66d1de5  add rdx,rax                                   
+  66d1de8  cmp rcx,rdx                                   
+  66d1deb  jae short 0x66D1E53                           ; -> loc_66d1e53
+  66d1ded  sub ecx,eax                                   
+  66d1def  shr ecx,4                                     
+  66d1df2  mov [rbp+0x4D0],cx                            
+  66d1df9  mov byte ptr [rbp+0x4D2],1                    
+  66d1e00  lea rdx,[rbp+0x4D0]                           
+  66d1e07  lea r8,[rbp+0x7E0]                            
+  66d1e0e  lea rcx,[rbp+0xCE8]                           
+  66d1e15  call 0x5679DB0                                ; -> sub_5679db0
+  66d1e1a  nop                                           
+  66d1e1b  jmp short 0x66D1E53                           ; -> loc_66d1e53
+
+loc_66d1e1d:  ; from 66d1dba, 66d1dd7
+  66d1e1d  add rdx,rax                                   
+  66d1e20  cmp rcx,rdx                                   
+  66d1e23  jae short 0x66D1E53                           ; -> loc_66d1e53
+  66d1e25  sub ecx,eax                                   
+  66d1e27  shr ecx,4                                     
+  66d1e2a  mov [rbp+0x4D0],cx                            
+  66d1e31  mov byte ptr [rbp+0x4D2],1                    
+  66d1e38  lea rdx,[rbp+0x4D0]                           
+  66d1e3f  lea r8,[rbp+0x7E0]                            
+  66d1e46  lea rcx,[rbp+0xCE8]                           
+  66d1e4d  call 0x5679DB0                                ; -> sub_5679db0
+  66d1e52  nop                                           
+
+loc_66d1e53:  ; from 66d1d73, 66d1de3, 66d1deb, 66d1e1b, 66d1e23
+  66d1e53  mov eax,[0x129F9050]                          ; [data_129f9050]
+  66d1e59  mov ecx,[0x128767C8]                          ; [data_128767c8]
+  66d1e5f  mov rdx,gs:[0x58]                             
+  66d1e68  mov rcx,[rdx+rcx*8]                           
+  66d1e6c  cmp eax,[rcx+4]                               
+  66d1e72  jg 0x66D624C                                  ; -> sub_66d624c
+  66d1e78  mov eax,[0x129F9060]                          ; [data_129f9060]
+  66d1e7e  mov ecx,[0x128767C8]                          ; [data_128767c8]
+  66d1e84  mov rdx,gs:[0x58]                             
+  66d1e8d  mov rcx,[rdx+rcx*8]                           
+  66d1e91  cmp eax,[rcx+4]                               
+  66d1e97  jg 0x66D62BE                                  ; -> sub_66d62be
+  66d1e9d  mov eax,[0x129F9070]                          ; [data_129f9070]
+  66d1ea3  mov ecx,[0x128767C8]                          ; [data_128767c8]
+  66d1ea9  mov rdx,gs:[0x58]                             
+  66d1eb2  mov rcx,[rdx+rcx*8]                           
+  66d1eb6  cmp eax,[rcx+4]                               
+  66d1ebc  jg 0x66D6330                                  ; -> sub_66d6330
+  66d1ec2  mov eax,[0x129F9080]                          ; [data_129f9080]
+  66d1ec8  mov ecx,[0x128767C8]                          ; [data_128767c8]
+  66d1ece  mov rdx,gs:[0x58]                             
+  66d1ed7  mov rcx,[rdx+rcx*8]                           
+  66d1edb  cmp eax,[rcx+4]                               
+  66d1ee1  jg 0x66D63A2                                  ; -> sub_66d63a2
+  66d1ee7  mov rdx,[rdi]                                 
+  66d1eea  cmp byte ptr [rdx+0x174],1                    
+  66d1ef1  jne short 0x66D1F6C                           ; -> loc_66d1f6c
+  66d1ef3  movss xmm0,[rdx+0x164]                        
+  66d1efb  shufps xmm0,xmm0,0                            
+  66d1eff  movaps [rbp+0xA50],xmm0                       
+  66d1f06  mov qword ptr [rbp+0x7E0],1                   
+  66d1f11  lea rax,[rbp+0xA50]                           
+  66d1f18  mov [rbp+0x7E8],rax                           
+  66d1f1f  mov rax,[rbp+0xD18]                           
+  66d1f26  movzx r8d,word ptr [rbp+0xD22]                
+  66d1f2e  mov ecx,r8d                                   
+  66d1f31  shl ecx,4                                     
+  66d1f34  mov r9,rax                                    
+  66d1f37  test r8d,r8d                                  
+  66d1f3a  je 0x66D1FEF                                  ; -> loc_66d1fef
+  66d1f40  mov r10,[0x129F9048]                          ; [data_129f9048]
+  66d1f47  xor r9d,r9d                                   
+  66d1f4a  nop [rax+rax]                                 
+
+loc_66d1f50:  ; from 66d1f65
+  66d1f50  mov r11,[rax+r9]                              
+  66d1f54  cmp [r11+0x28],r10                            
+  66d1f58  je 0x66D1FEC                                  ; -> loc_66d1fec
+  66d1f5e  add r9,0x10                                   
+  66d1f62  cmp rcx,r9                                    
+  66d1f65  jne short 0x66D1F50                           ; -> loc_66d1f50
+  66d1f67  jmp 0x66D2041                                 ; -> loc_66d2041
+
+loc_66d1f6c:  ; from 66d1ef1
+  66d1f6c  mov rax,[rbp+0xD70]                           
+  66d1f73  movups xmm0,[rax+0x3E0]                       
+  66d1f7a  shufps xmm0,xmm0,0                            
+  66d1f7e  movaps [rbp+0xA50],xmm0                       
+  66d1f85  mov qword ptr [rbp+0x7E0],1                   
+  66d1f90  lea rax,[rbp+0xA50]                           
+  66d1f97  mov [rbp+0x7E8],rax                           
+  66d1f9e  mov rax,[rbp+0xD18]                           
+  66d1fa5  movzx edx,word ptr [rbp+0xD22]                
+  66d1fac  mov ecx,edx                                   
+  66d1fae  shl ecx,4                                     
+  66d1fb1  mov r8,rax                                    
+  66d1fb4  test edx,edx                                  
+  66d1fb6  je 0x66D20AF                                  ; -> loc_66d20af
+  66d1fbc  mov r9,[0x129F9048]                           ; [data_129f9048]
+  66d1fc3  xor r8d,r8d                                   
+  66d1fc6  nop [rax+rax]                                 
+
+loc_66d1fd0:  ; from 66d1fe5
+  66d1fd0  mov r10,[rax+r8]                              
+  66d1fd4  cmp [r10+0x28],r9                             
+  66d1fd8  je 0x66D20AC                                  ; -> loc_66d20ac
+  66d1fde  add r8,0x10                                   
+  66d1fe2  cmp rcx,r8                                    
+  66d1fe5  jne short 0x66D1FD0                           ; -> loc_66d1fd0
+  66d1fe7  jmp 0x66D20FC                                 ; -> loc_66d20fc
+
+loc_66d1fec:  ; from 66d1f58
+  66d1fec  add r9,rax                                    
+
+loc_66d1fef:  ; from 66d1f3a
+  66d1fef  lea r10,[rax+rcx]                             
+  66d1ff3  cmp r9,r10                                    
+  66d1ff6  jae short 0x66D2041                           ; -> loc_66d2041
+  66d1ff8  sub r9d,eax                                   
+  66d1ffb  shr r9d,4                                     
+  66d1fff  mov [rbp+0x4D0],r9w                           
+  66d2007  mov byte ptr [rbp+0x4D2],1                    
+  66d200e  lea rdx,[rbp+0x4D0]                           
+  66d2015  lea r8,[rbp+0x7E0]                            
+  66d201c  lea rcx,[rbp+0xCE8]                           
+  66d2023  call 0x5679DB0                                ; -> sub_5679db0
+  66d2028  nop                                           
+  66d2029  mov rdx,[rdi]                                 
+  66d202c  mov rax,[rbp+0xD18]                           
+  66d2033  movzx r8d,word ptr [rbp+0xD22]                
+  66d203b  mov ecx,r8d                                   
+  66d203e  shl ecx,4                                     
+
+loc_66d2041:  ; from 66d1f67, 66d1ff6
+  66d2041  movss xmm0,[rdx+0x168]                        
+  66d2049  shufps xmm0,xmm0,0                            
+  66d204d  movaps [rbp+0xA50],xmm0                       
+  66d2054  mov qword ptr [rbp+0x7E0],1                   
+  66d205f  lea r9,[rbp+0xA50]                            
+  66d2066  mov [rbp+0x7E8],r9                            
+  66d206d  mov r9,rax                                    
+  66d2070  test r8w,r8w                                  
+  66d2074  je 0x66D216F                                  ; -> loc_66d216f
+  66d207a  mov r10,[0x129F9058]                          ; [data_129f9058]
+  66d2081  xor r9d,r9d                                   
+  66d2084  nop [rax+rax]                                 
+
+loc_66d2090:  ; from 66d20a5
+  66d2090  mov r11,[rax+r9]                              
+  66d2094  cmp [r11+0x28],r10                            
+  66d2098  je 0x66D216C                                  ; -> loc_66d216c
+  66d209e  add r9,0x10                                   
+  66d20a2  cmp rcx,r9                                    
+  66d20a5  jne short 0x66D2090                           ; -> loc_66d2090
+  66d20a7  jmp 0x66D21C1                                 ; -> loc_66d21c1
+
+loc_66d20ac:  ; from 66d1fd8
+  66d20ac  add r8,rax                                    
+
+loc_66d20af:  ; from 66d1fb6
+  66d20af  lea r9,[rax+rcx]                              
+  66d20b3  cmp r8,r9                                     
+  66d20b6  jae short 0x66D20FC                           ; -> loc_66d20fc
+  66d20b8  sub r8d,eax                                   
+  66d20bb  shr r8d,4                                     
+  66d20bf  mov [rbp+0x4D0],r8w                           
+  66d20c7  mov byte ptr [rbp+0x4D2],1                    
+  66d20ce  lea rdx,[rbp+0x4D0]                           
+  66d20d5  lea r8,[rbp+0x7E0]                            
+  66d20dc  lea rcx,[rbp+0xCE8]                           
+  66d20e3  call 0x5679DB0                                ; -> sub_5679db0
+  66d20e8  nop                                           
+  66d20e9  mov rax,[rbp+0xD18]                           
+  66d20f0  movzx edx,word ptr [rbp+0xD22]                
+  66d20f7  mov ecx,edx                                   
+  66d20f9  shl ecx,4                                     
+
+loc_66d20fc:  ; from 66d1fe7, 66d20b6
+  66d20fc  mov r8,[rbp+0xD70]                            
+  66d2103  movups xmm0,[r8+0x3E4]                        
+  66d210b  shufps xmm0,xmm0,0                            
+  66d210f  movaps [rbp+0xA50],xmm0                       
+  66d2116  mov qword ptr [rbp+0x7E0],1                   
+  66d2121  lea r8,[rbp+0xA50]                            
+  66d2128  mov [rbp+0x7E8],r8                            
+  66d212f  mov r8,rax                                    
+  66d2132  test dx,dx                                    
+  66d2135  je 0x66D2234                                  ; -> loc_66d2234
+  66d213b  mov r9,[0x129F9058]                           ; [data_129f9058]
+  66d2142  xor r8d,r8d                                   
+  66d2145  nop [rax+rax]                                 
+
+loc_66d2150:  ; from 66d2165
+  66d2150  mov r10,[rax+r8]                              
+  66d2154  cmp [r10+0x28],r9                             
+  66d2158  je 0x66D2231                                  ; -> loc_66d2231
+  66d215e  add r8,0x10                                   
+  66d2162  cmp rcx,r8                                    
+  66d2165  jne short 0x66D2150                           ; -> loc_66d2150
+  66d2167  jmp 0x66D2281                                 ; -> loc_66d2281
+
+loc_66d216c:  ; from 66d2098
+  66d216c  add r9,rax                                    
+
+loc_66d216f:  ; from 66d2074
+  66d216f  lea r10,[rax+rcx]                             
+  66d2173  cmp r9,r10                                    
+  66d2176  jae short 0x66D21C1                           ; -> loc_66d21c1
+  66d2178  sub r9d,eax                                   
+  66d217b  shr r9d,4                                     
+  66d217f  mov [rbp+0x4D0],r9w                           
+  66d2187  mov byte ptr [rbp+0x4D2],1                    
+  66d218e  lea rdx,[rbp+0x4D0]                           
+  66d2195  lea r8,[rbp+0x7E0]                            
+  66d219c  lea rcx,[rbp+0xCE8]                           
+  66d21a3  call 0x5679DB0                                ; -> sub_5679db0
+  66d21a8  nop                                           
+  66d21a9  mov rdx,[rdi]                                 
+  66d21ac  mov rax,[rbp+0xD18]                           
+  66d21b3  movzx r8d,word ptr [rbp+0xD22]                
+  66d21bb  mov ecx,r8d                                   
+  66d21be  shl ecx,4                                     
+
+loc_66d21c1:  ; from 66d20a7, 66d2176
+  66d21c1  movss xmm0,[rdx+0x16C]                        
+  66d21c9  shufps xmm0,xmm0,0                            
+  66d21cd  movaps [rbp+0xA50],xmm0                       
+  66d21d4  mov qword ptr [rbp+0x7E0],1                   
+  66d21df  lea r9,[rbp+0xA50]                            
+  66d21e6  mov [rbp+0x7E8],r9                            
+  66d21ed  mov r9,rax                                    
+  66d21f0  test r8w,r8w                                  
+  66d21f4  je 0x66D22F3                                  ; -> loc_66d22f3
+  66d21fa  mov r10,[0x129F9068]                          ; [data_129f9068]
+  66d2201  xor r9d,r9d                                   
+  66d2204  nop [rax+rax]                                 
+
+loc_66d2210:  ; from 66d2225
+  66d2210  mov r11,[rax+r9]                              
+  66d2214  cmp [r11+0x28],r10                            
+  66d2218  je 0x66D22F0                                  ; -> loc_66d22f0
+  66d221e  add r9,0x10                                   
+  66d2222  cmp rcx,r9                                    
+  66d2225  jne short 0x66D2210                           ; -> loc_66d2210
+  66d2227  mov r8w,1                                     
+  66d222c  jmp 0x66D2345                                 ; -> loc_66d2345
+
+loc_66d2231:  ; from 66d2158
+  66d2231  add r8,rax                                    
+
+loc_66d2234:  ; from 66d2135
+  66d2234  lea r9,[rax+rcx]                              
+  66d2238  cmp r8,r9                                     
+  66d223b  jae short 0x66D2281                           ; -> loc_66d2281
+  66d223d  sub r8d,eax                                   
+  66d2240  shr r8d,4                                     
+  66d2244  mov [rbp+0x4D0],r8w                           
+  66d224c  mov byte ptr [rbp+0x4D2],1                    
+  66d2253  lea rdx,[rbp+0x4D0]                           
+  66d225a  lea r8,[rbp+0x7E0]                            
+  66d2261  lea rcx,[rbp+0xCE8]                           
+  66d2268  call 0x5679DB0                                ; -> sub_5679db0
+  66d226d  nop                                           
+  66d226e  mov rax,[rbp+0xD18]                           
+  66d2275  movzx edx,word ptr [rbp+0xD22]                
+  66d227c  mov ecx,edx                                   
+  66d227e  shl ecx,4                                     
+
+loc_66d2281:  ; from 66d2167, 66d223b
+  66d2281  mov r8,[rbp+0xD70]                            
+  66d2288  movups xmm0,[r8+0x3E8]                        
+  66d2290  shufps xmm0,xmm0,0                            
+  66d2294  movaps [rbp+0xA50],xmm0                       
+  66d229b  mov qword ptr [rbp+0x7E0],1                   
+  66d22a6  lea r8,[rbp+0xA50]                            
+  66d22ad  mov [rbp+0x7E8],r8                            
+  66d22b4  mov r8,rax                                    
+  66d22b7  test dx,dx                                    
+  66d22ba  je 0x66D23EA                                  ; -> loc_66d23ea
+  66d22c0  mov r9,[0x129F9068]                           ; [data_129f9068]
+  66d22c7  xor r8d,r8d                                   
+  66d22ca  nop [rax+rax]                                 
+
+loc_66d22d0:  ; from 66d22e5
+  66d22d0  mov r10,[rax+r8]                              
+  66d22d4  cmp [r10+0x28],r9                             
+  66d22d8  je 0x66D23E7                                  ; -> loc_66d23e7
+  66d22de  add r8,0x10                                   
+  66d22e2  cmp rcx,r8                                    
+  66d22e5  jne short 0x66D22D0                           ; -> loc_66d22d0
+  66d22e7  mov dx,1                                      
+  66d22eb  jmp 0x66D2437                                 ; -> loc_66d2437
+
+loc_66d22f0:  ; from 66d2218
+  66d22f0  add r9,rax                                    
+
+loc_66d22f3:  ; from 66d21f4
+  66d22f3  lea r10,[rax+rcx]                             
+  66d22f7  cmp r9,r10                                    
+  66d22fa  jae short 0x66D2345                           ; -> loc_66d2345
+  66d22fc  sub r9d,eax                                   
+  66d22ff  shr r9d,4                                     
+  66d2303  mov [rbp+0x4D0],r9w                           
+  66d230b  mov byte ptr [rbp+0x4D2],1                    
+  66d2312  lea rdx,[rbp+0x4D0]                           
+  66d2319  lea r8,[rbp+0x7E0]                            
+  66d2320  lea rcx,[rbp+0xCE8]                           
+  66d2327  call 0x5679DB0                                ; -> sub_5679db0
+  66d232c  nop                                           
+  66d232d  mov rdx,[rdi]                                 
+  66d2330  mov rax,[rbp+0xD18]                           
+  66d2337  movzx r8d,word ptr [rbp+0xD22]                
+  66d233f  mov ecx,r8d                                   
+  66d2342  shl ecx,4                                     
+
+loc_66d2345:  ; from 66d222c, 66d22fa
+  66d2345  movss xmm0,[rdx+0x170]                        
+  66d234d  shufps xmm0,xmm0,0                            
+  66d2351  movaps [rbp+0xA50],xmm0                       
+  66d2358  mov qword ptr [rbp+0x7E0],1                   
+  66d2363  lea rdx,[rbp+0xA50]                           
+  66d236a  mov [rbp+0x7E8],rdx                           
+  66d2371  mov rdx,rax                                   
+  66d2374  test r8w,r8w                                  
+  66d2378  je short 0x66D23A8                            ; -> loc_66d23a8
+  66d237a  mov r8,[0x129F9078]                           ; [data_129f9078]
+  66d2381  mov r9,rcx                                    
+  66d2384  mov rdx,rax                                   
+  66d2387  nop [rax+rax]                                 
+
+loc_66d2390:  ; from 66d23a1
+  66d2390  mov r10,[rdx]                                 
+  66d2393  cmp [r10+0x28],r8                             
+  66d2397  je short 0x66D23A8                            ; -> loc_66d23a8
+  66d2399  add rdx,0x10                                  
+  66d239d  add r9,0xFFFFFFFFFFFFFFF0                     
+  66d23a1  jne short 0x66D2390                           ; -> loc_66d2390
+  66d23a3  jmp 0x66D24CE                                 ; -> loc_66d24ce
+
+loc_66d23a8:  ; from 66d2378, 66d2397
+  66d23a8  add rcx,rax                                   
+  66d23ab  cmp rdx,rcx                                   
+  66d23ae  jae 0x66D24CE                                 ; -> loc_66d24ce
+  66d23b4  sub edx,eax                                   
+  66d23b6  shr edx,4                                     
+  66d23b9  mov [rbp+0x4D0],dx                            
+  66d23c0  mov byte ptr [rbp+0x4D2],1                    
+  66d23c7  lea rdx,[rbp+0x4D0]                           
+  66d23ce  lea r8,[rbp+0x7E0]                            
+  66d23d5  lea rcx,[rbp+0xCE8]                           
+  66d23dc  call 0x5679DB0                                ; -> sub_5679db0
+  66d23e1  nop                                           
+  66d23e2  jmp 0x66D24CE                                 ; -> loc_66d24ce
+
+loc_66d23e7:  ; from 66d22d8
+  66d23e7  add r8,rax                                    
+
+loc_66d23ea:  ; from 66d22ba
+  66d23ea  lea r9,[rax+rcx]                              
+  66d23ee  cmp r8,r9                                     
+  66d23f1  jae short 0x66D2437                           ; -> loc_66d2437
+  66d23f3  sub r8d,eax                                   
+  66d23f6  shr r8d,4                                     
+  66d23fa  mov [rbp+0x4D0],r8w                           
+  66d2402  mov byte ptr [rbp+0x4D2],1                    
+  66d2409  lea rdx,[rbp+0x4D0]                           
+  66d2410  lea r8,[rbp+0x7E0]                            
+  66d2417  lea rcx,[rbp+0xCE8]                           
+  66d241e  call 0x5679DB0                                ; -> sub_5679db0
+  66d2423  nop                                           
+  66d2424  mov rax,[rbp+0xD18]                           
+  66d242b  movzx edx,word ptr [rbp+0xD22]                
+  66d2432  mov ecx,edx                                   
+  66d2434  shl ecx,4                                     
+
+loc_66d2437:  ; from 66d22eb, 66d23f1
+  66d2437  mov r8,[rbp+0xD70]                            
+  66d243e  movups xmm0,[r8+0x3EC]                        
+  66d2446  shufps xmm0,xmm0,0                            
+  66d244a  movaps [rbp+0xA50],xmm0                       
+  66d2451  mov qword ptr [rbp+0x7E0],1                   
+  66d245c  lea r8,[rbp+0xA50]                            
+  ... (--max 700)

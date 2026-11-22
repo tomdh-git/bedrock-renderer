@@ -128,6 +128,13 @@
    {"value": "0x1003f", "backs": "bind-state cache bucket hash polynomial"},
    {"value": "0x68", "backs": "RenderDraw::depthBias"},
    {"value": "0x70", "backs": "RenderDraw::depthBiasClamp"},
+   {"value": "0x40", "backs": "RenderDrawHeader startIndex (+0x40) -> indexed record StartIndexLocation +0x78"},
+   {"value": "0x44", "backs": "RenderDrawHeader numIndices (+0x44) -> indexed record IndexCountPerInstance +0x70"},
+   {"value": "0x48", "backs": "RenderDrawHeader indexStride (+0x48) -> IBV format 0x39 R16 when 2 else 0x2A R32 at record +0x5C"},
+   {"value": "0x54", "backs": "RenderDrawHeader numInstances (+0x54) -> record InstanceCount +0x74 indexed / +0x64 non-indexed"},
+   {"value": "0x5c", "backs": "indexed record IBV.Format (+0x5C)"},
+   {"value": "0x76", "backs": "RenderDrawHeader instanceDataBuffer handle (+0x76)"},
+   {"value": "0x78", "backs": "RenderDrawHeader indirectBuffer handle (+0x78); 0xFFFF = batched, else ExecuteIndirect"},
    {"value": "0x7a", "backs": "RenderDrawHeader::kHandle7A (occlusion query)"},
    {"value": "0x62", "backs": "RenderDrawHeader::kByte62 (submit flags)"},
    {"value": "0xb62178", "backs": "D3D12Tables::kPrograms"},
@@ -196,7 +203,10 @@
    {"value": "0x1148", "backs": "DrawBatcherOffsets::kStatDirect"},
    {"value": "0x1150", "backs": "DrawBatcherOffsets::kStatOverflow"},
    {"value": "0x115c", "backs": "DrawBatcherOffsets::kCapacity"},
-   {"value": "0x1164", "backs": "DrawBatcherOffsets::kIndirectEnabled"}
+   {"value": "0x1164", "backs": "DrawBatcherOffsets::kIndirectEnabled"},
+   {"value": "0x10", "backs": "DrawBatcher pending[kind] u32 (+0x10)"},
+   {"value": "0x18", "backs": "DrawBatcher records[kind] pointer (+0x18)"},
+   {"value": "0x88", "backs": "indexed draw batch record stride 0x88 (non-indexed record 0x70)"}
   ]},
   {"symbol": "FrameBuilder::visitSky", "asserts": [
    {"value": "0x548", "backs": "Atmosphere queue: Sky-pass vector at pass+0x548 (6ih)"},
@@ -231,6 +241,16 @@
     {"value": "0xd0", "backs": "Editor description +0xD0 u16 field read (word)"},
     {"value": "0x3c", "backs": "Editor description +0x3C byte field compared to 1"},
     {"value": "0x122", "backs": "Editor description +0x122 byte field compared to 1"}
+  ]},
+  {"symbol": "RendererContextD3D12::submit", "asserts": [
+   {"value": "0x1778", "backs": "submit stack frame size (stack probe)"},
+   {"value": "0x19f88", "backs": "renderer state; <5 skips submit work"},
+   {"value": "0xdc5808", "backs": "Frame backbuffer size {u32 width, u32 h}"},
+   {"value": "0xe746d8", "backs": "Frame counter u32, +1 per frame"},
+   {"value": "0x19f58", "backs": "RendererContext resource-table ptr"},
+   {"value": "0xdc57e8", "backs": "Frame item count (draw slot counter, cap 0xFFFE)"},
+   {"value": "0x14700", "backs": "Frame sort keys u64[]"},
+   {"value": "0x410", "backs": "per-view setup side table"}
   ]}
  ]
 }

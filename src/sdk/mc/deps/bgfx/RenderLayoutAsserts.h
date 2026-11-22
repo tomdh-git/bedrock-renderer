@@ -211,6 +211,16 @@ inline constexpr Constant kVisitEditor[] = {
     {0x3C, "Editor description +0x3C byte field compared to 1"},
     {0x122, "Editor description +0x122 byte field compared to 1"},
 };
+inline constexpr Constant kRendererContextD3D12Submit[] = {
+    {0x1778, "submit stack frame size (stack probe)"},
+    {0x19F88, "renderer state; <5 skips submit work"},
+    {0xDC5808, "Frame backbuffer size {u32 width, u32 h}"},
+    {0xE746D8, "Frame counter u32, +1 per frame"},
+    {0x19F58, "RendererContext resource-table ptr"},
+    {0xDC57E8, "Frame item count (draw slot counter, cap 0xFFFE)"},
+    {0x14700, "Frame sort keys u64[]"},
+    {0x410, "per-view setup side table"},
+};
 
 #define BS_RENDER_LAYOUT_FN(symbol, size, table) Function{symbol, size, table, sizeof(table) / sizeof(table[0])}
 inline constexpr Function kFunctions[] = {
@@ -234,6 +244,7 @@ inline constexpr Function kFunctions[] = {
     BS_RENDER_LAYOUT_FN("FrameBuilder::visitEffect", 0x6C7C, kVisitEffect),
     BS_RENDER_LAYOUT_FN("FrameBuilder::visitUI", 0x3B10, kVisitUI),
     BS_RENDER_LAYOUT_FN("FrameBuilder::visitEditor", 0x9F91, kVisitEditor),
+    BS_RENDER_LAYOUT_FN("RendererContextD3D12::submit", 0x4D91, kRendererContextD3D12Submit),
 };
 #undef BS_RENDER_LAYOUT_FN
 
