@@ -1,35 +1,42 @@
+# Unit U-EM1c — M1c Dossiers (D2): Context::init 0xbc63690 field map (verified)
+
 ## NEXT
-DONE field map for 0xbc660a0 store instructions verified; resource-table drain blocks not directly present in function body
+DONE
 
-# M1c Dossiers (D2) — 0xbc660a0 bgfx::Context::shutdown sequence: drain-block store field map
+## Source
+`tools/rdis/target/release/rdis.exe "C:/Users/Atomi/AppData/Local/LeviLauncher/Instances/1.26.62.01/Minecraft.Windows.exe" dis 0xbc63690 320` [V]. Exe: C:\Users\Atomi\AppData\Local\LeviLauncher\Instances\1.26.62.01\Minecraft.Windows.exe (1.26.62.01); RVAs are image-relative [V]. rdis reports `sub_bc63690 [0xbc63690..0xbc65690) size 0x2000 2 xrefs in` [V]; entry `mov rsi,rcx` at 0xbc63697 so `this`=rcx=rsi [V]; code ends at `jmp 0xEBCE430` (0xbc63b72) followed by int3 padding [V].
 
-## Scope
+## What this unit did
+Field-map of Context::init (0xbc63690): one annotated row per distinct `this`-relative field offset accessed, each with its verified `0xRVA  instr` proof line, size from the instruction, and R/W site. Sizes: movaps=16, qword=8, dword/mov=4, word=2, byte=1 [V]. No raw instruction dumps pasted; every instruction lives inside a table cell [V]. No shorthand used [V].
 
-Verified every non-stack store instruction in `0xbc660a0..0xbc66a4b` (size 0x9ab, D2 per census). The function emits pre/post-cmd opcodes (0x01, 0x1F, 0x1E, 0x1A), pushes handles into frame queues, releases specific handles, drains the handle array at `this+0x1EBF2BC`, cleans up view/encoder aux state, and destroys two element arrays via `sub_ebdbc90`. The task's "6 drain blocks" for resource tables (index `0x93A178/0x78`, vertex `0x9B2178/0x80`, framebuffer `ctx+0xC97698/0x68`, shader `0xAAA178/0xB8`, program `0xB62178/0xF8`, texture `0xBDE178/0xB8`, uniform/vertex layouts `ctx+0xC96198`) are NOT directly referenced in this function body — confirmed by searching the full listing: none of those offsets appear. They must be triggered indirectly via emitted post-commands or implemented in callees (`0xbc65800`, `0xbc732e0`, `0xbc79ed0`, `0xbc769c0`, vcall targets via `data_12ADF800`).
+## Field map — Context::init (0xbc63690); `this`=rsi; loop index rbx steps 0..0x14000 by 0x140 over 0x140-byte elements
+| offset | size | site | `0xRVA  instr` | meaning |
+| 0x1EBF19F | 1 | W | `0xbc6369a  and byte ptr [rcx+0x1EBF19F],0x7F` | clear flag bit 0x80 of field a0+0x1EBF19F [V] |
+| 0x1EBF2EF | 1 | W | `0xbc636a1  mov byte ptr [rcx+0x1EBF2EF],0` | zero byte field a0+0x1EBF2EF [V] |
+| 0x1EBF1D0 | 4 | W | `0xbc636a8  mov dword ptr [rcx+0x1EBF1D0],0` | zero dword field a0+0x1EBF1D0 [V] |
+| 0x1EBF1C8 | 8 | W | `0xbc636b7  mov [rsi+0x1EBF1C8],rax` | store call result to qword field a0+0x1EBF1C8 [V] |
+| 0x1CFD0C8 | 8 | R | `0xbc636be  mov rcx,[rsi+0x1CFD0C8]` | load qword field a0+0x1CFD0C8 into rcx [V] |
+| 0x1CFD0C0 | 8 | R | `0xbc636ca  mov rcx,[rsi+0x1CFD0C0]` | load qword field a0+0x1CFD0C0 into rcx [V] |
+| 0x1EBF2F1 | 1 | W | `0xbc6374a  mov [rsi+0x1EBF2F1],dil` | store sete bool to byte field a0+0x1EBF2F1 [V] |
+| 0x1EAAA60 | 16 | W | `0xbc6375e  movaps [rsi+0x1EAAA60],xmm0` | store 16 bytes from data_f441430 to a0+0x1EAAA60 [V] |
+| 0x1EBF080 | 16 | W | `0xbc63ac1  movaps [rsi+0x1EBF080],xmm0` | store 16 bytes from data_f0922e0 to a0+0x1EBF080 [V] |
+| 0x12AE1751 | 1 | R | `0xbc636d6  cmp byte ptr [0x12AE1751],1` | compare global byte data_12ae1751 with 1 [V] |
+| 0x128767C8 | 4 | R | `0xbc636df  mov eax,[0x128767C8]` | load global dword data_128767c8 (thread index) [V] |
+| 0x1EAB088 | 4 | W | `0xbc63942  mov dword ptr [rsi+rbx+0x1EAB088],0` | zero dword field of loop element rbx [V] |
+| 0x1EAB08C | 1 | W | `0xbc6394d  mov byte ptr [rsi+rbx+0x1EAB08C],0` | zero byte field of loop element rbx [V] |
+| 0x1EAB08E | 8 | W | `0xbc6393a  mov [rsi+rbx+0x1EAB08E],rdi` | store 0x1000000000000 to qword field of loop element rbx [V] |
+| 0x1EAB096 | 2 | W | `0xbc63930  mov word ptr [rsi+rbx+0x1EAB096],1` | store word 1 to field of loop element rbx [V] |
+| 0x1EAB0A0 | 4 | W | `0xbc639b7  mov dword ptr [rsi+rbx+0x1EAB0A0],0x3F800000` | store float 1.0f to field of loop element rbx [V] |
 
-## Field map: distinct store offsets in 0xbc660a0
+## Phase summary (from the same verified listing)
+1. 0xbc63690..0xbc63707: clear `this` flag/dword/byte fields, load two qword fields, call sub_ebdb740 store result to a0+0x1EBF1C8, branch on global byte data_12ae1751 [V].
+2. 0xbc63709..0xbc6374a: thread start — lea thread name "bgfx - renderer backend thread" (data_f602711), call sub_ebdb9b0 with thread proc sub_bc65720 [V].
+3. 0xbc6374a..0xbc63930: store sete bool to a0+0x1EBF2F1, write dword 0x78666762 ("bgfx") to TLS slot, then movaps-bulk zero/init 16-byte fields a0+0x1EAAA60..0x1EAAC30 from read-only constants [V].
+4. 0xbc63930..0xbc63ab4: loop rbx=0..0x14000 step 0x140 — per-element field init (word=1, qword=0x1000000000000, dwords=0, bytes=0, floats=1.0f 0x3F800000, memset via sub_ebce430) [V].
+5. 0xbc63aba..0xbc63b72: movaps store data_f0922e0 to a0+0x1EBF080..0x1EBF170, two memsets (0x1EA69E0 size 0x80, 0x1EA6A60 size 0x2000 fill 0xFF), tail-call sub_ebce430 [V].
 
-| offset | size | site | instr | meaning |
-|---|---|---|---|---|
-| 0x1EBF19E | 1 | 0xbc660c4 | `0xbc660c4  and byte ptr [rcx+0x1EBF19E],0xFB` | clear bit 2 in Context shutdown/state flags [V] |
-| 0xDC5818 | 4 | 0xbc660f6 | `0xbc660f6  inc dword ptr [rsi+0xDC5818]` | pre-cmd buffer cursor increment after emitting opcode 0x01 [V] |
-| 0xE05820 | 4 | 0xbc66148, 0xbc66164, 0xbc66204, 0xbc66220, 0xbc6631d, 0xbc6633a, 0xbc663e4, 0xbc66401, 0xbc664fb, 0xbc66518, 0xbc665c3, 0xbc665df, 0xbc6667f, 0xbc6669b, 0xbc66738 | `0xbc66148  mov [rbx+0xE05820],eax`; `0xbc66164  add dword ptr [rbx+0xE05820],2`; `0xbc66204  mov [rbx+0xE05820],eax`; `0xbc66220  add dword ptr [rbx+0xE05820],2`; `0xbc6631d  mov [r14+0xE05820],eax`; `0xbc6633a  add dword ptr [r14+0xE05820],2`; `0xbc663e4  mov [r14+0xE05820],eax`; `0xbc66401  add dword ptr [r14+0xE05820],2`; `0xbc664fb  mov [r14+0xE05820],eax`; `0xbc66518  add dword ptr [r14+0xE05820],2`; `0xbc665c3  mov [rbx+0xE05820],eax`; `0xbc665df  add dword ptr [rbx+0xE05820],2`; `0xbc6667f  mov [rbx+0xE05820],eax`; `0xbc6669b  add dword ptr [rbx+0xE05820],2`; `0xbc66738  inc dword ptr [rsi+0xE05820]` | post-cmd buffer cursor: set to aligned-even value then +2 after each opcode+payload append; +1 after opcode 0x1A [V] |
-| 0xE478AC | 2 | 0xbc6617d, 0xbc66354, 0xbc66532, 0xbc665f8 | `0xbc6617d  mov [rax+rdx*2+0xE478AC],cx`; `0xbc66354  mov [rax+rdx*2+0xE478AC],cx`; `0xbc66532  mov [rax+rdx*2+0xE478AC],cx`; `0xbc665f8  mov [rax+rdx*2+0xE478AC],cx` | push u16 handle into frame handle queue at `frame + count*2 + 0xE478AC` (opcode 0x1F path) [V] |
-| 0xE498AC | 2 | 0xbc66185, 0xbc6635c, 0xbc6653a, 0xbc66600 | `0xbc66185  inc word ptr [rax+0xE498AC]`; `0xbc6635c  inc word ptr [rax+0xE498AC]`; `0xbc6653a  inc word ptr [rax+0xE498AC]`; `0xbc66600  inc word ptr [rax+0xE498AC]` | increment u16 handle queue count at `frame+0xE498AC` after each 0x1F push [V] |
-| 0xE45828 | 2 | 0xbc66239, 0xbc6641b, 0xbc666b4 | `0xbc66239  mov [rax+rdx*2+0xE45828],cx`; `0xbc6641b  mov [rax+rdx*2+0xE45828],cx`; `0xbc666b4  mov [rax+rdx*2+0xE45828],cx` | push u16 handle into frame handle queue at `frame + count*2 + 0xE45828` (opcode 0x1E path) [V] |
-| 0xE47828 | 2 | 0xbc66241, 0xbc66423, 0xbc666bc | `0xbc66241  inc word ptr [rax+0xE47828]`; `0xbc66423  inc word ptr [rax+0xE47828]`; `0xbc666bc  inc word ptr [rax+0xE47828]` | increment u16 handle queue count at `frame+0xE47828` after each 0x1E push [V] |
-| 0x1EBF2BC | 2 | 0xbc664a3 | `0xbc664a3  mov word ptr [r15+rsi*2+0x1EBF2BC],0xFFFF` | bulk drain: store 0xFFFF sentinel back into handle slot after `sub_bc732e0` destroy, in loop over `this+0x1EBF2BC` indexed by `rsi*2` [V] |
-| 0x13D20 | 8 | 0xbc66816 | `0xbc66816  mov qword ptr [r15+0x13D20],0` | null out Context view/encoder container pointer after handle free-list teardown [V] |
-| 0x6F8 | 8 | 0xbc66798 | `0xbc66798  mov [rdi+0x6F8],rax` | store QPC/timestamp result from `sub_ebdb740` into view/encoder object at +0x6F8 [V] |
-| 0x680 | 8 | 0xbc66840 | `0xbc66840  mov qword ptr [rdi+0x680],0` | clear per-view chain head pointer at `view+0x680` during aux-structure drain [V] |
-| 0x4 | 4 | 0xbc6678c | `0xbc6678c  mov dword ptr [rsi+4],0` | reset per-view uniform buffer write cursor to 0 after appending u32 value 1 [V] |
-
-## 6 drain blocks — status
-
-The task's named resource-table drain targets (index/vertex/framebuffer/shader/program/texture/uniform/vertex-layout tables at bases `0x93A178`, `0x9B2178`, `ctx+0xC97698`, `0xAAA178`, `0xB62178`, `0xBDE178`, `ctx+0xC96198` with strides `0x78/0x80/0x68/0xB8/0xF8/0xB8`) do not appear as direct memory operands in `0xbc660a0`. The function's actual drain activity is: (a) command emission of opcodes 0x1F/0x1E/0x1A/0x21/0x22 into pre/post-cmd buffers, (b) handle queue pushes and releases, (c) bulk handle-array drain at `this+0x1EBF2BC`, (d) view/encoder aux cleanup at `this+0x13D18` + per-view stride `0x700`, (e) two array destructions via `sub_ebdbc90` at `this+0x1DE1310` and `this+0x1DDD2D0`. Mapping these to specific resource-table drains requires render-thread command-consumer tracing (callee `0xbc65800` frame/swap path, or `sub_ebce390` command-buffer append semantics). [UNVERIFIED: 0xbc660a0 which emitted post-command opcode triggers which resource-table drain on the render side]
-
-CLOSES? NO — the 6 resource-table drain blocks of 0xbc660a0 (index/vertex/framebuffer/shader/program/texture) are not directly observable in this function body; they require render-thread command-consumer tracing beyond static disassembly of 0xbc660a0. Other pending items (6cs header fields slots 39-45, generate per-pass loop, L4/L5 dossiers endFrame 0x66232b0/extractors) are separate.
+## CLOSES?
+NO — the M1c D2 item ("every structural function of L1-L3") is not met by what exists on disk now; this unit only documents Context::init 0xbc63690. Single blocking fact: pending decode remains for the 6cs header fields, slots 39-45, the 6 drain blocks of 0xbc660a0, the generate per-pass loop, and L4/L5 dossiers (endFrame 0x66232b0 + extractors); no precomputed input data files were provided for those offsets.
 
 ## TOOL REQUESTS
-
-None — used rdis dis 0xbc660a0 800 and existing docs/functions/0xbc660a0.md dossier.
+None

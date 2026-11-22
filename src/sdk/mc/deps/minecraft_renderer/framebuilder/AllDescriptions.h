@@ -1,0 +1,20 @@
+#pragma once
+// Compile check: includes every dedicated description header whose struct is not already defined in Descriptions.h.
+#include "BatchActorDescription.h"
+#include "ChunkGeometryDescription.h"
+#include "EditorBlockVolumeDescription.h"
+#include "FlameBillboardDescription.h"
+#include "GamefaceDescription.h"
+#include "ItemInHandDescription.h"
+#include "TransitioningVoxelVolumeDescription.h"
+#include "VoxelVolumeDescription.h"
+#include "WeatherDescription.h"
+#include "RenderEditorBlockVolumeBoundingBoxDescription.h"
+#include "RenderEditorBlockVolumeOutlineDescription.h"
+#include "RenderEditorGizmoHandleArrowDescription.h"
+#include "RenderEditorGizmoHandleCubeDescription.h"
+#include "RenderEditorGizmoHandlePaneDescription.h"
+#include "RenderEditorGizmoHandleRingDescription.h"
+#include "RenderEditorRenderPlaneDescription.h"
+#include "RenderEditorSelectionCursorDescription.h"
+// NOT included (struct already defined in Descriptions.h; needs a field-by-field reconcile): RenderBlockChangesDescription RenderBlockSelectionOverlayDescription RenderCloudsDescription RenderEnvironmentalTextDescription RenderFullscreenEffectDescription RenderLegacyCubemapDescription RenderLightAmbientDescription RenderLightDirectionalDescription RenderLightTag2Description RenderLightTag3Description RenderLightTag4Description RenderMeshFallbackDescription RenderNametagDescription RenderPlayerVisionDescription RenderShadowDescription RenderSkinnedMeshDescription RenderSkyAmbientSamplesDescription RenderSkyColorsDescription RenderSkyDescription RenderStarsDescription RenderUIHudIconDescription RenderUIMeshDescription RenderUITextDescription RenderVolumetricFogDescription
