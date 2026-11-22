@@ -1,0 +1,118 @@
+sub_5343930  [0x5343930..0x5345930)  size 0x2000  0 xrefs in
+  5343930  push rbp                                      
+  5343931  push rsi                                      
+  5343932  push rdi                                      
+  5343933  push rbx                                      
+  5343934  sub rsp,0x168                                 
+  534393b  lea rbp,[rsp+0x80]                            
+  5343943  movaps [rbp+0xD0],xmm6                        
+  534394a  mov qword ptr [rbp+0xC8],0xFFFFFFFFFFFFFFFE   
+  5343955  xorps xmm0,xmm0                               
+  5343958  movaps [rbp+0xB0],xmm0                        
+  534395f  mov rdx,[rcx+0x10]                            ; R a0+0x10
+  5343963  test rdx,rdx                                  
+  5343966  je 0x5343C97                                  ; -> loc_5343c97
+  534396c  mov eax,[rdx+8]                               ; R *(a0+0x10)+0x8
+  534396f  nop                                           
+
+loc_5343970:  ; from 534397e
+  5343970  test eax,eax                                  
+  5343972  je short 0x5343999                            ; -> loc_5343999
+  5343974  lea r8d,[rax+1]                               ; R *(*(a0+0x10)+0x8)+0x1
+  5343978  lock cmpxchg [rdx+8],r8d                      ; R *(a0+0x10)+0x8
+  534397e  jne short 0x5343970                           ; -> loc_5343970
+  5343980  movups xmm0,[rcx+8]                           ; R a0+0x8
+  5343984  mov rax,[rcx+8]                               ; R a0+0x8
+  5343988  movaps [rbp+0xB0],xmm0                        
+  534398f  test rax,rax                                  
+  5343992  jne short 0x53439A9                           ; -> loc_53439a9
+  5343994  jmp 0x5343C97                                 ; -> loc_5343c97
+
+loc_5343999:  ; from 5343972
+  5343999  mov rax,[rbp+0xB0]                            
+  53439a0  test rax,rax                                  
+  53439a3  je 0x5343C97                                  ; -> loc_5343c97
+
+loc_53439a9:  ; from 5343992
+  53439a9  mov byte ptr [rcx+0x190],1                    
+  53439b0  mov rdx,[rax+0x64C]                           
+  53439b7  mov [rcx+0x1CC],rdx                           
+  53439be  mov edx,[rax+0x654]                           
+  53439c4  mov [rcx+0x1D4],edx                           
+  53439ca  mov rdx,[rax+0x658]                           
+  53439d1  mov [rcx+0x1D8],rdx                           
+  53439d8  mov eax,[rax+0x660]                           
+  53439de  mov [rcx+0x1E0],eax                           
+  53439e4  movzx eax,byte ptr [rcx+0x1B0]                
+  53439eb  test al,1                                     
+  53439ed  jne 0x5343C97                                 ; -> loc_5343c97
+  53439f3  mov byte ptr [rcx+0x190],1                    
+  53439fa  mov rdx,[rcx+0x110]                           
+  5343a01  test rdx,rdx                                  
+  5343a04  je short 0x5343A13                            ; -> loc_5343a13
+  5343a06  mov rax,[rcx+0x108]                           
+  5343a0d  lock inc dword ptr [rdx+0xC]                  
+  5343a11  jmp short 0x5343A15                           ; -> loc_5343a15
+
+loc_5343a13:  ; from 5343a04
+  5343a13  xor eax,eax                                   
+
+loc_5343a15:  ; from 5343a11
+  5343a15  lea rcx,[0xF5A70C7]                           ; [data_f5a70c7] "levelCullerDistanceField task"
+  5343a1c  mov [rbp-0x10],rcx                            
+  5343a20  mov qword ptr [rbp-8],0x1D                    
+  5343a28  mov qword ptr [rbp+0x28],0                    
+  5343a30  xorps xmm0,xmm0                               
+  5343a33  movups [rbp],xmm0                             
+  5343a37  movups [rbp+0x10],xmm0                        
+  5343a3b  mov byte ptr [rbp+0x20],0                     
+  5343a3f  mov rcx,[rbp+0xB0]                            
+  5343a46  mov rcx,[rcx+0x998]                           
+  5343a4d  mov rsi,[rcx+0x3E8]                           
+  5343a54  movaps [rbp+0x90],xmm0                        
+  5343a5b  test rdx,rdx                                  
+  5343a5e  je short 0x5343A72                            ; -> loc_5343a72
+  5343a60  mov [rbp+0x90],rax                            
+  5343a67  mov [rbp+0x98],rdx                            
+  5343a6e  lock inc dword ptr [rdx+0xC]                  
+
+loc_5343a72:  ; from 5343a5e
+  5343a72  movaps [rbp+0xA0],xmm0                        
+  5343a79  mov rax,[rbp+0xB8]                            
+  5343a80  test rax,rax                                  
+  5343a83  mov [rbp+0xC0],rdx                            
+  5343a8a  je short 0x5343A99                            ; -> loc_5343a99
+  5343a8c  lock inc dword ptr [rax+8]                    
+  5343a90  mov rdi,[rbp+0xB8]                            
+  5343a97  jmp short 0x5343A9B                           ; -> loc_5343a9b
+
+loc_5343a99:  ; from 5343a8a
+  5343a99  xor edi,edi                                   
+
+loc_5343a9b:  ; from 5343a97
+  5343a9b  mov rbx,[rbp+0xB0]                            
+  5343aa2  mov [rbp+0xA0],rbx                            
+  5343aa9  mov [rbp+0xA8],rdi                            
+  5343ab0  xorps xmm6,xmm6                               
+  5343ab3  movaps [rbp+0x70],xmm6                        
+  5343ab7  mov rax,[rsi]                                 
+  5343aba  mov rax,[rax+0x40]                            
+  5343abe  mov rcx,rsi                                   
+  5343ac1  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  5343ac7  nop                                           
+  5343ac8  movaps xmm0,[rbp+0x90]                        
+  5343acf  movaps [rbp+0x90],xmm6                        
+  5343ad6  movaps [rbp+0xA0],xmm6                        
+  5343add  lea rcx,[0xF2485F8]                           ; [data_f2485f8]
+  5343ae4  mov [rbp-0x50],rcx                            
+  5343ae8  movups [rbp-0x48],xmm0                        
+  5343aec  movaps [rbp+0x40],xmm6                        
+  5343af0  mov [rbp-0x38],rbx                            
+  5343af4  mov [rbp-0x30],rdi                            
+  5343af8  movaps [rbp+0x50],xmm6                        
+  5343afc  movaps [rbp+0x30],xmm6                        
+  5343b00  movaps [rbp+0x70],xmm6                        
+  5343b04  lea rcx,[rbp-0x50]                            
+  5343b08  mov [rsp+0x28],rcx                            
+  5343b0d  mov [rsp+0x20],al                             
+  ... (--max 100)

@@ -1,0 +1,77 @@
+sub_4e39cb0  [0x4e39cb0..0x4e39de9)  size 0x139  2 xrefs in
+  4e39cb0  push rbp                                      
+  4e39cb1  push rsi                                      
+  4e39cb2  push rdi                                      
+  4e39cb3  push rbx                                      
+  4e39cb4  sub rsp,0xC8                                  
+  4e39cbb  lea rbp,[rsp+0x80]                            
+  4e39cc3  mov qword ptr [rbp+0x40],0xFFFFFFFFFFFFFFFE   
+  4e39ccb  mov rdi,rdx                                   
+  4e39cce  mov rsi,rcx                                   
+  4e39cd1  mov eax,[0x129C1E78]                          ; [data_129c1e78]
+  4e39cd7  mov ecx,[0x128767C8]                          ; [data_128767c8]
+  4e39cdd  mov rdx,gs:[0x58]                             
+  4e39ce6  mov rcx,[rdx+rcx*8]                           
+  4e39cea  cmp eax,[rcx+4]                               
+  4e39cf0  jg short 0x4E39D6A                            ; -> loc_4e39d6a
+
+loc_4e39cf2:  ; from 4e39d7d, 4e39de4
+  4e39cf2  lea rcx,[0x129C1D40]                          ; [data_129c1d40]
+  4e39cf9  mov [rbp+0x20],rcx                            
+  4e39cfd  mov byte ptr [rbp+0x28],0                     
+  4e39d01  lea rbx,[rbp+0x30]                            
+  4e39d05  mov qword ptr [rbp+0x38],0                    
+  4e39d0d  mov byte ptr [rbp-0x18],0                     
+  4e39d11  lea r8,[rbp-0x50]                             
+  4e39d15  mov rdx,rbx                                   
+  4e39d18  call 0x39A7D40                                ; -> sub_39a7d40
+  4e39d1d  mov [rbp+0x28],al                             
+  4e39d20  mov [rbp+0x10],rdi                            
+  4e39d24  mov byte ptr [rbp+0x18],0xA                   
+  4e39d28  mov rax,[rsi]                                 ; R a0+0x0
+  4e39d2b  mov rax,[rax+0x378]                           ; R *(a0+0x0)+0x378
+  4e39d32  lea rdx,[rbp+0x10]                            
+  4e39d36  mov rcx,rsi                                   
+  4e39d39  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  4e39d3f  nop                                           
+  4e39d40  cmp byte ptr [rbp+0x28],1                     
+  4e39d44  jne short 0x4E39D5E                           ; -> loc_4e39d5e
+  4e39d46  mov r8,[rbp+0x20]                             
+  4e39d4a  add r8,0x60                                   
+  4e39d4e  lea rcx,[0x1244FD00]                          ; [data_1244fd00]
+  4e39d55  mov rdx,rbx                                   
+  4e39d58  call 0x77A2500                                ; -> sub_77a2500
+  4e39d5d  nop                                           
+
+loc_4e39d5e:  ; from 4e39d44
+  4e39d5e  add rsp,0xC8                                  
+  4e39d65  pop rbx                                       
+  4e39d66  pop rdi                                       
+  4e39d67  pop rsi                                       
+  4e39d68  pop rbp                                       
+  4e39d69  ret                                           
+
+loc_4e39d6a:  ; from 4e39cf0
+  4e39d6a  lea rcx,[0x129C1E78]                          ; [data_129c1e78]
+  4e39d71  call 0xE938CB0                                ; -> sub_e938cb0
+  4e39d76  cmp dword ptr [0x129C1E78],0xFFFFFFFF         ; [data_129c1e78]
+  4e39d7d  jne 0x4E39CF2                                 ; -> loc_4e39cf2
+  4e39d83  lea rax,[0xF52E07A]                           ; [data_f52e07a] "FrameBuilder - Insert"
+  4e39d8a  mov [rbp],rax                                 
+  4e39d8e  mov qword ptr [rbp+8],0x15                    
+  4e39d96  movups xmm0,[0xF0BCBF8]                       ; [data_f0bcbf8]
+  4e39d9d  movaps [rbp-0x10],xmm0                        
+  4e39da1  lea rax,[0xF217490]                           ; [data_f217490]
+  4e39da8  mov [rsp+0x28],rax                            
+  4e39dad  mov dword ptr [rsp+0x20],0                    
+  4e39db5  lea rcx,[0x129C1D40]                          ; [data_129c1d40]
+  4e39dbc  lea rdx,[rbp-0x10]                            
+  4e39dc0  mov r9,rbp                                    
+  4e39dc3  mov r8b,1                                     
+  4e39dc6  call 0x2FE330                                 ; -> sub_2fe330
+  4e39dcb  nop                                           
+  4e39dcc  lea rcx,[0x4E8ECD0]                           ; [sub_4e8ecd0]
+  4e39dd3  call 0xE935740                                ; -> sub_e935740
+  4e39dd8  lea rcx,[0x129C1E78]                          ; [data_129c1e78]
+  4e39ddf  call 0xE938D70                                ; -> sub_e938d70
+  4e39de4  jmp 0x4E39CF2                                 ; -> loc_4e39cf2

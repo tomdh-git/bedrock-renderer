@@ -101,6 +101,8 @@ public:
 
 // Layout checked against the 1.26.62.01 binary (docs/BGFX_MAP.md 6ho): MeshData::clear 0x4df0440 empties the vectors at exactly these
 // offsets, resets mAABB / mUVAABB to FLT_MAX / -FLT_MAX and zeroes the 15 mFieldEnabled bytes; it is embedded at RenderControllerMesh+0x50.
+// std::vector is 24 bytes in the Release STL the game uses and 32 in the Debug STL (iterator proxy), so these offsets only hold in Release builds.
+#ifdef NDEBUG
 static_assert(sizeof(MeshData) == 0x160);
 static_assert(offsetof(MeshData, mPositions) == 0x08);
 static_assert(offsetof(MeshData, mNormals) == 0x20);
@@ -115,5 +117,6 @@ static_assert(offsetof(MeshData, mGeoType) == 0x110);
 static_assert(offsetof(MeshData, mAABB) == 0x128);
 static_assert(offsetof(MeshData, mUVAABB) == 0x140);
 static_assert(offsetof(MeshData, mFieldEnabled) == 0x150);
+#endif
 
 } // namespace mce

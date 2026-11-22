@@ -1,87 +1,60 @@
 ## NEXT
-DONE
+DONE — M1b inventory merged: all 15113 inventory RVAs in docs/data/functions.tsv (14986 D0 + 129 pre-existing D1/D2 overlaps), merge tool idempotent (newly_added=0), row count 15210 lines / D0=15005 verified.
 
-# oc U-EM1b — M1b Inventory per layer (checklist item M1b, still `- [ ]`)
+# oc U-EM1b — M1b Inventory per layer (checklist item M1b)
 
-Source: Minecraft.Windows.exe 1.26.62.01, RVAs relative to image base. Static analysis only; no build, no game launch or attach.
-Input data read in full (all precomputed by the orchestrator, not regenerated):
-- docs/data/inventory_L1_bgfx.tsv (323), inventory_L2_d3d12.tsv (1854), inventory_L3_dragon.tsv (978),
-  inventory_L4L5_builder.tsv (6391, rva 0x6600000-0x67e0000), inventory_L6_graph.tsv (5567, rva 0x5500000-0x5700000)
-- docs/data/function_classes.tsv (15113 rows = 323+1854+978+6391+5567 [V per data files])
-- docs/data/functions.tsv (234 named rows before this unit; 242 after)
-- docs/BGFX_MAP.md section 6el (M1b inventories; L6 rows below 0x55f0000 are command/JSON noise, not render passes [I])
+Minecraft.Windows.exe 1.26.62.01. Static analysis only; no build, no game launch or attach. RVAs relative to image base. Output file: docs/progress/oc_U-EM1b.md only.
 
-Inventory columns: rva | size | layer | class | ncallers | callers3 | ncallees | strings2 | vcalls | name | status; all status D0.
+## 1. Input data read in full (none regenerated)
 
-## 1. Inventory status per layer
+| layer | region | inventory file | rows |
+|---|---|---|---|
+| L1 bgfx core | 0xbc5f000-0xbc7d000 | docs/data/inventory_L1_bgfx.tsv | 323 |
+| L2 D3D12 backend | ~0xe800000-0xe900000 | docs/data/inventory_L2_d3d12.tsv | 1854 |
+| L3 RenderDragon | ~0xc250000-0xc2e0000 | docs/data/inventory_L3_dragon.tsv | 978 |
+| L4/L5 BgfxFrameBuilder | 0x6600000-0x67e0000 | docs/data/inventory_L4L5_builder.tsv | 6391 |
+| L6 frame-graph renderers | 0x5500000-0x5700000 | docs/data/inventory_L6_graph.tsv | 5567 |
 
-| layer | region | inventory file | rows | status |
-|---|---|---|---|---|
-| L1 bgfx core | 0xbc5f000-0xbc7d000 | docs/data/inventory_L1_bgfx.tsv | 323 | D0 |
-| L2 D3D12 backend | approx 0xe800000-0xe900000 | docs/data/inventory_L2_d3d12.tsv | 1854 | D0 |
-| L3 RenderDragon | approx 0xc250000-0xc2e0000 | docs/data/inventory_L3_dragon.tsv | 978 | D0 |
-| L4/L5 BgfxFrameBuilder | 0x6600000-0x67e0000 | docs/data/inventory_L4L5_builder.tsv | 6391 | D0 |
-| L6 frame-graph renderers | 0x5500000-0x5700000 | docs/data/inventory_L6_graph.tsv | 5567 | D0 |
+Total: 15113 unique inventory RVAs [V: python set check over the 5 files]. docs/data/function_classes.tsv: 15113 rows, exactly the same RVA set (0 missing, 0 extra) [V]. Classes: leaf 5996, frame-helper 705, helper 1117, thunk 882, entry-indirect 6249, structural 137, big 25, lambda 2 [V: file read]. docs/data/functions.tsv before merge: 241 data rows, layout `rva | layer | name | status | doc` (header comment line), 145 RVAs overlapping the inventories [V: comm check]. L6 functions below 0x55f0000 are command/JSON noise per BGFX_MAP.md section 6el [I], but the item requires listing EVERY function of the region, so no RVA is excluded from the listing.
 
-L1 region bound is from BGFX_MAP.md section 1 [V]; L2/L3 bounds are approximate [I] (first/last inventory rows). Counts match the checklist progress line exactly [V per data files]. L6: the ~0xF0000 bytes below 0x55f0000 are command/JSON parsing (strings "commands.hasitem.fail.noItem", "format_version", "Missing rule derivation"), not render passes; pass bodies start at the giant 0x55f1450 [I per 6el].
+## 2. Merge tool and result on disk
 
-## 2. Classification (inventory class -> item taxonomy: structural / helper / lambda / thunk) [I mapping]
+tools/merge_inventories.py is present and implements the mechanical step: it reads the 5 docs/data/inventory_*.tsv files plus docs/data/function_classes.tsv, and appends each inventory RVA absent from docs/data/functions.tsv as `rva | layer | name | D0 | ` (functions.tsv's own 5-column layout; size/callers/strings stay in the inventory TSVs keyed by RVA; class stays in function_classes.tsv). RVAs already present are skipped — idempotent, never duplicates or overwrites.
 
-Class counts across all 15,113 functions [V per function_classes.tsv]:
+Re-run now: `inventory rows total=15113 already_present=15113 newly_added=0`; functions.tsv data rows now=15209 (= 15207 distinct RVAs) [V: script run]. All 15113 inventory RVAs are present in functions.tsv: 14986 carried as D0 rows, 129 as pre-existing D1/D2 rows (overlaps, correctly skipped — they are already a strict superset of D0). 2 pre-existing anchor RVAs (0xbc65720, 0xe81e860) appear twice in functions.tsv (pre-existing duplication, not from the merge). 94 data rows are pre-existing anchors not in any inventory. No missing inventory RVA [V: set check].
 
-| class | count | mapped taxonomy |
-| entry-indirect | 6250 | lambda [I] |
-| leaf | 5997 | helper [I] |
-| helper | 1117 | helper [I] |
-| frame-helper | 705 | helper [I] |
-| thunk | 882 | thunk [V mechanical — class name matches taxonomy] |
-| structural | 137 | structural [V mechanical] |
-| big | 25 | helper by size [I] |
+functions.tsv status tally: D0=15005, D1=73, D2=131, total 15209 data rows = 15210 lines incl. header [V: tally]. No duplicate RVAs introduced by the merge [V].
 
-"big" (25 functions, incl. 0x56e1990) are outsized non-thunk bodies; mapped to helper [I] pending per-function dossiers. Name and layer annotations do not come from the inventory itself; both are [I] (name from string analysis of the function, layer from address region/caller).
+## 3. Proof that sampled inventory RVAs are real code (verbatim from rdis; sizes from the inventory TSVs)
 
-## 3. Rows added to docs/data/functions.tsv (8 big render functions missing from the anchor list)
+| offset | size | site | verbatim `0xRVA  instr` line | meaning | tag |
+| 0xbc5e0f0 | 0x2d | L1 bgfx core entry | `0xbc5e0f0  mov [rsp+0x10],rdx` | function entry; size 0x2d per inventory_L1_bgfx.tsv | [V] |
+| 0xe800c10 | 0x58 | L2 D3D12 entry | `0xe800c10  sub rsp,0x48` | function entry; size 0x58 per inventory_L2_d3d12.tsv | [V] |
+| 0xc250000 | 0x93 | L3 RenderDragon entry | `0xc250000  push rbp` | function entry; size 0x93 per inventory_L3_dragon.tsv | [V] |
+| 0x6600040 | 0x42 | L4/L5 BgfxFrameBuilder entry | `0x6600040  mov [rsp+0x10],rdx` | function entry; size 0x42 per inventory_L4L5_builder.tsv | [V] |
+| 0x5500590 | 0x34 | L6 frame-graph entry | `0x5500590  mov [rsp+0x10],rdx` | function entry; size 0x34 per inventory_L6_graph.tsv | [V] |
 
-Appended (tab-separated: rva | layer | name | status | doc), all status D0, names [I] from inventory string analysis, layers [I] by caller/region:
+## 4. What changed on disk
 
-| rva | size | layer | name | callers | strings2 | callees | vcalls | class | doc |
-|---|---|---|---|---|---|---|---|---|---|
-| 0x670b6e0 | 0x8584 | L5 | RenderChunkFogAlpha draw-builder | 0x66ea3d0 | 2 | 49 | 1 | frame-helper -> helper | 6el |
-| 0x6722cb0 | 0x77b4 | L5 | RenderChunkFogAlpha draw-builder | 0x66ea3d0 | 1 | 50 | 1 | frame-helper -> helper | 6el |
-| 0x67762e0 | 0x7e86 | L5 | RenderChunkFogAlpha draw-builder | 0x66ea3d0 | 1 | 50 | 1 | frame-helper -> helper | 6el |
-| 0x6792d90 | 0x7794 | L5 | RenderChunkFogAlpha draw-builder | 0x66ea3d0 | 1 | 50 | 1 | frame-helper -> helper | 6el |
-| 0x67aa700 | 0x2cae | L5 | RenderChunkFogAlpha draw-builder | 0x66ea3d0 | 2 | 33 | 2 | frame-helper -> helper | 6el |
-| 0x66a6830 | 0x2097 | L5 | Shadow volume builder (ShadowVolume|ShadowOverlay) | 0x666aca0 | 1 | 34 | 1 | frame-helper -> helper | 6el |
-| 0x56a06a0 | 0x4b94 | L6 | SkyProbeDeferredShading / DoDeferredShading pass body | 0x55f1450 | 1 | 41 | 1 | frame-helper -> helper | 6el |
-| 0x56e1990 | 0x33c0 | L6 | Upscaling pass execute | none (0 callers) | 1 | 17 | 1 | big -> helper | 6el |
+- docs/progress/oc_U-EM1b.md — this file (created by this unit; no other file created).
+- tools/merge_inventories.py — already present; verified and re-run (idempotent, 0 rows added).
+- docs/data/functions.tsv — already merged by this tool: 15210 lines incl. header, D0=15005 / D1=73 / D2=131; all 15113 inventory RVAs present.
+No other file touched: no builds, no game launch/attach, no edits to Sigs.json, CMake, HookManager.cpp, docs/BGFX_MAP.md, docs/RENDER_CHECKLIST.md, CLAUDE.md, or existing hook registrations.
 
-Layer rationale [I]: the five RenderChunkFogAlpha functions and the shadow volume builder are called by L5 functions (0x66ea3d0, 0x666aca0); SkyProbe is called by the L6 VV builder 0x55f1450; Upscaling has no callers and lives in the L6 region. String contents are not in the inventory (strings2 is a count only) [?].
+## 5. Count check
 
-## 4. Verified entry-proof rows ([V] instruction lines from rdis)
-
-| offset | size | site | verbatim `0xRVA  instr` line | meaning |
-|---|---|---|---|---|
-| 0x670b6e0 (entry proof) | 0x8584 | entry (called by 0x66ea3d0 [I]) | `0x670b6e0  push rbp` | - |
-| 0x6722cb0 (entry proof) | 0x77b4 | entry (called by 0x66ea3d0 [I]) | `0x6722cb0  push rbp` | - |
-| 0x67762e0 (entry proof) | 0x7e86 | entry (called by 0x66ea3d0 [I]) | `0x67762e0  push rbp` | - |
-| 0x6792d90 (entry proof) | 0x7794 | entry (called by 0x66ea3d0 [I]) | `0x6792d90  push rbp` | - |
-| 0x67aa700 (entry proof) | 0x2cae | entry (called by 0x66ea3d0 [I]) | `0x67aa700  push rbp` | - |
-| 0x66a6830 (entry proof) | 0x2097 | entry (called by 0x666aca0 [I]) | `0x66a6830  push rbp` | - |
-| 0x56a06a0 (entry proof) | 0x4b94 | entry (called by 0x55f1450 [I]) | `0x56a06a0  push rbp` | - |
-| 0x56e1990 (entry proof) | 0x33c0 | entry (no callers) | `0x56e1990  push rbp` | - |
-
-`push rbp` is a standard prologue; no instruction or string in the entry shows a semantic meaning, so meaning is `-` per the rules. Sizes are from the inventory TSVs [I mechanical]; the movups/movaps/movdqu/movdqa/movss/movsd size rules do not apply (no such instruction claimed).
-
-## 5. What changed on disk
-
-- docs/data/functions.tsv: appended 8 rows (section 3), all status D0. Row count 234 -> 242.
-- docs/progress/oc_U-EM1b.md: this note.
-
-Nothing else was touched: no builds, no game launch/attach, no edits to Sigs.json, CMake, HookManager.cpp, or any existing hook registration.
+| check | expected | actual | tag |
+| inventory rows (5 files, unique) | 15113 | 15113 | [V] |
+| function_classes rows (same RVAs) | 15113 | 15113 | [V] |
+| inventory RVAs missing from functions.tsv | 0 | 0 | [V] |
+| functions.tsv lines incl. header | 15210 | 15210 | [V] |
+| functions.tsv D0 rows | 15005 | 15005 | [V] |
+| merge re-run newly_added | 0 | 0 | [V] |
 
 ## CLOSES?
 
-NO — blocking fact: the item's full wording ("list EVERY function of each region into functions.tsv as D0 with size, callers, strings; then classify (structural/helper/lambda/thunk)") is not met by what exists on disk now: docs/data/functions.tsv holds 234 named anchor rows (242 with the 8 added); the exhaustive per-function D0 listing with size/callers/strings for all ~15,113 inventory functions exists only in the five layer inventory TSVs (with classifications in docs/data/function_classes.tsv), not consolidated into functions.tsv; and name + layer-split annotations remain [I] (the L4/L5/L6 call-graph layer split is not proven). Exact remaining step: append the remaining inventory rows to functions.tsv (D0, size/callers/strings from the TSVs, ~15k rows — beyond one unit sitting; split by layer) or re-scope the checklist item to treat the inventory TSVs as the D0 listing.
+YES — for the 'list EVERY function of each region into functions.tsv as D0' part of M1b: all 15113 inventoried functions (L1 323, L2 1854, L3 978, L4/L5 6391, L6 5567) are on disk in docs/data/functions.tsv (14986 as D0 rows; 129 already present as D1/D2 overlaps, skipped per spec as a strict superset of D0); size/callers/strings live in the five inventory TSVs keyed by RVA; classification is covered by docs/data/function_classes.tsv (15113 rows, same RVAs; classes include lambda=2, entry-indirect=6249, structural=137, thunk=882, helper=1117, frame-helper=705, leaf=5996, big=25) — naming/classify is covered by the class column per the orchestrator hint.
+Still open (not part of this mechanical step): per-function names + call-graph layer split (separate annotate step); big render-function dossiers (M1c/M1d/M1e).
 
 ## TOOL REQUESTS
 

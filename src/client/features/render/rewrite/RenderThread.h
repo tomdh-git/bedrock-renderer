@@ -38,8 +38,6 @@
 // entry 0xbc63060 (timeout 5000) -> renderFrame -> submit [V]; 0xc262000 has no direct
 // xrefs (indirect via the task queue), role/thread [I].
 
-#include <cstdint>
-#include <cstddef>
 
 namespace RenderThread {
 

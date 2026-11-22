@@ -1,0 +1,69 @@
+## NEXT
+DONE
+
+# U-ER6 — R6: LightAmbient / LightDirectional / Light tag 2 / tag 3 / tag 4 (Minecraft.Windows.exe 1.26.62.01)
+
+Goal: close R6 — tag value names, the group_visitors.md vs FrameBuilder.h LightGroupTag tag-name conflict, and the consumers (draining element readers) of pass+0x800 / +0x648 / +0x4A0 / +0x1D0. `pass` = per-thread value of ThreadLocalObject 0x5ABA5C0 (value at node+0x10); visitor cases call 0x5ABA5C0 and receive pass in rsi/rdi [V, carried from oc_U-ER6_r1..r81, verify_oc 83/83].
+
+Static analysis only; RVAs image-relative; exe never launched; every `0xRVA  instr` line copied verbatim from verified listings and not re-run. Tags: [V] seen in disassembly (RVA cited) | [I] inferred | [?] unknown | [V live] confirmed by capture bytes / live read.
+
+## 1. Tag -> type / value names (LightGroupTag) and tag-name conflict — resolved [V] (carried from oc_U-ER6_r1..r81, not re-proven this unit)
+
+| name | offset | size | site / verbatim `0xRVA  instr` proof | meaning | tag |
+|---|---|---|---|---|---|
+| variant tag byte + JT dispatch | variant+0x08 | 1 | `0x6640dc4  movzx eax,byte ptr [rdx+8]`<br>`0x6640de6  jmp rax` | tag byte at variant+0x08 loaded by the Light visitor; dispatch `jmp rax` via jump table 0xF2BF2B0 (entries: 0=0x6640de8 Ambient, 1=0x66415b0 Directional, 2=0x6640f1b GameplayMetadata, 3=0x66410a0 LightPoint, 4=0x6640ec1 ShadowAtlasFrame, 5=0x66417af ServerGraphicsOverrideParameters, 6=0x664187d VoxelVolume, 7=0x6641524 TransitioningVoxelVolume) [V] | [V] |
+| tag 0 store | tag 0 store | 1 | `0x53e3511  mov byte ptr [rbp+0x138],0` | LightGroupTag::Ambient = 0 (FrameBuilder.h:79-88); producer clone 0x53e2c00, srcloc RenderLightAmbientDescription (0xF248E70); JT entry 0 [V] | [V] |
+| tag 1 store | tag 1 store | 1 | `0x53709d4  mov byte ptr [rbp+0x18],1` | LightGroupTag::Directional = 1; thin clone 0x5370960, srcloc LightDirectionalDescription (0xF248F70); JT entry 1 [V] | [V] |
+| tag 2 store | tag 2 store | 1 | `0x53e5fb4  mov byte ptr [rbp-0x18],2`<br>`0x53e5fbf  mov rax,[rax+0x380]` | LightGroupTag::GameplayMetadata = 2; clone 0x53e5910, Light vslot 0x380 insert 0x53e5fbf, srcloc `__FUNCSIG__ ...gamecomponents::GameplayMetadata` (0xF248ED0); JT entry 2 [V] | [V] |
+| tag 3 store | tag 3 store | 1 | `0x535a9b7  mov byte ptr [rbp+0x278],3`<br>`0x535a9c1  mov rax,[rax+0x380]`<br>`0x535a9ce  call qword ptr [0xF99FFA0]` | LightGroupTag::LightPoint = 3; light clone 0x53599d0 insert 0x535a9ce, srcloc LightPointDescription (0xF248DA0); JT entry 3 [V] | [V] |
+| tag 4 store | tag 4 store | 1 | `0x535a696  mov byte ptr [rbp+0x278],4`<br>`0x535a6a0  mov rax,[rax+0x380]` | LightGroupTag::ShadowAtlasFrame = 4; light clone 0x53599d0 insert 0x535a6a0, srcloc ShadowAtlasFrameDescription (0xF248D80); JT entry 4 [V] | [V] |
+| tag-name conflict | tag map (enum doc) | - | FrameBuilder.h:79-88 `enum class LightGroupTag : uint64_t { Ambient = 0, Directional = 1, GameplayMetadata = 2, LightPoint = 3, ShadowAtlasFrame = 4, ServerGraphicsOverrideParameters = 5, VoxelVolume = 6, TransitioningVoxelVolume = 7 };` | CONFLICT RESOLVED [V]: producer tag stores + __FUNCSIG__ srclocs prove tag 2 = GameplayMetadata and tag 3 = LightPoint; FrameBuilder.h wins; group_visitors.md had them swapped (LightPoint@2 / GameplayMetadata@3) and is superseded; tags 5/6/7 = ServerGraphicsOverrideParameters / VoxelVolume / TransitioningVoxelVolume [V]; BGFX_MAP.md 1855-1859 agrees [I from doc] | [V] |
+
+## 2. Light-visitor writers to pass+0x800 / +0x648 / +0x4A0 / +0x1D0 — proven [V] (carried from oc_U-ER6_r1..r81, not re-proven this unit)
+
+Pass-object vectors (begin/end/cap cursors): summary +0x7F8/+0x800/+0x808 stride 0x14; light records +0x648/+0x650 stride 0x48; GameplayMetadata +0x498/+0x4A0/+0x4A8 stride 0x84; ShadowAtlasFrame +0x1C8/+0x1D0/+0x1D8 stride 0x50 [V]. Every write below is an end-cursor increment / grow-emplace / element copy at the end cursor; no end-cursor pop/decrement exists anywhere in the exe [V, whole-image fld --w scans].
+
+| name | offset | size | site / verbatim `0xRVA  instr` proof | meaning | tag |
+|---|---|---|---|---|---|
+| pass+0x800 end cursor | pass+0x800 | 8 | `0x6640e84  mov rdx,[rsi+0x800]`<br>`0x6640e8b  cmp rdx,[rsi+0x808]`<br>`0x6640eb4  add qword ptr [rsi+0x800],0x14`<br>`0x6641761  mov rdx,[rsi+0x800]`<br>`0x66417a2  add qword ptr [rsi+0x800],0x14`<br>`0x6641517  add qword ptr [rsi+0x800],0x14` | end cursor of the 0x14-byte summary list (cap +0x808); end += stride 0x14 per element; writers: Ambient 0x6640eb4, Directional 0x66417a2, LightPoint 0x6641517; loads at 0x6640e84 / 0x6641761 [V] | [V] |
+| pass+0x808 cap cursor | pass+0x808 | 8 | `0x6640e8b  cmp rdx,[rsi+0x808]` | summary list cap cursor, compared against end at 0x6640e8b [V] | [V] |
+| pass+0x648 begin cursor | pass+0x648 | 8 | `0x66416f8  lea rcx,[rsi+0x648]`<br>`0x66416ff  call 0x675FB30`<br>`0x664145a  lea rcx,[rsi+0x648]`<br>`0x6641461  call 0x675FB30` | begin cursor of the 0x48-byte light-record vector (end +0x650); vector grow-emplace 0x675FB30 with &pass+0x648; writers: LightPoint 0x6641461, Directional 0x66416ff [V] | [V] |
+| pass+0x650 end cursor | pass+0x650 | 4 | `0x6641729  mov eax,[rsi+0x650]`<br>`0x6641735  shr eax,3`<br>`0x6641738  imul eax,0xFFFF8E39` | light-record end cursor; index = (end - begin)/0x48 - 1 (0xFFFF8E39 = magic divide by 6 after >>3 => /0x48) [V] | [V] |
+| pass+0x4A0 end cursor | pass+0x4A0 | 8 | `0x6640f78  mov r12,[rdi+0x4A0]`<br>`0x6641090  add qword ptr [rdi+0x4A0],0x84`<br>`0x6643198  mov eax,[rdi+0x4A0]` | end cursor of the 0x84-byte GameplayMetadata vector (begin +0x498, cap +0x4A8); end += stride 0x84; tag-2 writer at 0x6641090 [V] | [V] |
+| pass+0x4A8 cap cursor | pass+0x4A8 | 8 | `0x6640f7f  cmp r12,[rdi+0x4A8]` | GameplayMetadata cap cursor [V] | [V] |
+| pass+0x1D0 end cursor | pass+0x1D0 | 8 | `0x6641991  mov r14,[rsi+0x1D0]`<br>`0x6641998  cmp r14,[rsi+0x1D8]`<br>`0x66419c6  add qword ptr [rsi+0x1D0],0x50` | end cursor of the 0x50-byte ShadowAtlasFrame vector (begin +0x1C8, cap +0x1D8); end += stride 0x50; tag-4 writer at 0x66419c6; element copy writes at [r14] = end cursor only, 0x66419a5-0x66419bc [V] | [V] |
+| pass+0x1D8 cap cursor | pass+0x1D8 | 8 | `0x6641998  cmp r14,[rsi+0x1D8]` | ShadowAtlasFrame cap cursor [V] | [V] |
+
+## 3. Consumers of pass+0x800 / +0x648 / +0x4A0 / +0x1D0 — not located [?] (blocking fact)
+
+| name | offset | size | site / verbatim `0xRVA  instr` proof | meaning | tag |
+|---|---|---|---|---|---|
+| pass+0x800 element read | pass+0x800 element read | - | - | - | [?] |
+| pass+0x648 element read | pass+0x648 element read | - | - | - | [?] |
+| pass+0x4A0 element read | pass+0x4A0 element read | - | - | - | [?] |
+| pass+0x1D0 element read | pass+0x1D0 element read | - | - | - | [?] |
+
+Blocking fact restated: no draining element read of the 0x14-byte / 0x48-byte / 0x84-byte / 0x50-byte elements exists anywhere in Minecraft.Windows.exe 1.26.62.01; all four offsets are write-only statically (end-cursor increments / grow-emplace / element copies at the end cursor only) [V].
+
+What this unit tried (new angles — all negative or inconclusive):
+
+- `python tools/livecap/request.py result oc_u_er6_light_desc` → "no result yet (orchestrator has not run it)"; docs/data/live/oc_u_er6_light_desc.txt absent [tried, no data added].
+- Capture `oc_u_er6_light_desc` is already pending at visitor entry 0x6640d80 (size 0x100, max 6); 4/4 pending slots used (er5_clone_4c8a5b0, l8b_resizetex_slot31, sub_1289440_callers, oc_u_er6_light_desc); `request.py add` rejects a duplicate name → NOT re-added [tried, rejected]. Even when returned, function-entry sampling installs NO read/write watchpoint on pass+0x800/+0x648/+0x4A0/+0x1D0, so it cannot locate a draining reader; it can only confirm description sizes/values and name the caller chain via ret= [V live when available, cannot close the blocker].
+- livemem is not an alternative: no static pass-object target address exists (`rdis imm 0x5aba5c0` = 0 static refs [V]; `rdis ptr 0x5aba5c0` = 0 indirect slots [V]) and livemem may not scan or loop over ranges [brief rules].
+- All static consumer angles exhausted and carried (not re-run this unit): whole-image fld --r/--w scans on all four offsets and begin cursors 0x7F8/0x650/0x498/0x1C8; all ~200 callers of 0x5ABA5C0; rdis ptr/imm/xr indirect checks; magic-multiplier imm scans (0xFFFF8E39 /0x48, 0xFFFFCCCD /0x14, 0xFFFF83E1 /0x84 — hits only inside known writers); lea register-relative cursor scan for all cursors = only writer sites; descscan2; scaled-stride imul/scaled-address scan over 0x6600000-0x6700000 = zero hits [V r80]; endFrame sub_66232b0 listing touches none of the four offsets [V]; per-draw code 0x66ea3d0/0x66ecb03 appends u16 indices to pass+0x8A8 only and reads none of the four cursors [V]; fld 0x8A8 --r whole-image = 0 [V]; docs/BGFX_MAP.md sections 6gq/6ih/6w/6ee re-read: consumers of ALL pass vectors open [?]; Sky vector pass+0x548 readerless, same blocker [V r80].
+
+## 4. Description field value names — offsets/sizes [V], semantic names [?] (pending)
+
+| name | offset | size | site / verbatim `0xRVA  instr` proof | meaning | tag |
+|---|---|---|---|---|---|
+| description member value names | descriptions (all fields) | - | `0x66418f0  mov rbx,[rsi+0x40]`<br>`0x6640f01  mov rcx,[rsi+0x48]` | read offsets/sizes proven [V]: tag-3 LightPoint reads the description through +0x100 (>=0x104 B, three shared handles, not typed); tag-4 ShadowAtlasFrame = 0x50 B (+0x00/+0x10/+0x20/+0x30 movups rows, +0x40 ptr, +0x48 shared ctrl); tag-2 GameplayMetadata = 0x84 B verbatim copy into pass+0x4A0. Member VALUE NAMES unknown [?]: release exe has no RTTI and no description member-name strings; LightDescriptions.h types every field as mValue* placeholders with static_assert offsets only; live capture bytes confirm sizes/values, never names. | [?] |
+
+## CLOSES?
+
+CLOSES? NO — single blocking fact: no draining reader (element consumer) of pass+0x800 / +0x648 / +0x4A0 / +0x1D0 exists anywhere in Minecraft.Windows.exe 1.26.62.01; all four offsets are write-only statically (end-cursor increments / grow-emplace / element copies at the end cursor only, no pop/decrement, no element-indexed read) [V]; every static consumer angle is negative [V] (whole-image fld --r/--w scans, all 0x5ABA5C0 callers, rdis ptr/imm/xr indirect checks, magic-multiplier imm scans, lea cursor scan, descscan2, docs/BGFX_MAP.md 6gq/6ih/6w/6ee, scaled-stride scan over 0x6600000-0x6700000, endFrame listing sub_66232b0, per-draw code 0x66ea3d0/0x66ecb03, fld 0x8A8 --r scan); the pending entry-sampling capture oc_u_er6_light_desc cannot install a write watch on the four cursors and livemem has no target [I], so the consumers cannot be located statically or via the available live tools. Description member value names also remain unknown [?]: no RTTI or description member-name strings; headers use mValue* placeholders; live bytes confirm sizes only.
+
+Resolved [V] and carried, not re-proven this unit: tag 2 = GameplayMetadata, tag 3 = LightPoint (FrameBuilder.h wins the group_visitors.md conflict; group_visitors.md had them swapped); the four end-cursor writers to pass+0x800/+0x648/+0x4A0/+0x1D0 [V].
+
+## TOOL REQUESTS
+
+CAPTURE REQUESTED oc_u_er6_light_desc — already pending at visitor entry 0x6640d80 (size 0x100, max 6); 4/4 pending slots used, do NOT re-add (duplicate name rejected). Result absent ("no result yet"); when returned it can confirm tag-3/tag-4 description sizes/caller chain [V live] but cannot close the consumer blocker (no read/write watch available, entry sampling only). Helper scripts: None.

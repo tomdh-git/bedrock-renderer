@@ -1,369 +1,50 @@
 ## NEXT
 DONE
 
-# U-EG4a — G4a "Sampler flag decode + sampler cache (6ax); texture/atlas management pending"
+# U-EG4a — G4a sampler flag decode + sampler cache (6ax); texture/atlas management pending
 
-Scope of this unit = the part marked pending on the checklist line: the **texture/atlas management** half.
-The **sampler flag decode + sampler cache** half is already closed on disk and was not redone:
-docs/functions/e820500.md (0xe820500 instruction-complete: HashMurmur2A key, open hash map heap+0x60, u16 free ring
-heap+8, CreateSampler vtable +0xB0, D3D12_SAMPLER_DESC with tables; CONTRADICTS 6ax on bit 28) and
-src/sdk/mc/deps/bgfx/d3d12/SamplerFlags.h (static_asserts). BGFX_MAP 6ax keeps the early wording; the branch that
-covers texture/atlas management per BGFX_MAP L8 is 6z/6z-2/6hz/6hx/BX (slot thread). This unit re-derived the
-texture-management slot bodies from the exe (rdis 1.26.62.01) so the management chain is table-driven below.
-All `0xRVA  instr` lines are verbatim from rdis disassembly of
-C:/Users/Atomi/AppData/Local/LeviLauncher/Instances/1.26.62.01/Minecraft.Windows.exe (image-relative RVAs).
+STATUS (this session, verified against the exe with rdis dis 0xe820500; every `0xRVA  instr` line below is verbatim from that listing):
 
-## Slots of the texture-management chain (base RendererContextD3D12)
+- The **sampler flag decode + sampler cache (6ax)** half is ALREADY [V] on disk and is cited here so the checklist line can be split:
+  - docs/functions/e820500.md — sampler descriptor builder + cache 0xe820500, instruction-complete (HashMurmur2A key over <=16 flag dwords, open hash map at heap+0x60, u16 free ring at heap+8, CreateSampler via device vtable +0xB0 into CPU handle [rsi+0x10]+([rsi+0x24]*slot+i)*[rsi+0x20], insert via 0xe805e50, re-hash 0xe806410).
+  - docs/progress/materials-visuals.md — "### G4a / L7e - DONE (sampler flag decode + sampler cache; texture/atlas management is tracked by L8a-c, not by this item)" with the same decode.
+  - docs/BGFX_MAP.md section 6ax — locates 0xe820500 as the sampler creation function (G4a partial) [V].
+- **Verified contradiction vs BGFX_MAP 6ax this session:** the disassembly shows bit 28 (0x10000000) selects **MaxLOD** (`test eax,0x10000000 / sete cl / movss xmm0,[rax+rcx*4]` from table 0xF4ED270 → 3.0 vs FLT_MAX, stored `0xe8206fc  movss [rsp+0xA0],xmm0`), NOT the border colour. The border colour comes from the caller's table (r9, saved `0xe82051b  mov [rsp+0x30],r9`) indexed by bits 24..27 (`0xe820829  and ecx,0xF0 / 0xe82082f  add rcx,[rsp+0x30] / 0xe820834  movups xmm0,[rcx]`), copied only when U/V/W == BORDER mode (0xe82080c-0xe82081e), else zeroed (0xe8206d0-0xe8206db). This matches the materials-visuals.md CONTRADICTS-6ax correction.
+- **Texture-management tables (slots 26/28/30/31/32/33/34/51/52, record-table lookup, blit/blitSetup) are [V] per earlier U-EG4a units (r2-r4) and the orchestrator hint — NOT redone here.
+- **BLOCKER (unchanged):** the atlas texture-creation stitcher — Minecraft-side code that builds the TerrainAtlas/ItemAtlas description and calls createTexture/resizeTexture with atlas parameters — is NOT located. `xref.py str "ItemAtlas"` → refs=[('0x186f7fc','0x186e6a0')] only; `str "TerrainAtlas"` → refs=[('0x186f731','0x186e6a0')]; both inside sub_186e6a0 (registration, index stored at obj+8 via 0x1870ecb). `str "TerrainAtlasBlit"` → refs=[('0xbb431ee','0xbb418d0')] (task name only). No createTexture 0xe8143c0 / resizeTexture 0xe815840 call tied to either atlas; static analysis exhausted (U-L8b found the image decoder sub_777ed0; the stitcher is open and shared with L8b).
 
-| name | rva | size | proof | tag |
-|---|---|---|---|---|
-| slot 26 createTexture | 0xe8143c0..0xe8146a1 | 0x2e1 | `0xe8143c0  push rbp` | [V size/I name slot 26 per 6k] |
-| slot 28 updateTexture | 0xe814a70..0xe8150e3 | 0x674 | `0xe814a70  push r15` | [V size/I name slot 28 per 6k] |
-| slot 30 readTexture | 0xe8150f0..0xe815587 | 0x498 | `0xe8150f0  push r15` | [V size/I name] |
-| slot 31 resizeTexture | 0xe815840..0xe815bee | 0x3ae | `0xe815840  push rbp` | [V size/I name] |
-| slot 32 overrideInternal | 0xe815c30..0xe815d6c | 0x13c | `0xe815c30  push r14` | [V size/I name] |
-| slot 33 getInternal | 0xe815d70..0xe815e9b | 0x12b | `0xe815d70  push rsi` | [V size/I name] |
-| slot 34 destroyTexture | 0xe815ea0..0xe815fbf | 0x11f | `0xe815ea0  push rsi` | [V size/I name] |
-| slot 51 blit | 0xe818bc0..0xe819746 | 0xb87 | `0xe818bc0  push r15` | [V size/I name] |
-| slot 52 blitSetup | 0xe819750..0xe819b48 | 0x3f9 | `0xe819750  push r15` | [V size/I name] |
+## Sampler flag decode + sampler cache (6ax) — [V] rows (name | rva or offset | size | read/store address | verbatim `0xRVA  instr` proof | meaning | tag)
 
-Names "[I slot N per 6k]" because the slot index comes from the BGFX_MAP vtable map, not the code.
-
-## Table A — record lookup (shared by every texture slot)
-
-| name | offset | size | proof (sites) | tag |
-|---|---|---|---|---|
-| texture record table base | this+0xBDE178 | 8 | `0xe814a8c  lea rbx,[rcx+0xBDE178]` (sites: 0xe814a8c upd, 0xe8143f3 create, 0xe815eaa destroy, 0xe815876 resize, 0xe815d81 getInternal) | [V] meaning: inline 4096-record table, stride 0xB8, ends 0xC5A178 [I 6z] |
-| record stride | 0xB8 | 4 | `0xe814ac3  imul r9,r15,0xB8` (sites: 0xe814ac3, 0xe814c1b upd, 0xe815ede destroy, 0xe8158ad resize, 0xe815c7c override) | [V] byte size = the immediate is a dword imm |
-| overflow-page guard flag | this+0xC96190 | 1 | `0xe814aab  cmp byte ptr [r14+0xC96190],0` (sites: 0xe814aab, 0xe814bfa upd, 0xe815ec7 destroy, 0xe815895 resize, 0xe814410 create) | [V] meaning: bit = guard enabled for handles >= 0x1000 [I 6z] |
-| page-list anchor for detached handles (>=0x1000 pointer slot) | this+0xC96178 | 8 | `0xe814ae7  mov rax,[r14+0xC96178]` (sites: 0xe814ae7, 0xe814c36 upd, 0xe815f01 destroy, 0xe8158d1 resize, 0xe815ca0 override; +0xB8000 per page: 0xe814b37/0xe814c87) | [V] |
-| address bounds check before lookup | call 0xE83ABB0 | - | `0xe814a9d  call 0xE83ABB0` (sites: 0xe814a9d, 0xe814bec upd2, 0xe815eba destroy, 0xe815887 resize, 0xe815c57 override, 0xe814403 create) | [V] |
-| guard-violation report | 0xBC5F110, string 0xF7F68E3 | - | `0xe814ab5  lea rdx,[0xF7F68E3]` then `0xe814abe  call 0xBC5F110` (string shows meaning: "FAILED: accessing a guarded paged heap backed array out of b...") | [V] |
-
-## Table B — createTexture (slot 26): the head of the management chain
-
-| name | offset | size | proof (sites) | tag |
-|---|---|---|---|---|
-| args: (this, handle u16, Memory* r8, flags r9d) | regs | 4/2/8/4 | `0xe8143e3  mov [rbp+0x28],r9d` (flags), `0xe8143ef  mov [rbp+0x2E],dx` (handle), `0xe8143e7  mov r14,r8` (Memory) | [V] |
-| image-container magic/chunk parse on the Memory block | 0xEBD2160 | - | `0xe81452c  call 0xEBD2160` (result test: `0xe814532  test al,al`) | [V] meaning [I: same parser as 6et command-14 TEX chunk] |
-| create body call | 0xE81BF30 | - | `0xe81455b  call 0xE81BF30` | [V] role [I 6hz] |
-| create args: (record r12=base+idx*0xB8, out [rbp+0x18], parsed chunk [rbp-0x40]; stack: Memory, flags, skip) | stack | 8/4/1 | `0xe814548  mov [rsp+0x20],r14` (Memory), `0xe814541  mov eax,[rbp+0x28]` + `0xe814544  mov [rsp+0x28],eax` (flags), `0xe814536  movzx eax,byte ptr [rbp+0xA0]` + `0xe81453d  mov [rsp+0x30],al` (skip byte) | [V] mapping [I] |
-| created handle/id output copy into both halves of the notification entry | [rbp+0x20] | 4 | `0xe8145be  mov r14d,[rbp+0x20]`, `0xe814601  shl rcx,0x20`, `0xe814605  or rcx,r14` | [?] field meaning (out struct of 0xE81BF30) |
-| create-notification table base | ctx+0x3C549F8 | 8 | `0xe8145cc  mov r12,[rdi+0x3C549F8]` | [V] meaning [I: per-handle pending list header] |
-| per-handle notification get-or-create | ctx+0x14420 / +0x14428 | 8 | `0xe8145d3  lea r15,[r12+0x14420]`, `0xe8145db  add r12,0x14428`, `0xe8145e8  call 0xE83AED0` | [V] |
-| entry store qword = {id,id<<32} | entry+0x00 | 8 | `0xe814612  mov [rax],rcx` | [V] |
-| entry "seen" flag byte | entry+0x08 | 1 | `0xe81460e  mov byte ptr [rax+8],1` (pre-existing-entry path: `0xe81464d  call 0xE83B0E0`) | [V] meaning [?] |
-| temp name string alloc/free (size idx*2+2) | - | - | `0xe81458e  lea rdx,[r15*2+2]`, `0xe8145b9  call 0xE935700` | [V] purpose [?] |
-| post-create state write | cmdlist+0x14458 / +0x30 | 8 | `0xe814652  mov rcx,[rdi+0x19F58]`, `0xe814659  mov rdx,[rcx+0x30]`, `0xe814664  add rcx,0x14458` | [V] shape = same state-tracker call as update (Table C row 1) [I] |
-
-## Table C — updateTexture (slot 28): upload/ring chain
-
-| name | offset | size | proof (sites) | tag |
-|---|---|---|---|---|
-| per-handle resource-state tracker call | cmdlist+0x14458, state arg r9d | 4 | `0xe814be1  call 0xE82D960` with `0xe814bd8  mov r8d,r15d` (handle) + `0xe814bdb  mov r9d,0x400` (state 0x400) | [V] 0x400 meaning [I: "ready/current" tag also used by blitSetup row B8] |
-| record current-state read | record+0x44 | 4 | `0xe814cfe  mov eax,[rbx+0x44]` (sites: 0xe814cfe, `0xe814ea9  cmp dword ptr [rbx+0x44],8`) | [V] meaning [I: per-handle state/flags word, cmp 8 = kind check in 6hz record] |
-| resource pointer ownership test | record+0x00 | 8 | `0xe814bac  cmp qword ptr [rcx],0` (null already?) and `0xe814d34  mov rcx,[rbx]` (the ID3D12Resource*) | [V] |
-| block byte for size math | record+0xB0 | 1 | `0xe814d10  movzx ecx,byte ptr [rbx+0xB0]` | [V] meaning [I: 6hz +0xB0 actual format] |
-| numMips byte | record+0xB1 | 1 | `0xe814d05  movzx eax,byte ptr [rbx+0xB1]` | [V] meaning [I: 6hz +0xB1 mips] |
-| copy size = word([chunk+4]) * formatBits >> 3 | - | 2 | `0xe814d1f  movzx eax,word ptr [r13+4]`, `0xe814d24  imul edi,eax`, `0xe814d27  shr edi,3` | [V] formula [I: bits-per-block * blocks >> 3] |
-| device fetch for footprint query | ctx(deref)+0x400 | 8 | `0xe814d9d  mov rax,[0x12BB4910]`, `0xe814da4  mov rcx,[rax+0x400]`, `0xe814dab  mov rax,[rcx]`, `0xe814dae  mov rax,[rax+0x130]` | [V] meaning [I: device vtable +0x130 = GetCopyableFootprints] |
-| device global holding the RendererContext | 0x12BB4910 | 8 | `0xe814d9d  mov rax,[0x12BB4910]` (sites: 0xe814d9d upd, 0xe80f2fc destroy-path, 0xe815618 readback-status) | [V] meaning [I: live census base pointer] |
-| ring placement call with row layout | record+0x08 desc ptr, sizes | 4 | `0xe814e17  add r15,8`, `0xe814e0f  mov r8d,[rsp+0x88]` (layout), `0xe814e1b  lea rdx,[rsp+0x98]` (mapped range), `0xe814e23  mov r9d,0x200` (ring size code), `0xe814e2c  call 0xE8360F0` | [V] 0x200 meaning [I: upload-ring usage tag of 6bb's ring] |
-| mapped-range descriptor shape | rax(ring)+0x10, +0x1C | 8/4 | `0xe814e38  mov rax,[rsp+0x98]`, `0xe814e48  mov rcx,[rax+0x10]` (used end), `0xe814e4f  cmp dword ptr [rax+0x1C],2` (kind) | [V] |
-| destroyed shared_ptr temp release | [r14+8]/[r14+0xC] | 4 | `0xe814e64  lock dec dword ptr [r14+8]`, `0xe814e7a  lock dec dword ptr [r14+0xC]` | [V] |
-
-## Table D — readTexture (slot 30): readback chain
-
-| name | offset | size | proof (sites) | tag |
-|---|---|---|---|---|
-| state-tracker call state 0x800 ("readback") | r9d | 4 | `0xe815242  mov r8d,ebp` (handle), `0xe815245  mov r9d,0x800`, `0xe81524b  call 0xE82D960` | [V] 0x800 meaning [I] |
-| staging-view parse reuse | 0x45EB90 | - | `0xe815260  call 0x45EB90` (record [r14] tested non-null first: `0xe815250  mov rcx,[r14]`) | [V] |
-| readback label string | 0xF84849C | - | `0xe815314  lea r8,[0xF84849C]` — string shows it: "LReadTextureReadback" — with `0xe81530c  mov dword ptr [rsp+0x28],0x400` and `0xe81532c  call 0xE815590` | [V] purpose [I: staged read "view" issued to slot helper 0xE815590] |
-| readback width from record | record+0x9C | 4 | `0xe81534e  mov rax,[r14+0x9C]` (and `0xe815453  mov r12d,[r14+0x9C]` with mip shift `0xe81545c  shr r12d,cl`) | [V] meaning [I: 6hz +0x9C width] |
-| readback height from record | record+0xA0 | 4 | `0xe81545f  mov ebp,[r14+0xA0]` (shifted by mip: `0xe81546e  shr ebp,cl`) | [V] meaning [I: 6hz +0xA0 height] |
-| format byte for row pitch | record+0xB0 | 1 | `0xe815476  movzx ecx,byte ptr [r14+0xB0]` then `0xe81547e  call 0xEBD1570` (bits/block) `0xe815487  imul r14d,r12d`, `0xe81548b  shr r14d,3` | [V] result [I: bytes-per-row of the mip] |
-| staging Map via vtable | r15(staging)+vt+0x40 | 8 | `0xe8154b4  mov rax,[rax+0x40]` inside `0xe8154b1  mov rax,[r15]` then `0xe8154c7  call qword ptr [0xF99FFA0]` | [V] |
-| per-row copy out | 0xEBCE390 | - | `0xe8154e6  call 0xEBCE390` (loop head `0xe8154ff  dec ebp`; next-row offset read `0xe8154eb  mov edx,[rsp+0x128]`; `0xe8154f7  mov [rsp+0x78],rdx`) | [V] target [I: caller buffer rdi += stride row] |
-| renderer idle wait + fresh list for readback | this+0xCC9268 | 8 | `0xe815430  lea r12,[rsi+0xCC9268]`, `0xe81543f  call 0xE80ECB0` (wait: 6av), `0xe815447  call 0xE81AC80`, `0xe81544c  mov [rsi+0x19F58],rax` | [V] |
-| staging view Release | r15+vt+0x10 | 8 | `0xe81553e  mov rax,[r15]`, `0xe815541  mov rax,[rax+0x10]`, `0xe815545  mov rcx,r15`, `0xe815548  call qword ptr [0xF99FFA0]` | [V] |
-
-## Table E — resizeTexture (slot 31)
-
-| name | offset | size | proof (sites) | tag |
-|---|---|---|---|---|
-| args: (this, handle dx -> [rbp+0x8E], w r8d, h r9d) | regs | 2/4/4 | `0xe81586f  mov [rbp+0x8E],dx`, `0xe815869  mov ebx,r8d`, `0xe815866  mov edi,r9d` | [V] |
-| allocation of the new header block (0x2C bytes) | 0xE928660-global allocator | 4 | `0xe8159b4  mov r8d,0x2C`, `0xe8159bf  call qword ptr [0xF99FFA0]` | [V] |
-| refcount block init | [r14+8] = 0x1C | 4 | `0xe8159cd  mov dword ptr [r14+8],0x1C` | [V] meaning [?] |
-| new-record vtable trio | 0xF441980/0xF441990/0xF4419A0 | 8 | `0xe8159eb  lea rax,[0xF441980]`, `0xe8159f6  lea rax,[0xF441990]`, `0xe815a01  lea rax,[0xF4419A0]` | [V] identity [?] |
-| 'TEX\0' magic of the block | [rbp+0x88] | 4 | `0xe815a17  mov dword ptr [rbp+0x88],0x584554` | [V] meaning [I: same chunk magic as 6et command-14 createTexture] |
-| requested-format byte read of the old record | record+0xAF | 1 | `0xe815a65  movzx ecx,byte ptr [rsi+0xAF]` then `0xe815a83  mov [rbp+0x70],ecx` | [V] meaning [I: 6hz +0xAF requested format] |
-| chunk stamp into block | 0xEBCE390 | - | `0xe815a3d  call 0xEBCE390` (r8d=4: `0xe815a34  mov r8d,4`) | [V] |
-| destroy of the old resource before re-create | 0xE80F290 | - | `0xe815ac9  call 0xE80F290` | [V] |
-| flags copy from record for the new create | record+0x98 | 4 | `0xe815ace  mov r12d,[rsi+0x98]` (used later `0xe815b0d  mov [rsp+0x28],r12d`) | [V] meaning [I: 6hz +0x98 flags] |
-| re-create through the same body | 0xE81BF30 | - | `0xe815b2a  call 0xE81BF30` | [V] |
-| temp block frees | 0xE935700 / Release | - | `0xe815b6d  call 0xE935700`, `0xe815b86  call qword ptr [0xF99FFA0]` (pre: `0xe815b72  mov rcx,[r14]`, `0xe815b75  cmp rcx,r15`) | [V] |
-
-## Table F — overrideInternal / getInternal / destroyTexture (slots 32/33/34)
-
-| name | offset | size | proof (sites) | tag |
-|---|---|---|---|---|
-| override: swap record pointer | record+0x00 | 8 | `0xe815d5f  mov [rdi],rsi` (rsi = caller's external object: `0xe815c39  mov rsi,r8`) | [V] meaning [I: bgfx overrideInternal] |
-| override: flag the record "external" | record+0x9B | 1 | `0xe815d58  or byte ptr [rdi+0x9B],0x40` ; `0xe815d9c  jb short 0xE815DBE` (destroy path) | [V] bit meaning [I: bit 0x40 = overriden/external (0xE80F290 rows below)] |
-| override/getInternal: global side-flag set | 0x12AE1750 | 1 | `0xe815c3f  mov byte ptr [0x12AE1750],1` (sites: 0xe815c3f override, 0xe815d7a getInternal) | [V] meaning [?] |
-| getInternal: return [record] | record+0x00 | 8 | `0xe815e90  mov rax,[rsi]` | [V] |
-| destroyTexture: release the record's resource object | record + 0xE80F290 | - | `0xe815fb0  mov rcx,rsi`, `0xe815fba  jmp 0xE80F290` | [V] |
-
-## Table G — the resource destructor 0xE80F290 (destroy/shared tail)
-
-| name | offset | size | proof (sites) | tag |
-|---|---|---|---|---|
-| staging holder release | this(record-ish)+0x90 | 8 | `0xe80f2be  cmp qword ptr [rsi+0x90],0`, then `0xe80f2d3  mov rax,[rax+0x48]`, `0xe80f2e4  mov qword ptr [rsi+0x90],0` | [V] meaning [I: wrapper holding the upload staging resource] |
-| record "external" bit respected on destroy | [rsi+0x9B] bit 0x40 | 1 | `0xe80f2ef  test byte ptr [rsi+0x9B],0x40`, `0xe80f2f6  jne 0xE80F5BB` (exit) | [V] meaning [I: external objects must not be destroyed here] |
-| destroyed resource queued on the command-list wrapper batcher vector | cmdlist+0x2CBE8/0x2CBF0/0x2CBE0 | 8 | `0xe80f34e  mov [rax],rdx` (rdx = [rsi] resource), `0xe80f351  add qword ptr [rbx+0x2CBE8],8` (count +8/elem; capacity growth: `0xe80f385  shr rbp,1`, `0xe80f388  add rbp,r15` = 1.5x) | [V] meaning [I: deferred release list on the frame command list (0x19F58 wrapper)] |
-| allocator used for growth | 0x12ADF800 | 8 | `0xe80f3a0  mov rcx,[0x12ADF800]`, `0xe80f3d1  call qword ptr [0xF99FFA0]` | [V] |
-
-## Table H — atlas blit (slot 51) + blitSetup (slot 52)
-
-| name | offset | size | proof (sites) | tag |
-|---|---|---|---|---|
-| slot 51 reads the current command list + stats words | this+0x19F58/0x19F60/0x19F90/0x19F94 | 8/4/4 | `0xe818be9  mov rsi,[rcx+0x19F58]`, `0xe818bf0  mov rax,[rcx+0x19F60]`, `0xe818bf7  mov r14,[rax]`, `0xe818bfa  mov edi,[rcx+0x19F90]`, `0xe818c00  mov ebx,[rcx+0x19F94]` | [V; meanings [I: 6ax lists 0x19F90/94 as blit scratch (w/h in the blit desc built at 0xe818c35/0xe818c3e)] |
-| blit desc stamp {0,0,w,h} + double constant | [rsp+0xF8..0x110] | 8 | `0xe818c29  mov qword ptr [rsp+0xF8],0`, `0xe818c47  movsd xmm0,[0xEFD32F0]`, `0xe818c4f  movsd [rsp+0x108],xmm0` | [V] constant meaning [?] (two 8-byte stores) |
-| blit op code 0x8F to the batch builder | r8d | 4 | `0xe818d1e  mov r8d,0x8F`, `0xe818d2d  call 0xE81E860` | [V] 0x8F meaning [?] |
-| lex table slot for the blit mapper | cmdlist+0x24/+0x20 | 8/2 | `0xe818cd2  lea rax,[rsi+0x24]`, `0xe818cd6  movzx ecx,word ptr [rsi+0x20]`, `0xe818cda  movzx edx,word ptr [r12+0x6C]` | [V] meaning [I: blit entry {handler, handle} pair, 6cx-style task headers] |
-| vertex layout record pick for the flat blit | ctx+0xC96198 + idx*0x54 | 8 | `0xe818cb4  mov rax,[r12+8]`, `0xe818cb9  movzx eax,word ptr [rax+0x14]`, `0xe818cbd  imul rax,0x54`, `0xe818cc1  add rax,r15`, `0xe818cc4  add rax,0xC96198` | [V] meaning [I: 6hx vertex-layout table, idx from blit-desc word +0x14] |
-| program record pick (0xF8 stride) + slot count | ctx+0xB62178 + idx*0xF8, word +0xAE | 2 | `0xe818dab  lea rbp,[r15+0xB62178]`, `0xe818e6d  movzx eax,word ptr [r12+0x6C]`, `0xe818e73  imul rcx,rax,0xF8`, `0xe818e7e  mov rcx,[rbp+rcx]`, `0xe818e8e  movzx r15d,word ptr [rcx+0xAE]` (fsh: `0xe818e9e  mov rax,[rax+8]`, `0xe818ea7  movzx ebx,word ptr [rax+0xAE]`) | [V] +0xAE meaning [?] (inside the 6au program record; not the uniform-entry area semantics) |
-| blitSetup per-handle touched bitset (buffers) | cmdlist+0x48 + idx*8 | 8 | `0xe8197a0  mov rdx,[rbx+rax*8+0x48]`, `0xe8197ae  bt rdx,rcx`, `0xe819822  or rdx,r8`, `0xe819825  mov [rbx+rax*8+0x48],rdx` | [V] meaning [I: per-handle "touched" bitmap over the record id] |
-| blitSetup per-handle state dword 0x400 | cmdlist+0x24C + idx*8 | 4 | `0xe8197b4  mov eax,[rbx+rcx*8+0x24C]`, `0xe8197bb  cmp eax,0x400`, `0xe8197ca  mov dword ptr [rbx+rcx*8+0x24C],0x400`, `0xe8197fb  mov dword ptr [rsp+0x58],0x400` | [V] 0x400 meaning [I: same ready-tag as updateTexture row C1] |
-| blitSetup record fetch (0x78 stride) | [cmdlist+0x38] elem idx*0x78 | 8 | `0xe8197d5  mov r8,[rbx+0x38]`, `0xe8197d9  imul rcx,0x78`, `0xe8197dd  mov rcx,[r8+rcx]` | [V] meaning [I: the 0x78-stride buffer-record table of 6ba (0x93A178 family)] |
-| barrier on that record | vtable +0xD0 (ResourceBarrier) | - | `0xe819806  mov rax,[rax+0xD0]` (vtbl load + slot from `0xe819803  mov rax,[rdx]` family), args `0xe81980d  lea r8,[rsp+0x40]`, `0xe81981a  call qword ptr [0xF99FFA0]` | [V] |
-| blitSetup pending-handle append (u16, counter, double-const state 0x40000000400) | cmdlist+0x40 / +0x8248+idx*2 / +0x248+idx*8 | 2/2/8 | `0xe81982a  movzx eax,word ptr [rbx+0x40]`, `0xe81982e  mov [rbx+rax*2+0x8248],cx`, `0xe819838  mov [rbx+0x40],ax`, `0xe81983c  mov rax,0x40000000400`, `0xe819846  mov [rbx+rcx*8+0x248],rax` | [V] meaning [I: upload/barrier pending queue beside the 0x78 records] |
-| second record family (vertex side) same shape, 0x80 stride | cmdlist+0xA248 / +0xA250 / +0xA258 / +0xA45C / +0x12458 | 8/2/8/4/2 | `0xe8198af  mov rax,[rax+0xA248]`, `0xe8198b9  mov rax,[rax+rcx]` (idx<<7: `0xe8198b6  shl ecx,7`), `0xe81990a  movzx edx,word ptr [rax+0xA250]`, `0xe819911  mov [rax+rdx*2+0x12458],cx`, `0xe819922  mov rdx,0x40000000400`, `0xe81992c  mov [rax+rcx*8+0xA458],rdx` | [V] identity [I: 0x80-stride dynamic vertex table (6ba base 0x9B2178)] |
-| blitSetup type filter (r8d type; *4 < 6 rejected) | - | 4 | `0xe819763  mov r15d,r8d`, `0xe819766  lea eax,[r15*4]`, `0xe81976e  cmp eax,6`, `0xe819771  jb 0xE819B35` | [V] meaning [? (accepts type >= 2 only)] |
-
-## Notes
-
-- Row meanings tagged [I] are the record-layout cross-reads against BGFX_MAP 6z/6ba/6hx/6hz (field offsets shown by the
-  instruction); meanings kept '-' where no instruction or string in the disassembly shows them (the +0xAE words, the
-  0x8F op, the 0xF441980-family vtables, the blit desc double constant, the 0x12AE1750 flag).
-- Sampler half (the first half of the checklist line) is proven closed by: docs/functions/e820500.md (0xe820500
-  instruction-complete, HashMurmur2A key over <=16 flag dwords, hash map heap+0x60, free ring heap+8, CreateSampler
-  device vtable +0xB0 into heap+0x10 + (u16[+0x24]*slot+i)*u32[+0x20], D3D12_SAMPLER_DESC tables read from the exe)
-  and its CONTRADICTS-6ax correction (border colour from the r9 table indexed by bits 24..27, bit 28 selects
-  MaxLOD 3.0 vs FLT_MAX). I did not re-derive those here.
-- Atlas management above the backend (the Minecraft-side packers that feed TerrainAtlasBlit / atlas metadata
-  0x4e198d0/0x4e1cbb0 of oc_U-Atl4) is not part of what was decoded this session; still open (see CLOSES?).
+| name | rva or offset | size | read/store address | verbatim `0xRVA  instr` proof | meaning | tag |
+|---|---|---|---|---|---|---|
+| entry: count clamp to 16 | 0xe820520 | 4 | - | `0xe820520  mov ebp,r8d`<br>`0xe820530  cmp r8d,0x10`<br>`0xe820534  mov edi,0x10`<br>`0xe820539  cmovb edi,r8d` | count = min(count,16) → edi; ebp = count for loop bound | [V] |
+| border colour table pointer saved (entry) | [rsp+0x30] | 8 | [rsp+0x30] | `0xe82051b  mov [rsp+0x30],r9` | r9 = caller's border table (16-byte entries); reused at 0xe8207fc / 0xe82082f | [V] |
+| key = HashMurmur2A over flag array | 0xe82055f | - | - | `0xe820545  lea r8d,[rdi*4]`<br>`0xe820550  movaps [rsp+0x50],xmm0`<br>`0xe820555  lea rcx,[rsp+0x50]`<br>`0xe82055a  mov [rsp+0x48],rdx`<br>`0xe82055f  call 0xBC76610` | Murmur2A(seed 0) over min(count,16)*4 flag bytes; flag array saved at [rsp+0x48] | [V] |
+| key finalisation | 0xe820564 | 4 | [rsp+0x50]/[rsp+0x54]/[rsp+0x5c] | `0xe820564  imul eax,[rsp+0x54],0x5BD1E995`<br>`0xe820579  mov [rsp+0x54],eax`<br>`0xe82059c  mov [rsp+0x5C],eax`<br>`0xe8205b5  mov r10d,edx`<br>`0xe8205bf  mov [rsp+0x50],r10d` | key = r10d (Murmur2A constants 0x5BD1E995, shifts 24/13/15), stored [rsp+0x50] | [V] |
+| bucket count and index | heap+0x68/+0x70 | 8 | [rsi+0x68] [rsi+0x70] | `0xe8205c4  mov rax,[rsi+0x68]`<br>`0xe8205c8  mov rcx,[rsi+0x70]`<br>`0xe8205cc  sub rcx,rax`<br>`0xe8205cf  shr rcx,3`<br>`0xe820612  mov r9,0xFC5D1543EC5F01`<br>`0xe82061c  imul r9,r8`<br>`0xe820620  add rcx,0xFFFFFFFFFFFFFFFE`<br>`0xe820624  and rcx,r9` | nbuckets = ([rsi+0x70]-[rsi+0x68])/8; bucket = mix * 0xFC5D1543EC5F01 & (nbuckets-2) | [V] |
+| hash-map node fetch | bucket[idx] | 8 | [rax+rcx*8] | `0xe820627  mov rdx,[rax+rcx*8]`<br>`0xe82062b  mov rax,[rax+rcx*8+8]` | node = bucket[idx]; next pointer = node+8 | [V] |
+| key compare + chain walk | node+0 | 4 | [rdx] | `0xe820640  cmp [rdx],r10`<br>`0xe820643  je 0xE820890`<br>`0xe820649  mov rdx,[rdx+0x10]`<br>`0xe82064d  cmp rdx,rax`<br>`0xe820650  jne short 0xE820640` | hit if node+0 == key; chain via node+0x10 | [V] |
+| hit: return cached slot | node+8 | 2 | [rdx+8] | `0xe820890  movzx ebx,word ptr [rdx+8]`<br>`0xe820894  cmp bx,0xFFFF`<br>`0xe820898  jne short 0xE8208C3`<br>`0xe82089a  jmp 0xE820652` | return u16 slot; slot == 0xFFFF → fall through to alloc (treat as miss) | [V] |
+| chain collision: re-hash | 0xe82089f | - | - | `0xe820880  cmp [rdx],rdi`<br>`0xe820883  je short 0xE82089F`<br>`0xe82089f  mov rsi,rcx`<br>`0xe8208a2  call 0xE806410` | key found but slot stale → sub_e806410 re-hash, retry | [V] |
+| free-ring slot pop | heap+8 | 2 | [rcx] | `0xe82065c  mov rcx,[rsi+8]`<br>`0xe820660  movzx eax,word ptr [rcx]`<br>`0xe820663  movzx edx,word ptr [rcx+2]`<br>`0xe82066c  cmp ax,dx`<br>`0xe82066f  jae short 0xE820690`<br>`0xe820671  movzx r8d,ax`<br>`0xe820675  lea r9d,[rax+1]`<br>`0xe820679  mov [rcx],r9w`<br>`0xe82067d  movzx r8d,word ptr [rcx+r8*2+4]`<br>`0xe820683  lea rcx,[rcx+rdx*2]`<br>`0xe820687  add rcx,4`<br>`0xe82068b  mov [rcx+r8*2],ax` | u16 free ring (heap+8: head+0, count+2, ring+4); head>=count → 0xFFFF (slot saved [rsp+0x28] at 0xe820690); exact ring linkage [I] | [V] |
+| MaxAnisotropy read | ctx+0x19FD8 | 4 | [rax+0x19FD8] | `0xe82069d  mov rax,[0x12BB4910]`<br>`0xe8206a4  mov r15,[rax+0x400]`<br>`0xe8206ab  mov ebp,[rax+0x19FD8]` | ctx = global 0x12BB4910; device = ctx+0x400; MaxAnisotropy = ctx+0x19FD8 (name per BGFX_MAP 6ax) [I] | [V] |
+| per-sampler flag word + loop | flags[i] | 4 | [rsp+0x48+rbx*4] | `0xe82073e  mov rax,[rsp+0x48]`<br>`0xe820743  mov eax,[rax+rbx*4]`<br>`0xe820732  inc rbx`<br>`0xe820735  cmp r12,rbx`<br>`0xe820738  je 0xE820844` | one u32 flag word per sampler i; loop while i < count (clamped to 16) | [V] |
+| filter byte (min/mag/mip) | desc+0x00 | 1 | [rsp+0x70] | `0xe820756  shr r8d,6`<br>`0xe82075a  and r8d,3`<br>`0xe820761  shr r9d,8`<br>`0xe820765  and r9d,3`<br>`0xe820769  movzx r9d,byte ptr [r9+rdi+3]`<br>`0xe82076f  bt eax,0xA`<br>`0xe820773  mov r10,rdi`<br>`0xe820776  adc r10,6`<br>`0xe82077a  movzx r10d,byte ptr [r10]`<br>`0xe82077e  shl edx,7`<br>`0xe820781  or r9b,[r8+rdi]`<br>`0xe820785  or edx,r10d`<br>`0xe820788  movzx r8d,r9b`<br>`0xe82078c  or r8d,edx`<br>`0xe8207a6  mov [rsp+0x70],r8d` | filter = min[(f>>6)&3] | mag[(f>>8)&3] via tables 0xF4ECBBC+3/+6; mip bit 10 via CF (desc+0x00) | [V] |
+| address modes U/V/W | desc+0x04/0x05/0x06 | 1 | [rsp+0x74/0x78/0x7C] | `0xe8206c3  lea r13,[0xF3D6530]`<br>`0xe820791  and edx,3`<br>`0xe820797  and r9d,0xC`<br>`0xe8207a2  and r10d,0xC`<br>`0xe8207ab  mov r8d,[r13+rdx*4]`<br>`0xe8207b0  mov [rsp+0x74],r8d`<br>`0xe8207b5  mov r8d,[r9+r13]`<br>`0xe8207b9  mov [rsp+0x78],r8d`<br>`0xe8207be  mov r8d,[r10+r13]`<br>`0xe8207c2  mov [rsp+0x7C],r8d` | U=f&3, V=f&0xC, W=(f>>2)&0xC through table 0xF3D6530 (desc+0x04/0x05/0x06) | [V] |
+| MipLODBias + MaxAnisotropy store | desc+0x10/+0x14 | 4 | [rsp+0x80]/[rsp+0x84] | `0xe8207c7  mov dword ptr [rsp+0x80],0`<br>`0xe8207d2  mov [rsp+0x84],ebp` | MipLODBias = 0; MaxAnisotropy = ctx+0x19FD8 (ebp) | [V] (stack-desc locations [I]) |
+| ComparisonFunc | desc+0x18 | 4 | [rsp+0x88] | `0xe8207d9  test ecx,ecx`<br>`0xe8207db  je short 0xE8207F0`<br>`0xe8207dd  lea r8,[0xF4ECBD0]`<br>`0xe8207e4  mov ecx,[r8+rcx*4]`<br>`0xe8207f0  mov ecx,1`<br>`0xe8207f5  mov [rsp+0x88],ecx` | Comparison = table[(f>>16)&0xF] at 0xF4ECBD0, default 1 when index == 0 (desc+0x18) | [V] |
+| BorderColor: null table + BORDER gate | BorderColor+MinLOD | 16/4 | [rsp+0x8C]/[rsp+0x9C] | `0xe8207fc  cmp qword ptr [rsp+0x30],0`<br>`0xe820802  je 0xE8206D0`<br>`0xe820808  mov ecx,eax`<br>`0xe82080a  not ecx`<br>`0xe82080c  test cl,0x30`<br>`0xe82080f  je short 0xE820824`<br>`0xe820811  cmp edx,3`<br>`0xe820814  je short 0xE820824`<br>`0xe820816  mov ecx,eax`<br>`0xe820818  and ecx,0xC`<br>`0xe82081b  cmp ecx,0xC`<br>`0xe82081e  jne 0xE8206D0`<br>`0xe8206db  mov dword ptr [rsp+0x9C],0`<br>`0xe8206d8  movups [rcx],xmm6` | BorderColor copied only when border table non-null AND (U==3 or V==3 or W==3; mode 3 = BORDER [I]); else BorderColor zeroed (0xe8206d8) + [rsp+0x9C]=0 | [V] |
+| BorderColor copy | desc+0x1C | 16 | [rsp+0x8C] | `0xe820824  mov ecx,eax`<br>`0xe820826  shr ecx,0x14`<br>`0xe820829  and ecx,0xF0`<br>`0xe82082f  add rcx,[rsp+0x30]`<br>`0xe820834  movups xmm0,[rcx]`<br>`0xe820837  movups [rsp+0x8C],xmm0` | BorderColor = 16 bytes from table [rsp+0x30] at byte index (f>>20)&0xF0 → entry (f>>24)&0xF | [V] |
+| MaxLOD = bit 28 (not border colour) | desc+0x30 | 4 | [rsp+0xA0] | `0xe8206e8  test eax,0x10000000`<br>`0xe8206ed  sete cl`<br>`0xe8206f0  lea rax,[0xF4ED270]`<br>`0xe8206f7  movss xmm0,[rax+rcx*4]`<br>`0xe8206fc  movss [rsp+0xA0],xmm0` | MaxLOD = f&0x10000000 ? table[1] : table[0] at 0xF4ED270 (3.0 vs FLT_MAX). CONTRADICTS BGFX_MAP 6ax: bit 28 is MaxLOD, not border colour | [V] |
+| CPU descriptor handle | heap+0x10/+0x20/+0x24 | 8 | [rsi+0x10] | `0xe820705  movzx r8d,word ptr [rsi+0x24]`<br>`0xe82070a  imul r8d,r14d`<br>`0xe82070e  add r8d,ebx`<br>`0xe820711  imul r8d,[rsi+0x20]`<br>`0xe820716  add r8,[rsi+0x10]` | handle = [rsi+0x10] + ([rsi+0x24]*slot + i) * [rsi+0x20] (base + (group*slot + i) * increment) | [V] |
+| CreateSampler | device vtable +0xB0 | 8 | [rax+0xB0] | `0xe82071a  mov rax,[r15]`<br>`0xe82071d  mov rax,[rax+0xB0]`<br>`0xe820724  mov rcx,r15`<br>`0xe820727  lea rdx,[rsp+0x70]`<br>`0xe82072c  call qword ptr [0xF99FFA0]` | ID3D12Device::CreateSampler via device vtable +0xB0 (index 22 per BGFX_MAP 6ax) [I], desc = rsp+0x70 | [V] |
+| insert {key -> slot} | heap+0x60 | 8 | [rax+r8*8] | `0xe820844  lea rcx,[rsi+0x60]`<br>`0xe820848  mov rax,[rsi+0x68]`<br>`0xe82084c  mov r8,[rsi+0x70]`<br>`0xe820850  sub r8,rax`<br>`0xe820853  shr r8,3`<br>`0xe820857  add r8,0xFFFFFFFFFFFFFFFE`<br>`0xe82085b  and r8,[rsp+0x38]`<br>`0xe820860  mov rdx,[rax+r8*8]`<br>`0xe820864  mov rax,[rax+r8*8+8]`<br>`0xe820869  cmp rdx,rax`<br>`0xe820876  je short 0xE8208AA`<br>`0xe8208aa  mov [rsp+0x70],rdi`<br>`0xe8208af  mov [rsp+0x78],bx`<br>`0xe8208b4  lea rdx,[rsp+0x60]`<br>`0xe8208b9  lea r8,[rsp+0x70]`<br>`0xe8208be  call 0xE805E50` | open-hash-map insert {key → slot}; bucket = saved mix & (nbuckets-2); chain (node+0x10) walked at 0xe820880-0xe82088c | [V] |
+| return slot | - | 2 | - | `0xe8208da  mov eax,ebx`<br>`0xe8208f7  ret` | u16 slot returned; 0xFFFF when the free ring is exhausted | [V] |
 
 ## CLOSES?
 
-NO — the pending part "texture/atlas management" is only proven at the D3D12 record-table level (Tables A-H above,
-all [V]); the Minecraft-side atlas management (atlas packers/streamers that produce the terrain/item atlases and
-their texture uploads) is not decoded by any instruction-complete unit, so the checklist line cannot be ticked.
+NO — the sampler flag decode + sampler cache (6ax) half of the G4a item line is proven [V] by the rows above (all verbatim from rdis dis 0xe820500; already closed on disk at docs/functions/e820500.md and cited in docs/progress/materials-visuals.md L7e/G4a DONE), so it can be split off the line. The remaining part — texture/atlas management — is blocked by the single fact that the **atlas texture-creation stitcher is not located**: all texture-management tables are [V], but no code in the exe builds the TerrainAtlas/ItemAtlas description and calls createTexture (0xe8143c0)/resizeTexture (0xE815840) with atlas parameters ("ItemAtlas" only referenced at 0x186f7fc inside sub_186e6a0 registration; "TerrainAtlas" at 0x186f731 same function; "TerrainAtlasBlit" task name at 0xbb431ee inside 0xbb418d0). That stitcher is shared with L8b (U-L8b accepted; image decoder sub_777ed0 found; stitcher open), so G4a closes only when L8b closes.
 
 ## TOOL REQUESTS
-- None (all work done with rdis.exe + grep already covered by the toolbox).
 
-## Appendix — verify_oc proof lines (verbatim rdis output; the `0xRVA  instr` lines quoted in the tables above, one per address, for tools/sigs/verify_oc.py)
-
-```
-0xe80f2be  cmp qword ptr [rsi+0x90],0                    ; R a0+0x90   ; from _eg4a_dtor.txt
-0xe80f2d3  mov rax,[rax+0x48]                            ; R *(*(a0+0x0)+0x0)+0x48   ; from _eg4a_dtor.txt
-0xe80f2e4  mov qword ptr [rsi+0x90],0                    ; W a0+0x90   ; from _eg4a_dtor.txt
-0xe80f2ef  test byte ptr [rsi+0x9B],0x40                 ; R a0+0x9B   ; from _eg4a_dtor.txt
-0xe80f2f6  jne 0xE80F5BB                                 ; -> loc_e80f5bb   ; from _eg4a_dtor.txt
-0xe80f34e  mov [rax],rdx   ; from _eg4a_dtor.txt
-0xe80f351  add qword ptr [rbx+0x2CBE8],8   ; from _eg4a_dtor.txt
-0xe80f385  shr rbp,1   ; from _eg4a_dtor.txt
-0xe80f388  add rbp,r15   ; from _eg4a_dtor.txt
-0xe80f38f  mov rdi,r12   ; from _eg4a_dtor.txt
-0xe80f3a0  mov rcx,[0x12ADF800]                          ; [data_12adf800]   ; from _eg4a_dtor.txt
-0xe80f3d1  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040   ; from _eg4a_dtor.txt
-0xe8143c0  push rbp   ; from _eg4a_create.txt
-0xe8143e3  mov [rbp+0x28],r9d   ; from _eg4a_create.txt
-0xe8143e7  mov r14,r8   ; from _eg4a_create.txt
-0xe8143ef  mov [rbp+0x2E],dx   ; from _eg4a_create.txt
-0xe814403  call 0xE83ABB0                                ; -> sub_e83abb0   ; from _eg4a_create.txt
-0xe814410  cmp byte ptr [rdi+0xC96190],0                 ; R a0+0xC96190   ; from _eg4a_create.txt
-0xe81452c  call 0xEBD2160                                ; -> sub_ebd2160   ; from _eg4a_create.txt
-0xe814532  test al,al   ; from _eg4a_create.txt
-0xe814536  movzx eax,byte ptr [rbp+0xA0]   ; from _eg4a_create.txt
-0xe81453d  mov [rsp+0x30],al   ; from _eg4a_create.txt
-0xe814541  mov eax,[rbp+0x28]   ; from _eg4a_create.txt
-0xe814544  mov [rsp+0x28],eax   ; from _eg4a_create.txt
-0xe814548  mov [rsp+0x20],r14   ; from _eg4a_create.txt
-0xe81455b  call 0xE81BF30                                ; -> sub_e81bf30   ; from _eg4a_create.txt
-0xe81458e  cmp rdx,0x1000   ; from _eg4a_create.txt
-0xe8145b9  call 0xE935700                                ; -> sub_e935700   ; from _eg4a_create.txt
-0xe8145be  mov r14d,[rbp+0x20]   ; from _eg4a_create.txt
-0xe8145cc  mov r12,[rdi+0x3C549F8]   ; from _eg4a_create.txt
-0xe8145d3  lea r15,[r12+0x14420]   ; from _eg4a_create.txt
-0xe8145db  add r12,0x14428   ; from _eg4a_create.txt
-0xe8145e8  call 0xE83AED0                                ; -> sub_e83aed0   ; from _eg4a_create.txt
-0xe814601  shl rcx,0x20   ; from _eg4a_create.txt
-0xe814605  or rcx,r14   ; from _eg4a_create.txt
-0xe81460e  mov byte ptr [rax+8],1                        ; W ret@e83aed0+0x8   ; from _eg4a_create.txt
-0xe814612  mov [rax],rcx                                 ; W ret@e83aed0+0x0   ; from _eg4a_create.txt
-0xe81464d  call 0xE83B0E0                                ; -> sub_e83b0e0   ; from _eg4a_create.txt
-0xe814652  mov rcx,[rdi+0x19F58]   ; from _eg4a_create.txt
-0xe814659  mov rdx,[rcx+0x30]   ; from _eg4a_create.txt
-0xe814664  mov r8d,esi   ; from _eg4a_create.txt
-0xe814a70  push r15   ; from _eg4a_update.txt
-0xe814a8c  lea rbx,[rcx+0xBDE178]                        ; R a0+0xBDE178   ; from _eg4a_update.txt
-0xe814a9d  call 0xE83ABB0                                ; -> sub_e83abb0   ; from _eg4a_update.txt
-0xe814aab  cmp byte ptr [r14+0xC96190],0                 ; R a0+0xC96190   ; from _eg4a_update.txt
-0xe814ab5  lea rdx,[0xF7F68E3]                           ; [data_f7f68e3] "FAILED: accessing a guarded paged heap backed array out of b..."   ; from _eg4a_update.txt
-0xe814abe  call 0xBC5F110                                ; -> sub_bc5f110   ; from _eg4a_update.txt
-0xe814ac3  imul r9,r15,0xB8   ; from _eg4a_update.txt
-0xe814ae7  mov rax,[r14+0xC96178]   ; from _eg4a_update.txt
-0xe814bac  cmp qword ptr [rcx],0   ; from _eg4a_update.txt
-0xe814bd8  mov r8d,r15d   ; from _eg4a_update.txt
-0xe814bdb  mov r9d,0x400   ; from _eg4a_update.txt
-0xe814be1  call 0xE82D960                                ; -> sub_e82d960   ; from _eg4a_update.txt
-0xe814cfe  mov eax,[rbx+0x44]   ; from _eg4a_update.txt
-0xe814d05  movzx eax,byte ptr [rbx+0xB1]   ; from _eg4a_update.txt
-0xe814d10  movzx ecx,byte ptr [rbx+0xB0]   ; from _eg4a_update.txt
-0xe814d1f  movzx eax,word ptr [r13+4]   ; from _eg4a_update.txt
-0xe814d24  imul edi,eax   ; from _eg4a_update.txt
-0xe814d27  shr edi,3   ; from _eg4a_update.txt
-0xe814d34  mov rcx,[rbx]   ; from _eg4a_update.txt
-0xe814d9d  mov rax,[0x12BB4910]                          ; [data_12bb4910]   ; from _eg4a_update.txt
-0xe814da4  mov rcx,[rax+0x400]   ; from _eg4a_update.txt
-0xe814dab  mov rax,[rcx]   ; from _eg4a_update.txt
-0xe814dae  mov rax,[rax+0x130]   ; from _eg4a_update.txt
-0xe814e0f  mov r8d,[rsp+0x88]   ; from _eg4a_update.txt
-0xe814e17  add r15,8   ; from _eg4a_update.txt
-0xe814e1b  lea rdx,[rsp+0x98]   ; from _eg4a_update.txt
-0xe814e23  mov r9d,0x200   ; from _eg4a_update.txt
-0xe814e2c  call 0xE8360F0                                ; -> sub_e8360f0   ; from _eg4a_update.txt
-0xe814e38  mov rax,[rsp+0x98]   ; from _eg4a_update.txt
-0xe814e48  mov rcx,[rax+0x10]   ; from _eg4a_update.txt
-0xe814e4f  cmp dword ptr [rax+0x1C],2   ; from _eg4a_update.txt
-0xe814e64  lock dec dword ptr [r14+8]   ; from _eg4a_update.txt
-0xe814e7a  lock dec dword ptr [r14+0xC]   ; from _eg4a_update.txt
-0xe814ea9  cmp dword ptr [rbx+0x44],8   ; from _eg4a_update.txt
-0xe8150f0  push r15   ; from _eg4a_update.txt
-0xe815242  mov r8d,ebp   ; from _eg4a_update.txt
-0xe815245  mov r9d,0x800   ; from _eg4a_update.txt
-0xe81524b  call 0xE82D960                                ; -> sub_e82d960   ; from _eg4a_update.txt
-0xe815250  mov rcx,[r14]   ; from _eg4a_update.txt
-0xe815260  call 0x45EB90                                 ; -> sub_45eb90   ; from _eg4a_update.txt
-0xe81530c  mov dword ptr [rsp+0x28],0x400   ; from _eg4a_update.txt
-0xe815314  lea r8,[0xF84849C]                            ; [data_f84849c] "LReadTextureReadback"   ; from _eg4a_update.txt
-0xe81532c  call 0xE815590                                ; -> sub_e815590   ; from _eg4a_update.txt
-0xe81534e  mov rax,[r14+0x9C]   ; from _eg4a_update.txt
-0xe815430  lea r12,[rsi+0xCC9268]   ; from _eg4a_update.txt
-0xe81543f  call 0xE80ECB0                                ; -> sub_e80ecb0   ; from _eg4a_update.txt
-0xe815447  call 0xE81AC80                                ; -> sub_e81ac80   ; from _eg4a_update.txt
-0xe81544c  mov [rsi+0x19F58],rax   ; from _eg4a_update.txt
-0xe815453  mov r12d,[r14+0x9C]   ; from _eg4a_update.txt
-0xe81545c  shr r12d,cl   ; from _eg4a_update.txt
-0xe81545f  mov ebp,[r14+0xA0]   ; from _eg4a_update.txt
-0xe81546e  shr ebp,cl   ; from _eg4a_update.txt
-0xe815476  movzx ecx,byte ptr [r14+0xB0]   ; from _eg4a_update.txt
-0xe81547e  call 0xEBD1570                                ; -> sub_ebd1570   ; from _eg4a_update.txt
-0xe815487  imul r14d,r12d   ; from _eg4a_update.txt
-0xe81548b  shr r14d,3   ; from _eg4a_update.txt
-0xe8154b1  mov rax,[r15]   ; from _eg4a_update.txt
-0xe8154b4  mov rax,[rax+0x40]   ; from _eg4a_update.txt
-0xe8154c7  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040   ; from _eg4a_update.txt
-0xe8154e6  call 0xEBCE390                                ; -> sub_ebce390   ; from _eg4a_update.txt
-0xe8154eb  mov edx,[rsp+0x128]   ; from _eg4a_update.txt
-0xe8154f7  mov [rsp+0x78],rdx   ; from _eg4a_update.txt
-0xe8154ff  dec ebp   ; from _eg4a_update.txt
-0xe81553e  mov rax,[r15]   ; from _eg4a_update.txt
-0xe815541  mov rax,[rax+0x10]   ; from _eg4a_update.txt
-0xe815545  mov rcx,r15   ; from _eg4a_update.txt
-0xe815548  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040   ; from _eg4a_update.txt
-0xe815840  push rbp   ; from _eg4a_update.txt
-0xe815866  mov edi,r9d   ; from _eg4a_update.txt
-0xe815869  mov ebx,r8d   ; from _eg4a_update.txt
-0xe81586f  mov [rbp+0x8E],dx   ; from _eg4a_update.txt
-0xe8159b4  mov r8d,0x2C   ; from _eg4a_tail.txt
-0xe8159bf  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040   ; from _eg4a_tail.txt
-0xe8159cd  mov dword ptr [r14+8],0x1C   ; from _eg4a_tail.txt
-0xe8159eb  lea rax,[0xF441980]                           ; [data_f441980]   ; from _eg4a_tail.txt
-0xe8159f6  lea rax,[0xF441990]                           ; [data_f441990]   ; from _eg4a_tail.txt
-0xe815a01  lea rax,[0xF4419A0]                           ; [data_f4419a0]   ; from _eg4a_tail.txt
-0xe815a17  mov dword ptr [rbp+0x88],0x584554   ; from _eg4a_tail.txt
-0xe815a34  mov r8d,4   ; from _eg4a_tail.txt
-0xe815a3d  call 0xEBCE390                                ; -> sub_ebce390   ; from _eg4a_tail.txt
-0xe815a65  movzx ecx,byte ptr [rsi+0xAF]   ; from _eg4a_resize2.txt
-0xe815a83  mov [rbp+0x70],ecx   ; from _eg4a_resize2.txt
-0xe815ac9  call 0xE80F290                                ; -> sub_e80f290   ; from _eg4a_resize2.txt
-0xe815ace  mov r12d,[rsi+0x98]   ; from _eg4a_resize2.txt
-0xe815b0d  mov [rsp+0x28],r12d   ; from _eg4a_resize2.txt
-0xe815b2a  call 0xE81BF30                                ; -> sub_e81bf30   ; from _eg4a_resize2.txt
-0xe815b6d  call 0xE935700                                ; -> sub_e935700   ; from _eg4a_resize2.txt
-0xe815b72  mov rcx,[r14]   ; from _eg4a_resize2.txt
-0xe815b75  cmp rcx,r15   ; from _eg4a_resize2.txt
-0xe815b86  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040   ; from _eg4a_resize2.txt
-0xe815c30  push r14   ; from _eg4a_tail.txt
-0xe815c39  mov rsi,r8   ; from _eg4a_tail.txt
-0xe815c3f  mov byte ptr [0x12AE1750],1                   ; [data_12ae1750]   ; from _eg4a_tail.txt
-0xe815d58  or byte ptr [rdi+0x9B],0x40   ; from _eg4a_tail.txt
-0xe815d5f  mov [rdi],rsi   ; from _eg4a_tail.txt
-0xe815d70  push rsi   ; from _eg4a_tail.txt
-0xe815d7a  mov byte ptr [0x12AE1750],1                   ; [data_12ae1750]   ; from _eg4a_tail.txt
-0xe815d9c  jb short 0xE815DBE                            ; -> loc_e815dbe   ; from _eg4a_tail.txt
-0xe815e90  mov rax,[rsi]   ; from _eg4a_ovr.txt
-0xe815ea0  push rsi   ; from _eg4a_ovr.txt
-0xe815fb0  mov rcx,rsi   ; from _eg4a_ovr.txt
-0xe815fba  jmp 0xE80F290                                 ; -> sub_e80f290   ; from _eg4a_ovr.txt
-0xe818bc0  push r15   ; from _eg4a_blit.txt
-0xe818be9  mov rsi,[rcx+0x19F58]                         ; R a0+0x19F58   ; from _eg4a_blit.txt
-0xe818bf0  mov rax,[rcx+0x19F60]                         ; R a0+0x19F60   ; from _eg4a_blit.txt
-0xe818bf7  mov r14,[rax]                                 ; R *(a0+0x19F60)+0x0   ; from _eg4a_blit.txt
-0xe818bfa  mov edi,[rcx+0x19F90]                         ; R a0+0x19F90   ; from _eg4a_blit.txt
-0xe818c00  mov ebx,[rcx+0x19F94]                         ; R a0+0x19F94   ; from _eg4a_blit.txt
-0xe818c29  mov qword ptr [rsp+0xF8],0   ; from _eg4a_blit.txt
-0xe818c47  movsd xmm0,[0xEFD32F0]                        ; [data_efd32f0]   ; from _eg4a_blit.txt
-0xe818c4f  movsd [rsp+0x108],xmm0   ; from _eg4a_blit.txt
-0xe818cb4  mov rax,[r12+8]                               ; R a1+0x8   ; from _eg4a_blit.txt
-0xe818cb9  movzx eax,word ptr [rax+0x14]                 ; R *(a1+0x8)+0x14   ; from _eg4a_blit.txt
-0xe818cbd  imul rax,0x54   ; from _eg4a_blit.txt
-0xe818cc1  add rax,r15   ; from _eg4a_blit.txt
-0xe818cc4  add rax,0xC96198   ; from _eg4a_blit.txt
-0xe818cd2  lea rax,[rsi+0x24]                            ; R *(a0+0x19F58)+0x24   ; from _eg4a_blit.txt
-0xe818cd6  movzx ecx,word ptr [rsi+0x20]                 ; R *(a0+0x19F58)+0x20   ; from _eg4a_blit.txt
-0xe818cda  movzx edx,word ptr [r12+0x6C]                 ; R a1+0x6C   ; from _eg4a_blit.txt
-0xe818d1e  mov r8d,0x8F   ; from _eg4a_blit.txt
-0xe818d2d  call 0xE81E860                                ; -> sub_e81e860   ; from _eg4a_blit.txt
-0xe818dab  lea rbp,[r15+0xB62178]                        ; R a0+0xB62178   ; from _eg4a_blit.txt
-0xe818e6d  movzx eax,word ptr [r12+0x6C]                 ; R a1+0x6C   ; from _eg4a_blit.txt
-0xe818e73  imul rcx,rax,0xF8   ; from _eg4a_blit.txt
-0xe818e7e  mov rcx,[rbp+rcx]                             ; R a0+0xB62178+0x0+idx   ; from _eg4a_blit.txt
-0xe818e8e  movzx r15d,word ptr [rcx+0xAE]                ; R *(a0+0xB62178+0x0+idx)+0xAE   ; from _eg4a_blit.txt
-0xe818e9e  mov rax,[rax+8]   ; from _eg4a_blit.txt
-0xe818ea7  movzx ebx,word ptr [rax+0xAE]   ; from _eg4a_blit.txt
-0xe819750  push r15   ; from _eg4a_blitsetup.txt
-0xe819763  mov r15d,r8d   ; from _eg4a_blitsetup.txt
-0xe819766  lea eax,[r15*4]   ; from _eg4a_blitsetup.txt
-0xe81976e  cmp eax,6   ; from _eg4a_blitsetup.txt
-0xe819771  jb 0xE819B35                                  ; -> loc_e819b35   ; from _eg4a_blitsetup.txt
-0xe8197a0  mov rdx,[rbx+rax*8+0x48]                      ; R *(a0+0x19F58)+0x48+idx   ; from _eg4a_blitsetup.txt
-0xe8197ae  bt rdx,rcx   ; from _eg4a_blitsetup.txt
-0xe8197b4  mov eax,[rbx+rcx*8+0x24C]                     ; R *(a0+0x19F58)+0x24C+idx   ; from _eg4a_blitsetup.txt
-0xe8197bb  cmp eax,0x400   ; from _eg4a_blitsetup.txt
-0xe8197ca  mov dword ptr [rbx+rcx*8+0x24C],0x400         ; W *(a0+0x19F58)+0x24C+idx   ; from _eg4a_blitsetup.txt
-0xe8197d5  mov r8,[rbx+0x38]                             ; R *(a0+0x19F58)+0x38   ; from _eg4a_blitsetup.txt
-0xe8197d9  imul rcx,0x78   ; from _eg4a_blitsetup.txt
-0xe8197dd  mov rcx,[r8+rcx]                              ; R *(*(a0+0x19F58)+0x38)+0x0+idx   ; from _eg4a_blitsetup.txt
-0xe8197fb  mov dword ptr [rsp+0x58],0x400   ; from _eg4a_blitsetup.txt
-0xe819803  mov rax,[rdx]                                 ; R *(*(a0+0x19F58)+0x30)+0x0   ; from _eg4a_blitsetup.txt
-0xe819806  mov rax,[rax+0xD0]                            ; R *(*(*(a0+0x19F58)+0x30)+0x0)+0xD0   ; from _eg4a_blitsetup.txt
-0xe81980d  lea r8,[rsp+0x40]   ; from _eg4a_blitsetup.txt
-0xe81981a  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040   ; from _eg4a_blitsetup.txt
-0xe819822  or rdx,r8   ; from _eg4a_blitsetup.txt
-0xe819825  mov [rbx+rax*8+0x48],rdx   ; from _eg4a_blitsetup.txt
-0xe81982a  movzx eax,word ptr [rbx+0x40]   ; from _eg4a_blitsetup.txt
-0xe81982e  mov [rbx+rax*2+0x8248],cx   ; from _eg4a_blitsetup.txt
-0xe819838  mov [rbx+0x40],ax   ; from _eg4a_blitsetup.txt
-0xe81983c  mov rax,0x40000000400   ; from _eg4a_blitsetup.txt
-0xe819846  mov [rbx+rcx*8+0x248],rax   ; from _eg4a_blitsetup.txt
-0xe8198af  mov rax,[rax+0xA248]   ; from _eg4a_blitsetup.txt
-0xe8198b6  shl ecx,7   ; from _eg4a_blitsetup.txt
-0xe8198b9  mov rax,[rax+rcx]   ; from _eg4a_blitsetup.txt
-0xe81990a  movzx edx,word ptr [rax+0xA250]   ; from _eg4a_blitsetup.txt
-0xe819911  mov [rax+rdx*2+0x12458],cx   ; from _eg4a_blitsetup.txt
-0xe819922  mov rdx,0x40000000400   ; from _eg4a_blitsetup.txt
-0xe81992c  mov [rax+rcx*8+0xA458],rdx   ; from _eg4a_blitsetup.txt
-```
+- None (verbatim lines from rdis.exe; blocker cross-checked with tools/sigs/xref.py str).

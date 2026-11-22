@@ -1,47 +1,36 @@
 ## NEXT
-DONE answer table + claim lines + CLOSES? written; verify_oc 10/10; delegate check passed; CLOSES=NO (writer of ctx+0x1F0 / OptionID reader in frame-graph builder not located)
+DONE — both hint angles exhausted; no source(r13)+0x1F0 writer statically provable; CLOSES=NO
 
 # Unit U-EL17h — L17h graphics options plumbing (OptionSync)
 
-GOAL: close checklist item "L17h graphics options plumbing (OptionSync) pending".
-Pending part (from docs/RENDER_CHECKLIST.md L17h): "OptionSync plumbing for graphics options not traced (options.upscalingPercentage and related strings found, writers not located)" and "the OptionID of upscaling percentage / target resolution and its reader in the frame-graph builder (strings upscaling_percentage 0xf5e13cc and options.targetResolution 0xf5850de have no direct code refs: registered through a table)".
+GOAL: close checklist item "L17h graphics options plumbing (OptionSync) pending" — prove the writer of source(r13)+0x1F0 (the value copied into ctx+0x1F0 by struct-copy 0x67C73D0 at endFrame 0x66232b0) and its link to upscaling_percentage / targetResolution.
 
-All evidence below is static, Minecraft.Windows.exe 1.26.62.01, read from saved rdis outputs (tools/sigs/out_opt_upsc_mode.txt, out_67c73d0.txt, out_ef_callsite3.txt).
+Prior [V] facts carried in (oc_U-Eratio.md, oc_U-EL17h_r1/r2): writer store `0x67c791f movss [rdx+0x1F0],xmm0` writes ctx+0x1F0 (rdx=ctx=r15); TAAU read `0xbc8d34e movups xmm0,[r13+0x1F0]` consumes ctx+0x1F0 as render/display ratio; endFrame calls struct-copy 0x67C73D0 at `0x662def4 call 0x67C73D0` per 0x2B0 element (setup `0x662def1 mov rdx,r13` / `0x662deea lea rcx,[rbx-0x2B0]`); r13=[rsi+0x48] source base (0x662d085), rdi=[rsi+0x50] end (0x662d089); `0x67c7917 movss xmm0,[rsi+0x1F0]` reads source+0x1F0 inside the copy (a READ); 0x67C73D0's only caller is endFrame (3 sites); endFrame has no direct callers (xref callers 0x66232b0 = []).
+
+Investigation performed this unit (all verbatim lines re-verified against the exe with rdis dis immediately before writing):
+- Angle 1 (orchestrator hint): rdis vt 0xf2bdeb0 confirms slot 18 (+0x90) = sub_66232b0 endFrame size 0xb3d0 — BgfxFrameBuilder vtable. All other 31 slots dumped (full listings for 0x67ec9e0, 0x6619c10, 0x6619e60, 0x661f200, 0x66117f0, 0x6610a70-0x6611260, 0x66182d0, 0x661a400-0x661f180, 0x6622aa0, 0x6639450-0x663a390, 0x6619c20, 0x661a2f0, plus trivial slots by inspection). The only [obj+0x1F0] stores in the whole class are two zero-initialization stores inside slot 11 (0x66117f0): no computed render/display-ratio write anywhere.
+- Angle 2: xref str "upscaling_percentage" (0xf5e1458) → refs=[]; xref str "options.targetResolution" (0xf5850de) → refs=[] — both table-registered (Options ctor 0x5b0c1b0: `0x5b3e799 movups xmm0,[0xF5E13CC]` default 0x32=50, `0x5b3ead0 movups xmm0,[0xF5850DE]`), no instruction ties either option to source(r13)+0x1F0.
 
 ## Answer table
 
-| name | offset | size | read/store address | verbatim instr | meaning | tag |
+| name | rva or offset | size | read/store address | verbatim `0xRVA  instr` proof | meaning | tag |
 |---|---|---|---|---|---|---|
-| upscaling_mode default value store | 0x5b3e915 | 4 | [rbp+0x1E0] store (u32 = 1) | `0x5b3e915  mov dword ptr [rbp+0x1E0],1` | default value for upscaling_mode option in Options ctor 0x5b3e8a0 | [V] |
-| upscaling_mode count store | 0x5b3e91f | 4 | [rbp+0x180] store (u32 = 1) | `0x5b3e91f  mov dword ptr [rbp+0x180],1` | count = 1 for upscaling_mode | [V] |
-| upscaling_mode max/limit store | 0x5b3e929 | 4 | [rbp+0x160] store (u32 = 0x244) | `0x5b3e929  mov dword ptr [rbp+0x160],0x244` | max/limit = 0x244 (580) for upscaling_mode | [V] |
-| upscaling_mode name address load | 0x5b3e950 | 8 | [0xF5E4372] address loaded into rax | `0x5b3e950  lea rax,[0xF5E4372]` | "upscaling_mode" option-name string passed to registration | [V] |
-| upscalingMode translation key load | 0x5b3e95c | 8 | [0xF5E4CBB] address loaded into rax | `0x5b3e95c  lea rax,[0xF5E4CBB]` | "options.upscalingMode" translation key passed to registration | [V] |
-| OptionSync registration helper call | 0x5b3e987 | - | - | `0x5b3e987  call 0x5BC0530` | 0x5BC0530 registers option (name rdx, translation r8, default/count r9) — OptionSync plumbing entry | [V] |
-| endFrame calls frame-param struct copy | 0x662def4 | - | - | `0x662def4  call 0x67C73D0` | endFrame 0x66232b0 calls 0x67C73D0 per 0x2B0-byte frame-param element; rcx=dst `rbx-0x2B0`, rdx=src `r13` | [V] |
-| frame-param copy read +0x1DC | 0x67c78bc | 4 | [rsi+0x1DC] read | `0x67c78bc  movss xmm0,[rsi+0x1DC]` | option-derived value +0x1DC copied into dst struct per frame | [V] |
-| frame-param copy read +0x1E0 | 0x67c78cc | 4 | [rsi+0x1E0] read | `0x67c78cc  movss xmm0,[rsi+0x1E0]` | +0x1E0 field copied; L10c: u16 dims / render-size state | [V] |
-| frame-param copy read +0x1F0 | 0x67c7917 | 4 | [rsi+0x1F0] read | `0x67c7917  movss xmm0,[rsi+0x1F0]` | +0x1F0 render/display ratio copied; SOURCE WRITER NOT LOCATED | [V] |
-| string "upscaling_percentage" | 0xf5e1458 | - | - | - | string exists; xref returns NO code refs (registered through table, reader not found) | [?] |
-| string "options.targetResolution" | 0xf5850de | - | - | - | string exists; xref returns NO code refs (registered through table, reader not found) | [?] |
-
-## Claim lines
-
-0x5b3e915  mov dword ptr [rbp+0x1E0],1
-0x5b3e91f  mov dword ptr [rbp+0x180],1
-0x5b3e929  mov dword ptr [rbp+0x160],0x244
-0x5b3e950  lea rax,[0xF5E4372]
-0x5b3e95c  lea rax,[0xF5E4CBB]
-0x5b3e987  call 0x5BC0530
-0x662def4  call 0x67C73D0
-0x67c78bc  movss xmm0,[rsi+0x1DC]
-0x67c78cc  movss xmm0,[rsi+0x1E0]
-0x67c7917  movss xmm0,[rsi+0x1F0]
+| source(r13)+0x1F0 read inside struct-copy 0x67C73D0 | 0x67c7917 | 4 | [rsi+0x1F0] | `0x67c7917  movss xmm0,[rsi+0x1F0]` | source element (rsi==r13)+0x1F0 read per 0x2B0 element — this is a READ, not the writer of source+0x1F0 | [V] |
+| ctx+0x1F0 write inside struct-copy 0x67C73D0 | 0x67c791f | 4 | [rdx+0x1F0] | `0x67c791f  movss [rdx+0x1F0],xmm0` | ctx+0x1F0 written from source+0x1F0 (rdx=ctx=r15) | [V] |
+| TAAU ratio consume, body 0xbc8cfd0 | 0xbc8d34e | 16 | [r13+0x1F0] | `0xbc8d34e  movups xmm0,[r13+0x1F0]` | ctx+0x1F0 consumed as render/display ratio (RenderResolution = ratio * dims) | [V] |
+| endFrame copy-loop call site | 0x662def4 | 5 | - | `0x662def4  call 0x67C73D0` | endFrame 0x66232b0 calls struct-copy per element; 0x67C73D0's only caller is endFrame (sites 0x662ba52, 0x662cd25, 0x662def4) | [V] |
+| endFrame = vtable slot 18, no direct callers | vtable 0xf2bdeb0 slot 18 (+0x90) | - | - | - | `18 +0x090 sub_66232b0 size 0xb3d0` (rdis vt 0xf2bdeb0); xref.py callers 0x66232b0 = [] — indirect/vtable call, caller not statically reachable | [V] |
+| vtable-class slot 11 (0x66117f0): [rsi+0x1F0] store | 0x661241d | 16 | [rsi+0x1F0] | `0x661241d  movdqu [rsi+0x1F0],xmm6` | only object +0x1F0 store found scanning every other method of the class — whole-object zero-initialization, not the source ratio writer | [V] |
+| vtable-class slot 11 (0x66117f0): [rdx+0x1F0] store | 0x6612974 | 8 | [rdx+0x1F0] | `0x6612974  mov qword ptr [rdx+0x1F0],0` | zero-store during object init, not a computed render/display ratio | [V] |
+| string "upscaling_percentage" | 0xf5e1458 | - | - | - | xref str → refs=[]; option registered through a table, no direct code refs | [V] |
+| string "options.targetResolution" | 0xf5850de | - | - | - | xref str → refs=[]; option registered through a table, no direct code refs | [V] |
 
 ## CLOSES?
 
-NO. Single blocking fact: the writer of ctx+0x1F0 (render/display ratio, consumed by TAAU body 0xbc8cfd0) and the OptionID reader in the frame-graph builder that maps upscaling_percentage/options.targetResolution to ctx+0x1F0 are not located. Strings upscaling_percentage (0xf5e13cc/0xf5e1458) and options.targetResolution (0xf5850de) have NO direct code refs (registered through a table), and only upscaling_mode/options.upscalingMode are reached in code (Options ctor 0x5b0c1b0 at 0x5b3e950/0x5b3e95c, preset parser 0x11493a0 at 0x115050e). endFrame 0x66232b0 copies option-derived fields (+0x1DC/+0x1E0/+0x1F0) via 0x67C73D0 at 0x662def4, but the source struct writer upstream of endFrame is not traced.
+NO
+
+Single blocking fact: source(r13)+0x1F0 is only ever READ (`0x67c7917 movss xmm0,[rsi+0x1F0]`) and copied into ctx+0x1F0 (`0x67c791f movss [rdx+0x1F0],xmm0`) inside endFrame; the source array is a caller-built argument of endFrame (base [rsi+0x48] at `0x662d085 mov r13,[rsi+0x48]`, end [rsi+0x50] at `0x662d089 cmp rdi,[rsi+0x50]`), so its filler — the writer of source(r13)+0x1F0 — is endFrame's INDIRECT caller (vtable slot 18 of 0xf2bdeb0, xref callers = []), which is not statically reachable. Full-method scan of the vtable class found no computed [obj+0x1F0] store (only zero-stores `0x661241d movdqu [rsi+0x1F0],xmm6` and `0x6612974 mov qword ptr [rdx+0x1F0],0`), and xref str shows upscaling_percentage (0xf5e1458) and options.targetResolution (0xf5850de) both refs=[] with no instruction tying either option to source+0x1F0. Closing YES requires a live capture of endFrame's indirect caller or an orchestrator-provided caller RVA.
 
 ## TOOL REQUESTS
 
-None — used saved rdis/xref outputs only; no helper script written.
+None — used rdis vt/dis, python tools/sigs/xref.py str, python tools/sigs/dumplist.py; no helper script written.

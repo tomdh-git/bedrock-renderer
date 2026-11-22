@@ -1,7 +1,10 @@
 #include "client/features/render/rewrite/RewriteRegistry.h"
+#include "client/features/settings/preferences/Preferences.h"
 #include "client/features/hooks/Hook.h"
 #include "client/features/render/rewrite/RewriteProbe.h"
 #include "client/platform/time/Time.h"
+#include "client/core/event/Eventing.h"
+#include "client/core/event/events/game/GameUpdateEvent.h"
 #include "sdk/GameVersion.h"
 #include "sdk/SigManager.h"
 
@@ -95,15 +98,32 @@ bool RewriteRegistry::setMode(const char* name, RewriteMode mode) {
     return true;
 }
 
+// Every 10 s, while any rewrite has been called since the last line: its calls, evaluated, divergences and timings go to the log (a shadow test has no other output).
+struct RewriteReporter {
+    uint64_t lastMs = 0, lastCalls = 0;
+    void onUpdate(GameUpdateEvent&) {
+        const uint64_t now = Platform::Time::millis();
+        if (now - lastMs < 10000)
+            return;
+        lastMs = now;
+        uint64_t calls = 0;
+        for (RewriteEntry* e : RewriteRegistry::entries())
+            calls += e->calls.load(std::memory_order_relaxed);
+        if (calls == lastCalls)
+            return;
+        lastCalls = calls;
+        RewriteRegistry::report();
+    }
+};
+static RewriteReporter sReporter;
+
 void RewriteRegistry::init() {
+    Eventing::dispatcher().listen<GameUpdateEvent, &RewriteReporter::onUpdate>(&sReporter);
     RewriteProbe::initFromEnvironment();
-    char text[2048];
-    const DWORD length = GetEnvironmentVariableA("BS_REWRITE", text, sizeof(text));
-    if (length == 0)
+    const std::string text = Preferences::Store::developer("rewrite"); // BS_REWRITE, or "developer.rewrite" in preferences.json
+    if (text.empty())
         return;
-    if (length >= sizeof(text))
-        Logger::fatal("[rewrite] BS_REWRITE is longer than {} characters", sizeof(text) - 1);
-    std::string_view rest(text, length);
+    std::string_view rest(text);
     while (!rest.empty()) {
         const size_t comma = rest.find(',');
         std::string_view item = rest.substr(0, comma);

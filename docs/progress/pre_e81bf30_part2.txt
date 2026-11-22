@@ -1,0 +1,442 @@
+sub_e81c5d7  [0xe81c5d7..0xe81e5d7)  size 0x2000  0 xrefs in
+  e81c5d7  movzx r9d,byte ptr [r12+2]                    
+  e81c5dd  mov eax,ecx                                   
+  e81c5df  xor edx,edx                                   
+  e81c5e1  div r9d                                       
+  e81c5e4  mov ecx,r14d                                  
+  e81c5e7  imul ecx,eax                                  
+  e81c5ea  mov edx,ecx                                   
+  e81c5ec  and edx,0x1FF                                 
+  e81c5f2  mov ebx,0x200                                 
+  e81c5f7  sub ebx,edx                                   
+  e81c5f9  test edx,edx                                  
+  e81c5fb  cmove ebx,edx                                 
+  e81c5fe  add ebx,ecx                                   
+  e81c600  mov rcx,[0x12ADF800]                          ; [data_12adf800]
+  e81c607  test rcx,rcx                                  
+  e81c60a  jne 0xE81C4A0                                 ; -> sub_e81c4a0
+  e81c610  xor esi,esi                                   
+  e81c612  jmp 0xE81C510                                 ; -> sub_e81c510
+  e81c617  xor esi,esi                                   
+  e81c619  test r10w,r10w                                
+  e81c61d  js 0xE81C2E3                                  ; -> sub_e81c2e3
+  e81c623  jmp 0xE81C2E8                                 ; -> sub_e81c2e8
+  e81c628  mov rdx,[rbp+0x48]                            
+  e81c62c  mov dword ptr [rdx+0x58],0                    
+  e81c633  mov ecx,9                                     
+  e81c638  mov [rdx+0x44],ecx                            
+  e81c63b  mov dword ptr [rdx+0x50],0                    
+  e81c642  mov rcx,[rbp+0x30]                            
+  e81c646  mov [rdx+0x54],ecx                            
+  e81c649  movaps xmm0,[0xF4ED280]                       ; [data_f4ed280]
+  e81c650  movups [rdx+0x6C],xmm0                        
+  e81c654  mov dword ptr [rdx+0x7C],0                    
+  e81c65b  jmp short 0xE81C693                           ; -> loc_e81c693
+  e81c65d  cmp ecx,2                                     
+  e81c660  setae dl                                      
+  e81c663  lea ecx,[rdx+rdx+4]                           
+  e81c667  mov [r8+0x44],ecx                             ; W a2+0x44
+  e81c66b  mov dword ptr [r8+0x50],0                     ; W a2+0x50
+  e81c673  mov rcx,[rbp+0x30]                            
+  e81c677  mov [r8+0x54],ecx                             ; W a2+0x54
+  e81c67b  mov qword ptr [r8+0x58],0                     ; W a2+0x58
+  e81c683  mov qword ptr [r8+0x6C],4                     ; W a2+0x6C
+  e81c68b  mov dword ptr [r8+0x74],0                     ; W a2+0x74
+
+loc_e81c693:  ; from e81c65b
+  e81c693  mov r15,[rax+0x19F10]                         ; R a0+0x19F10
+  e81c69a  mov ecx,[rbp-0x38]                            
+  e81c69d  cmp ecx,[rax+0xC976C0]                        ; R a0+0xC976C0
+  e81c6a3  jne short 0xE81C6B3                           ; -> loc_e81c6b3
+  e81c6a5  mov ecx,[rbp-0x30]                            
+  e81c6a8  cmp ecx,[rax+0xC976C4]                        ; R a0+0xC976C4
+  e81c6ae  sete cl                                       
+  e81c6b1  jmp short 0xE81C6B5                           ; -> loc_e81c6b5
+
+loc_e81c6b3:  ; from e81c6a3
+  e81c6b3  xor ecx,ecx                                   
+
+loc_e81c6b5:  ; from e81c6b1
+  e81c6b5  movzx eax,byte ptr [rax+0x55]                 
+  e81c6b9  not al                                        
+  e81c6bb  test r15,r15                                  
+  e81c6be  sete dl                                       
+  e81c6c1  or al,cl                                      
+  e81c6c3  or al,dl                                      
+  e81c6c5  test r10d,0x10F000                            
+  e81c6cc  setne cl                                      
+  e81c6cf  or cl,al                                      
+  e81c6d1  test cl,1                                     
+  e81c6d4  jne 0xE81C784                                 ; -> loc_e81c784
+  e81c6da  mov rax,[rbp+0x48]                            
+  e81c6de  test byte ptr [rax+0x38],2                    
+  e81c6e2  jne 0xE81C784                                 ; -> loc_e81c784
+  e81c6e8  mov [rbp+0x38],r12                            
+  e81c6ec  mov r12,rbx                                   
+  e81c6ef  mov r14d,[0x1285DC0C]                         ; [data_1285dc0c]
+  e81c6f6  mov rcx,[r15+0x20]                            
+  e81c6fa  mov rax,[rcx]                                 
+  e81c6fd  mov rax,[rax+0xC8]                            
+  e81c704  sub rsp,0x30                                  
+  e81c708  mov [rsp+0x20],r13                            
+  e81c70d  lea rdx,[rbp+0x148]                           
+  e81c714  mov r8d,1                                     
+  e81c71a  mov r9d,1                                     
+  e81c720  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e81c726  add rsp,0x30                                  
+  e81c72a  mov rbx,[rbp+0x48]                            
+  e81c72e  mov eax,[rbx+0x38]                            
+  e81c731  mov r8,[rbp+0x148]                            
+  e81c738  sub rsp,0x40                                  
+  e81c73c  mov [rsp+0x30],rsi                            
+  e81c741  mov [rsp+0x28],eax                            
+  e81c745  mov [rsp+0x20],r14d                           
+  e81c74a  mov qword ptr [rsp+0x38],0                    
+  e81c753  mov rcx,r15                                   
+  e81c756  mov rdx,[rbp-0x20]                            
+  e81c75a  mov rsi,r13                                   
+  e81c75d  mov r9,r13                                    
+  e81c760  call 0xE928FB0                                ; -> sub_e928fb0
+  e81c765  add rsp,0x40                                  
+  e81c769  mov [rbx],rax                                 
+  e81c76c  test rax,rax                                  
+  e81c76f  je 0xE81CA2E                                  ; -> loc_e81ca2e
+  e81c775  mov byte ptr [rbx+0xB2],1                     
+  e81c77c  xor r14d,r14d                                 
+  e81c77f  jmp 0xE81CA45                                 ; -> loc_e81ca45
+
+loc_e81c784:  ; from e81c6d4, e81c6e2
+  e81c784  mov qword ptr [rbp+0x148],0                   
+  e81c78f  mov ecx,[0x1285DC0C]                          ; [data_1285dc0c]
+  e81c795  mov rax,[r12]                                 
+  e81c799  mov rax,[rax+0xD8]                            
+  e81c7a0  sub rsp,0x40                                  
+  e81c7a4  lea rdx,[rbp+0x148]                           
+  e81c7ab  mov [rsp+0x38],rdx                            
+  e81c7b0  lea rdx,[0xF4ED2C0]                           ; [data_f4ed2c0]
+  e81c7b7  mov [rsp+0x30],rdx                            
+  e81c7bc  mov [rsp+0x28],rsi                            
+  e81c7c1  mov [rsp+0x20],ecx                            
+  e81c7c5  lea rdx,[0x1285DBF8]                          ; [data_1285dbf8]
+  e81c7cc  xor r14d,r14d                                 
+  e81c7cf  mov rcx,r12                                   
+  e81c7d2  xor r8d,r8d                                   
+  e81c7d5  mov r9,r13                                    
+  e81c7d8  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e81c7de  add rsp,0x40                                  
+  e81c7e2  test eax,eax                                  
+  e81c7e4  js short 0xE81C81D                            ; -> loc_e81c81d
+  e81c7e6  mov rsi,[rbp+0x148]                           
+  e81c7ed  mov r14d,[0x1285DC0C]                         ; [data_1285dc0c]
+  e81c7f4  cmp dword ptr [r13],1                         
+  e81c7f9  mov r15d,[rbp+0x54]                           
+  e81c7fd  jne 0xE81C885                                 ; -> loc_e81c885
+  e81c803  mov rax,[rsi]                                 
+  e81c806  mov rax,[rax+0x58]                            
+  e81c80a  sub rsp,0x20                                  
+  e81c80e  mov rcx,rsi                                   
+  e81c811  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e81c817  add rsp,0x20                                  
+  e81c81b  jmp short 0xE81C885                           ; -> loc_e81c885
+
+loc_e81c81d:  ; from e81c7e4
+  e81c81d  mov rcx,[0x12BB4910]                          ; [data_12bb4910]
+  e81c824  cmp dword ptr [rcx+0x19F88],5                 
+  e81c82b  mov r15d,[rbp+0x54]                           
+  e81c82f  jl short 0xE81C883                            ; -> loc_e81c883
+  e81c831  mov edx,4                                     
+  e81c836  lea r8d,[rax+0x7785FFFB]                      
+  e81c83d  cmp r8d,0x1D                                  
+  e81c841  ja short 0xE81C84F                            ; -> loc_e81c84f
+  e81c843  mov r9d,0x28000007                            
+  e81c849  bt r9d,r8d                                    
+  e81c84d  jb short 0xE81C874                            ; -> loc_e81c874
+
+loc_e81c84f:  ; from e81c841
+  e81c84f  lea r8d,[rax+0x7789F798]                      
+  e81c856  cmp r8d,0xC                                   
+  e81c85a  ja short 0xE81C868                            ; -> loc_e81c868
+  e81c85c  mov r9d,0x1101                                
+  e81c862  bt r9d,r8d                                    
+  e81c866  jb short 0xE81C874                            ; -> loc_e81c874
+
+loc_e81c868:  ; from e81c85a
+  e81c868  cmp eax,0x88760826                            
+  e81c86d  je short 0xE81C874                            ; -> loc_e81c874
+  e81c86f  mov edx,3                                     
+
+loc_e81c874:  ; from e81c84d, e81c866, e81c86d
+  e81c874  mov [rcx+0x19F88],edx                         
+  e81c87a  mov [rcx+0x19F8C],eax                         
+  e81c880  xor r14d,r14d                                 
+
+loc_e81c883:  ; from e81c82f
+  e81c883  xor esi,esi                                   
+
+loc_e81c885:  ; from e81c7fd, e81c81b
+  e81c885  mov rax,[rbp+0x48]                            
+  e81c889  mov [rax],rsi                                 
+  e81c88c  mov byte ptr [rax+0xB2],0                     
+  e81c893  test dil,dil                                  
+  e81c896  jne 0xE81CA58                                 ; -> loc_e81ca58
+  e81c89c  jmp 0xE81CA89                                 ; -> loc_e81ca89
+  e81c8a1  movzx eax,r15b                                
+  e81c8a5  mov [rbp],eax                                 
+  e81c8a8  xor edi,edi                                   
+  e81c8aa  lea r12,[rbp+0x148]                           
+  e81c8b1  xor r15d,r15d                                 
+  e81c8b4  jmp short 0xE81C8CE                           ; -> loc_e81c8ce
+  e81c8b6  nop [rax+rax]                                 
+
+loc_e81c8c0:  ; from e81c984
+  e81c8c0  inc r15d                                      
+  e81c8c3  cmp r15w,[rbp+0x54]                           
+  e81c8c8  je 0xE81C16E                                  ; -> sub_e81c16e
+
+loc_e81c8ce:  ; from e81c8b4
+  e81c8ce  xor r13d,r13d                                 
+  e81c8d1  jmp 0xE81C98A                                 ; -> loc_e81c98a
+  e81c8d6  nop [rax+rax]                                 
+
+loc_e81c8e0:  ; from e81ca1f
+  e81c8e0  mov r8d,[rbp+0x154]                           
+  e81c8e7  imul r8d,ebx                                  
+  e81c8eb  mov rax,[rcx]                                 
+  e81c8ee  mov rax,[rax+8]                               
+  e81c8f2  sub rsp,0x30                                  
+  e81c8f6  mov dword ptr [rsp+0x28],0                    
+  e81c8fe  mov qword ptr [rsp+0x20],0                    
+  e81c907  xor edx,edx                                   
+  e81c909  xor r9d,r9d                                   
+  e81c90c  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e81c912  add rsp,0x30                                  
+  e81c916  mov rsi,rax                                   
+  e81c919  mov r9d,[rbp+0x14C]                           
+  e81c920  mov eax,[rbp+0x150]                           
+  e81c926  mov rcx,[0x12ADF800]                          ; [data_12adf800]
+
+loc_e81c92d:  ; from e81ca29
+  e81c92d  mov edx,[rbp+0x148]                           
+  e81c933  mov r8,[rbp+0x168]                            
+  e81c93a  sub rsp,0x40                                  
+  e81c93e  mov [rsp+0x30],edx                            
+  e81c942  mov [rsp+0x28],r14d                           
+  e81c947  mov [rsp+0x20],eax                            
+  e81c94b  mov rdx,rsi                                   
+  e81c94e  call 0xEBD21C0                                ; -> sub_ebd21c0
+  e81c953  add rsp,0x40                                  
+  e81c957  mov eax,edi                                   
+  e81c959  lea rax,[rax+rax*2]                           
+  e81c95d  mov rdx,[rbp+0x20]                            
+  e81c961  mov [rdx+rax*8],rsi                           
+  e81c965  mov ecx,r14d                                  
+  e81c968  mov [rdx+rax*8+8],rcx                         
+  e81c96d  mov ecx,ebx                                   
+  e81c96f  mov [rdx+rax*8+0x10],rcx                      
+  e81c974  inc edi                                       
+  e81c976  mov r14,[rbp+0x1F0]                           
+
+loc_e81c97d:  ; from e81c9b8
+  e81c97d  inc r13b                                      
+  e81c980  cmp r13b,[rbp+0x38]                           
+  e81c984  jae 0xE81C8C0                                 ; -> loc_e81c8c0
+
+loc_e81c98a:  ; from e81c8d1
+  e81c98a  mov eax,[r14+8]                               
+  e81c98e  mov r9,[r14]                                  
+  e81c991  mov rcx,[rbp-8]                               
+  e81c995  lea r8d,[rcx+r13]                             
+  e81c999  sub rsp,0x30                                  
+  e81c99d  mov [rsp+0x28],r12                            
+  e81c9a2  mov [rsp+0x20],eax                            
+  e81c9a6  mov rcx,[rbp+0x40]                            
+  e81c9aa  mov edx,r15d                                  
+  e81c9ad  call 0xEBD3C60                                ; -> sub_ebd3c60
+  e81c9b2  add rsp,0x30                                  
+  e81c9b6  test al,al                                    
+  e81c9b8  je short 0xE81C97D                            ; -> loc_e81c97d
+  e81c9ba  mov r9d,[rbp+0x14C]                           
+  e81c9c1  mov eax,[rbp+0x150]                           
+  e81c9c7  cmp r9d,5                                     
+  e81c9cb  mov ecx,4                                     
+  e81c9d0  cmovae ecx,r9d                                
+  e81c9d4  imul ecx,[rbp]                                
+  e81c9d8  shr ecx,3                                     
+  e81c9db  movzx edx,cl                                  
+  e81c9de  mov r14d,0x100                                
+  e81c9e4  sub r14d,edx                                  
+  e81c9e7  test edx,edx                                  
+  e81c9e9  cmove r14d,edx                                
+  e81c9ed  add r14d,ecx                                  
+  e81c9f0  cmp eax,5                                     
+  e81c9f3  mov ecx,4                                     
+  e81c9f8  cmovae ecx,eax                                
+  e81c9fb  imul ecx,r14d                                 
+  e81c9ff  mov edx,ecx                                   
+  e81ca01  and edx,0x1FF                                 
+  e81ca07  mov ebx,0x200                                 
+  e81ca0c  sub ebx,edx                                   
+  e81ca0e  test edx,edx                                  
+  e81ca10  cmove ebx,edx                                 
+  e81ca13  add ebx,ecx                                   
+  e81ca15  mov rcx,[0x12ADF800]                          ; [data_12adf800]
+  e81ca1c  test rcx,rcx                                  
+  e81ca1f  jne 0xE81C8E0                                 ; -> loc_e81c8e0
+  e81ca25  xor ecx,ecx                                   
+  e81ca27  xor esi,esi                                   
+  e81ca29  jmp 0xE81C92D                                 ; -> loc_e81c92d
+
+loc_e81ca2e:  ; from e81c76f
+  e81ca2e  mov rax,[0x12BB4910]                          ; [data_12bb4910]
+  e81ca35  xor r14d,r14d                                 
+  e81ca38  cmp dword ptr [rax+0x19F88],5                 
+  e81ca3f  jge 0xE81D070                                 ; -> loc_e81d070
+
+loc_e81ca45:  ; from e81c77f
+  e81ca45  mov r15d,[rbp+0x54]                           
+  e81ca49  mov rbx,r12                                   
+  e81ca4c  mov r13,rsi                                   
+  e81ca4f  mov r12,[rbp+0x38]                            
+  e81ca53  test dil,dil                                  
+  e81ca56  je short 0xE81CA89                            ; -> loc_e81ca89
+
+loc_e81ca58:  ; from e81c896, e81d09a
+  e81ca58  mov rax,[rbp+0x48]                            
+  e81ca5c  mov rcx,[rax]                                 
+  e81ca5f  test rcx,rcx                                  
+  e81ca62  je short 0xE81CA89                            ; -> loc_e81ca89
+  e81ca64  mov rax,[rbp+0x48]                            
+  e81ca68  lea r9,[rax+0x90]                             
+  e81ca6f  mov rax,[rcx]                                 
+  e81ca72  mov rax,[rax+0x40]                            
+  e81ca76  sub rsp,0x20                                  
+  e81ca7a  xor edx,edx                                   
+  e81ca7c  xor r8d,r8d                                   
+  e81ca7f  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e81ca85  add rsp,0x20                                  
+
+loc_e81ca89:  ; from e81c89c, e81ca56, e81ca62, e81d0a0
+  e81ca89  cmp byte ptr [rbp+0x40],0                     
+  e81ca8d  jne 0xE81D571                                 ; -> loc_e81d571
+  e81ca93  mov rax,[rbp+0x48]                            
+  e81ca97  cmp qword ptr [rax],0                         
+  e81ca9b  je 0xE81D54D                                  ; -> loc_e81d54d
+  e81caa1  mov rax,[r12]                                 
+  e81caa5  mov rax,[rax+0x130]                           
+  e81caac  sub rsp,0x50                                  
+  e81cab0  lea rcx,[rbp+0x58]                            
+  e81cab4  mov [rsp+0x40],rcx                            
+  e81cab9  xorps xmm0,xmm0                               
+  e81cabc  movups [rsp+0x30],xmm0                        
+  e81cac1  movups [rsp+0x20],xmm0                        
+  e81cac6  mov rcx,r12                                   
+  e81cac9  mov rdx,r13                                   
+  e81cacc  xor r8d,r8d                                   
+  e81cacf  mov rsi,[rbp-0x58]                            
+  e81cad3  mov r9d,esi                                   
+  e81cad6  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e81cadc  add rsp,0x50                                  
+  e81cae0  mov rcx,[0x12BB4910]                          ; [data_12bb4910]
+  e81cae7  mov rax,[rbp+0x58]                            
+  e81caeb  sub rsp,0x40                                  
+  e81caef  mov [rsp+0x20],rax                            
+  e81caf4  mov dword ptr [rsp+0x30],0                    
+  e81cafc  mov dword ptr [rsp+0x28],0xAC3                
+  e81cb04  lea r8,[0xF848A62]                            ; [data_f848a62] "LCreateUpload"
+  e81cb0b  lea rdx,[rbp+0x148]                           
+  e81cb12  mov r9d,2                                     
+  e81cb18  call 0xE815590                                ; -> sub_e815590
+  e81cb1d  add rsp,0x40                                  
+  e81cb21  mov rax,[rbp+0x148]                           
+  e81cb28  test rax,rax                                  
+  e81cb2b  je 0xE81D54D                                  ; -> loc_e81d54d
+  e81cb31  mov [rbp-0x18],rax                            
+  e81cb35  mov r13,[rbp+0x48]                            
+  e81cb39  mov rax,[r13]                                 
+  e81cb3d  mov qword ptr [rbp+0x148],0                   
+  e81cb48  mov [rbp+0x150],rax                           
+  e81cb4f  mov dword ptr [rbp+0x158],0xFFFFFFFF          
+  e81cb59  mov [rbp+0x15C],r14d                          
+  e81cb60  mov dword ptr [rbp+0x160],0x400               
+  e81cb6a  mov rcx,[rbx+0x30]                            
+  e81cb6e  mov rax,[rcx]                                 
+  e81cb71  mov rax,[rax+0xD0]                            
+  e81cb78  sub rsp,0x20                                  
+  e81cb7c  lea r8,[rbp+0x148]                            
+  e81cb83  mov edx,1                                     
+  e81cb88  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e81cb8e  add rsp,0x20                                  
+  e81cb92  mov rax,rbx                                   
+  e81cb95  mov rbx,[r13]                                 
+  e81cb99  mov [rbp-0x78],rax                            
+  e81cb9d  mov r12,[rax+0x30]                            
+  e81cba1  mov qword ptr [rbp+0xA0],0                    
+  e81cbac  mov edi,esi                                   
+  e81cbae  imul rsi,rdi,0x2C                             
+  e81cbb2  sub rsp,0x20                                  
+  e81cbb6  call qword ptr [0xF9A8930]                    ; [data_f9a8930]
+  e81cbbc  mov rcx,rax                                   
+  e81cbbf  xor edx,edx                                   
+  e81cbc1  mov r8,rsi                                    
+  e81cbc4  call qword ptr [0xF9A8938]                    ; [data_f9a8938]
+  e81cbca  add rsp,0x20                                  
+  e81cbce  test rax,rax                                  
+  e81cbd1  je 0xE81D242                                  ; -> loc_e81d242
+  e81cbd7  mov [rbp-0x20],r12                            
+  e81cbdb  mov r13d,edi                                  
+  e81cbde  shl r13d,5                                    
+  e81cbe2  add r13,rax                                   
+  e81cbe5  mov [rbp-0x60],rdi                            
+  e81cbe9  lea rdi,[rdi*8]                               
+  e81cbf1  add rdi,r13                                   
+  e81cbf4  mov r12,rax                                   
+  e81cbf7  mov rax,[rbx]                                 
+  e81cbfa  mov rax,[rax+0x50]                            
+  e81cbfe  sub rsp,0x20                                  
+  e81cc02  lea rsi,[rbp+0x68]                            
+  e81cc06  mov rcx,rbx                                   
+  e81cc09  mov rdx,rsi                                   
+  e81cc0c  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e81cc12  add rsp,0x20                                  
+  e81cc16  mov rax,[rbx]                                 
+  e81cc19  mov rax,[rax+0x38]                            
+  e81cc1d  sub rsp,0x20                                  
+  e81cc21  lea rdx,[0xF4EDF20]                           ; [data_f4edf20]
+  e81cc28  lea r8,[rbp+0x60]                             
+  e81cc2c  mov rcx,rbx                                   
+  e81cc2f  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e81cc35  add rsp,0x20                                  
+  e81cc39  mov rcx,[rbp+0x60]                            
+  e81cc3d  mov rax,[rcx]                                 
+  e81cc40  mov rax,[rax+0x130]                           
+  e81cc47  sub rsp,0x50                                  
+  e81cc4b  lea rdx,[rbp+0xA0]                            
+  e81cc52  mov [rsp+0x40],rdx                            
+  e81cc57  mov [rbp-0x68],r13                            
+  e81cc5b  mov [rsp+0x38],r13                            
+  e81cc60  mov [rbp-0x70],rdi                            
+  e81cc64  mov [rsp+0x30],rdi                            
+  e81cc69  mov [rsp+0x28],r12                            
+  e81cc6e  mov qword ptr [rsp+0x20],0                    
+  e81cc77  mov rdx,rsi                                   
+  e81cc7a  xor r8d,r8d                                   
+  e81cc7d  mov rdi,[rbp-0x58]                            
+  e81cc81  mov r9d,edi                                   
+  e81cc84  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e81cc8a  add rsp,0x50                                  
+  e81cc8e  mov rcx,[rbp+0x60]                            
+  e81cc92  mov rax,[rcx]                                 
+  e81cc95  mov rax,[rax+0x10]                            
+  e81cc99  sub rsp,0x20                                  
+  e81cc9d  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e81cca3  add rsp,0x20                                  
+  e81cca7  mov rsi,[rbp+0xA0]                            
+  e81ccae  mov r13,[rbp-0x18]                            
+  e81ccb2  mov rax,[r13]                                 
+  e81ccb6  mov rax,[rax+0x50]                            
+  e81ccba  sub rsp,0x20                                  
+  e81ccbe  lea rdx,[rbp+0x148]                           
+  e81ccc5  mov rcx,r13                                   
+  e81ccc8  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e81ccce  add rsp,0x20                                  
+  ... (--max 400)

@@ -1,0 +1,142 @@
+sub_79225b0  [0x79225b0..0x79245b0)  size 0x2000  1 xrefs in
+  79225b0  push rbp                                      
+  79225b1  push r15                                      
+  79225b3  push r14                                      
+  79225b5  push r13                                      
+  79225b7  push r12                                      
+  79225b9  push rsi                                      
+  79225ba  push rdi                                      
+  79225bb  push rbx                                      
+  79225bc  sub rsp,0x148                                 
+  79225c3  lea rbp,[rsp+0x80]                            
+  79225cb  movaps [rbp+0xB0],xmm7                        
+  79225d2  movaps [rbp+0xA0],xmm6                        
+  79225d9  mov qword ptr [rbp+0x98],0xFFFFFFFFFFFFFFFE   
+  79225e4  cmp qword ptr [rcx+0x98],0                    ; R a0+0x98
+  79225ec  je 0x7923AD2                                  ; -> loc_7923ad2
+  79225f2  mov rsi,rcx                                   
+  79225f5  call 0xEEC5920                                ; -> sub_eec5920
+  79225fa  mov rdi,rax                                   
+  79225fd  call 0xEEC5930                                ; -> sub_eec5930
+  7922602  mov r9,0xB2F4FC0794908CF3                     
+  792260c  cmp rdi,0x16E3600                             
+  7922613  je short 0x7922627                            ; -> loc_7922627
+  7922615  cmp rdi,0x989680                              
+  792261c  jne short 0x7922679                           ; -> loc_7922679
+  792261e  imul rax,0x64                                 
+  7922622  jmp 0x79226B8                                 ; -> loc_79226b8
+
+loc_7922627:  ; from 7922613
+  7922627  mov rcx,rax                                   
+  792262a  imul r9                                       
+  792262d  mov r8,rdx                                    
+  7922630  add r8,rcx                                    
+  7922633  mov rax,r8                                    
+  7922636  shr rax,0x3F                                  
+  792263a  sar r8,0x18                                   
+  792263e  add r8,rax                                    
+  7922641  imul rax,r8,0x16E3600                         
+  7922648  sub rcx,rax                                   
+  792264b  imul rcx,0x3B9ACA00                           
+  7922652  mov rax,rcx                                   
+  7922655  imul r9                                       
+  7922658  imul rax,r8,0x3B9ACA00                        
+  792265f  add rdx,rcx                                   
+  7922662  mov rcx,rdx                                   
+  7922665  shr rcx,0x3F                                  
+  7922669  sar rdx,0x18                                  
+  792266d  add rdx,rcx                                   
+  7922670  add rdx,rax                                   
+  7922673  mov [rbp+0x50],rdx                            
+  7922677  jmp short 0x79226BC                           ; -> loc_79226bc
+
+loc_7922679:  ; from 792261c
+  7922679  mov rcx,rax                                   
+  792267c  or rcx,rdi                                    
+  792267f  shr rcx,0x20                                  
+  7922683  je short 0x792268C                            ; -> loc_792268c
+  7922685  cqo                                           
+  7922687  idiv rdi                                      
+  792268a  jmp short 0x7922690                           ; -> loc_7922690
+
+loc_792268c:  ; from 7922683
+  792268c  xor edx,edx                                   
+  792268e  div edi                                       
+
+loc_7922690:  ; from 792268a
+  7922690  imul rcx,rax,0x3B9ACA00                       
+  7922697  imul rax,rdx,0x3B9ACA00                       
+  792269e  mov rdx,rax                                   
+  79226a1  or rdx,rdi                                    
+  79226a4  shr rdx,0x20                                  
+  79226a8  je short 0x79226B1                            ; -> loc_79226b1
+  79226aa  cqo                                           
+  79226ac  idiv rdi                                      
+  79226af  jmp short 0x79226B5                           ; -> loc_79226b5
+
+loc_79226b1:  ; from 79226a8
+  79226b1  xor edx,edx                                   
+  79226b3  div edi                                       
+
+loc_79226b5:  ; from 79226af
+  79226b5  add rax,rcx                                   
+
+loc_79226b8:  ; from 7922622
+  79226b8  mov [rbp+0x50],rax                            
+
+loc_79226bc:  ; from 7922677
+  79226bc  mov rax,[rsi+0x90]                            
+  79226c3  mov rdi,[rax]                                 
+  79226c6  mov [rbp+0x78],rdi                            
+  79226ca  mov r12,0x100000001B3                         
+  79226d4  xorps xmm6,xmm6                               
+  79226d7  movss xmm7,[0xEEE6700]                        ; [data_eee6700]
+  79226df  jmp short 0x79226FA                           ; -> loc_79226fa
+  79226e1  nop [rax+rax]                                 
+
+loc_79226f0:  ; from 7922979, 7922982
+  79226f0  mov rax,[rsi+0x90]                            
+  79226f7  mov rdi,rbx                                   
+
+loc_79226fa:  ; from 79226df
+  79226fa  cmp rdi,rax                                   
+  79226fd  je 0x7923912                                  ; -> loc_7923912
+  7922703  lea rax,[rbp+0x78]                            
+  7922707  mov [rbp-0x38],rax                            
+  792270b  mov [rbp-0x30],rsi                            
+  792270f  mov byte ptr [rbp-0x28],1                     
+  7922713  mov ebx,[rdi+0x10]                            
+  7922716  mov [rbp+0x8C],ebx                            
+  792271c  mov eax,[rdi+0x14]                            
+  792271f  mov [rbp+0x90],eax                            
+  7922725  mov ecx,[rdi+0x18]                            
+  7922728  mov [rbp+0x94],ecx                            
+  792272e  movzx r9d,bl                                  
+  7922732  mov r15,0xCBF29CE484222325                    
+  792273c  xor r9,r15                                    
+  792273f  imul r9,r12                                   
+  7922743  movzx edx,bh                                  
+  7922746  xor rdx,r9                                    
+  7922749  imul rdx,r12                                  
+  792274d  mov r8d,ebx                                   
+  7922750  shr r8d,0x10                                  
+  7922754  movzx r10d,r8b                                
+  7922758  xor r10,rdx                                   
+  792275b  imul r10,r12                                  
+  792275f  mov r8d,ebx                                   
+  7922762  shr r8d,0x18                                  
+  7922766  xor r8,r10                                    
+  7922769  imul r8,r12                                   
+  792276d  mov r13d,0x9E3779B9                           
+  7922773  add r8,r13                                    
+  7922776  movzx r10d,al                                 
+  792277a  xor r10,r15                                   
+  792277d  imul r10,r12                                  
+  7922781  movzx edx,ah                                  
+  7922784  xor rdx,r10                                   
+  7922787  imul rdx,r12                                  
+  792278b  mov r11d,eax                                  
+  792278e  shr r11d,0x10                                 
+  7922792  movzx r14d,r11b                               
+  7922796  xor r14,rdx                                   
+  ... (--max 120)

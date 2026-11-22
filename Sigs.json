@@ -329,21 +329,21 @@
             ]
           },
           "submit": {
-            "priority": "low",
+            "priority": "high",
             "comment": "Encoder::submit rva 0xBC60740 in 1.26.62.01 (BGFX_MAP 6cq)",
             "sigs": [
               "41 57 41 56 56 57 55 53 48 83 EC 68 0F 29 74 24 50 48 89 CE 0F B6 AC 24 ? ?"
             ]
           },
           "reset": {
-            "priority": "low",
+            "priority": "high",
             "comment": "Encoder::reset rva 0xBC60D10",
             "sigs": [
               "41 56 56 57 53 48 83 EC 48 0F 29 74 24 30 48 89 CE C6 81 ?"
             ]
           },
           "frameSort": {
-            "priority": "low",
+            "priority": "high",
             "comment": "Frame::sort rva 0xBC61E20",
             "sigs": [
               "56 57 48 81 EC 38 02 00 00 48 89 CE 48 8B 05 ? ? ? ? 48"
@@ -373,7 +373,7 @@
         },
         "FrameGraph": {
           "endFrame": {
-            "priority": "low",
+            "priority": "high",
             "comment": "BgfxContext::endFrame rva 0xC270460",
             "sigs": [
               "55 41 57 41 56 41 55 41 54 56 57 53 48 81 EC C8 00 00 00 48 8D AC 24 ? ? ? ? 48 C7 45 40 FE FF FF FF 80 79 35"
@@ -417,7 +417,7 @@
             ]
           },
           "drawFlush": {
-            "priority": "low",
+            "priority": "high",
             "comment": "D3D12 draw batch flush (the draw emitter: DrawInstanced / DrawIndexedInstanced / ExecuteIndirect) rva 0xE81B720 (6ej)",
             "sigs": [
               "41 57 41 56 41 55 41 54 56 57 55 53 48 81 EC 88 00 00 00 45 89 CC 42 8B 74 A1"
@@ -473,6 +473,13 @@
             "sigs": [
               "55 41 57 41 56 41 55 41 54 56 57 53 48 81 EC 98 0D 00 00 48 8D AC 24 80 00 00 00 44"
             ]
+          },
+          "insertBatchActor": {
+            "priority": "high",
+            "comment": "Q6b cull seam: insert<RenderBatchActorDescription> clone rva 0x4E39CB0. Signature proven unique: exactly 1 match at file offset 0x4E390B0 (= RVA 0x4E39CB0) via sigscan, 104 concrete bytes.",
+            "sigs": [
+              "55 56 57 53 48 81 EC C8 00 00 00 48 8D AC 24 80 00 00 00 48 C7 45 40 FE FF FF FF 48 89 D7 48 89 CE 8B 05 ?? ?? ?? ?? 8B 0D ?? ?? ?? ?? 65 48 8B 14 25 58 00 00 00 48 8B 0C CA 3B 81 04 00 00 00 7F 78 48 8D 0D ?? ?? ?? ?? 48 89 4D 20 C6 45 28 00 48 8D 5D 30 48 C7 45 38 00 00 00 00 C6 45 E8 00 4C 8D 45 B0 48 89 DA E8 ?? ?? ?? ?? 88 45 28 48 89 7D 10 C6 45 18 0A"
+            ]
           }
         },
         "RendererContextD3D12": {
@@ -488,6 +495,20 @@
             "comment": "RTX override of submit slot 50 (live vtable 0xF4EEE80), rva 0xE83D440 in 1.26.62.01; lazy RT pipeline init + TLAS/BLAS update, then calls base submit 0xE82E230 at 0xE83D4D6; loop over all 0x1000 handles via 0xE84B980 (BGFX_MAP 8a, 6al). Proven unique: exactly 1 match in the 1.26.62.01 file.",
             "sigs": [
               "41 56 56 57 53 48 83 EC 28 48 89 CE 80 B9 78 5E 16 04 01"
+            ]
+          },
+          "PassTAAUpscaling": {
+            "priority": "high",
+            "comment": "Q5d TAA upscale pass body rva 0xbc8ab12 size 0x2000 (BGFX_MAP L15 upscale/motion-vector pass 0xbc8a380; TAAUpscaling at 0xbc8ab12). Signature proven unique: exactly 1 match at file offset 0xbc89f12 (sigscan, 31 bytes).",
+            "sigs": [
+              "48 B8 5D 91 5A 44 47 43 40 33 48 89 85 78 0B 00 00 48 8D 85 18 0C 00 00 48 89 85 28 0B 00 00"
+            ]
+          },
+          "PassScreenDraw": {
+            "priority": "high",
+            "comment": "Q5d fullscreen post pass body ScreenDraw rva 0xbc04dc0 size 0x2000 (BGFX_MAP 6x ColorPostProcess/ScreenDraw at 0xbc04dc0; execute std::function vtable 0xF440710 tail-jumps here). Signature proven unique: exactly 1 match at file offset 0xbc041c0 (sigscan, 59 bytes).",
+            "sigs": [
+              "55 41 57 41 56 41 55 41 54 56 57 53 48 81 EC 48 01 00 00 48 8D AC 24 80 00 00 00 66 0F 7F B5 B0 00 00 00 48 C7 85 A8 00 00 00 FE FF FF FF 4C 89 C6 48 89 D3 49 8D 90 E8 00 00 00"
             ]
           }
         }

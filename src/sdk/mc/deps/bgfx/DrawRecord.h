@@ -31,8 +31,6 @@
 // All offsets below are read as immediates/displacements by the executor or the
 // flush; role names tagged [V] = instruction shows the read/store, [I] = role inferred.
 
-#include <cstddef>
-#include <cstdint>
 
 namespace bgfx {
 

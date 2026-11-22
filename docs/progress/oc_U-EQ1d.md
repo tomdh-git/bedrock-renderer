@@ -1,5 +1,5 @@
 ## NEXT
-step 2
+DONE
 
 # U-EQ1d: Q1d R4 profiler — CPU scope timers per registry function and frame stage; GPU timestamp pairs via custom item (bit 53)
 
@@ -25,7 +25,7 @@ No edits to HookManager.cpp, any existing hook registration, CMake, or existing 
 |---|---|---|---|---|---|
 | 0xbc61697 | 8 | imm (rcx) | `0xbc61697  mov rcx,0x20000000000000` | bit 53 = custom-item bit (submitCustom key) | [V] |
 | 0xbc616aa | 8 | store [rax+r15*8+0x14700] | `0xbc616aa  mov [rax+r15*8+0x14700],rcx` | custom-item key store -> Frame+0x14700 (sort key slot idx) | [V] |
-| 0xbc61560 | - | submitCustom entry | `0xbc61697  mov rcx,0x20000000000000 ; bit 53` | submitCustom(view, fn, user) builds key with bit 53 (EncoderRvas.kSubmitVariant2) | [V] |
+| 0xbc61560 | - | submitCustom entry | `0xbc61560  push r15` | submitCustom(view, fn, user) entry; builds key with bit 53 at 0xbc61697 (EncoderRvas.kSubmitVariant2) | [V] |
 | 0xe822436 | 8 | read [rbx+0x90] | `0xe822436  mov rcx,[rbx+0x90]` | executor ctx block: loads command-queue wrapper ptr from ctx+0x90 | [V] |
 | 0xe82243d | 8 | read [rcx+0x30] | `0xe82243d  mov rcx,[rcx+0x30]` | wrapper+0x30 = ID3D12GraphicsCommandList* | [V] |
 | 0xe822448 | 8 | store [rbx+0x3B0] | `0xe822448  mov [rbx+0x3B0],r8` | custom-item ctx+0x00 = const fn pointer (r8 = lea 0xF4EDE00 const) | [V] |
@@ -41,7 +41,7 @@ Registry-function CPU scope timers (source-verified, RewriteTimed -> Profiler):
 | RewriteTimed | - | source | `RewriteRegistry.h:73-84 RewriteTimed::~RewriteTimed: add(id, Profiler::now()-t0)` | per-registry-function CPU scope timed; row group "rewrite", name = entry name; ticksOriginal/ticksRewrite atomics + Profiler::lazyId(entry.profileId,"rewrite",entry.name) | [V via source] |
 
 ## (3) Remaining engineering / in-game step
-P2 frame-stage scopes: the BS_PROFILE("frame", "submit|endFrame|encoder") scopes are declared in src/sdk/mc/deps/bgfx/d3d12/TimestampQuery.h and their insertion points are listed below; inserting them into RewriteSubmit.cpp/0xe82e230 requires a build (not permitted here). P3 GPU timestamp pairs: TimestampQuery.h gives the custom-item fn body (WriteTimestamp begin/end on ctx+0x10 -> Profiler::addMs) but injecting it via submitCustom requires the game to call submitCustom with our fn (not yet wired; untested in game).
+P2 frame-stage scopes: the BS_PROFILE("frame", "submit|endFrame|encoder") scopes are declared in src/sdk/mc/deps/bgfx/d3d12/TimestampQuery.h (insertion points: submit takeover RewriteSubmit.cpp at the per-draw-walk QPC timer, endFrame 0xc270460 / 0x66232b0, frame() 0xbc66de0); inserting them requires a build (not permitted here). P3 GPU timestamp pairs: TimestampQuery.h gives the custom-item fn body (WriteTimestamp begin/end on ctx+0x10 -> Profiler::addMs) but injecting it via submitCustom requires the game to call submitCustom with our fn (not yet wired; untested in game).
 
 ## CLOSES?
 NO — P1 CPU timers per registry function EXISTS on disk [V via source RewriteTimed→Profiler]. P3 custom-item ctx+0x10=commandList is now [V]-proven verbatim, and TimestampQuery.h (new file under src/sdk/) makes the GPU-timestamp-pairs-via-custom-item seam implementable. Single blocking fact: the GPU timestamp pair and the per-frame-stage BS_PROFILE scopes are not wired into a running submit/custom-item call site — that requires a build + in-game run (submitCustom(view, ourFn, ourData) on the render thread issuing WriteTimestamp pairs on ctx+0x10 and feeding Profiler::addMs), which is not permitted in this unit.

@@ -1,4 +1,5 @@
 #include "client/features/render/rewrite/RewriteProbe.h"
+#include "client/features/settings/preferences/Preferences.h"
 #include "client/features/render/rewrite/RewriteRegistry.h"
 #include "client/features/render/rewrite/RewriteFunctions.h"
 #include "client/features/hooks/Hook.h"
@@ -39,13 +40,10 @@ void RewriteProbe::armFrames(uint32_t frames) {
 }
 
 void RewriteProbe::initFromEnvironment() {
-    char text[16];
-    const DWORD length = GetEnvironmentVariableA("BS_PROBE_FRAMES", text, sizeof(text));
-    if (length == 0)
+    const std::string text = Preferences::Store::developer("probe_frames"); // BS_PROBE_FRAMES, or "developer.probe_frames"
+    if (text.empty())
         return;
-    if (length >= sizeof(text))
-        Logger::fatal("[probe] BS_PROBE_FRAMES is not a number");
-    armFrames(static_cast<uint32_t>(std::strtoul(text, nullptr, 10)));
+    armFrames(static_cast<uint32_t>(std::strtoul(text.c_str(), nullptr, 10)));
     RewriteEntry* sort = RewriteRegistry::find("Frame::sort"); // the probe reads the frame from inside this detour; mode stays Off, the original runs
     BS_CHECK(sort != nullptr);
     RewriteRegistry::install(*sort);

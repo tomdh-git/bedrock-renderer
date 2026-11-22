@@ -1,4 +1,5 @@
 #include "client/features/render/rewrite/RewriteFunctions.h"
+#include "client/features/render/rewrite/RewriteMaterialSwap.h"
 #include "client/features/render/rewrite/RewriteVerify.h"
 #include "sdk/SigManager.h"
 
@@ -120,6 +121,25 @@ static void* rwCacheDetour(uint8_t* cache, uint64_t* out, const RewriteResourceC
     if (mode == RewriteMode::Off || RewriteBusy::depth > 0)
         return e.original<&rwCacheDetour>()(cache, out, key, loader, name, defines);
     if (mode == RewriteMode::On) {
+        // L7h material swap: when the MaterialSwap entry is On and the pass-name view names a
+        // replacement, call the original with the replacement view substituted. The replacement
+        // bytes live on this frame's stack and cover the synchronous call below — no allocation,
+        // nothing stored past the call. Otherwise (MaterialSwap off or no match) the original is
+        // called unchanged with the original name argument.
+        const void* nameToUse = name;
+        if (MaterialSwap::swapEnabled() && name != nullptr) {
+            // get()'s 5th argument is a pointer to a {ptr, size} string_view: verified at the call
+            // site (ptr at [rbp+0x5A0] by 0x6646e73, size at [rbp+0x5A8] by 0x6646e7a, pointer
+            // passed on the stack at [rsp+0x20] by 0x6646e98).
+            const char* const namePtr = *reinterpret_cast<const char* const*>(name);
+            const size_t nameSize = *reinterpret_cast<const size_t*>(static_cast<const uint8_t*>(name) + 8);
+            char repl[MaterialSwap::kMaxReplacement] = {};
+            size_t replSize = 0;
+            if (nameSize > 0 && MaterialSwap::lookup(namePtr, nameSize, repl, replSize)) {
+                PassName replacement{repl, replSize};
+                nameToUse = &replacement;
+            }
+        }
         const bool timed = (calls & 15) == 0;
         const uint64_t t0 = timed ? Profiler::now() : 0;
         const bool hit = RewriteResourceCache::fastGet(cache, out, *key);
@@ -127,7 +147,7 @@ static void* rwCacheDetour(uint8_t* cache, uint64_t* out, const RewriteResourceC
             e.ticksRewrite.fetch_add(Profiler::now() - t0, std::memory_order_relaxed);
         if (hit)
             return out;
-        return e.original<&rwCacheDetour>()(cache, out, key, loader, name, defines);
+        return e.original<&rwCacheDetour>()(cache, out, key, loader, nameToUse, defines);
     }
     RewriteBusy::Scope busy;
     rwCacheCompare(e, mode, cache, out, key, loader, name, defines);

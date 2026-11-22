@@ -1,0 +1,150 @@
+[
+ {
+  "name": "createtexture_callers",
+  "rva": 243352512,
+  "size": 256,
+  "max": 8,
+  "every": 1,
+  "why": "L7e/L8a: who issues createTexture, args",
+  "state": "done"
+ },
+ {
+  "name": "bgfx_createtexture_producer",
+  "rva": 197605232,
+  "size": 64,
+  "max": 8,
+  "every": 1,
+  "why": "L7e/L8a: who calls the cmd-byte-14 producer (ret= callers)",
+  "state": "done"
+ },
+ {
+  "name": "bgfx_texture_wrapper_bc73bf0",
+  "rva": 197606384,
+  "size": 64,
+  "max": 8,
+  "every": 1,
+  "why": "L7e/L8a: caller of the texture-create wrapper (ret= names the dragon-layer/MC caller)",
+  "state": "done"
+ },
+ {
+  "name": "dragon_texture_entry_c296b50",
+  "rva": 204041040,
+  "size": 64,
+  "max": 4,
+  "every": 1,
+  "why": "L7e/L8a: who calls the dragon-layer texture create entry (MC side)",
+  "state": "done"
+ },
+ {
+  "name": "u_er10_gameface_size",
+  "rva": 107667072,
+  "size": 256,
+  "max": 6,
+  "every": 1,
+  "why": "R10 Gameface (UI tag 0) true size: extractor 0x66ade80 reads desc fields only through +0x80 (list pointer, ends 0x88); no description constructor exists (fat clone 0x1f44d80, BGFX_MAP line 312), so no static upper bound. Capture entry args to bound the description object size.",
+  "state": "done"
+ },
+ {
+  "name": "dragon_texture_caller_bc41420",
+  "rva": 197399584,
+  "size": 64,
+  "max": 4,
+  "every": 1,
+  "why": "L8a/L7e: MC-side caller of sub_bc41420 (texture upload bridge); ret= names it",
+  "state": "done"
+ },
+ {
+  "name": "mc_root_4e05e50_callers",
+  "rva": 81813072,
+  "size": 256,
+  "max": 8,
+  "every": 1,
+  "why": "L8a/L7e: MC-side root sub_4e05e50 (dragon-layer texture-upload bridge) has 0 static callers (xref.py empty; rdis imm 0x4e05e50 = 0 hits) and is invoked only indirectly from Minecraft texture code. Capture entry to learn its caller (ret=) and RCX=MC_obj identity (bytes at RCX incl. [MC_obj+0x0] vtable ptr), to connect the dragon-layer createTexture issuance (sub_4e05e50 -> 0xbc41420 -> 0xc296b50 -> 0xbc73bf0 -> 0xbc73770 cmd-byte-14 -> dispatcher slot-26 -> createTexture 0xe8143c0, handle at [dragon_obj+0x00], dragon_obj = MC_obj+0x58) to texgroup_load/texload (0x5421c90/0x58a1310) and the sdk TexturePtr/ClientTexture/BedrockTexture headers, and decide whether the handle ever reaches TexturePtr.mClientTexture.",
+  "state": "done"
+ },
+ {
+  "name": "oc_u_el6b_desc",
+  "rva": 90800784,
+  "size": 256,
+  "max": 6,
+  "every": 1,
+  "why": "L6b: decl fn 0x5698290 entry; r8 = 28-byte pass descriptor ptr. Dump desc bytes at entry to confirm field sizes/values at runtime (u16 counts +0x00/+0x02, u32 index +0x04, u64 resource refs +0x08/+0x10, u32 flags +0x18) and name caller chain via ret= (call sites in builder, e.g. 0x55f1fca/0x55f1fe7). Can the live bytes show which field is the input vs the output resource?",
+  "state": "skipped",
+  "note": "parked item (R1/R2/L6b/L10b); freed slot for R5 2026-11-22"
+ },
+ {
+  "name": "l8b_texcreate_record",
+  "rva": 243384112,
+  "size": 256,
+  "max": 6,
+  "every": 1,
+  "why": "L8b: per-creation texture record fields (+0xB0 actual format, +0xB1 numMips) at TextureD3D12::create entry; ret= names caller chain; confirms whether any live creation uses BC/compressed format or numMips>1",
+  "state": "done"
+ },
+ {
+  "name": "el10b_lighting_desc",
+  "rva": 17762800,
+  "size": 256,
+  "max": 6,
+  "every": 1,
+  "why": "L10b: at entry of lighting-config field deserializer 0x10f09f0 (frustum_visibility key loaded at 0x10f45d0, key ptr/len stored at [rbp+0x280]/[rbp+0x288], scalar deserializer 0x117D460 at 0x10f45fa), dump description/JSON-object bytes at the entry pointer to confirm the field input (JSON object, scalar float weight) and use ret= to name the producer caller chain (sub_1152460 -> sub_111e590). Static analysis shows no camera frustum cull exists in the exe; this capture confirms field role only, cannot find the missing cull.",
+  "state": "skipped",
+  "note": "parked item (R1/R2/L6b/L10b); freed slot for R5 2026-11-22"
+ },
+ {
+  "name": "oc_u_er2",
+  "rva": 107243904,
+  "size": 256,
+  "max": 6,
+  "every": 1,
+  "why": "R2: BlockChanges tag-9 desc fields desc+0x00/+0x10 meanings; caller chain (ret=) of visitor 0x6646980",
+  "state": "skipped",
+  "note": "parked item (R1/R2/L6b/L10b); freed slot for R5 2026-11-22"
+ },
+ {
+  "name": "oc_u_er1_producer",
+  "rva": 87960576,
+  "size": 256,
+  "max": 6,
+  "every": 1,
+  "why": "R1: producer entry caller chain (ret=) to isolate Sky slot 0x370 tag=0 insert context; register pointee bytes at entry (rsi reads [rsi+0x45C],[rsi+0x464],[rsi+0x424]) to confirm desc field sizes",
+  "state": "skipped",
+  "note": "parked item (R1/R2/L6b/L10b); freed slot for R5 2026-11-22"
+ },
+ {
+  "name": "er5_clone_4c8a5b0",
+  "rva": 80258480,
+  "size": 256,
+  "max": 6,
+  "every": 1,
+  "why": "R5: clone entry, rdx = desc ptr: 64-byte block (+0x10..+0x4F) and +0x50 values",
+  "state": "pending"
+ },
+ {
+  "name": "l8b_resizetex_slot31",
+  "rva": 243357760,
+  "size": 256,
+  "max": 6,
+  "every": 1,
+  "why": "L8b: does the atlas stitcher create/resize atlases via resizeTexture(handle,w,h,mips,layers); ret= names the stitcher caller; mips>1 is mip-generation evidence. createTexture slot 26 already captured (l8b_texcreate_record): all numMips=1, format 0x1C uncompressed, no atlas names.",
+  "state": "pending"
+ },
+ {
+  "name": "sub_1289440_callers",
+  "rva": 19436608,
+  "size": 256,
+  "max": 8,
+  "every": 1,
+  "why": "U-EL7e: who calls sub_1289440 at runtime (it tail-calls sub_4e05e50 via rax/[0xF99FFA0] trampoline with ret=0x1289496); connect its caller to texgroup_load 0x5421c90 / texload 0x58a1310 chain; static xrefs/imm to sub_1289440 are 0",
+  "state": "pending"
+ },
+ {
+  "name": "oc_u_er6_light_desc",
+  "rva": 107220352,
+  "size": 256,
+  "max": 6,
+  "every": 1,
+  "why": "R6: light-visitor entry producer capture. RDX = desc pointer (docs/data/live/README.md CORRECTION 2026-11-15: light visitor takes {desc,tag} in RDX). Dump desc bytes to confirm tag 3 (LightPoint, 0x108 B) and tag 4 (ShadowAtlasFrame, 0x50 B) field sizes/runtime values vs Descriptions.h layouts; ret= names the visitor caller chain.",
+  "state": "pending"
+ }
+]

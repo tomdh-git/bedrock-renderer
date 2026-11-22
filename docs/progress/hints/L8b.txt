@@ -1,0 +1,12 @@
+
+NEW TOOL (2026-11-22): static analysis alone is exhausted for this item, but you can now request a LIVE capture without touching the game: python tools/livecap/request.py add <name> <rva_at_function_ENTRY> --size 0x100 --max 6 --why "L8b: <question>". Pick the extractor/visitor/producer entry you already proved for this item; the result lines are REG=value hit=N ret=0xRVA <bytes of the pointee> (ret = caller). Use the dumped description bytes to confirm field meanings/sizes and the ret= to name the caller chain; cite as [V live]. Write CAPTURE REQUESTED <name> under TOOL REQUESTS. Check python tools/livecap/request.py result <name> first: results may already exist in docs/data/live/. Do not repeat proofs already in earlier notes; do ONLY what the live data can add, then report CLOSES? honestly.
+
+2026-11-22 r-latest reviewed (19/19 verified, CLOSES NO): TerrainAtlas idx6 / ItemAtlas idx7 registration proven in sub_186e6a0; atlas texture creation + mipmaps not found statically. Use the L8a texture-create chain (0xc296b50 -> 0xbc73bf0 -> createTexture 0xe8143c0) and a capture rather than more static search.
+
+2026-11-22 CAPTURES NOW AVAILABLE: docs/data/live/mc_root_4e05e50_callers.txt (150 hits, 32 samples, first CALLER ret=0x1289496) and docs/data/live/l8b_texcreate_record.txt (24 samples). READ THESE FIRST: name the indirect caller of sub_4e05e50 (ret= RVA), decode that function, and connect it to texgroup_load/texload and TexturePtr. Do not redo the static chain.
+
+2026-11-22 r8 reviewed (57/57, CLOSES NO): LIVE facts [V live]: the 7 observed texture creations are all format 0x1C (uncompressed) with numMips=1; no atlas names at creation; no mip generator found by xref. Item-atlas creation still unlocated. Next angle: find who builds the atlas texture description (stitcher) from the TerrainAtlas/ItemAtlas registration objects (sub_186e6a0 / sub_1870de0, name at obj+0, idx at obj+8) forward, not from createTexture backward.
+
+2026-11-22 r10 reviewed (24/24, CLOSES NO): stitcher unlocated; atlas registration [V]; mip/BC compression absent [V]. Do not redo registration; trace what consumes the registered atlas objects after sub_1042320 (ServerLevelLoad) to the texture description build.
+
+2026-11-22 r13 (52/52, CLOSES NO again). Entry points negative [V]. Last unexplored lead: live object with other-module pointer at +0x00 (0x00007FF6A8215838) = decode may be outside the exe; identify that module/RVA before more static search.

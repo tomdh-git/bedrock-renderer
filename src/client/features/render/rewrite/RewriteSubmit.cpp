@@ -1,7 +1,5 @@
 #include "RewriteSubmit.h"
 
-#include <atomic>
-#include <intrin.h>
 
 namespace {
 // Per-frame counters the takeover shim observes. Read-only for the game: no game memory
@@ -18,7 +16,7 @@ void __fastcall RenderSubmit::takeover(bgfx::RendererContext* ctx, bgfx::Frame* 
 
     // Renderer-state fast path, mirrors 0xe82e273: state < 5 => the original submits nothing.
     if (*reinterpret_cast<const uint32_t*>(reinterpret_cast<const uint8_t*>(ctx) + 0x19F88) < 5u) {
-        RenderSubmit::entry.original<RenderSubmit::Fn>()(ctx, frame, a3, a4);
+        RenderSubmit::entry.original<&RenderSubmit::takeover>()(ctx, frame, a3, a4);
         return;
     }
 
@@ -45,12 +43,12 @@ void __fastcall RenderSubmit::takeover(bgfx::RendererContext* ctx, bgfx::Frame* 
     ++sFrames;
 
     // ---- forward to the original submit through the RewriteRegistry trampoline ----
-    RenderSubmit::entry.original<RenderSubmit::Fn>()(ctx, frame, a3, a4);
+    RenderSubmit::entry.original<&RenderSubmit::takeover>()(ctx, frame, a3, a4);
 }
 
 RewriteEntry RenderSubmit::entry{
     "RendererContextD3D12::submit",             // registry key + profiler row
-    "deps.bgfx.RendererContextD3D12.submit",    // Sigs.json symbol (appended in this unit)
+    "RendererContextD3D12::submit",    // Sigs.json symbol (appended in this unit)
     RenderSubmit::kSubmitRva,                   // 0xe82e230 on 1.26.62.01; install() fatals if the resolved sig disagrees
     reinterpret_cast<void*>(&RenderSubmit::takeover),
     false                                       // not hosted: we own slot 50 ourselves

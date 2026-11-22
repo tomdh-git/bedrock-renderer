@@ -187,10 +187,13 @@ struct RenderBatchActorDescription {
         void* mVecCap;                 // +0x258
         uint8_t mTail[0x60];           // +0x260 set by the builder after construction (0x6ea05a0 stores +0x260, ...)
     };
+    // Embeds std containers: 0x2C0 etc. only hold with the Release STL the game uses (the Debug STL is larger).
+#ifdef NDEBUG
     static_assert(sizeof(RenderControllerMesh) == 0x2C0);
     static_assert(offsetof(RenderControllerMesh, mGeometry) == 0x50);
     static_assert(offsetof(RenderControllerMesh, mGroups) == 0x1D8);
     static_assert(offsetof(RenderControllerMesh, mVecBegin) == 0x248);
+#endif
 
     static uint64_t count(const void* desc) { return *reinterpret_cast<const uint64_t*>(static_cast<const uint8_t*>(desc) + kCountOffset); }
     static const Instance* instances(const void* desc) { return *reinterpret_cast<const Instance* const*>(static_cast<const uint8_t*>(desc) + kInstancesOffset); }

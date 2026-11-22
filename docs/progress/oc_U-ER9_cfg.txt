@@ -1,0 +1,142 @@
+sub_66b2b30  [0x66b2b30..0x66b4b30)  size 0x2000  9 xrefs in
+  66b2b30  push rsi                                      
+  66b2b31  push rdi                                      
+  66b2b32  push rbp                                      
+  66b2b33  push rbx                                      
+  66b2b34  sub rsp,0x28                                  
+  66b2b38  mov rax,rcx                                   
+  66b2b3b  mov byte ptr [rcx+0xE],2                      ; W a0+0xE
+  66b2b3f  mov dword ptr [rcx+0x10],0                    ; W a0+0x10
+  66b2b46  mov byte ptr [rcx+0x14],0                     ; W a0+0x14
+  66b2b4a  xorps xmm0,xmm0                               
+  66b2b4d  movups [rcx+0x18],xmm0                        ; W a0+0x18
+  66b2b51  movups [rcx+0x24],xmm0                        ; W a0+0x24
+  66b2b55  mov word ptr [rcx+0x54],0                     ; W a0+0x54
+  66b2b5b  mov rcx,[rdx]                                 ; R a1+0x0
+  66b2b5e  mov rdx,[rcx+0x40]                            ; R *(a1+0x0)+0x40
+  66b2b62  xor r11d,r11d                                 
+  66b2b65  cmp byte ptr [rdx+0x185],1                    ; R *(*(a1+0x0)+0x40)+0x185
+  66b2b6c  jne 0x66B2C11                                 ; -> loc_66b2c11
+  66b2b72  movzx ecx,byte ptr [rdx+0x180]                ; R *(*(a1+0x0)+0x40)+0x180
+  66b2b79  movzx r9d,byte ptr [rdx+0x181]                ; R *(*(a1+0x0)+0x40)+0x181
+  66b2b81  mov ebx,ecx                                   
+  66b2b83  xor bl,3                                      
+  66b2b86  mov r10d,r9d                                  
+  66b2b89  xor r10b,2                                    
+  66b2b8d  mov r11d,1                                    
+  66b2b93  mov esi,ebx                                   
+  66b2b95  or sil,r10b                                   
+  66b2b98  je short 0x66B2C11                            ; -> loc_66b2c11
+  66b2b9a  mov esi,ecx                                   
+  66b2b9c  xor sil,6                                     
+  66b2ba0  mov edi,r9d                                   
+  66b2ba3  xor dil,8                                     
+  66b2ba7  mov r11d,3                                    
+  66b2bad  mov ebp,esi                                   
+  66b2baf  or bpl,dil                                    
+  66b2bb2  je short 0x66B2C11                            ; -> loc_66b2c11
+  66b2bb4  mov r11d,4                                    
+  66b2bba  or dil,bl                                     
+  66b2bbd  je short 0x66B2C11                            ; -> loc_66b2c11
+  66b2bbf  mov edi,ecx                                   
+  66b2bc1  xor dil,4                                     
+  66b2bc5  mov ebp,r9d                                   
+  66b2bc8  xor bpl,5                                     
+  66b2bcc  mov r11d,5                                    
+  66b2bd2  or bpl,dil                                    
+  66b2bd5  je short 0x66B2C11                            ; -> loc_66b2c11
+  66b2bd7  mov edi,r9d                                   
+  66b2bda  xor dil,3                                     
+  66b2bde  mov r11d,6                                    
+  66b2be4  or bl,dil                                     
+  66b2be7  je short 0x66B2C11                            ; -> loc_66b2c11
+  66b2be9  mov r11d,7                                    
+  66b2bef  or sil,dil                                    
+  66b2bf2  je short 0x66B2C11                            ; -> loc_66b2c11
+  66b2bf4  mov r11d,8                                    
+  66b2bfa  or r10b,cl                                    
+  66b2bfd  je short 0x66B2C11                            ; -> loc_66b2c11
+  66b2bff  xor r9b,1                                     
+  66b2c03  xor r10d,r10d                                 
+  66b2c06  or cl,r9b                                     
+  66b2c09  sete r10b                                     
+  66b2c0d  lea r11d,[r10+r10*8]                          
+
+loc_66b2c11:  ; from 66b2b6c, 66b2b98, 66b2bb2, 66b2bbd, 66b2bd5, 66b2be7, ...
+  66b2c11  mov [rax],r11d                                ; W a0+0x0
+  66b2c14  movzx ecx,byte ptr [rdx+0x1A8]                ; R *(*(a1+0x0)+0x40)+0x1A8
+  66b2c1b  xor r9d,r9d                                   
+  66b2c1e  cmp cl,1                                      
+  66b2c21  sete r9b                                      
+  66b2c25  add r9d,r9d                                   
+  66b2c28  cmp cl,2                                      
+  66b2c2b  mov ecx,1                                     
+  66b2c30  cmovne ecx,r9d                                
+  66b2c34  mov [rax+8],ecx                               ; W a0+0x8
+  66b2c37  dec r8b                                       
+  66b2c3a  cmp r8b,5                                     
+  66b2c3e  jae 0x66B2DD2                                 ; -> loc_66b2dd2
+  66b2c44  mov r9,0x104070502080603                      
+  66b2c4e  movzx ecx,r8b                                 
+  66b2c52  lea r8,[0xF2BF190]                            ; [data_f2bf190]
+  66b2c59  mov ecx,[r8+rcx*4]                            
+  66b2c5d  mov [rax+0x10],ecx                            ; W a0+0x10
+  66b2c60  movzx ecx,byte ptr [rdx+0x189]                ; R *(*(a1+0x0)+0x40)+0x189
+  66b2c67  mov [rax+0x54],cl                             ; W a0+0x54
+  66b2c6a  movzx ecx,byte ptr [rdx+0x19C]                ; R *(*(a1+0x0)+0x40)+0x19C
+  66b2c71  mov [rax+0x55],cl                             ; W a0+0x55
+  66b2c74  movzx ecx,byte ptr [rdx+0x18B]                ; R *(*(a1+0x0)+0x40)+0x18B
+  66b2c7b  mov r8d,ecx                                   
+  66b2c7e  shl ecx,3                                     
+  66b2c81  mov r10,r9                                    
+  66b2c84  shr r10,cl                                    
+  66b2c87  cmp r8b,8                                     
+  66b2c8b  mov ecx,2                                     
+  66b2c90  cmovb ecx,r10d                                
+  66b2c94  movzx r10d,byte ptr [rdx+0x18C]               ; R *(*(a1+0x0)+0x40)+0x18C
+  66b2c9c  add r10b,0xFE                                 
+  66b2ca0  xor r11d,r11d                                 
+  66b2ca3  lea r8,[0xF2BF1A4]                            ; [data_f2bf1a4]
+  66b2caa  mov esi,0                                     
+  66b2caf  cmp r10b,8                                    
+  66b2cb3  ja short 0x66B2CBD                            ; -> loc_66b2cbd
+  66b2cb5  movzx r10d,r10b                               
+  66b2cb9  mov esi,[r8+r10*4]                            
+
+loc_66b2cbd:  ; from 66b2cb3
+  66b2cbd  movzx r10d,byte ptr [rdx+0x18E]               ; R *(*(a1+0x0)+0x40)+0x18E
+  66b2cc5  add r10b,0xFE                                 
+  66b2cc9  cmp r10b,8                                    
+  66b2ccd  ja short 0x66B2CD7                            ; -> loc_66b2cd7
+  66b2ccf  movzx r10d,r10b                               
+  66b2cd3  mov r11d,[r8+r10*4]                           
+
+loc_66b2cd7:  ; from 66b2ccd
+  66b2cd7  movzx ebx,byte ptr [rdx+0x18D]                ; R *(*(a1+0x0)+0x40)+0x18D
+  66b2cde  add bl,0xFE                                   
+  66b2ce1  xor r10d,r10d                                 
+  66b2ce4  mov edi,0                                     
+  66b2ce9  cmp bl,8                                      
+  66b2cec  ja short 0x66B2CF5                            ; -> loc_66b2cf5
+  66b2cee  movzx edi,bl                                  
+  66b2cf1  mov edi,[r8+rdi*4]                            
+
+loc_66b2cf5:  ; from 66b2cec
+  66b2cf5  mov [rax+0x34],cl                             ; W a0+0x34
+  66b2cf8  mov [rax+0x38],esi                            ; W a0+0x38
+  66b2cfb  mov [rax+0x3C],edi                            ; W a0+0x3C
+  66b2cfe  mov [rax+0x40],r11d                           ; W a0+0x40
+  66b2d02  movzx ecx,byte ptr [rdx+0x190]                ; R *(*(a1+0x0)+0x40)+0x190
+  66b2d09  add cl,0xFE                                   
+  66b2d0c  cmp cl,8                                      
+  66b2d0f  ja short 0x66B2D18                            ; -> loc_66b2d18
+  66b2d11  movzx ecx,cl                                  
+  66b2d14  mov r10d,[r8+rcx*4]                           
+
+loc_66b2d18:  ; from 66b2d0f
+  66b2d18  movzx ecx,byte ptr [rdx+0x18F]                ; R *(*(a1+0x0)+0x40)+0x18F
+  66b2d1f  movzx ebx,byte ptr [rdx+0x192]                ; R *(*(a1+0x0)+0x40)+0x192
+  66b2d26  add bl,0xFE                                   
+  66b2d29  xor r11d,r11d                                 
+  66b2d2c  mov esi,0                                     
+  ... (--max 130)

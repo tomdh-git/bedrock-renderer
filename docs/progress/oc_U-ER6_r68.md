@@ -1,0 +1,53 @@
+## NEXT
+DONE
+
+# U-ER6 — R6: LightAmbient / LightDirectional / Light tag 2 / tag 3 / tag 4 (1.26.62.01)
+
+Goal: close R6 — description field value names, the group_visitors.md vs FrameBuilder.h LightGroupTag tag-name conflict, and the consumers (draining element readers) of pass+0x800 / +0x648 / +0x4A0 / +0x1D0. Exe Minecraft.Windows.exe 1.26.62.01, RVAs image-relative, static analysis only (brief rule 1). Tags: [V] seen in disassembly (RVA cited, re-checked with rdis this unit) | [V carried] proven in earlier docs/progress/oc_U-ER6_r*.md, NOT re-proven per RETRY #1 | [V negative] whole-image scan found nothing | [?] unknown. Every `0xRVA  instr` line below is verbatim from verified rdis listings.
+
+## 1. Answer table (one row per distinct offset, all sites listed)
+
+| offset | size | site / verbatim instruction | meaning | tag |
+|---|---|---|---|---|
+| variant+0x08 tag byte | 1 | 0x6640dc4, 0x6640de6 | `0x6640dc4  movzx eax,byte ptr [rdx+8]`<br>`0x6640de6  jmp rax` | tag byte at variant+0x08; dispatch `jmp rax` through JT 0xF2BF2B0 (8 entries: 0=0x6640de8, 1=0x66415b0, 2=0x6640f1b, 3=0x66410a0, 4=0x6640ec1, 5=0x66417af, 6=0x664187d, 7=0x6641524); rsi = description ([rdx]), rdi = frame context, pass = TLS getter 0x5ABA5C0 (`mov ecx,0x9D0; add rcx,[rdi+0x10]; call 0x5ABA5C0; mov rsi,rax`) | [V] |
+| tag 2 = GameplayMetadata | 1 | 0x53e5fb4, 0x53e5fbf | `0x53e5fb4  mov byte ptr [rbp-0x18],2`<br>`0x53e5fbf  mov rax,[rax+0x380]` | LightGroupTag::GameplayMetadata = 2; Light vslot 0x380 insert; JT entry 2 = 0x6640f1b; srcloc 0xF248ED0 GameplayMetadata; producer __FUNCSIG__ proves tag 2 | [V] |
+| tag 3 = LightPoint | 1 | 0x535a9b7, 0x535a9c1 | `0x535a9b7  mov byte ptr [rbp+0x278],3`<br>`0x535a9c1  mov rax,[rax+0x380]` | LightGroupTag::LightPoint = 3; JT entry 3 = 0x66410a0; srcloc 0xF248DA0 LightPointDescription; producer __FUNCSIG__ proves tag 3 | [V] |
+| tag 4 = ShadowAtlasFrame | 1 | 0x535a696, 0x535a6a0 | `0x535a696  mov byte ptr [rbp+0x278],4`<br>`0x535a6a0  mov rax,[rax+0x380]` | LightGroupTag::ShadowAtlasFrame = 4; JT entry 4 = 0x6640ec1; srcloc 0xF248D80 ShadowAtlasFrameDescription | [V] |
+| tag-name conflict (group_visitors.md vs FrameBuilder.h) | - | FrameBuilder.h:79-88 | - | RESOLVED [V]: FrameBuilder.h `enum class LightGroupTag : uint64_t { Ambient = 0, Directional = 1, GameplayMetadata = 2, LightPoint = 3, ShadowAtlasFrame = 4, ... }` wins; producer tag stores + __FUNCSIG__ srclocs prove tag 2 = GameplayMetadata and tag 3 = LightPoint; group_visitors.md had them swapped (LightPoint@2 / GameplayMetadata@3) and is superseded; BGFX_MAP.md 6w/6em/6iq/6is agree after correction | [V] |
+| pass+0x800 end cursor | 8 | 0x6640e84, 0x6640e8b, 0x6640eb4, 0x66417a2, 0x6641517 | `0x6640e84  mov rdx,[rsi+0x800]`<br>`0x6640e8b  cmp rdx,[rsi+0x808]`<br>`0x6640eb4  add qword ptr [rsi+0x800],0x14`<br>`0x66417a2  add qword ptr [rsi+0x800],0x14`<br>`0x6641517  add qword ptr [rsi+0x800],0x14` | end cursor of 0x14-byte summary list (cap +0x808 compared at 0x6640e8b); writers: Ambient 0x6640eb4, Directional 0x66417a2, LightPoint 0x6641517; every write is an end-cursor increment, no end-cursor pop/decrement exists anywhere in the exe [V negative] | [V]/[?] |
+| pass+0x648 end cursor | 8 | 0x66416f8, 0x66416ff, 0x664145a, 0x6641461 | `0x66416f8  lea rcx,[rsi+0x648]`<br>`0x66416ff  call 0x675FB30`<br>`0x664145a  lea rcx,[rsi+0x648]`<br>`0x6641461  call 0x675FB30` | end cursor of 0x48-byte light-record vector (begin +0x648 / end +0x650); writers: Directional 0x66416ff, LightPoint 0x6641461 via grow-emplace 0x675FB30 [V] | [V]/[?] |
+| pass+0x4A0 end cursor | 8 | 0x6640f78, 0x6640f7f, 0x6641090 | `0x6640f78  mov r12,[rdi+0x4A0]`<br>`0x6640f7f  cmp r12,[rdi+0x4A8]`<br>`0x6641090  add qword ptr [rdi+0x4A0],0x84` | end cursor of 0x84-byte GameplayMetadata vector (begin +0x498 / cap +0x4A8); tag-2 writer, stride 0x84; load at 0x6640f78, cap compare at 0x6640f7f | [V]/[?] |
+| pass+0x1D0 end cursor | 8 | 0x66419c6 | `0x66419c6  add qword ptr [rsi+0x1D0],0x50` | end cursor of 0x50-byte ShadowAtlasFrame vector (begin +0x1C8 / cap +0x1D8); tag-4 writer, stride 0x50 | [V]/[?] |
+| desc+0x00 (tag 4 ShadowAtlasFrame) | 16 | 0x6640ec1 | `0x6640ec1  movups xmm6,[rsi]` | row 0 copied into pass+0x1C8 vector element +0x00; rsi = description | [V] |
+| desc+0x10 (tag 4 ShadowAtlasFrame) | 16 | 0x6640ecb | `0x6640ecb  movups xmm7,[rsi+0x10]` | element +0x10 | [V] |
+| desc+0x20 (tag 4 ShadowAtlasFrame) | 16 | 0x6640ed6 | `0x6640ed6  movups xmm8,[rsi+0x20]` | element +0x20 | [V] |
+| desc+0x30 (tag 4 ShadowAtlasFrame) | 16 | 0x6640ee3 | `0x6640ee3  movups xmm9,[rsi+0x30]` | element +0x30 | [V] |
+| desc+0x40 (tag 4 ShadowAtlasFrame) | 8 | 0x66418f0 | `0x66418f0  mov rbx,[rsi+0x40]` | shared_ptr object pointer at +0x40 (with +0x48 the {ptr, control block} pair) | [V] |
+| desc+0x48 (tag 4 ShadowAtlasFrame) | 8 | 0x6640f01 | `0x6640f01  mov rcx,[rsi+0x48]` | control block at +0x48; non-null -> use count `lock inc dword ptr [rcx+8]` at 0x6640f0e | [V] |
+
+## 2. Consumers of pass+0x800 / +0x648 / +0x4A0 / +0x1D0: NOT LOCATED [V negative]
+
+| offset | size | site / verbatim instruction | meaning | tag |
+|---|---|---|---|---|
+| pass+0x800 elements | 0x14 | - | - | no draining element read of the 0x14-byte summary vector anywhere in Minecraft.Windows.exe 1.26.62.01; end-cursor increment writes only; whole-image fld --r/--w scans on 0x800 and cursors +0x7F8/+0x808 negative; no `[base + index*stride]` element read | [V negative] |
+| pass+0x648 elements | 0x48 | - | - | no draining element read of the 0x48-byte light-record vector anywhere in the exe; writes are grow-emplace calls to 0x675FB30 plus index-word stores only; stride scan ÷0x48 = 0xFFFF8E39 negative | [V negative] |
+| pass+0x4A0 elements | 0x84 | - | - | no draining element read of the 0x84-byte GameplayMetadata vector anywhere in the exe; writes are end-cursor increments only; stride scan ÷0x84 = 0xFFFF83E1 negative | [V negative] |
+| pass+0x1D0 elements | 0x50 | - | - | no draining element read of the 0x50-byte ShadowAtlasFrame vector anywhere in the exe; writes are end-cursor increments only; stride scan ÷0x50 = 0xCCCCCCCCCCCCCCCD negative | [V negative] |
+
+New angle tried this unit (fld cross-offset check): grep of /tmp/opencode fld_* artifacts (whole-image read scans) shows [base+0x1D0] reads only inside sub_6640d80 itself (cursor reads by the writer) and in unrelated struct-copy functions (sub_c8c50 reads [rdi+0x1C8] and [rsi+0x1D0] on DIFFERENT base objects — not a consumer). No function outside sub_6640d80 reads [base+0x800] and [base+0x7F8], [base+0x648] and [base+0x650], [base+0x4A0] and [base+0x498], or [base+0x1D0] and [base+0x1C8] as a begin/end pair on the same base. All "other base" 0x1D0 reads (sub_198410, sub_1940b0, sub_1b2000, sub_30d650, sub_30e330, sub_562110) lack a matching 0x1C8 read on the same base, so they are not ShadowAtlasFrame vector consumers. Confirms write-only.
+
+## 3. Description field value names: UNKNOWN [?]
+
+Total description bytes consumed by tag 4 = 0x50 (matches ShadowAtlasFrame stride and sizeof in Descriptions.h) [V carried]. Member value NAMES unknown [?]: no RTTI and no description member-name strings in the release exe; LightDescriptions.h/LightGameDescriptions.h use mValue* placeholders with static_assert offsets only; live bytes (docs/data/live/light_visitor.txt, tags 0/1/2/5 — tags 3 and 4 absent) confirm sizes/values, never names; parked in MIRROR_SKIP per prior review (r2 REVIEW 24/24 [V]), not the closure gate.
+
+## 4. Live capture status
+
+Capture oc_u_er6_light_desc is ALREADY QUEUED (state pending) in docs/progress/capture_requests.json: rva 0x6640D80 (= 107220352), size 256, max 6, why "R6: light-visitor entry producer capture. RDX = desc pointer". `python tools/livecap/request.py result oc_u_er6_light_desc` -> "no result yet (orchestrator has not run it)". 4/4 pending slots are in use (er5_clone_4c8a5b0, l8b_resizetex_slot31, sub_1289440_callers, oc_u_er6_light_desc), so `add` rejects duplicates and new requests — no replacement or additional capture can be queued this unit. What the pending capture CAN add [V live when it runs]: tag-3 (LightPoint) and tag-4 (ShadowAtlasFrame) description bytes at visitor entry and the caller chain via ret=. What it CANNOT add: consumers of pass+0x800/+0x648/+0x4A0/+0x1D0 — function-entry sampling only, producer-side, no read/write watch on pass-vector memory. livemem is read-only with no watchpoints (brief rule 1) and the pass object is per-thread TLS heap (0x5ABA5C0 = ThreadLocalObject::get returning node+0x10; no static pass-object address), so livemem cannot trace reader code either.
+
+## 5. CLOSES?
+
+NO — single blocking fact: no draining reader/consumer of pass+0x800 (0x14-byte summary list), pass+0x648 (0x48-byte light-record vector), pass+0x4A0 (0x84-byte GameplayMetadata vector) or pass+0x1D0 (0x50-byte ShadowAtlasFrame vector) exists anywhere in Minecraft.Windows.exe 1.26.62.01 — all four vectors are write-only statically (end-cursor increments / grow-emplace only; no pop/decrement; no element read anywhere in the exe [V negative]); every static angle is negative (section 2, incl. new fld cross-offset check this unit); the queued entry capture oc_u_er6_light_desc cannot install a read/write watch on pass-vector memory and read-only livemem has no static pass-object address. Description field value names are also unknown [?] (no RTTI, no member-name strings; parked in MIRROR_SKIP, not the closure gate). Closed [V]: tag names (tag 2 = GameplayMetadata, tag 3 = LightPoint, tag 4 = ShadowAtlasFrame) and the group_visitors.md vs LightGroupTag conflict (FrameBuilder.h wins; 2/3 were swapped there); all four cursor writes [V].
+
+## TOOL REQUESTS
+
+CAPTURE REQUESTED oc_u_er6_light_desc — light-visitor entry capture (rva 0x6640D80, size 256, max 6) already pending in docs/progress/capture_requests.json; `add` rejected duplicates/new requests (4/4 pending slots in use); result awaited via `python tools/livecap/request.py result oc_u_er6_light_desc` ("no result yet"). What it can add [V live when it runs]: tag-3/tag-4 description bytes at visitor entry and caller chain via ret=. What it cannot add: consumers of pass+0x800/+0x648/+0x4A0/+0x1D0 (no pass-memory read/write watch). What would close R6: a live read/write watchpoint on pass-vector memory or a live pass-object address plus a read trace — neither available to this unit (livemem read-only, no watchpoints; 0x5ABA5C0 per-thread TLS, no static address). Helper scripts: None.

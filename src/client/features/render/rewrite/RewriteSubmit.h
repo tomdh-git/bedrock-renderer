@@ -22,7 +22,6 @@
 // (BS_REWRITE or setMode), and the client must be rebuilt first - see the CLOSES? line in
 // docs/progress/oc_U-EN1a.md.
 
-#include <cstdint>
 
 #include "client/features/hooks/Detour.h"
 #include "client/features/render/rewrite/RewriteRegistry.h"

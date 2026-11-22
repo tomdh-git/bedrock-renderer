@@ -1,0 +1,146 @@
+sub_668c910  [0x668c910..0x668cb2a)  size 0x21a  1 xrefs in
+  668c910  push rbp                                      
+  668c911  push r15                                      
+  668c913  push r14                                      
+  668c915  push r12                                      
+  668c917  push rsi                                      
+  668c918  push rdi                                      
+  668c919  push rbx                                      
+  668c91a  sub rsp,0x50                                  
+  668c91e  lea rbp,[rsp+0x50]                            
+  668c923  movaps [rbp-0x10],xmm6                        
+  668c927  mov qword ptr [rbp-0x18],0xFFFFFFFFFFFFFFFE   
+  668c92f  mov rdi,r9                                    
+  668c932  mov rbx,r8                                    
+  668c935  mov rsi,rcx                                   
+  668c938  mov rax,[rdx]                                 ; R a1+0x0
+  668c93b  mov [rcx],rax                                 ; W a0+0x0
+  668c93e  mov rcx,[rdx+0x40]                            ; R a1+0x40
+  668c942  test rcx,rcx                                  
+  668c945  lea rax,[0x129C1210]                          ; [data_129c1210]
+  668c94c  cmovne rax,rcx                                
+  668c950  xorps xmm0,xmm0                               
+  668c953  movaps [rbp-0x30],xmm0                        
+  668c957  mov rcx,[rax]                                 
+  668c95a  test rcx,rcx                                  
+  668c95d  je short 0x668C963                            ; -> loc_668c963
+  668c95f  movzx ecx,word ptr [rcx+0x10]                 
+
+loc_668c963:  ; from 668c95d
+  668c963  mov rcx,[rax+8]                               
+  668c967  test rcx,rcx                                  
+  668c96a  je short 0x668C976                            ; -> loc_668c976
+  668c96c  lock inc dword ptr [rcx+8]                    
+  668c970  mov rcx,[rax+8]                               
+  668c974  jmp short 0x668C978                           ; -> loc_668c978
+
+loc_668c976:  ; from 668c96a
+  668c976  xor ecx,ecx                                   
+
+loc_668c978:  ; from 668c974
+  668c978  lea r14,[rsi+8]                               
+  668c97c  mov rax,[rax]                                 
+  668c97f  mov [rbp-0x30],rax                            
+  668c983  mov r15,[rbp-0x28]                            
+  668c987  mov [rbp-0x28],rcx                            
+  668c98b  test r15,r15                                  
+  668c98e  je short 0x668C9BE                            ; -> loc_668c9be
+  668c990  lock dec dword ptr [r15+8]                    
+  668c995  jne short 0x668C9BE                           ; -> loc_668c9be
+  668c997  mov rax,[r15]                                 
+  668c99a  mov rax,[rax]                                 
+  668c99d  mov rcx,r15                                   
+  668c9a0  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  668c9a6  lock dec dword ptr [r15+0xC]                  
+  668c9ab  jne short 0x668C9BE                           ; -> loc_668c9be
+  668c9ad  mov rax,[r15]                                 
+  668c9b0  mov rax,[rax+8]                               
+  668c9b4  mov rcx,r15                                   
+  668c9b7  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  668c9bd  nop                                           
+
+loc_668c9be:  ; from 668c98e, 668c995, 668c9ab
+  668c9be  lea rdx,[rbp-0x30]                            
+  668c9c2  mov rcx,r14                                   
+  668c9c5  call 0x4DFB570                                ; -> sub_4dfb570
+  668c9ca  nop                                           
+  668c9cb  movzx r12d,word ptr [rbp+0x70]                
+  668c9d0  movss xmm6,[rbp+0x68]                         
+  668c9d5  mov r15,[rbp+0x60]                            
+  668c9d9  mov r14,[rbp-0x28]                            
+  668c9dd  test r14,r14                                  
+  668c9e0  je short 0x668CA0F                            ; -> loc_668ca0f
+  668c9e2  lock dec dword ptr [r14+8]                    
+  668c9e7  jne short 0x668CA0F                           ; -> loc_668ca0f
+  668c9e9  mov rax,[r14]                                 
+  668c9ec  mov rax,[rax]                                 
+  668c9ef  mov rcx,r14                                   
+  668c9f2  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  668c9f8  lock dec dword ptr [r14+0xC]                  
+  668c9fd  jne short 0x668CA0F                           ; -> loc_668ca0f
+  668c9ff  mov rax,[r14]                                 
+  668ca02  mov rax,[rax+8]                               
+  668ca06  mov rcx,r14                                   
+  668ca09  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+
+loc_668ca0f:  ; from 668c9e0, 668c9e7, 668c9fd
+  668ca0f  mov [rsi+0x18],r12w                           
+  668ca14  movups xmm0,[rbx]                             
+  668ca17  movups [rsi+0x1C],xmm0                        
+  668ca1b  movss xmm0,[rdi]                              
+  668ca1f  movss [rsi+0x2C],xmm0                         
+  668ca24  movss xmm0,[rdi+4]                            
+  668ca29  movss [rsi+0x30],xmm0                         
+  668ca2e  movss xmm0,[rdi+8]                            
+  668ca33  movss [rsi+0x34],xmm0                         
+  668ca38  movss xmm0,[rdi+0xC]                          
+  668ca3d  movss [rsi+0x38],xmm0                         
+  668ca42  movss xmm0,[rdi+0x10]                         
+  668ca47  movss [rsi+0x3C],xmm0                         
+  668ca4c  movss xmm0,[rdi+0x14]                         
+  668ca51  movss [rsi+0x40],xmm0                         
+  668ca56  movss xmm0,[rdi+0x18]                         
+  668ca5b  movss [rsi+0x44],xmm0                         
+  668ca60  movss xmm0,[rdi+0x1C]                         
+  668ca65  movss [rsi+0x48],xmm0                         
+  668ca6a  movss xmm0,[rdi+0x20]                         
+  668ca6f  movss [rsi+0x4C],xmm0                         
+  668ca74  movss xmm0,[rdi+0x24]                         
+  668ca79  movss [rsi+0x50],xmm0                         
+  668ca7e  movss xmm0,[rdi+0x28]                         
+  668ca83  movss [rsi+0x54],xmm0                         
+  668ca88  movss xmm0,[rdi+0x2C]                         
+  668ca8d  movss [rsi+0x58],xmm0                         
+  668ca92  movss xmm0,[rdi+0x30]                         
+  668ca97  movss [rsi+0x5C],xmm0                         
+  668ca9c  movss xmm0,[rdi+0x34]                         
+  668caa1  movss [rsi+0x60],xmm0                         
+  668caa6  movss xmm0,[rdi+0x38]                         
+  668caab  movss [rsi+0x64],xmm0                         
+  668cab0  movss xmm0,[rdi+0x3C]                         
+  668cab5  movss [rsi+0x68],xmm0                         
+  668caba  movsd xmm0,[r15+0xC]                          
+  668cac0  movsd xmm1,[r15]                              
+  668cac5  movups [rsi+0x6C],xmm1                        
+  668cac9  movsd [rsi+0x7C],xmm0                         
+  668cace  xorps xmm0,xmm0                               
+  668cad1  movups [rsi+0x84],xmm0                        
+  668cad8  mov dword ptr [rsi+0x94],0x3F800000           
+  668cae2  movups [rsi+0x98],xmm0                        
+  668cae9  mov dword ptr [rsi+0xA8],0x3F800000           
+  668caf3  movss [rsi+0xAC],xmm6                         
+  668cafb  movss xmm0,[r15+8]                            
+  668cb01  movss [rsi+0x78],xmm0                         
+  668cb06  movss xmm0,[r15+0x14]                         
+  668cb0c  movss [rsi+0x88],xmm0                         
+  668cb14  mov rax,rsi                                   
+  668cb17  movaps xmm6,[rbp-0x10]                        
+  668cb1b  add rsp,0x50                                  
+  668cb1f  pop rbx                                       
+  668cb20  pop rdi                                       
+  668cb21  pop rsi                                       
+  668cb22  pop r12                                       
+  668cb24  pop r14                                       
+  668cb26  pop r15                                       
+  668cb28  pop rbp                                       
+  668cb29  ret                                           

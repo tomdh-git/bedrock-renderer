@@ -9,8 +9,10 @@ namespace mce::framebuilder {
 
 // Aligned prototype ("rec4a0") that every builder takes as its 5th (stack) argument, built by 0x66c11b0 from the packed record 0x66d9710
 // writes. Each builder pushes its members into the pass pools and writes the resulting indices into a DrawItem (DrawItem.h).
+// pack(4): the game places the 8-aligned DrawItemState at +0x0C, which natural alignment would push to +0x10.
+#pragma pack(push, 4)
 struct DrawItemProto {
-    uint32_t mPad00;                       // +0x00
+    uint32_t mPad00;                     // +0x00
     uint16_t mU16B;                        // +0x04 value pushed to pool +0x690 (item +0x3C)
     uint16_t mPad06;                       // +0x06
     uint16_t mU16A;                        // +0x08 value pushed to pool +0x8A0 (item +0x10)
@@ -25,6 +27,7 @@ struct DrawItemProto {
     DrawItemTransform mTransform;          // +0x120 pushed to pool +0x648 (item +0x42); variant index at +0x160
     DrawItemGeometry mGeometry;            // +0x168 pushed to pool +0x780 (item +0x28)
 };
+#pragma pack(pop)
 static_assert(sizeof(DrawItemProto) == 0x1C0);
 static_assert(offsetof(DrawItemProto, mU16B) == 0x04);
 static_assert(offsetof(DrawItemProto, mU16A) == 0x08);
