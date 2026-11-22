@@ -14,7 +14,7 @@ Object under construction: the scheduler instance is rcx at entry (= rsi). Ctor 
 
 | offset | size | name | proof | meaning | tag |
 | +0x10 | 8 | queue-object pointer | `0xC25B1E9  mov [rcx+0x10],rdx`; `0xC25B936  mov rdx,[rsi+0x10]` then `0xC25B93A  mov rax,[rdx+0x28]` / `0xC25B93E  sub rax,[rdx+0x20]` / `0xC25B942  sar rax,3` | pointer to a queue object; its +0x20/+0x28 begin/end bounds are counted (>>3) into the scheduler total | [V]
-| +0x18 | 16 | task-entries buffer base | `0xC25B1F7  movups [rcx+0x18],xmm0`; `0xC25B282  mov [rsi+0x18],rcx` | 16 bytes zeroed at init, then base of the entries buffer (alloc = entry_count*8, min 0x200, 0x20-aligned: `0xC25B219  lea r12,[rax*8]`, `0xC25B221  cmp rax,0x200`, `0xC25B229  lea rdx,[r12+0x27]`, `0xC25B251  and rcx,0xFFFFFFFFFFFFFFE0`) | [V]
+| +0x18 | 16 | task-entries buffer base | `0xC25B1F7  movups [rcx+0x18],xmm0`; `0xC25B282  mov [rsi+0x18],rcx` | 16 bytes zeroed at init, then base of the entries buffer (alloc = entry_count*8, min 0x200, 0x20-aligned: `0xC25B219  lea r12,[rax*8]`, `0xC25B221  cmp rax,0x200`, `0xC25B229  lea rdx,[r12+0x27]`, `0xC25B255  and rcx,0xFFFFFFFFFFFFFFE0`) | [V]
 | +0x20 | 8 | queue end cursor | `0xC25B286  mov [rsi+0x20],rcx`; `0xC25B29D  mov [rsi+0x20],rbx` | written with buffer base, then with buffer end (base + count*8) | [V]
 | +0x28 | 8 | queue end limit | `0xC25B1FB  mov qword ptr [rcx+0x28],0`; `0xC25B28E  mov [rsi+0x28],rbx` | zeroed at init, then buffer end (base + count*8) | [V]
 | +0x120 | 4 | per-group count | `0xC25B6C4  mov dword ptr [rsi+0x120],0` | zeroed; nothing in this function names the field | [V]

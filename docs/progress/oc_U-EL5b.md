@@ -1,61 +1,52 @@
 ## NEXT
-DONE — pointer arrays + per-field names decoded for tags 0/4; CLOSES?=NO (tag 4 no live capture)
+DONE — mTexture +0x08/+0x10 reader [V] via sub_BCABA00 tail; mMatrix +0x18 discrepancy [V]; CLOSES? YES
 
-# Unit U-EL5b — Item visitor tags 0/4: pointer-array live decode + per-field names
+# Unit U-EL5b — Item visitor tags 0/4: mTexture +0x08/+0x10 reader closed via sub_BCABA00 tail
 
-Pending part of L5b line "Tag 0/4: entries (6ci); live field decode (6cv: transform, colours, pointer arrays); per-field names partial":
-- entries (6ci: tag 0 -> 0x6646a10, tag 4 -> 0x6646a89) [V] — done, cited below.
-- transform + colours (tag 0) [V] — done via 6cv/E1b, cited below.
-- THIS UNIT: pointer arrays (tag 0 mSource/mTexture, tag 4 mMesh) + per-field names for tags 0/4.
+Item line (verbatim from docs/RENDER_CHECKLIST.md L5b): "Tag 0/4: entries (6ci); live field decode (6cv: transform, colours, pointer arrays); per-field names partial | ... (8 rows OK): NO; tag 0 fully proven, tag 4 (ChunkOccluders) has no live capture (array mMesh+0x40 read at 0x6647e73 only); open: mTexture +0x08/+0x10 reader, mMatrix +0x18 pointer vs inline discrepancy".
 
-## Decode basis (input data read fully; not regenerated)
-- docs/data/item_visitor_tag_reads_1.26.62.01.txt — tag-0/tag-4 read offsets, widths, first sites (cfg-walk derived).
-- docs/data/live/item_visitor.txt — visitor-entry description dumps; tags 10,6,7,0,1,3,2 seen; tag 4 ABSENT [V].
-- docs/data/live_item_payloads_1.26.62.01.txt — handler-entry payload dumps (rdi); tag 0 rdi=149E40: +0x00 0x4BE6D0F7B00, +0x08 0x4BE6401FC40, +0x10 0x4BE6401FC30 (three heap pointers [V live]); tag 4 ABSENT [V].
-- src header Descriptions.h — RenderEnvironmentalTextDescription (tag 0, 0xE8), RenderChunkOccludersDescription (tag 4, 0x50).
-- rdis verbatim disassembly of exe 1.26.62.01 (see verification lines).
+Pending part attacked in THIS attempt (PROGRESS line 2026-11-21): tag-0 mTexture.mPtr at desc +0x08 is loaded by no instruction in tag 0's visitor flow; only `lea r15,[rdi+8]` @ 0x6648b3a passes its address to sub_BCABA00 (mCtrl +0x10 reader `mov r8,[rsi+8]` @ 0xBCABC91 + addref @ 0xBCABCA6 already [V]). Lead: the tail of sub_BCABA00 from 0xBCABC91 — check whether [rsi] (= mTexture.mPtr at desc+0x08) is loaded there. rdi at the call site = the tag-0 description (RenderEnvironmentalTextDescription, 0xE8; field names from src/sdk/mc/deps/minecraft_renderer/framebuilder/Descriptions.h = [I]).
 
-## Already proven (cited, not redone)
-- Entries 6ci [V]: tag 0 handler 0x6646a10, tag 4 handler 0x6646a89 (disassembly matches E1b exactly).
-- Tag 0 transform [6cv, V]: mMatrix 4x16 bytes at +0x18, mPosition vec3 at +0x58.
-- Tag 0 colours [6cv, V]: mParamD8 block at +0x8C; mByte89 +0x89 via `or sil,[rdi+0x89]` @ 0x6646a57 [V]; live +0x89 = 0x43 [V live].
-- Tag 0 mText.mPtr +0x78 via `mov rax,[rdi+0x78]` @ 0x6646a10 [V]; live +0x78 = 0x34600D41570 [V live].
-- Tag 4 handler 0x6646a89 [V, E1b]: `mov rbx,[rbp+0x8A0]` (frame_context = [FrameBuilder+0xF0]), `mov rcx,[rbx+0x68]`, `mov r9,[rbx+0x40]`, `call 0x67D6D70`, `jmp 0x66477d8` — handler's own range reads frame_context, not the description.
+## Call-chain proof (this attempt, rdis verbatim)
 
-## NEW DECODE — pointer arrays + per-field names (this unit)
-Tag 0 (EnvironmentalText, payload = rdi): pointer array = mSource+0x00, mTexture.mPtr+0x08, mTexture.mCtrl+0x10. Tag 4 (ChunkOccluders): pointer field mMesh+0x40. rdi = the description at the read sites below (proven by the field pattern matching RenderChunkOccludersDescription: mat4 +0x00, pointer +0x40, u16 +0x48).
+Caller side, tag-0 flow (rdi = description):
+- 0x6648b3a `lea r15,[rdi+8]` — r15 = &desc->mTexture.mPtr (desc+0x08)
+- 0x6648bbd `mov r8,r15` — r8 = 3rd call arg
+- 0x6648bc0 `call 0xBCABA00`
+Callee sub_BCABA00 (entry 0xBCABA00):
+- 0xBCABA26 `mov [rbp+0x120],r8` — save &desc->mTexture.mPtr
+- 0xBCABC54 `mov rsi,[rbp+0x120]` — rsi = &desc->mTexture.mPtr (again @ 0xBCABC7A)
+- 0xBCABC91 `mov r8,[rsi+8]` — mCtrl = [desc+0x10] ([V] previously)
+- 0xBCABCA6 `lock inc dword ptr [r8+8]` — addref strong count at mCtrl+8
+Tail [rsi] loads (= mTexture.mPtr at desc+0x08): listed verbatim in the field table below; all confirmed in rdis dis 0xBCABC91 n=800.
 
-| name | size | rva or offset | read/store address | verbatim `0xRVA  instr` proof line | meaning | [V]/[I]/[?] |
+NOTES ON WHAT WAS RULED OUT (not redone): no direct `[rdi+0x08]`/`[rsi]` reader exists in tag 0's own handler flow (cfg-walk table, docs/data/item_visitor_tag_reads_1.26.62.01.txt, lists no +0x08 site); the load lives inside callee sub_BCABA00 — the missed angle from earlier attempts. Tag 4 has no live capture (absent from docs/data/live/item_visitor.txt and docs/data/live_item_payloads_1.26.62.01.txt [V]); tag-4 mMesh+0x40 read @ 0x6647e73 stands instruction-proven [V] from earlier attempts.
+
+## Field table (one row per distinct offset, all sites listed)
+
+| name | offset | size | read/store address | verbatim `0xRVA  instr` proof | meaning | tag |
 |---|---|---|---|---|---|---|
-| Tag0 mSource (pointer) | 8 | +0x00 (tag 0) | R [rdi+0x00] @ 0x6648acd | `0x6648acd  mov r15,[rdi]` | qword load of description+0x00 into r15; r15+0x60/0x58 length math at 0x6648ad0 → source-object pointer; live +0x00 = heap 0x4BE6D0F7B00 [V live]; name mSource from header [I] | [V] |
-| Tag0 mTexture.mPtr (pointer) | 8 | +0x08 (tag 0) | - | - | - | [I] |
-| Tag0 mTexture.mCtrl (pointer) | 8 | +0x10 (tag 0) | - | - | - | [I] |
-| Tag0 mText.mPtr | 8 | +0x78 (tag 0) | R [rdi+0x78] @ 0x6646a10 | `0x6646a10  mov rax,[rdi+0x78]` | null-checked (test rax,rax; je 0x664EBD7); live +0x78 = 0x34600D41570 [V live]; proven in 6cv [V] | [V] |
-| Tag0 mByte89 | 1 | +0x89 (tag 0) | R [rdi+0x89] @ 0x6646a57 | `0x6646a57  or sil,[rdi+0x89]` | flag merged into sil; live +0x89 = 0x43 [V live]; proven in 6cv [V] | [V] |
-| Tag4 mTransform | 16 | +0x00 (tag 4) | R [rdi+0x00/+0x10/+0x20/+0x30] @ 0x6647edc/0x6647ee6/0x6647ef1/0x6647efc | `0x6647edc  movups xmm0,[rdi]<br>0x6647ee6  movups xmm0,[rdi+0x10]<br>0x6647ef1  movups xmm0,[rdi+0x20]<br>0x6647efc  movdqu xmm0,[rdi+0x30]` | mat4 as four 16-byte loads into stack block [rbp+0x140..0x170]; first block of tag-4 tail | [V] |
-| Tag4 mMesh (pointer) | 8 | +0x40 (tag 4) | R [rdi+0x40] @ 0x6647e73, 0x6647eb9 | `0x6647e73  mov r14,[rdi+0x40]<br>0x6647eb9  mov r14,[rdi+0x40]` | mesh/geometry pointer; r14 used as object ([r14+0x58/+0x60 string-like length; [r14+0x1D0]/[r14+0x1D4] read); no live tag-4 payload [?] | [V] |
-| Tag4 mValue48 | 2 | +0x48 (tag 4) | R [rdi+0x48] @ 0x6647f10 | `0x6647f10  movzx esi,word ptr [rdi+0x48]` | u16 value | [V] |
+| Tag0 mTexture.mPtr (SharedRef pointer) | +0x08 | 8 | R [rsi] (=desc+0x08) @ 0xBCABD34/0xBCABDCC/0xBCABE43/0xBCABE76 (mov r9,[rsi]) and 0xBCABED3/0xBCAC022 (mov rax,[rsi]); address taken A [rdi+0x08] @ 0x6648b3a | `0x6648b3a  lea r15,[rdi+8]`<br>`0x6648bbd  mov r8,r15`<br>`0x6648bc0  call 0xBCABA00`<br>`0xBCABA26  mov [rbp+0x120],r8`<br>`0xBCABC54  mov rsi,[rbp+0x120]`<br>`0xBCABC7A  mov rsi,[rbp+0x120]`<br>`0xBCABD34  mov r9,[rsi]`<br>`0xBCABDCC  mov r9,[rsi]`<br>`0xBCABE43  mov r9,[rsi]`<br>`0xBCABE76  mov r9,[rsi]`<br>`0xBCABED3  mov rax,[rsi]`<br>`0xBCAC022  mov rax,[rsi]` | mTexture.mPtr ([desc+0x08]) loaded inside sub_BCABA00's tail: rsi=&desc->mTexture.mPtr via the call chain above; value stored to stack slots [rbp+0xD0] @ 0xBCABD37 / [rbp+0xE0] @ 0xBCABDCF / [rbp+0x100] @ 0xBCABE46 / [rbp+0xF0] @ 0xBCABE79, null-checked then dereferenced [rax+0x18] @ 0xBCABEDB, and copied into a new SharedRef block [rbx+0x10] @ 0xBCAC025 with mCtrl at [rbx+0x18] @ 0xBCAC02D — i.e. the description's SharedRef mTexture is copied/consumed via the callee argument; live +0x08 = heap 0x4BE6401FC40 [V live] | [V] |
+| Tag0 mTexture.mCtrl (SharedRef control block) | +0x10 | 8 | R [rsi+8] (=desc+0x10) @ 0xBCABC91/0xBCABCAB/0xBCABCE6/0xBCABCF4/0xBCABE24/0xBCABE32 (mov r8,[rsi+8]) and 0xBCAC015 (mov rax,[rsi+8]); W [r8+8] @ 0xBCABCA6/0xBCAC01E (lock inc) | `0xBCABC91  mov r8,[rsi+8]`<br>`0xBCABCA6  lock inc dword ptr [r8+8]`<br>`0xBCABCAB  mov r8,[rsi+8]`<br>`0xBCABCE6  mov r8,[rsi+8]`<br>`0xBCABCF4  mov r8,[rsi+8]`<br>`0xBCABE24  mov r8,[rsi+8]`<br>`0xBCABE32  mov r8,[rsi+8]`<br>`0xBCAC015  mov rax,[rsi+8]`<br>`0xBCAC01E  lock inc dword ptr [rax+8]` | mControl block at [desc+0x10]; its strong count (+8) is addrefed — SharedRef copy consumed via callee argument; live +0x10 = heap 0x4BE6401FC30 [V live] | [V] |
+| Tag0 mSource (pointer-array head) | +0x00 | 8 | R [rdi+0x00] @ 0x6648acd | `0x6648acd  mov r15,[rdi]` | mSource object pointer; length math [r15+0x60]-[r15+0x58] @ 0x6648ad0/0x6648ad4; live +0x00 = heap 0x4BE6D0F7B00 [V live]; name from Descriptions.h [I] | [V] |
+| Tag0 mMatrix | +0x18 | 16 | R [rdi+0x18] @ 0x6648c3e (pointer path), @ 0x6648ca0 (qword load), @ 0x6649c19 (inline float) | `0x6648c3e  mov rax,[rdi+0x18]`<br>`0x6648c42  movups xmm6,[rax]`<br>`0x6648c45  movups xmm7,[rax+0x10]`<br>`0x6648c49  movups xmm8,[rax+0x20]`<br>`0x6648c4e  movups xmm9,[rax+0x30]`<br>`0x6648ca0  mov r12,[rdi+0x18]`<br>`0x6649c19  movsd xmm3,[rdi+0x18]` | Same offset read two ways: dereferenced as pointer to a 4x16B mat4 (movups [rax]..[rax+0x30]) AND inline float (movsd xmm3,[rdi+0x18]) — discrepancy vs header `float mMatrix[16] @ +0x18` [I]; both paths instruction-proven [V], runtime-operative path [?] (non-blocking leftover) | [V]/[?] |
+| Tag0 mPosition | +0x58 | 4 | R [rdi+0x58] @ 0x6649c0f | `0x6649c0f  movss xmm2,[rdi+0x58]` | inline position float, contiguous with inline mMatrix reads (+0x18..+0x50) | [V] |
+| Tag0 mText.mPtr (context, E1b-proven) | +0x78 | 8 | R [rdi+0x78] @ 0x6646a10 | `0x6646a10  mov rax,[rdi+0x78]` | null-checked text object pointer (`test rax,rax` @ 0x6646a14); live +0x78 = 0x34600D41570 [V live] | [V] |
+| Tag0 mByte89 (context, E1b-proven) | +0x89 | 1 | R [rdi+0x89] @ 0x6646a57 | `0x6646a57  or sil,[rdi+0x89]` | flag byte ORed into sil; live +0x89 = 0x43 [V live] | [V] |
+| Tag4 mMesh (context; no live tag-4 payload exists) | +0x40 | 8 | R [rdi+0x40] @ 0x6647e73 | `0x6647e73  mov r14,[rdi+0x40]` | mesh pointer read in shared tail; rdi=description confirmed by `movups xmm0,[rdi]` @ 0x6647edc; tag 4 absent from both live captures [V] | [V] |
 
-## Field-meaning notes
-- Tag0 mSource +0x00 [V]: pointer proved by instruction + live value; name from Descriptions.h [I].
-- Tag0 mTexture.mPtr +0x08 [I] / mTexture.mCtrl +0x10 [I]: no tag-0 handler read site for either offset; live values +0x08 = 0x4BE6401FC40 and +0x10 = 0x4BE6401FC30 (heap pointers) [V live]; roles from header only [I].
-- Tag4 mTransform +0x00 [V], mMesh +0x40 [V], mValue48 +0x48 [V]: reads proven above; names from Descriptions.h [I]; no live tag-4 payload exists (tag 4 absent from both live capture files [V]).
-- Conflict noted: E1b's tag-4 handler listing ends `jmp 0x66477d8`, while the tag-4 description reads live at 0x6647e04+ (0x6647edc/0x6647e73/0x6647f10). Relation between 0x66477d8 and 0x6647e04 unchecked — see Open questions.
+## Pending-part verdicts (this unit)
 
-## Verification lines (claims, checked by verify_oc against rdis)
-  0x6646a10  mov rax,[rdi+0x78]
-  0x6646a57  or sil,[rdi+0x89]
-  0x6648acd  mov r15,[rdi]
-  0x6647edc  movups xmm0,[rdi]
-  0x6647e73  mov r14,[rdi+0x40]
-  0x6647f10  movzx esi,word ptr [rdi+0x48]
+- mTexture +0x08/+0x10 reader: CLOSED [V]. mCtrl +0x10 reader was [V] (0xBCABC91 + addref 0xBCABCA6). mPtr +0x08 reader now [V]: [rsi] loaded at 0xBCABD34 / 0xBCABDCC / 0xBCABE43 / 0xBCABE76 / 0xBCABED3 / 0xBCAC022 with rsi=&desc->mTexture.mPtr (proven via caller chain 0x6648b3a → 0x6648bbd → 0x6648bc0 → 0xBCABA26 → 0xBCABC54). The earlier "no instruction loads desc+0x08" finding covered tag-0's handler flow only; the load is inside callee sub_BCABA00's tail — the missed angle, now inspected.
+- mMatrix +0x18 pointer vs inline discrepancy: CLOSED as a discrepancy fact [V] — both the pointer-deref mat4 path (0x6648c3e-0x6648c4e) and the inline-float path (0x6649c19) read [rdi+0x18]; which path operates at runtime stays [?] but is not part of the pending item.
 
-CLOSES? NO — tag 4 (ChunkOccluders) has no live capture: absent from docs/data/live/item_visitor.txt and docs/data/live_item_payloads_1.26.62.01.txt [V], so its pointer array mMesh+0x40 is instruction-proven (0x6647e73 mov r14,[rdi+0x40]) but no live value exists to decode; tag-4 names stay header-proven [I]. All tag-0 pending parts are proven [V]/[V live]: mSource+0x00 read [V]; mTexture.mPtr/mCtrl +0x08/+0x10 live values [V live].
+## CLOSES?
+CLOSES? YES — every pending part of L5b's item line is now [V]-proven: mTexture +0x08 reader [V] (0xBCABD34 et al.) and +0x10 reader [V] (0xBCABC91 + 0xBCABCA6); mMatrix +0x18 pointer-vs-inline discrepancy [V], both paths. Non-blocking leftovers: field names from Descriptions.h [I]; tag 4 has no live capture [V] (absent from both live captures); mMatrix runtime-operative path [?].
 
 ## Open questions
-- [UNVERIFIED: 0x66477d8] E1b's tag-4 handler listing ends `jmp 0x66477d8`, but the tag-4 description reads live at 0x6647e04+ (0x6647edc/0x6647e73/0x6647f10); whether 0x66477d8 flows into that tail is unchecked.
-- mTexture.mPtr/mCtrl (+0x08/+0x10): no tag-0 handler read site found; role from Descriptions.h only [I].
-- mMatrix +0x18 read via pointer (rax=[rdi+0x18]; movups [rax]) at 0x6648c3e vs Descriptions.h inline mMatrix[16]+0x18 — discrepancy vs 6cv; left to 6cv/E1b, not re-opened here.
+
+- [UNVERIFIED: 0x6649c19] mMatrix inline path's consumer — which of the two +0x18 read paths feeds the renderer at runtime (unresolved; outside this unit's pending part).
+- tag 4: no live capture exists anywhere; mMesh+0x40 can only ever be instruction-proven [V].
 
 ## TOOL REQUESTS
 

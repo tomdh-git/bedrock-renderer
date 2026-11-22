@@ -1,0 +1,184 @@
+sub_e92a8f0  [0xe92a8f0..0xe92c8f0)  size 0x2000  1 xrefs in
+  e92a8f0  push rbp                                      
+  e92a8f1  push r14                                      
+  e92a8f3  push rsi                                      
+  e92a8f4  push rdi                                      
+  e92a8f5  push rbx                                      
+  e92a8f6  sub rsp,0x30                                  
+  e92a8fa  lea rbp,[rsp+0x30]                            
+  e92a8ff  mov qword ptr [rbp-8],0xFFFFFFFFFFFFFFFE      
+  e92a907  mov rdi,rdx                                   
+  e92a90a  mov rsi,rcx                                   
+  e92a90d  lea rbx,[rcx+0x30]                            ; R a0+0x30
+  e92a911  mov rcx,rbx                                   
+  e92a914  call 0xEEC59F0                                ; -> sub_eec59f0
+  e92a919  test eax,eax                                  
+  e92a91b  jne short 0xE92A998                           ; -> loc_e92a998
+  e92a91d  mov [rbp-0x10],rbx                            
+  e92a921  cmp dword ptr [rsi+0x7C],0x7FFFFFFF           ; R a0+0x7C
+  e92a928  je short 0xE92A9A2                            ; -> loc_e92a9a2
+  e92a92a  xor ecx,ecx                                   
+  e92a92c  jmp short 0xE92A938                           ; -> loc_e92a938
+  e92a92e  xchg ax,ax                                    
+
+loc_e92a930:  ; from e92a95a, e92a968, e92a97a
+  e92a930  lea rcx,[rbx+1]                               ; R a0+0x30+0x1
+  e92a934  test al,al                                    
+  e92a936  jne short 0xE92A97C                           ; -> loc_e92a97c
+
+loc_e92a938:  ; from e92a92c
+  e92a938  mov rbx,rcx                                   
+  e92a93b  mov rcx,[rsi+0x178]                           ; R a0+0x178
+  e92a942  mov r14,[rsi+0x180]                           ; R a0+0x180
+  e92a949  sub r14,rcx                                   
+  e92a94c  sar r14,3                                     
+  e92a950  cmp rbx,r14                                   
+  e92a953  jae short 0xE92A97C                           ; -> loc_e92a97c
+  e92a955  xor eax,eax                                   
+  e92a957  test rdi,rdi                                  
+  e92a95a  je short 0xE92A930                            ; -> loc_e92a930
+  e92a95c  mov rcx,[rcx+rbx*8]                           ; R *(a0+0x178)+0x0+idx
+  e92a960  cmp qword ptr [rcx+0xD8],0                    ; R *(*(a0+0x178)+0x0+idx)+0xD8
+  e92a968  je short 0xE92A930                            ; -> loc_e92a930
+  e92a96a  mov r8,[rsi+0x128]                            ; R a0+0x128
+  e92a971  mov rdx,rdi                                   
+  e92a974  call 0xE92A350                                ; -> sub_e92a350
+  e92a979  nop                                           
+  e92a97a  jmp short 0xE92A930                           ; -> loc_e92a930
+
+loc_e92a97c:  ; from e92a936, e92a953
+  e92a97c  cmp rbx,r14                                   
+  e92a97f  setb bl                                       
+  e92a982  mov rcx,[rbp-0x10]                            
+  e92a986  call 0xEEC5A10                                ; -> sub_eec5a10
+  e92a98b  mov eax,ebx                                   
+  e92a98d  add rsp,0x30                                  
+  e92a991  pop rbx                                       
+  e92a992  pop rdi                                       
+  e92a993  pop rsi                                       
+  e92a994  pop r14                                       
+  e92a996  pop rbp                                       
+  e92a997  ret                                           
+
+loc_e92a998:  ; from e92a91b
+  e92a998  mov ecx,5                                     
+  e92a99d  call 0xEEC5A00                                ; -> sub_eec5a00
+
+loc_e92a9a2:  ; from e92a928
+  e92a9a2  mov dword ptr [rsi+0x7C],0x7FFFFFFE           
+  e92a9a9  mov ecx,6                                     
+  e92a9ae  call 0xEEC5A00                                ; -> sub_eec5a00
+  e92a9b3  int3                                          
+  e92a9b4  nop [rax+rax]                                 ; R ret@eec5a00+0x0+idx
+  e92a9c0  mov [rsp+0x10],rdx                            
+  e92a9c5  push rbp                                      
+  e92a9c6  push r14                                      
+  e92a9c8  push rsi                                      
+  e92a9c9  push rdi                                      
+  e92a9ca  push rbx                                      
+  e92a9cb  sub rsp,0x20                                  
+  e92a9cf  lea rbp,[rdx+0x30]                            
+  e92a9d3  mov rcx,[rbp-0x10]                            
+  e92a9d7  call 0xEEC5A10                                ; -> sub_eec5a10
+  e92a9dc  nop                                           
+  e92a9dd  add rsp,0x20                                  
+  e92a9e1  pop rbx                                       
+  e92a9e2  pop rdi                                       
+  e92a9e3  pop rsi                                       
+  e92a9e4  pop r14                                       
+  e92a9e6  pop rbp                                       
+  e92a9e7  ret                                           
+  e92a9e8  int3                                          
+  e92a9e9  int3                                          
+  e92a9ea  int3                                          
+  e92a9eb  int3                                          
+  e92a9ec  int3                                          
+  e92a9ed  int3                                          
+  e92a9ee  int3                                          
+  e92a9ef  int3                                          
+  e92a9f0  push rbp                                      
+  e92a9f1  push r15                                      
+  e92a9f3  push r14                                      
+  e92a9f5  push r13                                      
+  e92a9f7  push r12                                      
+  e92a9f9  push rsi                                      
+  e92a9fa  push rdi                                      
+  e92a9fb  push rbx                                      
+  e92a9fc  sub rsp,0xF8                                  
+  e92aa03  lea rbp,[rsp+0x80]                            
+  e92aa0b  movdqa [rbp+0x60],xmm10                       
+  e92aa11  movdqa [rbp+0x50],xmm9                        
+  e92aa17  movdqa [rbp+0x40],xmm8                        
+  e92aa1d  movaps [rbp+0x30],xmm7                        
+  e92aa21  movdqa [rbp+0x20],xmm6                        
+  e92aa26  mov qword ptr [rbp+0x18],0xFFFFFFFFFFFFFFFE   
+  e92aa2e  mov rsi,rdx                                   
+  e92aa31  mov r14,rcx                                   
+  e92aa34  add rcx,0x30                                  
+  e92aa38  mov [rbp-0x40],rcx                            
+  e92aa3c  call 0xEEC59F0                                ; -> sub_eec59f0
+  e92aa41  test eax,eax                                  
+  e92aa43  jne 0xE92B4E1                                 ; -> loc_e92b4e1
+  e92aa49  mov [rbp-0x50],rsi                            
+  e92aa4d  cmp dword ptr [r14+0x7C],0x7FFFFFFF           
+  e92aa55  je 0xE92B4EB                                  ; -> loc_e92b4eb
+  e92aa5b  mov r15,[r14+0x178]                           
+  e92aa62  cmp r15,[r14+0x180]                           
+  e92aa69  je 0xE92B471                                  ; -> loc_e92b471
+  e92aa6f  xorps xmm7,xmm7                               
+  e92aa72  pcmpeqd xmm8,xmm8                             
+  e92aa77  pxor xmm6,xmm6                                
+  e92aa7b  mov [rbp-8],r14                               
+  e92aa7f  jmp short 0xE92AABE                           ; -> loc_e92aabe
+  e92aa81  nop [rax+rax]                                 ; R ret@eec59f0+0x0+idx
+
+loc_e92aa90:  ; from e92b229
+  e92aa90  mov qword ptr [r14+0xD8],0                    
+
+loc_e92aa9b:  ; from e92b1f9, e92b207, e92b215
+  e92aa9b  mov rcx,[rbp-0x48]                            
+  e92aa9f  call 0xEEC5A10                                ; -> sub_eec5a10
+  e92aaa4  paddq xmm6,xmm9                               
+  e92aaa9  add r15,8                                     
+  e92aaad  mov r14,[rbp-8]                               
+  e92aab1  cmp r15,[r14+0x180]                           
+  e92aab8  je 0xE92B2AE                                  ; -> loc_e92b2ae
+
+loc_e92aabe:  ; from e92aa7f
+  e92aabe  mov r14,[r15]                                 
+  e92aac1  lea rsi,[r14+0x28]                            
+  e92aac5  mov rcx,rsi                                   
+  e92aac8  call 0xEEC59F0                                ; -> sub_eec59f0
+  e92aacd  test eax,eax                                  
+  e92aacf  jne 0xE92B4B8                                 ; -> loc_e92b4b8
+  e92aad5  mov [rbp-0x48],rsi                            
+  e92aad9  cmp dword ptr [r14+0x74],0x7FFFFFFF           
+  e92aae1  je 0xE92B4A5                                  ; -> loc_e92b4a5
+  e92aae7  mov rax,[r14+0xC8]                            
+  e92aaee  mov rcx,[rax+8]                               
+  e92aaf2  cmp byte ptr [rcx+0x19],0                     
+  e92aaf6  mov rbx,rax                                   
+  e92aaf9  mov r8,[rbp-0x50]                             
+  e92aafd  jne short 0xE92AB2A                           ; -> loc_e92ab2a
+  e92aaff  mov rbx,rax                                   
+  e92ab02  nop [rax+rax]                                 
+
+loc_e92ab10:  ; from e92ab28
+  e92ab10  xor edx,edx                                   
+  e92ab12  cmp r8,[rcx+0x20]                             
+  e92ab16  setae dl                                      
+  e92ab19  cmovb rbx,rcx                                 
+  e92ab1d  shl edx,4                                     
+  e92ab20  mov rcx,[rcx+rdx]                             
+  e92ab24  cmp byte ptr [rcx+0x19],0                     
+  e92ab28  je short 0xE92AB10                            ; -> loc_e92ab10
+
+loc_e92ab2a:  ; from e92aafd
+  e92ab2a  mov rax,[rax]                                 
+  e92ab2d  pxor xmm9,xmm9                                
+  e92ab32  nop [rax+rax]                                 
+
+loc_e92ab40:  ; from e92abc9, e92abde, e92abfc
+  e92ab40  cmp rax,rbx                                   
+  e92ab43  je 0xE92B1C0                                  ; -> loc_e92b1c0
+  ... (--max 160)

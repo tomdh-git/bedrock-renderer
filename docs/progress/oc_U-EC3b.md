@@ -1,69 +1,46 @@
 ## NEXT
 DONE
 
-# UNIT U-EC3b — C3b task record layout pending (BGFX_MAP 6ad)
+# UNIT U-EC3b — C3b task record layout: record SIZE and remaining fields (BGFX_MAP 6ad)
 
-Source exe: C:\Users\Atomi\AppData\Local\LeviLauncher\Instances/1.26.62.01/Minecraft.Windows.exe (1.26.62.01). RVAs relative to image base.
+Source exe: C:\Users\Atomi\AppData/Local/LeviLauncher/Instances/1.26.62.01/Minecraft.Windows.exe (1.26.62.01). RVAs relative to image base.
 Tags: [V] = seen in disassembly (cite RVA), [I] = inferred, [?] = unknown. Nothing invented.
 
-## Summary
+## Pending part of C3b (this unit only)
 
-The C3b checklist item has two parts: (1) "Task kind = FNV-1a 64 of uniform name" — already CLOSED by units U-C3b/U-C3b2 (helper 0x66a02d0 computes FNV-1a 64 over std::string; hash stored at record+0x28; 0x481CF7B16E204CF8 = fnv1a("UseAlphaRewrite"), 0x48603E36F5CE3EB2 = fnv1a("LightWorldSpaceDirection") [V per BGFX_MAP 6ad]). (2) "record layout pending" — this unit closes that.
+Checklist C3b: "Task kind = FNV-1a 64 of a uniform name (UseAlphaRewrite, LightWorldSpaceDirection) — 6ad; record layout pending".
+Closed already (U-C3b/U-C3b2, [V]): task-kind hasher 0x66a02d0 computes FNV-1a 64 over a std::string; record+0x28 = qword task-kind hash [V]; fnv1a("UseAlphaRewrite")=0x481CF7B16E204CF8, fnv1a("LightWorldSpaceDirection")=0x48603E36F5CE3EB2 [V per BGFX_MAP 6ad].
+Pending here: the task RECORD SIZE and every RECORD field other than +0x28.
+BatchActor bucket/slot fields (+0x28/+0x30/+0x38/+0x42/+0x48/+0x52/+0x78, slot 0x10 stride, record-array stride 0x30 at bucket+0x48, record-count word at bucket+0x52) are mapped in C3b/r2 and are NOT re-decoded here; they are cited only as context for where record pointers come from.
 
-Disassembled sub_66d9af0 (BatchActor extractor) interior 0x66dc900..0x66de900. The code is a find-or-create loop over task records in a bucket object (rbx). Each bucket holds:
-- a slot array ([rbx+0x38], 0x10-byte slots: record ptr +0x00, data-index word +0x08, flag byte +0x0C)
-- a data array ([rbx+0x30], 16-byte entries per slot holding uniform values)
-- a record array ([rbx+0x48], 0x30-stride entries, each starting with a record pointer at +0x00)
-- bucket fields: +0x28 word kind/index, +0x42 word slot count, +0x52 word record count, +0x78 qword hash accumulator
+## Record-kind anchor (context, [V]-closed by prior units)
 
-Each task RECORD (r10 = [slot+0x00]) has exactly one verified field: +0x28 = qword task kind hash, compared at 12 sites against FNV-1a hash statics ([0x129F9128] = fnv1a("UseAlphaRewrite"), [and more]). No stores to any other record offset appear in this listing; records are allocated/initialized outside this code path. Record size and remaining fields are not provable from this listing alone.
+| name | offset | size | read/store address(es) | verbatim `0xRVA  instr` line | meaning | tag |
+|---|---|---|---|---|---|---|
+| task RECORD +0x28 | record+0x28 | 8 | 0x66dc923, 0x66dcae3, 0x66dcb33, 0x66dce03, 0x66dce73, 0x66dd013, 0x66dd1b3, 0x66dd353, 0x66dd4f3, 0x66dd693, 0x66dd833, 0x66ddaf3, 0x66ddc53, 0x66dddc3, 0x66ddee3, 0x66de103, 0x66de263, 0x66de373, 0x66de533, 0x66df283, 0x66df483 | `0x66dc920  mov r10,[rcx]`<br>`0x66dc923  cmp [r10+0x28],r8`<br>`0x66dc908  mov r8,[0x129F9128]` | record pointer r10 walked from slot array (slot stride 0x10) / record array (stride 0x30); [r10+0x28] = qword task-kind hash compared against the FNV-1a hash of the current uniform name loaded from static slot [0x129F9128] (fnv1a("UseAlphaRewrite") and others) [V] | [V] |
 
-## Task record layout table
+## Pending: task RECORD SIZE and remaining RECORD fields
 
-| offset | size | site | instr | meaning |
-|---|---|---|---|---|
-| record+0x28 | 8 | 0x66dc923, 0x66dcae3, 0x66dcb33, 0x66dce03, 0x66dce73, 0x66dd013, 0x66dd1b3, 0x66dd353, 0x66dd4f3, 0x66dd693, 0x66dd833, 0x66ddaf3 | see instr listing below | task RECORD +0x28 = qword task kind hash (FNV-1a 64 of uniform name: UseAlphaRewrite, LightWorldSpaceDirection) [V] |
-| bucket+0x28 | 2 | 0x66dc955, 0x66dcb69, 0x66dcbfe, 0x66dcea9, 0x66dd049, 0x66dd1e9, 0x66dd389, 0x66dd529, 0x66dd6c9, 0x66dd869, 0x66dd905 | see instr listing below | task BUCKET +0x28 = word kind/index compared against slot index word [V] |
-| bucket+0x30 | 8 | 0x66dc966, 0x66dcb7a, 0x66dcc0f, 0x66dceba, 0x66dd05a, 0x66dd1fa, 0x66dd39a, 0x66dd53a, 0x66dd6da, 0x66dd87a, 0x66dd916 | see instr listing below | task BUCKET +0x30 = qword data array base (16-byte uniform values per slot) [V] |
-| bucket+0x38 | 8 | 0x66dcab6, 0x66dcb07, 0x66dcdd2, 0x66dce39, 0x66dcfe4, 0x66dd186, 0x66dd324, 0x66dd4c6, 0x66dd664, 0x66dd806 | see instr listing below | task BUCKET +0x38 = qword slot array base (0x10-byte slots) [V] |
-| bucket+0x42 | 2 | 0x66dcaba, 0x66dcb0b, 0x66dcdd6, 0x66dce3d, 0x66dcfe8, 0x66dd18a, 0x66dd328, 0x66dd4ca, 0x66dd668, 0x66dd80a | see instr listing below | task BUCKET +0x42 = word slot count (loop bound) [V] |
-| bucket+0x48 | 8 | 0x66ddac3 | see instr listing below | task BUCKET +0x48 = qword record array base (0x30-stride entries) [V] |
-| bucket+0x52 | 2 | 0x66ddac7 | see instr listing below | task BUCKET +0x52 = word record count [V] |
-| bucket+0x78 | 8 | reads: 0x66dc981, 0x66dc9fa, 0x66dcb8e, 0x66dcc2a, 0x66dcca3, 0x66dced5, 0x66dcf4e, 0x66dd075, 0x66dd0ee, 0x66dd215, 0x66dd28e, 0x66dd3b5, 0x66dd42e, 0x66dd555, 0x66dd5ce, 0x66dd6f5, 0x66dd76e, 0x66dd895, 0x66dd931, 0x66dd9aa; writes: 0x66dc9b1, 0x66dcbbe, 0x66dcc5a, 0x66dcf05, 0x66dd0a5, 0x66dd245, 0x66dd3e5, 0x66dd585, 0x66dd725, 0x66dd8c5, 0x66dd961 | see instr listing below | task BUCKET +0x78 = qword hash accumulator (FNV-ish mixing over slot index + value bytes) [V] |
-| slot+0x00 | 8 | 0x66dc920, 0x66dcae0, 0x66dcb30, 0x66dce00, 0x66dce70, 0x66dd010, 0x66dd1b0, 0x66dd350, 0x66dd4f0, 0x66dd690, 0x66dd830, 0x66ddaf0 | see instr listing below | SLOT +0x00 = qword record pointer (loaded from slot base, then [r10+0x28] = task kind hash) [V] |
-| slot+0x08 | 2 | 0x66dc94f, 0x66dcb63, 0x66dcbf8, 0x66dcea3, 0x66dd043, 0x66dd1e3, 0x66dd383, 0x66dd523, 0x66dd6c3, 0x66dd863, 0x66dd8ff | see instr listing below | SLOT +0x08 = word data index into bucket data array ([rbx+0x30]) [V] |
-| slot+0x0C | 1 | 0x66dc976, 0x66dcb83, 0x66dcc1f, 0x66dceca, 0x66dd06a, 0x66dd20a, 0x66dd3aa, 0x66dd54a, 0x66dd6ea, 0x66dd88a, 0x66dd926 | see instr listing below | SLOT +0x0C = byte occupied flag (set to 1 when slot holds a valid record) [V] |
+| task RECORD SIZE | record SIZE | - | - | - | not observable: no static code allocates, constructs, memcpys, or struct-copies a record object; no store into record+0x28 anywhere in .text; records are created outside the BatchActor extractor 0x66d9af0 (no direct callers — entered via Item visitor 0x6646980/CFG), so neither the record size nor its remaining fields are anchored by any [V] row | [?] |
+| task RECORD fields other than +0x28 | record fields ≠ +0x28 | - | - | - | not observable: across the full 0x66d9af0..0x66e26a7 listing (7767 instructions, dumped with dumplist.py) the only record field ever read is +0x28 (21 cmp sites above); zero stores to any record offset, zero stores of a record pointer into slot+0x00 or record-array entry+0x00; every other record field is never touched in static code | [?] |
 
-## Verbatim instruction listing (for verify_oc.py)
+## What I tried that failed (new angles, all negative)
 
-0x66dc923  cmp [r10+0x28],r8
-0x66dc955  cmp [rbx+0x28],r8
-0x66dc966  mov r10,[rbx+0x30]
-0x66dcab6  mov rax,[rbx+0x38]
-0x66dcaba  movzx r8d,word ptr [rbx+0x42]
-0x66ddac3  mov rax,[rbx+0x48]
-0x66ddac7  movzx r8d,word ptr [rbx+0x52]
-0x66dc981  mov rcx,[rbx+0x78]
-0x66dc9b1  mov [rbx+0x78],r8
-0x66dc920  mov r10,[rcx]
-0x66dd383  movzx r8d,word ptr [rax+rdx+8]
-0x66dc976  mov byte ptr [rax+rdx+0xC],1
-
-## Record size / remaining fields
-
-- Record size: NOT determined from this listing. Only record +0x28 is accessed. No stores to any record offset appear. Records are created/initialized outside 0x66dc900..0x66de900. [?]
-- Record fields other than +0x28: not provable from this listing. [?]
-- BGFX_MAP 1267 states dispatch task entries are 0x80 bytes with task+0x70 = std::function impl — this refers to the dispatch task list (0xe9002e0), NOT the BatchActor bucket records decoded here. [I]
+- ripscan of every static kind-hash slot ([0x129F9128], [0x129F91E8], [0x129F91F0], [0x129F9200], [0x129C13C0], [0x129F9190]): every reader is inside 0x66d9af0 or the guard thunks (0x66e2b10, 0x66e2bf0, … calling 0xE938D30 with &slot). No consumer of a stored record-kind hash exists outside the extractor [V].
+- xr 0x66a02d0: all 129 direct call sites lie in six functions (0x6646980, 0x666aca0, 0x6698e30, 0x66ea3d0, 0x6745440, 0x674a3a0). Dumped all six in full with dumplist.py and grepped every [reg+0x28] access: none stores a hash into a record. The Item visitor 0x6646980's single FNV site (0x6647c85) writes the result to stack local [rbp+0x5A0], not a record [V].
+- imm 0x481CF7B16E204CF8 and imm 0x48603E36F5CE3EB2: 0 hits — kind hashes are never stored as immediates [V].
+- fld 0x28 --w over all of .text (248,770 writes saved to docs/progress/fld_0x28_w_full.txt): no register-source store to [reg+0x28] occurs inside 0x66d9af0 or any of the six FNV-callers [V]; the write that initializes record+0x28 is not visible in static disassembly.
+- 0x66b2b30 (registry "emplace" helper, x1 from the extractor): disassembled (0x66b2b30..0x66b2dcd) — it initializes a ~0x58-byte object at fields +0x0..+0x56 but never +0x28; not a task-record creator [V].
+- Re-decoded both slot-search loops (0x66dc920/0x66dcae0/0x66dcb30) and every miss-path (0x66dca80, 0x66DCD29, 0x66DF614…): only lazy static-slot init plus cmp [record+0x28]; no record creation [V].
+- livemem: game running (pid 10808, `python tools/sigs/livemem.py status` [V live]). The capture-derived bucket VA 0x3462FDB8020 (desc+0x90, rbx = [rcx+0x90] at 0x66db0e0 with rcx = description r8) is unreadable now — `python tools/sigs/livemem.py read 0x3462FDB8020 0xA0` returned "unreadable at 0x3462fdb8020" (retried once, same). Current-frame objects hold no discoverable record/bucket anchor; memory scanning is not permitted [V live].
 
 ## CLOSES?
 
-YES — every pending part of the C3b item line is now proven by [V] rows: task-kind = FNV-1a 64 of uniform name was closed by U-C3b/U-C3b2, and the record layout is documented above with record +0x28 = qword task kind hash [V] at 12 cmp sites, plus all bucket and slot fields. The only items not provable from this listing are record size and non-+0x28 record fields, which are not part of the C3b checklist item (they are listed as [?] above for transparency).
+NO — single blocking fact: the task RECORD SIZE and every RECORD field other than +0x28 are not provable by [V] rows. Only record+0x28 = qword task-kind hash is [V]-proven (21 cmp sites). Record objects are created outside 0x66d9af0 (no direct callers; entered via Item visitor 0x6646980/CFG), no static code stores into record+0x28 or allocates/copies a record, and the one live bucket anchor from the capture (0x3462FDB8020) is no longer readable, so record size and remaining fields cannot be anchored statically or via the allowed livemem reads.
 
 ## Verification
-
-- verify_oc.py: pending
-- delegate.py check: pending
+- verify_oc.py: run and fix every mismatch
+- delegate.py check: run and fix every failure; then set the line after "## NEXT" to DONE
 
 ## TOOL REQUESTS
-
-- None (all data from existing rdis listing; no new helper scripts needed)
+- None (no helper scripts written); a ranged variant of `fld` (page writes by address range) would have helped scan the 83k [reg+0x28] writes outside the extractor, but none of them could be tied to a record anyway.

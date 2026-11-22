@@ -1,0 +1,482 @@
+sub_e80ef60  [0xe80ef60..0xe810f60)  size 0x2000  50 xrefs in
+  e80ef60  push r15                                      
+  e80ef62  push r14                                      
+  e80ef64  push r13                                      
+  e80ef66  push r12                                      
+  e80ef68  push rsi                                      
+  e80ef69  push rdi                                      
+  e80ef6a  push rbp                                      
+  e80ef6b  push rbx                                      
+  e80ef6c  sub rsp,0x48                                  
+  e80ef70  mov rdx,[rcx]                                 ; R a0+0x0
+  e80ef73  test rdx,rdx                                  
+  e80ef76  je 0xE80F260                                  ; -> loc_e80f260
+  e80ef7c  mov r8d,[rcx+0xC]                             ; R a0+0xC
+  e80ef80  xor eax,eax                                   
+  e80ef82  cmp r8d,0xB                                   
+  e80ef86  sete r10b                                     
+  e80ef8a  mov r9,[0x12BB4910]                           ; [data_12bb4910]
+  e80ef91  cmp byte ptr [r9+0x55],1                      
+  e80ef96  jne short 0xE80EFD3                           ; -> loc_e80efd3
+  e80ef98  mov al,r10b                                   
+  e80ef9b  shl eax,3                                     
+  e80ef9e  lea eax,[rax+rax*4]                           
+  e80efa1  mov rax,[r9+rax+0x19F08]                      
+  e80efa9  test rax,rax                                  
+  e80efac  je short 0xE80EFD3                            ; -> loc_e80efd3
+  e80efae  cmp r8d,0xB                                   
+  e80efb2  jne short 0xE80EFC5                           ; -> loc_e80efc5
+  e80efb4  mov rdx,[rcx+0x58]                            ; R a0+0x58
+  e80efb8  mov rsi,rcx                                   
+  e80efbb  mov rcx,rax                                   
+  e80efbe  call 0xE92A8F0                                ; -> sub_e92a8f0
+  e80efc3  jmp short 0xE80EFD0                           ; -> loc_e80efd0
+
+loc_e80efc5:  ; from e80efb2
+  e80efc5  mov rsi,rcx                                   
+  e80efc8  mov rcx,rax                                   
+  e80efcb  call 0xE92A800                                ; -> sub_e92a800
+
+loc_e80efd0:  ; from e80efc3
+  e80efd0  mov rcx,rsi                                   
+
+loc_e80efd3:  ; from e80ef96, e80efac
+  e80efd3  mov rax,[0x12BB4910]                          ; [data_12bb4910]
+  e80efda  mov rdi,[rax+0x19F58]                         
+  e80efe1  test rdi,rdi                                  
+  e80efe4  je 0xE80F259                                  ; -> loc_e80f259
+  e80efea  mov rbx,[rcx]                                 
+  e80efed  mov rax,[rdi+0x2CBE8]                         
+  e80eff4  mov r13,[rdi+0x2CBF0]                         
+  e80effb  cmp r13,rax                                   
+  e80effe  je short 0xE80F010                            ; -> loc_e80f010
+  e80f000  mov [rax],rbx                                 
+  e80f003  add qword ptr [rdi+0x2CBE8],8                 
+  e80f00b  jmp 0xE80F259                                 ; -> loc_e80f259
+
+loc_e80f010:  ; from e80effe
+  e80f010  mov r12,[rdi+0x2CBE0]                         
+  e80f017  mov r14,r13                                   
+  e80f01a  sub r14,r12                                   
+  e80f01d  mov r15,r14                                   
+  e80f020  sar r15,3                                     
+  e80f024  lea rdx,[r12+r15*8]                           
+  e80f028  add rdx,8                                     
+  e80f02c  inc r15                                       
+  e80f02f  cmp rdx,r13                                   
+  e80f032  jbe short 0xE80F09C                           ; -> loc_e80f09c
+  e80f034  mov rbp,r15                                   
+  e80f037  shr rbp,1                                     
+  e80f03a  add rbp,r15                                   
+  e80f03d  lea rdx,[r12+rbp*8]                           
+  e80f041  mov rsi,r12                                   
+  e80f044  cmp rdx,r13                                   
+  e80f047  jbe 0xE80F1A4                                 ; -> loc_e80f1a4
+  e80f04d  mov [rsp+0x38],rcx                            
+  e80f052  mov rcx,[0x12ADF800]                          ; [data_12adf800]
+  e80f059  test rcx,rcx                                  
+  e80f05c  je short 0xE80F0A4                            ; -> loc_e80f0a4
+  e80f05e  lea r8,[rbp*8]                                
+  e80f066  mov rax,[rcx]                                 
+  e80f069  mov rax,[rax+8]                               
+  e80f06d  mov dword ptr [rsp+0x28],0                    
+  e80f075  mov qword ptr [rsp+0x20],0                    
+  e80f07e  xor edx,edx                                   
+  e80f080  xor r9d,r9d                                   
+  e80f083  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e80f089  mov rsi,rax                                   
+  e80f08c  mov rdx,[rdi+0x2CBE0]                         
+  e80f093  mov rax,[rdi+0x2CBE8]                         
+  e80f09a  jmp short 0xE80F0AC                           ; -> loc_e80f0ac
+
+loc_e80f09c:  ; from e80f032
+  e80f09c  mov rsi,r12                                   
+  e80f09f  jmp 0xE80F1A4                                 ; -> loc_e80f1a4
+
+loc_e80f0a4:  ; from e80f05c
+  e80f0a4  xor esi,esi                                   
+  e80f0a6  mov rdx,r12                                   
+  e80f0a9  mov rax,r13                                   
+
+loc_e80f0ac:  ; from e80f09a
+  e80f0ac  cmp rdx,rax                                   
+  e80f0af  je short 0xE80F117                            ; -> loc_e80f117
+  e80f0b1  mov r10,rax                                   
+  e80f0b4  sub r10,rdx                                   
+  e80f0b7  add r10,0xFFFFFFFFFFFFFFF8                    
+  e80f0bb  cmp r10,0x38                                  
+  e80f0bf  mov rcx,[rsp+0x38]                            
+  e80f0c4  jb short 0xE80F11E                            ; -> loc_e80f11e
+  e80f0c6  mov r8,rsi                                    
+  e80f0c9  sub r8,rdx                                    
+  e80f0cc  cmp r8,0x20                                   
+  e80f0d0  jb short 0xE80F11E                            ; -> loc_e80f11e
+  e80f0d2  mov [rsp+0x40],rbx                            
+  e80f0d7  shr r10,3                                     
+  e80f0db  inc r10                                       
+  e80f0de  mov r11,r10                                   
+  e80f0e1  and r11,0xFFFFFFFFFFFFFFFC                    
+  e80f0e5  lea r8,[rsi+r11*8]                            
+  e80f0e9  lea r9,[rdx+r11*8]                            
+  e80f0ed  xor ebx,ebx                                   
+  e80f0ef  nop                                           
+
+loc_e80f0f0:  ; from e80f109
+  e80f0f0  movups xmm0,[rdx+rbx*8]                       
+  e80f0f4  movups xmm1,[rdx+rbx*8+0x10]                  
+  e80f0f9  movups [rsi+rbx*8],xmm0                       
+  e80f0fd  movups [rsi+rbx*8+0x10],xmm1                  
+  e80f102  add rbx,4                                     
+  e80f106  cmp r11,rbx                                   
+  e80f109  jne short 0xE80F0F0                           ; -> loc_e80f0f0
+  e80f10b  cmp r10,r11                                   
+  e80f10e  mov rbx,[rsp+0x40]                            
+  e80f113  jne short 0xE80F130                           ; -> loc_e80f130
+  e80f115  jmp short 0xE80F143                           ; -> loc_e80f143
+
+loc_e80f117:  ; from e80f0af
+  e80f117  mov rcx,[rsp+0x38]                            
+  e80f11c  jmp short 0xE80F14A                           ; -> loc_e80f14a
+
+loc_e80f11e:  ; from e80f0c4, e80f0d0
+  e80f11e  mov r8,rsi                                    
+  e80f121  mov r9,rdx                                    
+  e80f124  nop [rax+rax]                                 
+
+loc_e80f130:  ; from e80f113, e80f141
+  e80f130  mov rdx,[r9]                                  
+  e80f133  mov [r8],rdx                                  
+  e80f136  add r9,8                                      
+  e80f13a  add r8,8                                      
+  e80f13e  cmp r9,rax                                    
+  e80f141  jne short 0xE80F130                           ; -> loc_e80f130
+
+loc_e80f143:  ; from e80f115
+  e80f143  mov rdx,[rdi+0x2CBE0]                         
+
+loc_e80f14a:  ; from e80f11c
+  e80f14a  test rdx,rdx                                  
+  e80f14d  je short 0xE80F187                            ; -> loc_e80f187
+  e80f14f  mov r8,[0x12ADF800]                           ; [data_12adf800]
+  e80f156  test r8,r8                                    
+  e80f159  je short 0xE80F187                            ; -> loc_e80f187
+  e80f15b  mov rax,[r8]                                  
+  e80f15e  mov rax,[rax+8]                               
+  e80f162  mov dword ptr [rsp+0x28],0                    
+  e80f16a  mov qword ptr [rsp+0x20],0                    
+  e80f173  mov rcx,r8                                    
+  e80f176  xor r8d,r8d                                   
+  e80f179  xor r9d,r9d                                   
+  e80f17c  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e80f182  mov rcx,[rsp+0x38]                            
+
+loc_e80f187:  ; from e80f14d, e80f159
+  e80f187  mov [rdi+0x2CBE0],rsi                         
+  e80f18e  lea rax,[rsi+r14]                             
+  e80f192  mov [rdi+0x2CBE8],rax                         
+  e80f199  lea rdx,[rsi+rbp*8]                           
+  e80f19d  mov [rdi+0x2CBF0],rdx                         
+
+loc_e80f1a4:  ; from e80f047, e80f09f
+  e80f1a4  add r14,rsi                                   
+  e80f1a7  cmp r14,rax                                   
+  e80f1aa  je 0xE80F24B                                  ; -> loc_e80f24b
+  e80f1b0  lea rdx,[rax+8]                               
+  e80f1b4  add r12,rax                                   
+  e80f1b7  add rsi,r13                                   
+  e80f1ba  sub r12,rsi                                   
+  e80f1bd  add r12,0xFFFFFFFFFFFFFFF8                    
+  e80f1c1  cmp r12,0x18                                  
+  e80f1c5  jae short 0xE80F1CC                           ; -> loc_e80f1cc
+  e80f1c7  mov r8,rax                                    
+  e80f1ca  jmp short 0xE80F223                           ; -> loc_e80f223
+
+loc_e80f1cc:  ; from e80f1c5
+  e80f1cc  shr r12,3                                     
+  e80f1d0  inc r12                                       
+  e80f1d3  mov r9,r12                                    
+  e80f1d6  and r9,0xFFFFFFFFFFFFFFFC                     
+  e80f1da  lea r10,[r9*8]                                
+  e80f1e2  mov r8,rax                                    
+  e80f1e5  sub r8,r10                                    
+  e80f1e8  sub rdx,r10                                   
+  e80f1eb  mov r10,r9                                    
+  e80f1ee  neg r10                                       
+  e80f1f1  lea r11,[rax-8]                               
+  e80f1f5  xor esi,esi                                   
+  e80f1f7  nop [rax+rax]                                 
+
+loc_e80f200:  ; from e80f21c
+  e80f200  movups xmm0,[rax+rsi*8-0x20]                  
+  e80f205  movups xmm1,[rax+rsi*8-0x10]                  
+  e80f20a  movups [r11+rsi*8],xmm1                       
+  e80f20f  movups [r11+rsi*8-0x10],xmm0                  
+  e80f215  add rsi,0xFFFFFFFFFFFFFFFC                    
+  e80f219  cmp r10,rsi                                   
+  e80f21c  jne short 0xE80F200                           ; -> loc_e80f200
+  e80f21e  cmp r12,r9                                    
+  e80f221  je short 0xE80F244                            ; -> loc_e80f244
+
+loc_e80f223:  ; from e80f1ca
+  e80f223  add rdx,0xFFFFFFFFFFFFFFF8                    
+  e80f227  nop [rax+rax]                                 
+
+loc_e80f230:  ; from e80f242
+  e80f230  mov rax,[r8-8]                                
+  e80f234  add r8,0xFFFFFFFFFFFFFFF8                     
+  e80f238  mov [rdx],rax                                 
+  e80f23b  add rdx,0xFFFFFFFFFFFFFFF8                    
+  e80f23f  cmp r8,r14                                    
+  e80f242  jne short 0xE80F230                           ; -> loc_e80f230
+
+loc_e80f244:  ; from e80f221
+  e80f244  mov rsi,[rdi+0x2CBE0]                         
+
+loc_e80f24b:  ; from e80f1aa
+  e80f24b  lea rax,[rsi+r15*8]                           
+  e80f24f  mov [rdi+0x2CBE8],rax                         
+  e80f256  mov [r14],rbx                                 
+
+loc_e80f259:  ; from e80efe4, e80f00b
+  e80f259  mov qword ptr [rcx],0                         
+
+loc_e80f260:  ; from e80ef76
+  e80f260  mov qword ptr [rcx+0x68],0                    
+  e80f268  mov qword ptr [rcx+0x58],0                    
+  e80f270  mov qword ptr [rcx+0x5F],0                    
+  e80f278  add rsp,0x48                                  
+  e80f27c  pop rbx                                       
+  e80f27d  pop rbp                                       
+  e80f27e  pop rdi                                       
+  e80f27f  pop rsi                                       
+  e80f280  pop r12                                       
+  e80f282  pop r13                                       
+  e80f284  pop r14                                       
+  e80f286  pop r15                                       
+  e80f288  ret                                           
+  e80f289  int3                                          
+  e80f28a  int3                                          
+  e80f28b  int3                                          
+  e80f28c  int3                                          
+  e80f28d  int3                                          
+  e80f28e  int3                                          
+  e80f28f  int3                                          
+  e80f290  push r15                                      
+  e80f292  push r14                                      
+  e80f294  push r13                                      
+  e80f296  push r12                                      
+  e80f298  push rsi                                      
+  e80f299  push rdi                                      
+  e80f29a  push rbp                                      
+  e80f29b  push rbx                                      
+  e80f29c  sub rsp,0x58                                  
+  e80f2a0  mov rsi,rcx                                   
+  e80f2a3  mov rax,[0x1230A0C0]                          ; [data_1230a0c0]
+  e80f2aa  xor rax,rsp                                   
+  e80f2ad  mov [rsp+0x50],rax                            
+  e80f2b2  mov rcx,[rcx]                                 
+  e80f2b5  test rcx,rcx                                  
+  e80f2b8  je 0xE80F5BB                                  ; -> loc_e80f5bb
+  e80f2be  cmp qword ptr [rsi+0x90],0                    
+  e80f2c6  je short 0xE80F2EF                            ; -> loc_e80f2ef
+  e80f2c8  xorps xmm0,xmm0                               
+  e80f2cb  movaps [rsp+0x40],xmm0                        
+  e80f2d0  mov rax,[rcx]                                 
+  e80f2d3  mov rax,[rax+0x48]                            
+  e80f2d7  lea r8,[rsp+0x40]                             
+  e80f2dc  xor edx,edx                                   
+  e80f2de  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e80f2e4  mov qword ptr [rsi+0x90],0                    
+
+loc_e80f2ef:  ; from e80f2c6
+  e80f2ef  test byte ptr [rsi+0x9B],0x40                 
+  e80f2f6  jne 0xE80F5BB                                 ; -> loc_e80f5bb
+  e80f2fc  mov rax,[0x12BB4910]                          ; [data_12bb4910]
+  e80f303  mov rcx,[rax+0x19F10]                         
+  e80f30a  test rcx,rcx                                  
+  e80f30d  setne r8b                                     
+  e80f311  and r8b,[rax+0x55]                            
+  e80f315  mov rdx,[rsi]                                 
+  e80f318  cmp r8b,1                                     
+  e80f31c  jne short 0xE80F32D                           ; -> loc_e80f32d
+  e80f31e  call 0xE92A800                                ; -> sub_e92a800
+  e80f323  mov rax,[0x12BB4910]                          ; [data_12bb4910]
+  e80f32a  mov rdx,[rsi]                                 
+
+loc_e80f32d:  ; from e80f31c
+  e80f32d  mov byte ptr [rsi+0xB2],0                     
+  e80f334  mov rbx,[rax+0x19F58]                         
+  e80f33b  mov rax,[rbx+0x2CBE8]                         
+  e80f342  mov r13,[rbx+0x2CBF0]                         
+  e80f349  cmp r13,rax                                   
+  e80f34c  je short 0xE80F35E                            ; -> loc_e80f35e
+  e80f34e  mov [rax],rdx                                 
+  e80f351  add qword ptr [rbx+0x2CBE8],8                 
+  e80f359  jmp 0xE80F5A9                                 ; -> loc_e80f5a9
+
+loc_e80f35e:  ; from e80f34c
+  e80f35e  mov r12,[rbx+0x2CBE0]                         
+  e80f365  mov r14,r13                                   
+  e80f368  sub r14,r12                                   
+  e80f36b  mov r15,r14                                   
+  e80f36e  sar r15,3                                     
+  e80f372  lea rcx,[r12+r15*8]                           
+  e80f376  add rcx,8                                     
+  e80f37a  inc r15                                       
+  e80f37d  cmp rcx,r13                                   
+  e80f380  jbe short 0xE80F3EA                           ; -> loc_e80f3ea
+  e80f382  mov rbp,r15                                   
+  e80f385  shr rbp,1                                     
+  e80f388  add rbp,r15                                   
+  e80f38b  lea rcx,[r12+rbp*8]                           
+  e80f38f  mov rdi,r12                                   
+  e80f392  cmp rcx,r13                                   
+  e80f395  jbe 0xE80F4F4                                 ; -> loc_e80f4f4
+  e80f39b  mov [rsp+0x30],rdx                            
+  e80f3a0  mov rcx,[0x12ADF800]                          ; [data_12adf800]
+  e80f3a7  test rcx,rcx                                  
+  e80f3aa  je short 0xE80F3F2                            ; -> loc_e80f3f2
+  e80f3ac  lea r8,[rbp*8]                                
+  e80f3b4  mov rax,[rcx]                                 
+  e80f3b7  mov rax,[rax+8]                               
+  e80f3bb  mov dword ptr [rsp+0x28],0                    
+  e80f3c3  mov qword ptr [rsp+0x20],0                    
+  e80f3cc  xor edx,edx                                   
+  e80f3ce  xor r9d,r9d                                   
+  e80f3d1  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e80f3d7  mov rdi,rax                                   
+  e80f3da  mov r8,[rbx+0x2CBE0]                          
+  e80f3e1  mov rax,[rbx+0x2CBE8]                         
+  e80f3e8  jmp short 0xE80F3FA                           ; -> loc_e80f3fa
+
+loc_e80f3ea:  ; from e80f380
+  e80f3ea  mov rdi,r12                                   
+  e80f3ed  jmp 0xE80F4F4                                 ; -> loc_e80f4f4
+
+loc_e80f3f2:  ; from e80f3aa
+  e80f3f2  xor edi,edi                                   
+  e80f3f4  mov r8,r12                                    
+  e80f3f7  mov rax,r13                                   
+
+loc_e80f3fa:  ; from e80f3e8
+  e80f3fa  cmp r8,rax                                    
+  e80f3fd  je short 0xE80F469                            ; -> loc_e80f469
+  e80f3ff  mov r10,rax                                   
+  e80f402  sub r10,r8                                    
+  e80f405  add r10,0xFFFFFFFFFFFFFFF8                    
+  e80f409  cmp r10,0x38                                  
+  e80f40d  mov rdx,[rsp+0x30]                            
+  e80f412  jb short 0xE80F470                            ; -> loc_e80f470
+  e80f414  mov rcx,rdi                                   
+  e80f417  sub rcx,r8                                    
+  e80f41a  cmp rcx,0x20                                  
+  e80f41e  jb short 0xE80F470                            ; -> loc_e80f470
+  e80f420  mov [rsp+0x38],rbp                            
+  e80f425  shr r10,3                                     
+  e80f429  inc r10                                       
+  e80f42c  mov r11,r10                                   
+  e80f42f  and r11,0xFFFFFFFFFFFFFFFC                    
+  e80f433  lea rcx,[rdi+r11*8]                           
+  e80f437  lea r9,[r8+r11*8]                             
+  e80f43b  xor ebp,ebp                                   
+  e80f43d  nop [rax]                                     
+
+loc_e80f440:  ; from e80f45b
+  e80f440  movups xmm0,[r8+rbp*8]                        
+  e80f445  movups xmm1,[r8+rbp*8+0x10]                   
+  e80f44b  movups [rdi+rbp*8],xmm0                       
+  e80f44f  movups [rdi+rbp*8+0x10],xmm1                  
+  e80f454  add rbp,4                                     
+  e80f458  cmp r11,rbp                                   
+  e80f45b  jne short 0xE80F440                           ; -> loc_e80f440
+  e80f45d  cmp r10,r11                                   
+  e80f460  mov rbp,[rsp+0x38]                            
+  e80f465  jne short 0xE80F480                           ; -> loc_e80f480
+  e80f467  jmp short 0xE80F493                           ; -> loc_e80f493
+
+loc_e80f469:  ; from e80f3fd
+  e80f469  mov rdx,[rsp+0x30]                            
+  e80f46e  jmp short 0xE80F49A                           ; -> loc_e80f49a
+
+loc_e80f470:  ; from e80f412, e80f41e
+  e80f470  mov rcx,rdi                                   
+  e80f473  mov r9,r8                                     
+  e80f476  nop [rax+rax]                                 
+
+loc_e80f480:  ; from e80f465, e80f491
+  e80f480  mov r8,[r9]                                   
+  e80f483  mov [rcx],r8                                  
+  e80f486  add r9,8                                      
+  e80f48a  add rcx,8                                     
+  e80f48e  cmp r9,rax                                    
+  e80f491  jne short 0xE80F480                           ; -> loc_e80f480
+
+loc_e80f493:  ; from e80f467
+  e80f493  mov r8,[rbx+0x2CBE0]                          
+
+loc_e80f49a:  ; from e80f46e
+  e80f49a  test r8,r8                                    
+  e80f49d  je short 0xE80F4D7                            ; -> loc_e80f4d7
+  e80f49f  mov rcx,[0x12ADF800]                          ; [data_12adf800]
+  e80f4a6  test rcx,rcx                                  
+  e80f4a9  je short 0xE80F4D7                            ; -> loc_e80f4d7
+  e80f4ab  mov rax,[rcx]                                 
+  e80f4ae  mov rax,[rax+8]                               
+  e80f4b2  mov dword ptr [rsp+0x28],0                    
+  e80f4ba  mov qword ptr [rsp+0x20],0                    
+  e80f4c3  mov rdx,r8                                    
+  e80f4c6  xor r8d,r8d                                   
+  e80f4c9  xor r9d,r9d                                   
+  e80f4cc  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  e80f4d2  mov rdx,[rsp+0x30]                            
+
+loc_e80f4d7:  ; from e80f49d, e80f4a9
+  e80f4d7  mov [rbx+0x2CBE0],rdi                         
+  e80f4de  lea rax,[rdi+r14]                             
+  e80f4e2  mov [rbx+0x2CBE8],rax                         
+  e80f4e9  lea rcx,[rdi+rbp*8]                           
+  e80f4ed  mov [rbx+0x2CBF0],rcx                         
+
+loc_e80f4f4:  ; from e80f395, e80f3ed
+  e80f4f4  add r14,rdi                                   
+  e80f4f7  cmp r14,rax                                   
+  e80f4fa  je 0xE80F59B                                  ; -> loc_e80f59b
+  e80f500  lea rcx,[rax+8]                               
+  e80f504  add r12,rax                                   
+  e80f507  add rdi,r13                                   
+  e80f50a  sub r12,rdi                                   
+  e80f50d  add r12,0xFFFFFFFFFFFFFFF8                    
+  e80f511  cmp r12,0x18                                  
+  e80f515  jae short 0xE80F51C                           ; -> loc_e80f51c
+  e80f517  mov r8,rax                                    
+  e80f51a  jmp short 0xE80F573                           ; -> loc_e80f573
+
+loc_e80f51c:  ; from e80f515
+  e80f51c  shr r12,3                                     
+  e80f520  inc r12                                       
+  e80f523  mov r9,r12                                    
+  e80f526  and r9,0xFFFFFFFFFFFFFFFC                     
+  e80f52a  lea r10,[r9*8]                                
+  e80f532  mov r8,rax                                    
+  e80f535  sub r8,r10                                    
+  e80f538  sub rcx,r10                                   
+  e80f53b  mov r10,r9                                    
+  e80f53e  neg r10                                       
+  e80f541  lea r11,[rax-8]                               
+  e80f545  xor edi,edi                                   
+  e80f547  nop [rax+rax]                                 
+
+loc_e80f550:  ; from e80f56c
+  e80f550  movups xmm0,[rax+rdi*8-0x20]                  
+  e80f555  movups xmm1,[rax+rdi*8-0x10]                  
+  e80f55a  movups [r11+rdi*8],xmm1                       
+  e80f55f  movups [r11+rdi*8-0x10],xmm0                  
+  e80f565  add rdi,0xFFFFFFFFFFFFFFFC                    
+  e80f569  cmp r10,rdi                                   
+  e80f56c  jne short 0xE80F550                           ; -> loc_e80f550
+  e80f56e  cmp r12,r9                                    
+  e80f571  je short 0xE80F594                            ; -> loc_e80f594
+
+loc_e80f573:  ; from e80f51a
+  e80f573  add rcx,0xFFFFFFFFFFFFFFF8                    
+  ... (--max 400)

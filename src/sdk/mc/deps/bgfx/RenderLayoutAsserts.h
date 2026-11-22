@@ -205,6 +205,12 @@ inline constexpr Constant kVisitEffect[] = {
 inline constexpr Constant kVisitUI[] = {
     {0x90, "UIMesh description size lower bound (R10, >= 0x90)"},
 };
+inline constexpr Constant kVisitEditor[] = {
+    {0x64, "Editor description +0x64 16-byte block read (movups)"},
+    {0xD0, "Editor description +0xD0 u16 field read (word)"},
+    {0x3C, "Editor description +0x3C byte field compared to 1"},
+    {0x122, "Editor description +0x122 byte field compared to 1"},
+};
 
 #define BS_RENDER_LAYOUT_FN(symbol, size, table) Function{symbol, size, table, sizeof(table) / sizeof(table[0])}
 inline constexpr Function kFunctions[] = {
@@ -227,6 +233,7 @@ inline constexpr Function kFunctions[] = {
     BS_RENDER_LAYOUT_FN("FrameBuilder::visitItem", 0x9425, kVisitItem),
     BS_RENDER_LAYOUT_FN("FrameBuilder::visitEffect", 0x6C7C, kVisitEffect),
     BS_RENDER_LAYOUT_FN("FrameBuilder::visitUI", 0x3B10, kVisitUI),
+    BS_RENDER_LAYOUT_FN("FrameBuilder::visitEditor", 0x9F91, kVisitEditor),
 };
 #undef BS_RENDER_LAYOUT_FN
 
@@ -243,8 +250,8 @@ inline bool contains(const uint8_t* code, size_t size, uint64_t value) {
 
 // K-P9: every slot of a renderer vtable must point into the module's code. `vtable` is the live vtable (read through the renderer object),
 // `slots` its slot count (65 for RendererContextD3D12 and its RTX subclass, docs/data/d3d12_vtable_1.26.62.01.txt), [textBegin, textEnd)
-// the module .text range. Returns the index of the first slot outside it, or `slots` when all are inside. Not wired into SelfTest yet
-// (SelfTest.cpp belongs to the lead); the offline twin is tools/sigs/slotcheck.py.
+// the module .text range. Returns the index of the first slot outside it, or `slots` when all are inside. Called by SelfTest's
+// checkRendererVtables on both static renderer vtables; the offline twin is tools/sigs/slotcheck.py.
 inline size_t firstSlotOutsideText(const uintptr_t* vtable, size_t slots, uintptr_t textBegin, uintptr_t textEnd) {
     for (size_t i = 0; i < slots; ++i)
         if (vtable[i] < textBegin || vtable[i] >= textEnd)

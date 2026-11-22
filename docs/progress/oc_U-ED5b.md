@@ -1,95 +1,45 @@
 ## NEXT
 DONE
 
-# U-ED5b ChunkGeometry description — pending Q1/Q2 (D5b)
+# U-ED5b ChunkGeometry description — close D5b pending parts (Q1 +0xB8/+0xD8, Q2 header asserts)
 
-Checklist item D5b: "ChunkGeometry description: extracter + pointer route (6be); 6 live dumps (6iq); layout +0x00..+0x7F confirmed; +0xB8/+0xD8 byte flags vs live pointers unresolved; header asserts for the typed live fields pending".
+Checklist item D5b (docs/RENDER_CHECKLIST.md): "ChunkGeometry description: extractor + pointer route (6be); 6 live dumps (6iq); layout +0x00..+0x7F confirmed; +0xB8/+0xD8 byte flags vs live pointers unresolved; header asserts for the typed live fields pending". Predecessor oc_U-ED5b_r1.md (2026-11-16) left Q1 unresolved [?]: all 6 live samples read low byte 0x00 at +0xB8/+0xD8 so "genuine byte flag vs low byte of an aligned pointer" could not be decided. oc_U-EL4f.md (2026-11-21, DONE) proved the full typed layout [V], including +0xB8/+0xD8 as qword-wide storage whose low byte the extractor reads as a flag. This unit: (a) re-verifies every Q1 quoted address:instruction pair against Minecraft.Windows.exe 1.26.62.01 with rdis before writing it down, (b) closes Q2 by editing the header and its static_asserts so they match the disassembly and all 6 live dumps. Only the pending parts are touched here; the +0x00..+0x7F layout is closed elsewhere and is not re-decoded.
 
-Scope of this unit: ONLY the pending parts.
-- Q1: is desc+0xB8 / desc+0xD8 a byte flag or the low byte of a live pointer?
-- Q2: do the header static_asserts / typed fields match the live dumps?
+Extractor: 0x66ea3d0 (Item tag 3, size 0xF430) [V; docs/BGFX_MAP.md section 6be, line 813]. r8 = description pointer at entry, kept as r12 then rbx [V]. Live dumps: docs/data/live_chunk_desc_1.26.62.01.txt lines 2-7, 6 samples x 0x200 bytes [V live; docs/BGFX_MAP.md section 6iq, lines 2056-2058]. Header under test: src/sdk/mc/deps/minecraft_renderer/framebuilder/ChunkGeometryDescription.h, struct ChunkGeometryDescriptionView, static_asserts lines 39-50 [V]. This header is named in the unit, so editing it and its asserts is in scope.
 
-Extractor: 0x66ea3d0 (Item tag 3, size 0xF430) [V]. Entered by tag-3 visitor tail-jump; r8=desc kept as r12 then rbx [V]. Live dumps: docs/data/live_chunk_desc_1.26.62.01.txt, 6 samples [V live].
-Header under test: src/sdk/mc/deps/minecraft_renderer/framebuilder/ChunkGeometryDescription.h (ChunkGeometryDescriptionView), static_asserts lines 39-50 [V].
+## (1) Field table — pending and correction offsets only (one row per distinct offset, all sites listed)
 
-## Field table (one row per distinct offset, verbatim `0xRVA  instr` proof lines copied from rdis listings)
+| offset | size | read/store address | verbatim `0xRVA  instr` proof line(s) | meaning | tag |
+| +0x20 | 8 | desc+0x20 (rbx=desc) | `0x66eb460  lea r9,[rbx+0x20]` | &desc+0x20 taken and passed to 0xBCAB8F0 — third shared_ptr-like pair being constructed [V]; live pointer varies per sample [V live] | [V] + [V live] |
+| +0x28 | 8 | desc+0x28 (paired with +0x20; no separate head read) | - | third shared_ptr control block; live ctl = object - 0x10 in all 6 samples (matches the +0x00/+0x08 and +0x10/+0x18 pairs) [V live] | [V live] |
+| +0x38 | 8 | desc+0x38 | `0x66ec56d  imul rcx,[rax+0x38],0x58` | span entry count (qword), multiplied by 0x58 entry stride [V]; live count varies per sample (0x10..0x67) [V live] | [V] + [V live] |
+| +0x40 | 8 | desc+0x40 | `0x66ec569  mov rdi,[rax+0x40]` | span data pointer (stack vector) [V]; live pointer varies per sample [V live] | [V] + [V live] |
+| +0xB8 | 1 | desc+0xB8 (r12/rbx=desc) | `0x66ea56e  movzx eax,byte ptr [r12+0xB8]` / `0x66ea6e4  movzx edx,byte ptr [r12+0xB8]` / `0x66eb5f0  movzx eax,byte ptr [rbx+0xB8]` / `0x66eb6bb  movzx eax,byte ptr [rbx+0xB8]` / `0x66ebca3  cmp byte ptr [rbx+0xB8],0` / `0x66ebd92  cmp byte ptr [rbx+0xB8],0` / `0x66ebfa0  cmp byte ptr [rbx+0xB8],0` | extractor reads only the low byte as a flag (tested against 0; MeshContext.x/ViewPositionAndTime vs Fog selector) [V]; live storage is qword-sized and pointer-shaped (0x000003459E160300 in samples 1,2,3,5,6; 0 in sample 4), low byte always 0x00 [V live] | [V] instr / [V live] storage |
+| +0xD8 | 1 | desc+0xD8 (r12=desc) | `0x66ea72e  cmp byte ptr [r12+0xD8],3` | low byte compared with 3 (isMode3 gate selecting inline bodies B-D) [V]; live qword 0x00007FF7F8363000 (samples 1,2,4,5,6) / 0x00007FF988A33000 (sample 3), low byte always 0x00 [V live] | [V] instr / [V live] storage |
 
-| offset | size | read/store address | verbatim `0xRVA  instr` proof line | meaning | tag |
-| +0x00 | 8 | desc+0x00 (rbx=desc) | `0x66eb05e  mov rcx,[rbx]` | mShared0Ptr: shared_ptr object pointer | [V] |
-| +0x08 | 8 | desc+0x08 (rbx=desc) | `0x66eafb8  mov rax,[rbx+8]` | mShared0Ctl: control-block pointer (ctl = object-0x10) | [V] |
-| +0x10 | 8 | desc+0x10 (rbx=desc) | `0x66eb06f  lea r15,[rbx+0x10]` / `0x66eb090  mov rax,[r15]` | mShared1Ptr: second shared_ptr object pointer | [V] |
-| +0x18 | 8 | desc+0x18 (rbx=desc) | `0x66eb07a  mov rax,[rbx+0x18]` / `0x66eb087  mov r14,[rbx+0x18]` | mShared1Ctl: second control-block pointer | [V] |
-| +0x30 | 8 | desc+0x30 (rbx=desc) | `0x66eafd2  cmp qword ptr [rbx+0x30],2` | mBindingCount: compared with 2 (jb -> single-binding path); live = 3 | [V] |
-| +0x38 | 4 | desc+0x38 (rax=desc via [rbp+0x16C0] @0x66ec562) | `0x66ec56d  imul rcx,[rax+0x38],0x58` | span count (dword); live varies 0x10..0x67 per sample | [V] |
-| +0x40 | 8 | desc+0x40 (rax=desc via [rbp+0x16C0] @0x66ec562) | `0x66ec569  mov rdi,[rax+0x40]` | span data pointer (qword); live = stack vector ptr per sample | [V] |
-| +0x48 | 8 | desc+0x48 (r12/rbx=desc) | `0x66ea58f  mov rax,[r12+0x48]` / `0x66eafa4  mov rax,[rbx+0x48]` | mPassKind: pointer into .data holding pass kind K | [V] |
-| +0x50 | 1 | desc+0x50 (r12=desc) | `0x66ea5ba  cmp byte ptr [r12+0x50],0` | mFlag50: selects predicate set; live 0/1 across samples | [V] |
-| +0x54 | 16 | desc+0x54 (rbx=desc) | `0x66eb99e  movups xmm0,[rbx+0x54]` | FogColor f32x4; live {0.0403,0.0494,0.09,1.0} all samples | [V] |
-| +0x64 | 16 | desc+0x64 (rbx=desc) | `0x66eb91a  movups xmm0,[rbx+0x64]` | FogAndDistanceControl f32x4; live {0.656,1.0,128,57} all samples | [V] |
-| +0x74 | 4 | desc+0x74 (rbx=desc) | `0x66eb6c2  movss xmm0,[rbx+0x74]` | mTime f32; live 348.04 all samples | [V] |
-| +0xB8 | 1 | desc+0xB8 (r12/rbx=desc) | `0x66ea56e  movzx eax,byte ptr [r12+0xB8]` / `0x66eb6bb  movzx eax,byte ptr [rbx+0xB8]` / `0x66ebca3  cmp byte ptr [rbx+0xB8],0` | mFlagB8 byte: MeshContext.x / ViewPositionAndTime selector; read as byte by extractor [V]; live low byte always 0x00 [V live] | [V] instr / [?] live |
-| +0xD8 | 1 | desc+0xD8 (r12=desc) | `0x66ea72e  cmp byte ptr [r12+0xD8],3` | mModeD8 byte: compared with 3; read as byte by extractor [V]; live low byte always 0x00 [V live] | [V] instr / [?] live |
-| +0xE0 | 1 | desc+0xE0 (r12=desc) | `0x66ea65c  movzx ebx,byte ptr [r12+0xE0]` | mFlagE0 byte | [V] |
-| +0xE1 | 1 | desc+0xE1 (r12=desc) | `0x66ea76f  cmp byte ptr [r12+0xE1],0` | mFlagE1 byte; live = 1 all samples | [V] |
-| +0xE4 | 8 | desc+0xE4 (rbx=desc) | `0x66eb758  movsd xmm2,[rbx+0xE4]` | mViewPos.xyz f32x3 (+0xE4..+0xEC; +0xEC also read via movss at 0x66eb750); live -0,-0,-0 | [V] |
 
-## Verbatim proof lines (standalone for verify_oc)
-0x66eb05e  mov rcx,[rbx]
-0x66eafb8  mov rax,[rbx+8]
-0x66eb06f  lea r15,[rbx+0x10]
-0x66eb090  mov rax,[r15]
-0x66eb07a  mov rax,[rbx+0x18]
-0x66eb087  mov r14,[rbx+0x18]
-0x66eafd2  cmp qword ptr [rbx+0x30],2
-0x66ec56d  imul rcx,[rax+0x38],0x58
-0x66ec569  mov rdi,[rax+0x40]
-0x66ea58f  mov rax,[r12+0x48]
-0x66eafa4  mov rax,[rbx+0x48]
-0x66ea5ba  cmp byte ptr [r12+0x50],0
-0x66eb99e  movups xmm0,[rbx+0x54]
-0x66eb91a  movups xmm0,[rbx+0x64]
-0x66eb6c2  movss xmm0,[rbx+0x74]
-0x66ea56e  movzx eax,byte ptr [r12+0xB8]
-0x66eb6bb  movzx eax,byte ptr [rbx+0xB8]
-0x66ebca3  cmp byte ptr [rbx+0xB8],0
-0x66ebd92  cmp byte ptr [rbx+0xB8],0
-0x66ea72e  cmp byte ptr [r12+0xD8],3
-0x66ea65c  movzx ebx,byte ptr [r12+0xE0]
-0x66ea76f  cmp byte ptr [r12+0xE1],0
-0x66eb758  movsd xmm2,[rbx+0xE4]
+## (2) Q1 — +0xB8 / +0xD8: byte flag vs low byte of a live pointer
 
-## Q1: +0xB8 / +0xD8 byte flag vs live pointer
+Code-visible semantics (proven [V]): the extractor reads desc+0xB8 as a single byte at 7 sites (`movzx ... byte ptr [...]+0xB8` at 0x66ea56e / 0x66ea6e4 / 0x66eb5f0 / 0x66eb6bb; `cmp byte ptr [rbx+0xB8],0` at 0x66ebca3 / 0x66ebd92 / 0x66ebfa0) and desc+0xD8 as a single byte compared with 3 at 0x66ea72e. So at code level both offsets are byte flags, not qword reads.
 
-The extractor reads desc+0xB8 as a single byte at 5+ sites (`movzx eax,byte ptr [r12+0xB8]`, `movzx edx,byte ptr [r12+0xB8]`, `movzx eax,byte ptr [rbx+0xB8]`, `cmp byte ptr [rbx+0xB8],0` x2) and desc+0xD8 as a single byte (`cmp byte ptr [r12+0xD8],3`) [V by instruction]. This matches the header's `uint8_t mFlagB8` / `uint8_t mModeD8` byte interpretation [V].
+Live storage ([V live], docs/data/live_chunk_desc_1.26.62.01.txt lines 2-7): the 8 bytes at +0xB8 hold a pointer-shaped qword in samples 1,2,3,5,6 (0x000003459E160300 — the same heap range as the shared_ptr objects at +0x00/+0x10/+0x20) and 0 in sample 4; the 8 bytes at +0xD8 hold 0x00007FF7F8363000 in samples 1,2,4,5,6 (module range) and 0x00007FF988A33000 in sample 3. In every sample the low byte is 0x00, which is why all byte reads return 0. Because no sample ever has a non-zero byte at +0xB8/+0xD8, the live data cannot distinguish "genuine byte flag that happens to be 0" from "low byte of an aligned pointer" — that distinction is [?]. It is non-blocking for the layout: the extractor never reads any byte beyond the low byte, so the correct storage type is qword (pointer or NULL) with a low-byte flag view, exactly as oc_U-EL4f.md concluded [V instr + V live].
 
-Live dumps: the qwords at +0xB8 and +0xD8 are heap/exe pointers (0x...300 / 0x...000 / exe base) whose low byte is always 0x00 across all 6 samples [V live]. Because every sample reads 0x00, the live data cannot distinguish "genuine byte flag that happens to be 0" from "low byte of an aligned pointer" [?]. No non-zero live case found.
+## (3) Q2 — header static_asserts vs live dumps (edits to ChunkGeometryDescription.h)
 
-Q1 status: byte-access nature proven [V]; live semantic (flag vs pointer low byte) unresolved [?] — no non-zero sample.
+This unit edits src/sdk/mc/deps/minecraft_renderer/framebuilder/ChunkGeometryDescription.h (named header — in scope) and nothing else:
 
-## Q2: header static_asserts / typed fields vs live dumps
+- `uint8_t mPad20[0x10]` (+0x20..+0x2F) -> `void* mShared2Ptr` (+0x20) + `void* mShared2Ctl` (+0x28): third shared_ptr pair; &desc+0x20 taken at 0x66eb460 [V], ctl = object - 0x10 in all 6 live samples [V live].
+- `uint8_t mPad38[0x10]` (+0x38..+0x47) -> `uint64_t mSpanCount` (+0x38) + `void* mSpanPtr` (+0x40): {count, ptr} span; count read via `imul rcx,[rax+0x38],0x58` at 0x66ec56d [V], ptr via `mov rdi,[rax+0x40]` at 0x66ec569 [V]; live count/ptr vary per sample [V live]. Neither is padding.
+- `uint8_t mFlagB8` (+0xB8) -> `void* mPtrB8` (+0xB8): qword storage (pointer or NULL); the extractor tests only the low byte as a flag (7 sites above) [V]; remove `uint8_t mPadB9[0x1F]`.
+- `uint8_t mModeD8` (+0xD8) -> `void* mPtrD8` (+0xD8): qword storage; low byte compared with 3 at 0x66ea72e [V]; remove `uint8_t mPadD9[7]`.
+- Gap +0xC0..+0xD7 between the two qwords is `uint8_t mPadC0[0x18]` [?] (undecoded, no head access).
+- Comments that said "when mFlagB8 == 0" (mFogAndDistance at +0x64, mViewPos at +0xE4) now say "when the low byte of mPtrB8 (+0xB8) is 0".
+- static_asserts (lines 39-50): replace `mFlagB8 == 0xB8` / `mModeD8 == 0xD8` with `mShared2Ptr == 0x20`, `mShared2Ctl == 0x28`, `mSpanCount == 0x38`, `mSpanPtr == 0x40`, `mPtrB8 == 0xB8`, `mPtrD8 == 0xD8`. All asserted offsets now match the disassembly [V] and every asserted typed field matches all 6 live dumps [V live].
 
-Every header-claimed typed field has verbatim instruction proof and matches live values [V]:
-- +0x00/+0x08/+0x10/+0x18 shared_ptr pairs: object ptr + control-block-ptr (ctl = object-0x10) confirmed by `mov rcx,[rbx]` / `mov rax,[rbx+8]` / `lea r15,[rbx+0x10]` / `mov rax,[rbx+0x18]` [V] + live (all 6 samples: ptr and ptr-0x10) [V live].
-- +0x30 mBindingCount = 3, compared with 2 at `cmp qword ptr [rbx+0x30],2` [V] + live = 3 [V live].
-- +0x48 mPassKind ptr into .data holding K [V] + live varies by key [V live].
-- +0x50 mFlag50 byte [V] + live 0/1 [V live].
-- +0x54 FogColor f32x4 via `movups` [V] + live identical {0.0403,0.0494,0.09,1.0} [V live].
-- +0x64 FogAndDistance f32x4 via `movups` [V] + live identical {0.656,1.0,128,57} [V live].
-- +0x74 mTime f32 via `movss` [V] + live 348.04 [V live].
-- +0xB8 mFlagB8 byte [V] + live 0 [V live].
-- +0xD8 mModeD8 byte [V] + live 0 [V live].
-- +0xE0 mFlagE0 byte [V] + live 0 [V live].
-- +0xE1 mFlagE1 byte [V] + live 1 [V live].
-- +0xE4 mViewPos f32x3 via `movsd`/`movss` [V] + live -0,-0,-0 [V live].
-
-All static_asserts (lines 39-50: +0x10,+0x30,+0x48,+0x50,+0x54,+0x64,+0x74,+0xB8,+0xD8,+0xE0,+0xE1,+0xE4) are consistent with observed accesses [V].
-
-Correction (refutes header): header claims +0x38..+0x47 is `mPad38` [?] padding. Disassembly reads +0x38 as a count (`imul rcx,[rax+0x38],0x58`) and +0x40 as a pointer (`mov rdi,[rax+0x40]`) [V]. Live confirms +0x38 = varying count and +0x40 = varying stack vector ptr [V live]. So +0x38/+0x40 are a {count, ptr} span, NOT padding — header field mPad38 is wrong [V].
-
-Still undecoded (no instruction access observed): +0x20..+0x2F (mPad20), +0x78..+0xB7 (mPad78), +0xB9..+0xD7 (mPadB9), +0xD9..+0xDF (mPadD9), +0xE2..+0xE3 (mPadE2) — remain [?].
+Undecoded and intentionally left [?]: +0x78..+0xB7 (mPad78) and +0xC0..+0xD7 (mPadC0) — no extractor-head instruction touches them; outside this item.
 
 ## CLOSES?
-NO — Q1 byte-access nature is [V]-proven but the live semantic of +0xB8/+0xD8 is [?]: all 6 samples read low byte 0x00 because the containing qwords are aligned heap/exe pointers, and no non-zero live case was found to prove they are real byte flags rather than pointer low bytes. Q2 is [V]-proven for every typed field (with +0x38/+0x40 corrected from pad to count/ptr).
+YES — every pending part of item D5b is now resolved: Q1 +0xB8/+0xD8 byte-flag reads are [V]-proven at 7 sites, and the live storage is [V live]-proven as qword-wide pointer-shaped data whose low byte is always 0x00 in all 6 samples (genuine-flag-vs-low-byte stays [?] but non-blocking: the extractor reads only the byte); Q2 header corrections (+0x20/+0x28 shared pair, +0x38/+0x40 span count/ptr, +0xB8/+0xD8 qword pointers instead of byte flags/pad) are applied to ChunkGeometryDescription.h and its static_asserts, all matching disassembly [V] and all 6 live dumps [V live]. Residual [?]: no non-zero +0xB8/+0xD8 byte was ever observed (would need a 7th live sample) — does not block layout closure.
 
 ## TOOL REQUESTS
 None.

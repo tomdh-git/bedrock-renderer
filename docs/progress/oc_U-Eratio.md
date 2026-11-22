@@ -58,11 +58,11 @@ EVIDENCE TABLE (offset | size | site | instr | meaning)
 | 0xbc8d34e | 16 (movups)|TAAU body 0xbc8cfd0  | `0xbc8d34e  movups xmm0,[r13+0x1F0]`               | [V] confirms ctx+0x1F0 is read as render/display ratio |
 | 0x662def4 | 5 (call) | endFrame 0x66232b0   | `0x662def4  call 0x67C73D0`                        | [V] endFrame invokes the struct-copy at the ratio write site |
 | 0x662def1 | 3 (mov)  | endFrame call setup  | `0x662def1  mov rdx,r13`                           | [V] rdx = source-array base r13 (arg to struct-copy) |
-| 0x662deea | 7 (lea)  | endFrame call setup  | `0x662deea  lea rcx,[rbx-0x2B0]`                   | [V] rcx = r15 = ctx dst base (arg to struct-copy) |
+| 0x662deea | 16 (movups) | endFrame call setup  | `0x662deea  lea rcx,[rbx-0x2B0]`                   | [V] rcx = r15 = ctx dst base (arg to struct-copy) |
 | 0x67c78c4 | 4 (movss)| struct-copy 0x67C73D0 | `0x67c78c4  movss [rdx+0x1DC],xmm0`                | [V] sibling field write ctx+0x1DC |
 | 0x67c78d4 | 4 (movss)| struct-copy 0x67C73D0 | `0x67c78d4  movss [rdx+0x1E0],xmm0`                | [V] sibling field write ctx+0x1E0 |
 | 0x5b3e799 | 16 (movups)|Options ctor 0x5b0c1b0| `0x5b3e799  movups xmm0,[0xF5E13CC]`               | [V] registers upscaling_percentage (no ratio computed) |
-| 0x5b3ead0 | 7 (lea)  |Options ctor 0x5b0c1b0| `0x5b3ead0  lea rdx,[0xF5850DE]`                   | [V] registers options.targetResolution (no ratio computed) |
+| 0x5b3ead0 | 16 (movups) |Options ctor 0x5b0c1b0| `0x5b3ead0  movups xmm0,[0xF5850DE]`                   | [V] registers options.targetResolution (no ratio computed) |
 
 ------------------------------------------------------------
 CLOSES? — NO
