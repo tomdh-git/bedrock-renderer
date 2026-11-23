@@ -31,16 +31,19 @@ struct RenderContext; // render context (rdx in ScreenDraw; s_ctx global at [0x1
 } // namespace bgfx
 
 struct RewritePasses {
-    // Our own TAA upscale pass. Reads the pass record (render-target bindings, rect,
-    // parameters at known offsets) and emits equivalent draw commands.
-    // Full reversal of 0xbc8ab12..0xbc8cb12 (0x2000 bytes) is pending; On mode is a
-    // stub until the body is decoded.
+    // Our own TAA upscale pass. Reads pass-record fields at proven offsets (+0x28,
+    // +0x50, +0x78 via BB5 field gather) and calls the proven sub-blocks the original
+    // TAAUpscaling body invokes: sub_130ee0 (0xbc8b41c), sub_568c420 (0xbc8b43f),
+    // sub_5693A80 x3 (0xbc8b453). Unproven blocks (sub_5668ac0 name registration,
+    // TAA resolve/jitter/history-blend path) are NOT called; registry mode left Off.
     static void __fastcall taaUpscale(void* _This, void* ctx, void* passRecord);
 
-    // Our own fullscreen post pass. Binds material/state/uniforms/textures, submits a
-    // fullscreen-quad draw through the executor. Reads pass record at r8: rect +0x168/
-    // +0x16C, flag byte +0x178, name string +0x268 (length +0x278).
-    // Full reversal of 0xbc04dc0..0xbc06dc0 (0x2000 bytes) is pending; On mode is a
-    // stub until the body is decoded.
+    // Our own fullscreen post pass. Replicates ScreenDraw body 0xbc04dc0: view rect
+    // write (+0x168/+0x16C -> s_ctx view +0x1EAB090/+0x1EAB094), 5x sub_ebce390 mat4/
+    // vec4 copies (+0x128/+0x17C/+0x1BC/+0x1FC -> view +0x1EAB0A0/0E0/120/160/1A0),
+    // flag byte (+0x178 -> view +0x1EAB1B2), draw setup 0xE86D7F0, bind chain
+    // 0xBCC3190/0xBCC1910(+0x20C)/0xBCC24F0(+0x170)/0xBCC2B00(+0x88)/0xBCC2EB0(+0x88),
+    // submit 0xBCC38E0. Unproven blocks (0x30 object, name build, id counter,
+    // per-element loop, cleanup) are NOT called; registry mode left Off.
     static void __fastcall screenDraw(void* _This, void* ctx, void* passRecord);
 };

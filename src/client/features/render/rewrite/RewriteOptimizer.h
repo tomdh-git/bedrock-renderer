@@ -57,7 +57,7 @@ struct RewriteOptimizer {
 
     // ---- module clock (endFrame) and self-test ----
     static void tickFromProfiler(); // re-evaluate cull/batch/lod thresholds from last frame's timings
-    static void selfTest();          // runs under BS_REWRITE=Optimizer::selfTest=verify or a unit host
+    static void selfTest();          // runnable from a unit host (no game needed); not wired to a live entry point — same convention as RewriteInsertTable::selfTest / RewriteLightSkip
 };
 
 // Registry entries (defined in RewriteOptimizer.cpp). Names: "Optimizer::cull", "Optimizer::batch",

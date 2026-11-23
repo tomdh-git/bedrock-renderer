@@ -1,0 +1,54 @@
+## NEXT
+DONE
+
+# UNIT U-EL10b — L10b frustum_visibility (light-scoring field, not cull) — 6bj; real cull unfound
+
+## Pending part of this item line (only this part is open)
+Checklist item L10b (docs/RENDER_CHECKLIST.md line 361): "[ ] L10b frustum_visibility (light-scoring field, not cull) — 6bj; real cull unfound".
+- Field part ("frustum_visibility ... — 6bj"): PROVEN [V] — fn 0x10f09f0 lighting-config JSON deserializer, sole string ref to "frustum_visibility" at site 0x10f45d0 (string RVA 0xF516745, len 0x12 = 18 chars, key pointer stored at [rbp+0x280], length at [rbp+0x288], passed to scalar deserializer 0x117D460 at 0x10f45fa; deserialized dword value [rbp+0x2E0] staged at [rbp+0x3E0]). Per BGFX_MAP 6bj (lines 846-847) fn 0x10f09f0 is a data-driven light-scoring/ambient-transition settings deserializer and frustum_visibility (site 0x10f45d0) is one scoring weight; BGFX_MAP states "there is no engine frustum-cull function behind this string" [V]. Role "light-scoring weight, not a cull" is [V] via BGFX_MAP 6bj + [I] via function-level inference (0x10f09f0 is pure JSON deserialization, no 6-plane test, no view/proj or plane math).
+- Not-found part ("real cull unfound"): real camera frustum-cull function (6-plane frustum test) — NOT found; attacked from every angle including live capture this unit (below). Does not exist in the static binary.
+
+## Live-capture check (this unit, new angle per orchestrator hint 2026-11-22)
+- `python tools/livecap/request.py result el10b_lighting_desc` → docs/data/live/el10b_lighting_desc.txt exists (captured at entry 0x10f09f0, size 0x100, max 6) but header-only: hits=0 samples=0, no REG=value lines, no hit=N, no ret= caller, no description bytes [V live: empty][LIVE docs/data/live/el10b_lighting_desc.txt:1-2]. The deserializer entry did not run in the capture window (code did not run in a lobby — listed as known zero-hit capture in HANDOFF 2026-11-22).
+- `grep docs/data/live/*.txt` for 10f09f0 / 10f45d0 / frustum_visibility → no matches in any live file [V]; no live capture names these RVAs or the string, so nothing in live data re-derives what static analysis already named.
+- el10b_lighting_desc at 0x10f09f0 IS the capture this item needs (proved extractor/visitor/producer entry: the deserializer), but it returned zero hits; it can only add descriptor bytes (field size/meaning) and a ret= caller chain — it cannot produce a camera-frustum cull path because 0x10f09f0 is load-time JSON parsing, not per-frame culling [V]. Queue state: `done` (entry exists; `request.py add` rejects re-add as "already queued"); HANDOFF 2026-11-22 lists it among known zero-hit captures. 3 of 4 pending slots are held by other units (q6b_cull_detour_entry, u_eq5c_submitcustom, u_eq5c_executor), none for this item.
+
+## New angles tried this unit (failures; not a redo of r1-r6)
+1. Producer-chain trace (freshly verified): `rdis callers 0x10f09f0` = exactly sub_1152460 [V]; `rdis callers 0x1152460` = exactly sub_111e590 [V]; `rdis callers 0x111e590` = sub_923000 and sub_111e410 [V]. Chain sub_111e590 → sub_1152460 → sub_10f09f0 is a load-time JSON-array config loader (sub_111e590 walks a 32-byte-entry table at 0xF0CD7A0 at load time), NOT per-frame camera culling [V]. No cull path reachable from frustum_visibility [V].
+2. Live capture at the proved entry 0x10f09f0: el10b_lighting_desc hits=0 samples=0 — failed to dump descriptor bytes or a ret= caller; adds nothing [V live: empty].
+3. No camera frustum cull anywhere in the static binary (whole-.text results from r1-r6, not redone): no 6-plane frustum test, no CreateQueryHeap call, no vtable+0xB8 (+0xB8 = CreateQueryHeap slot 23) call site, no camera-frustum string anchor (CameraAimAssistCacheFrustumSystem/CameraAimAssistCachedFrustumComponent 0xF59D48F have zero code refs [V]).
+4. livemem: not applicable — rule 1 (game closed, never start it) and static analysis located no runtime object/address for a cull function; livemem never scans or loops over ranges, so there is nothing to target. 0 livemem calls made this unit.
+
+## Answer table (one row per distinct offset, all its sites listed)
+| name ([offset]) | size | address(es) | proof (`0xRVA  instr`) | meaning | tag |
+|---|---|---|---|---|---|
+| frustum_visibility key pointer slot ([rbp+0x280]): string key "frustum_visibility" (RVA 0xF516745) loaded for JSON field deserialization; key pointer stored and its address passed as key param to scalar deserializer 0x117D460 | 8 | [rbp+0x280] | `0x10f45d0  lea rax,[0xF516745]`; `0x10f45d7  mov [rbp+0x280],rax`; `0x10f45f0  lea r8,[rbp+0x280]`; `0x10f45fa  call 0x117D460` | key pointer stored, then address taken for the deserializer call; instruction fact only | [V] |
+| frustum_visibility key length slot ([rbp+0x288]): length of the key string | 8 | [rbp+0x288] | `0x10f45de  mov qword ptr [rbp+0x288],0x12` | 0x12 = 18 chars, matches "frustum_visibility" | [V] |
+| frustum_visibility value out-param slot ([rbp+0x2D0]): out-param addressed for the scalar-deserializer result | 8 | [rbp+0x2D0] | `0x10f45e9  lea rdx,[rbp+0x2D0]` | deserializer writes the scalar result here | [V] |
+| frustum_visibility deserialized dword value ([rbp+0x2E0]): dword read of the deserialized scalar | 4 | [rbp+0x2E0] | `0x10f4653  mov eax,[rbp+0x2E0]` | dword (4-byte float weight) read back | [V] |
+| frustum_visibility staged dword value ([rbp+0x3E0]): dword staged for the downstream config struct | 4 | [rbp+0x3E0] | `0x10f4659  mov [rbp+0x3E0],eax` | value staged at [rbp+0x3E0] | [V] |
+| Chunk/section visibility = voxel flood fill (Block+0xA3 opaque flag), not camera frustum culling — compute 0x791f170 | 1 | [rax+0xA3] | `0x791f4ac  cmp byte ptr [rax+0xA3],1` | per-voxel opaque-flag byte compare inside the flood fill; "not a camera frustum plane test" is [I] | [V] |
+| Flood-fill driver: task body 0x792e630 calls flood-fill compute 0x6b0c4c0 per section | 8 | call target 0x6B0C4C0 | `0x792e92c  call 0x6B0C4C0` | task body drives the flood fill per section | [V] |
+| Device init 0xe807ff0 reads device-vtable slots +0x18/+0x20/+0x28/+0x68 only; CreateQueryHeap = slot 23 = +0xB8 has no call site, and no "CreateQueryHeap" string exists in the exe | 8 | [rax+0x18], [rax+0x20], [rax+0x28], [rax+0x68] | `0xe8082b3  mov rax,[rax+0x18]`; `0xe8082c9  mov rax,[rax+0x20]`; `0xe8082df  mov rax,[rax+0x28]`; `0xe80834e  mov rax,[rax+0x68]` | only CheckFeatureSupport/CreateCommandQueue/CreateCommandAllocator/CreateDescriptorHeap slots used; +0xB8 absent | [V] |
+
+## Row meanings
+- Rows 1-5: instruction facts [V]; all proof lines re-disassembled verbatim this unit with `rdis dis 0x10f45d0` (site group incl. 0x10f4653/0x10f4659); string 0xF516745 shows the name "frustum_visibility" [V] (length 0x12 = 18 chars matches the string itself [V]); the deserialized value is a dword (4 bytes, `mov eax`/`mov [rbp+0x3E0],eax`) [V].
+- Row 6: Block+0xA3 opaque-flag byte compare inside the per-voxel flood fill — chunk/section visibility via cave connectivity [V]; "not a camera frustum plane test" is [I] (BGFX_MAP 6x6 face-connectivity matrix / cave-culling graph; the frustum-aware traversal consumer is unlocated — H3b/H1b).
+- Row 7: task body drives the flood fill per section [V].
+- Row 8: device init touches only vtable slots +0x18 (CheckFeatureSupport), +0x20 (CreateCommandQueue), +0x28 (CreateCommandAllocator), +0x68 (CreateDescriptorHeap) [V]; CreateQueryHeap slot 23 = +0xB8 absent; no "CreateQueryHeap" string [V] (re-verified this unit; note r6/r7's `0xe80821a` was a misquote — the +0x18 read is at 0xe8082b3, corrected here [V]).
+
+## Other frustum/cull anchors (completeness only)
+- frustum_visibility string 0xF516745 -> only ref 0x10f45d0 (lighting config) [V row 1]
+- max_shadow_frustum_radius string 0xF543489 -> fn 0x53fcac0 (shadow cascade setup) [V]
+- CameraAimAssistCacheFrustumSystem / CameraAimAssistCachedFrustumComponent 0xF59D48F -> no code refs [V]
+- No string or RTTI anchor for a camera frustum-cull class exists in the exe [V negative]
+
+## CLOSES?
+CLOSES? NO — the single blocking fact persists: no camera frustum-cull function exists in this static binary (no 6-plane frustum test anywhere, no CreateQueryHeap/vtable+0xB8 call site — device init uses only slots +0x18/+0x20/+0x28/+0x68; no camera-frustum string anchor; all located visibility/cull code is block-geometry culling: voxel flood fill 0x791f170/0x792e630/0x6b0c4c0, Block+0xA3 — plus shadow cascade max_shadow_frustum_radius -> 0x53fcac0 and the aim-assist component with no code refs). What IS proven [V]: frustum_visibility is a scalar float light-scoring-weight field in lighting-config JSON deserializer 0x10f09f0, sole site 0x10f45d0 (key ptr [rbp+0x280], len 0x12 at [rbp+0x288], value dword via [rbp+0x2E0] -> [rbp+0x3E0]); producer chain sub_111e590 -> sub_1152460 -> sub_10f09f0; BGFX_MAP 6bj: "there is no engine frustum-cull function behind this string" [V]. The field part of the item IS proven [V] ("frustum_visibility = light-scoring field, not cull"); the real cull stays open with H3b/H1b; parked per orchestrator (2026-11-22: "Park L10b unless a live capture shows a cull path"). The capture still missing: el10b_lighting_desc at 0x10f09f0 — descriptor bytes + ret= caller chain needed to confirm field bytes live; previous run hits=0 samples=0 (queue entry state `done`; cannot be re-added; no usable capture exists for this item).
+
+## Verification
+Run `python tools/delegate.py check docs/progress/oc_U-EL10b.md`. All quoted `0xRVA  instr` lines re-disassembled verbatim from rdis `dis` output of Minecraft.Windows.exe 1.26.62.01: frustum_visibility site group 0x10f45d0 incl. 0x10f4653/0x10f4659; 0x791f4ac; 0x792e92c; device-init vtable reads 0xe8082b3/0xe8082c9/0xe8082df/0xe80834e (0xe80821a corrected to 0xe8082b3 — 0xe80821a is mid-instruction). `rdis callers` xrefs for 0x10f09f0/0x1152460/0x111e590. No raw instruction dumps pasted; every proof line is inside a table cell; no omitted entries; no duplicate first-column offsets; 8 rows >= 3; no shorthand anywhere.
+
+## TOOL REQUESTS
+- el10b_lighting_desc (0x10f09f0): already requested and ran — queue state `done`, result hits=0 samples=0 (header-only, no REG=value bytes, no ret= caller) [V live: empty][LIVE docs/data/live/el10b_lighting_desc.txt:1-2]. Re-add rejected by request.py ("already queued", entry exists); HANDOFF 2026-11-22 lists it among known zero-hit captures. No new capture queued for this item — the capture is still needed but missing in usable form: descriptor bytes + ret= caller chain at 0x10f09f0 would confirm field bytes live and name the producer caller chain (sub_1152460/sub_111e590). (Would-be command: `python tools/livecap/request.py add el10b_lighting_desc 0x10f09f0 --size 0x100 --max 6 --why "L10b: ..."` — blocked by the existing done entry.)
+- Helper scripts: none written (all verification via rdis.exe; no new helpers needed).

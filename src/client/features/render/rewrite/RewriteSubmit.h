@@ -23,6 +23,7 @@
 // docs/progress/oc_U-EN1a.md.
 
 
+
 #include "client/features/hooks/Detour.h"
 #include "client/features/render/rewrite/RewriteRegistry.h"
 #include "sdk/mc/deps/bgfx/Frame.h"
@@ -42,8 +43,30 @@ constexpr size_t kSize = 0x4d91; // rdis vt size
 
 using Fn = void(__fastcall*)(bgfx::RendererContext* ctx, bgfx::Frame* frame, uintptr_t a3, uintptr_t a4);
 
+// Per-draw verdict produced by the veto/rewrite policy. The detour never modifies game
+// memory except the draw header it is allowed to touch (header+0x63 streamMask); every
+// other decision is read-only observation.
+enum class DrawVerdict : uint8_t { Allow = 0, Veto, Rewrite };
+
+// Q4d: per-draw veto/rewrite over the Frame draw-header walk. The executor skips any draw
+// whose header+0x63 streamMask == 0 (0xe822b92 movzx/e822b98 test/e822b9b je -> skip path),
+// so veto = zero streamMask before forwarding to the original submit. Rewrite touches the
+// same header fields the executor consumes (stateFlags +0x20, submitFlags +0x62,
+// occlusionQuery +0x7A, streamMask +0x63); no other game memory is written.
+// Fail fast: no null guards, no SEH.
+struct DrawVetoPolicy {
+    // Called once per draw header, inside the detour, before forwarding to the original.
+    // `frame` is the submit Frame*; `header` points at the current 0x80-byte header
+    // (Frame+0xB4700 + idx*0x80, idx from Frame+0x94700). Returns Allow / Veto / Rewrite.
+    static DrawVerdict verdict(const bgfx::Frame* frame, const uint8_t* header);
+};
+
+// Per-draw veto/rewrite stats live in RewriteSubmit.cpp (relaxed atomics, statistics only).
+
 // The detour: walks Frame+0xB4700 headers stride 0x80, collects per-draw stats + QPC timers,
-// then forwards to the original through the RewriteRegistry trampoline (mode Shadow/On).
+// applies DrawVetoPolicy::verdict per draw (veto = zero header+0x63 streamMask so the
+// executor skips it; rewrite = record-only by default), then forwards to the original
+// through the RewriteRegistry trampoline (mode Shadow/On).
 // Fail fast: no null guards, no SEH - a null Frame crashes here exactly as in the original.
 void __fastcall takeover(bgfx::RendererContext* ctx, bgfx::Frame* frame, uintptr_t a3, uintptr_t a4);
 

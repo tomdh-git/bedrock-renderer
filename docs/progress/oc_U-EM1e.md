@@ -65,6 +65,20 @@ ITEM 2 — local exposure body 0xbca2671
 
 [V] local exposure body at 0xbca2671; in/out resource rows above.
 
+Note on 0xBCA7BE0 (orchestrator-named local-exposure body): inside the declaring builder `sub_bc9d7a0`, `0xbca2681 lea rcx,[0xBCA7BE0] / 0xbca2688 call 0xE935740` passes 0xBCA7BE0 as the pass body/callback to the registrar. Disassembly of `sub_bca7be0` shows it is a global string-buffer release helper (resets the SSO string at globals [0x12AE2018]/[0x12AE2028]/[0x12AE2030]: ptr 0, cap 0xF, first char 0) returning at 0xbca7c46; it contains no texture/UAV bind instructions. The texture/UAV IN/OUT of the local exposure pass are therefore the verified name-bind rows above:
+
+| 0xbca2681 | 8 | imm (rcx) | `0xbca2681  lea rcx,[0xBCA7BE0]` | pass body callback address passed to registrar [V] |
+| 0xbca2688 | 5 | call 0xE935740 | `0xbca2688  call 0xE935740` | register pass body [V] |
+| 0xbca7be0 | 8 | stack | `0xbca7be0  sub rsp,0x28` | sub_bca7be0 entry: string-buffer release helper [V] |
+| 0xbca7be4 | 8 | [0x12AE2030] | `0xbca7be4  mov rax,[0x12AE2030]` | read global string size [V] |
+| 0xbca7c25 | 8 | [0x12AE2028] | `0xbca7c25  mov qword ptr [0x12AE2028],0` | reset string ptr [V] |
+| 0xbca7c30 | 8 | [0x12AE2030] | `0xbca7c30  mov qword ptr [0x12AE2030],0xF` | reset string cap [V] |
+| 0xbca7c3b | 1 | [0x12AE2018] | `0xbca7c3b  mov byte ptr [0x12AE2018],0` | null first char of inline buffer [V] |
+| 0xbca7c42 | 8 | - | `0xbca7c42  add rsp,0x28` | epilogue [V] |
+| 0xbca7c46 | 8 | - | `0xbca7c46  ret` | ret; no texture/UAV binds in sub_bca7be0 [V] |
+
+[V] local exposure body at 0xbca2671 (builder, resource IN/OUT rows above); 0xBCA7BE0 passed as body callback at 0xbca2681 and disassembled — release helper, no texture binds.
+
 ================================================================================
 ITEM 3 — Convolve: body located via Convolve pass name string
 ================================================================================

@@ -52,7 +52,7 @@ static_assert(offsetof(ExecCtx, commandList) == 0x10, "ExecCtx::commandList at +
 
 // Sort-key classes (executor dispatch at 0xe822242 after the bits-52..53 mask at 0xe822235;
 // key build at 0xbc61697..0xbc616a1).
-constexpr uint64_t kKeyCustomBit = 0x00200000000000ull; // bit 53: custom item class
+constexpr uint64_t kKeyCustomBit = 0x20000000000000ull; // bit 53: custom item class
 constexpr uint64_t kKeyViewShift = 54;                    // view id, bits 54..61
 constexpr uint64_t kKeySeqShift = 32;                     // seq & 0xFFFFF, bits 32..51
 constexpr uint64_t kKeySeqMask = 0x000FFFFF00000000ull; // (seq & 0xFFFFF) << 32

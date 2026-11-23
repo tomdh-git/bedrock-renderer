@@ -1,5 +1,61 @@
 #include "client/features/render/rewrite/RewriteLightSkip.h"
+#include "client/features/render/rewrite/RewriteRegistry.h"
 #include "client/core/diagnostics/Log.h"
+
+namespace {
+// Single cache instance for the whole DLL. The Light tag 5 visitor runs on the game thread
+// (FrameBuilder insert task), so no cross-thread synchronisation is needed here.
+RewriteLightSkip& lightSkip() {
+    static RewriteLightSkip s_instance;
+    return s_instance;
+}
+
+static uint8_t* rwLightSkipDetour(uint8_t* out, const uint8_t* desc);
+static RewriteEntry sLightSkipEntry("Light::skip", "lightTag5Convert", 0x67B6300,
+                                     reinterpret_cast<void*>(&rwLightSkipDetour));
+static const RewriteReg sLightSkipReg(sLightSkipEntry);
+
+// Q3d detour on the Light tag 5 converter 0x67B6300.
+// Signature (rcx = out 0xB00 record, rdx = description, returns out): when the description is
+// unchanged from the last converted frame, skip the deep copy of ~41 unordered_map<u16> parameter
+// sets and reuse the cached 0xB00 record; when changed, run the real converter and cache the result.
+//
+// This is the hook wiring at the converter (the caller at 0x66417af calls 0x67B6300, so intercepting
+// here achieves the same skip with a normal function entry instead of a mid-function case block).
+// Consumer read-only-ness of pass+0x260 is NOT established (consumer not located statically; same
+// E2 consumer blocker as the other Light pass vectors), so On mode must not be enabled yet.
+static uint8_t* rwLightSkipDetour(uint8_t* out, const uint8_t* desc) {
+    RewriteEntry& e = sLightSkipEntry;
+    e.calls.fetch_add(1, std::memory_order_relaxed);
+    const RewriteMode mode = e.current();
+    if (mode == RewriteMode::Off || RewriteBusy::depth > 0) {
+        e.original<&rwLightSkipDetour>()(out, desc);
+        return out;
+    }
+    // On mode is intentionally unreachable: the consumer sub_6618810 -> sub_67B8030 DESTROYS each 0xB00 record
+    // (clears sub-vectors at +0xA18..+0xAE8, oc_U-EQ3d_r4.md), so a memcpy of the cached record would double free.
+    // A skip needs a deep copy, which is what the original converter already does; the shadow path below stays.
+    if (false && mode == RewriteMode::On) {
+        RewriteLightSkip& skip = lightSkip();
+        if (skip.considerSkip(desc)) {
+            // Unchanged: reuse cached record, skip the deep copy (0x67B7810 per element, 0x18-byte nodes).
+            e.skipped.fetch_add(1, std::memory_order_relaxed);
+            std::memcpy(out, skip.lastFrameRecord(), 0xB00);
+            return out;
+        }
+        // Changed: run the real converter, then cache so the next unchanged frame can skip.
+        e.original<&rwLightSkipDetour>()(out, desc);
+        skip.noteConverted(desc, out);
+        return out;
+    }
+    // Shadow / Verify: run the original, count the rewrite as not evaluated (skip semantics cannot be
+    // meaningfully compared against a full deep copy without snapshotting the whole 0xB00 output twice).
+    e.original<&rwLightSkipDetour>()(out, desc);
+    e.skipped.fetch_add(1, std::memory_order_relaxed);
+    return out;
+}
+
+} // namespace
 
 bool RewriteLightSkip::considerSkip(const uint8_t* description) {
     BS_CHECK(description != nullptr);

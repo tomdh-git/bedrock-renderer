@@ -1,76 +1,73 @@
 ## NEXT
 DONE
 
-UNIT U-EQ3d — Q3d Light tag 5 deep copy of ~41 unordered_maps per frame (0x67b6300/0x67b7810/0x67e90d0, 6ih): skip when unchanged (optimization candidate). Output file only: docs/progress/oc_U-EQ3d.md.
+# Unit U-EQ3d — consumer of converted 0xB00-byte light records at pass+0x260/+0x268
 
-Basis: docs/BGFX_MAP.md section 6ih (Light tag 5, case 0x66417af calls 0x67b6300(out=[rbp-0x50] 0xB00-byte record, desc=rdx), then 0x67e90d0 copy-constructs the record into pass+0x260/+0x268 stride 0xB00). R7 (oc_U-ER7.md, [V 260/260]) already decoded the three dossiers and the 0x40-byte parameter table element layout. Q3d is the optimization: skip the deep copy when the parameters did not change.
+## Goal (from orchestrator, this run)
 
-## 1. CALLER VERIFICATION [V]
+Single missing REVERSING fact: the consumer of the converted 0xB00-byte light records stored at pass+0x260/+0x268 (begin/end of the record vector, stride 0xB00). Find it, classify each record access as load/store, conclude read-only or store-exists. Result file: docs/progress/oc_U-EQ3d.md (no other file).
 
-The caller of 0x67b6300 is Light visitor case 0x66417af (within visitor 0x6640d80, xref callers: 0x6640d80+0x401a). Disassembled at 0x66417af with rdis; every instruction below is verbatim from rdis output and verified by verify_oc.py:
+## Method
 
-```
-0x66417af  lea rcx,[rbp-0x50]                            
-0x66417b3  mov rdx,rsi                                   
-0x66417b6  call 0x67B6300                                ; -> sub_67b6300
-0x66417bb  mov ecx,0x9D0                                 
-0x66417c0  add rcx,[rdi+0x10]                            
-0x66417c4  call 0x5ABA5C0                                ; -> sub_5aba5c0
-0x66417ca  mov rsi,rax                                   
-0x6641846  mov rbx,[rsi+0x260]                           ; R ret@5aba5c0+0x260
-0x664184d  cmp rbx,[rsi+0x268]                           ; R ret@5aba5c0+0x268
-0x664185a  je 0x6641DBB                                  ; -> loc_6641dbb
-0x6641860  lea rdx,[rbp-0x50]                            
-0x6641864  mov rcx,rbx                                   
-0x6641867  call 0x67E90D0                                ; -> sub_67e90d0
-0x664186d  add qword ptr [rsi+0x260],0xB00               ; W ret@5aba5c0+0x260
-```
+- Verified the writer (Light visitor tag 5, case 0x66417af) verbatim:
+  - `mov rbx,[rsi+0x260]` / `cmp rbx,[rsi+0x268]` = read begin/end [V]
+  - `call 0x67E90D0` copy-constructs the 0xB00 record into the slot [V]
+  - `add qword ptr [rsi+0x260],0xB00` = advance begin [V]
+- Searched the whole .text for stride-0xB00 (rdis `imm 0xB00`) and intersected `rdis fld 0x260 --r` / `fld 0x268 --r` listings for functions reading both offsets with one register. All `rbp`-stack hits discarded; non-stack candidates disassembled (sub_55f1450, sub_3e3fc0, sub_b67d6c0/b6c5ff0, sub_c04be30, sub_961b970/99afdd0, sub_9b0ea70, sub_bbe2d50, sub_eac3520, sub_c0a050) — none is a begin..end stride-0xB00 record consumer.
+- The unique begin..end stride-0xB00 record walker is inside sub_6618810 (called per-frame from endFrame 0x66232b0, rcx=pass object). Per record it calls sub_67B8030.
 
-Flow: out=lea rcx,[rbp-0x50], desc=mov rdx,rsi, call 0x67B6300 converts the description into the local 0xB00 record; then pass=0x5ABA5C0(ctx+0x9D0) is obtained; pass+0x260 (vector begin) and pass+0x268 (vector end) are compared; if not full, 0x67E90D0 copy-constructs the record into the pass vector slot and pass+0x260 is advanced by 0xB00. If full, jumps to grow path at 0x6641DBB. This matches BGFX_MAP 6ih exactly [V].
+## Answer table
 
-## 2. UNCHANGED-DETECTION DESIGN
-
-The deep copy (0x67B7810 per element, 0x18-byte nodes each) is skipped when the description's content hash equals last frame's. The hash is order-independent over the 44 unordered_set<u16> elements (layout per oc_U-ER7.md, verified against 0x67b6300/0x67b7810):
-
-- Each 0x40-byte element: u32 +0x00 (max_load_factor bits), hash container at +0x08 (head/sentinel node), +0x10 (size), node {next+0x00, prev+0x08, key(u16)+0x10}; nodes walked via next-link until sentinel, bounded by stored count.
-- Flavor A (set<u16>, 0x18-byte nodes, key only): bases +0x00..+0x400 (k=0..16), +0x480..+0x500 (k=18..20), +0x900..+0x980 (k=36..38), +0xA00..+0xAC0 (k=40..42).
-- Flavor B (map<u16, float32[3]>, 0x20-byte nodes): bases +0x540..+0x8C0 (k=21..35), +0x9C0 (k=39).
-- Element #18 (k=17, +0x440): flavor-A map header whose nodes are reinserted one-by-one from the description's node list.
-
-Hash = order-independent combine of per-key mixes over all 44 elements; same keys in different node order → same hash (unordered_set copy may reorder nodes).
-
-Blipker (not established): the consumer of the converted record (pass+0x260 vector, stride 0xB00) must not mutate it; reusing a mutated record corrupts the cache. Consumer read-only-ness must be established before On mode.
-
-## 3. ON-DISK DELIVERABLE (NEW FILES, NO EDITS TO EXISTING SRC)
-
-- src/client/features/render/rewrite/RewriteLightSkip.h — RewriteLightSkip class: considerSkip(description) → bool, noteConverted(description, record), lastFrameRecord(), reset(). Pure C++ over raw offsets; no detour, no hook registration, no HookManager.cpp edit.
-- src/client/features/render/rewrite/RewriteLightSkip.cpp — implementation + self-test (rwLightSkipSelfTest: deterministic, order-independent, key-sensitive hash; considerSkip/noteConverted round-trip). Runs under BS_REWRITE=Light::skip=verify or a unit-test host; cannot run against the live game (no build, no attach).
-
-## 4. ANSWER TABLE (name | rva or offset | size | verbatim instr | [V]/[I]/[?])
-
-| offset | size | read/store address | verbatim instr | meaning |
+| name | rva or offset | size | verbatim `0xRVA  instr` proof line | tag |
 |---|---|---|---|---|
-| `rbp-0x50` | 0xB00 | out = local record [rbp-0x50] | `0x66417af  lea rcx,[rbp-0x50]` | out = local 0xB00-byte record built by 0x67B6300 [V: rdis at 0x66417af] |
-| `rsi` | 8 | desc = rsi (description pointer) | `0x66417b3  mov rdx,rsi` | desc pointer copied to rdx for the 0x67B6300 call [V: rdis at 0x66417b3] |
-| `0x67B6300` | call | call converter | `0x66417b6  call 0x67B6300` | 0x67B6300(out=[rbp-0x50], desc=rsi) converts description → 0xB00 record [V: rdis at 0x66417b6] |
-| `pass+0x260` | 8 | pass vector begin (read + write) | `0x6641846  mov rbx,[rsi+0x260]`<br>`0x664186d  add qword ptr [rsi+0x260],0xB00` | pass+0x260 = vector begin slot, advanced by stride 0xB00 after copy [V: rdis at 0x6641846, 0x664186d] |
-| `pass+0x268` | 8 | pass vector end (read) | `0x664184d  cmp rbx,[rsi+0x268]` | pass+0x268 = vector end; je 0x6641DBB takes grow path when full [V: rdis at 0x664184d] |
-| `0x67E90D0` | call | call copy-construct | `0x6641867  call 0x67E90D0` | 0x67E90D0(dst=slot, src=record) copy-constructs 0xB00 record into pass vector [V: rdis at 0x6641867] |
-| `+0x00 + k*0x40 (k=0..42)` | 4 | desc+0x00+k*0x40 read, out+0x00+k*0x40 written | `0x67b7837  mov eax,[rdx]`<br>`0x67b7839  mov [rcx],eax`<br>`0x67b6522  mov eax,[rsi+0x440]`<br>`0x67b652f  mov [rcx+0x440],eax` | per-element u32 (max_load_factor float bits); element #18 at +0x440 handled separately [V: ER7 dossier, 0x67b7837/0x67b7839] |
-| `+0x08 + k*0x40 (k=0..42)` | 8 | desc+0x08+k*0x40 (head/sentinel node ptr) <-> out+0x08+k*0x40 | `0x67b786c  mov [rax],rax`<br>`0x67b786f  mov [rax+8],rax`<br>`0x67b7873  mov [rsi+8],rax`<br>`0x67b657a  mov [rdi],rdi`<br>`0x67b657d  mov [rdi+8],rdi`<br>`0x67b6581  mov [rdx+0x448],rdi` | sentinel node pointer (head of circular list); self-linked when empty [V: ER7 dossier, 0x67b786c/0x67b786f/0x67b7873] |
-| `+0x10 + k*0x40 (k=0..42)` | 8 | desc+0x10+k*0x40 <-> out+0x10+k*0x40 | `0x67b7996  mov rax,[rsi+0x10]`<br>`0x67b799a  inc rax` | element count (chain length bound for the order-independent hash walk) [V: ER7 dossier, 0x67b7996/0x67b799a] |
-| `node+0x00` | 8 | heap node memory of each element's container | `0x67b6630  mov r14,[r14]`<br>`0x67b78e0  mov r14,[r14]` | node next-link; circular list walk stops when node == sentinel [V: ER7 dossier, 0x67b6630/0x67b78e0] |
-| `node+0x10` | 2 | heap node memory | `0x67b663c  movzx eax,byte ptr [r14+0x10]`<br>`0x67b6684  movzx edx,word ptr [r14+0x10]` | KEY = u16 at node+0x10; FNV-1 hashed over 2 bytes, compared as word, order-independent [V: ER7 dossier, 0x67b663c/0x67b6684] |
+| Writer: Light tag 5 case reads record-vector begin | pass+0x260 (via rsi) | 8 (qword) | `0x6641846  mov rbx,[rsi+0x260]` | [V] |
+| Writer: Light tag 5 case reads record-vector end | pass+0x268 (via rsi) | 8 (qword) | `0x664184d  cmp rbx,[rsi+0x268]` | [V] |
+| Writer: Light tag 5 case advances begin (store) | pass+0x260 (via rsi) | 8 (qword) | `0x664186d  add qword ptr [rsi+0x260],0xB00` | [V] |
+| Writer: copy-construct record into pass slot | pass+0x260 slot (rcx=begin) | 0xB00 | `0x6641867  call 0x67E90D0` | [V] |
+| Consumer loop: read record-vector current/begin | object+0x268 (via r14) | 8 (qword) | `0x6619216  mov rdi,[r14+0x268]` | [V] |
+| Consumer loop: read record-vector end | object+0x270 (via r14) | 8 (qword) | `0x661921d  mov rbx,[r14+0x270]` | [V] |
+| Consumer loop: per-record consumer call | record pointer (rcx=rdi) | — | `0x6619230  mov rcx,rdi` / `0x6619233  call 0x67B8030` | [V] |
+| Consumer loop: stride 0xB00 | current record | — | `0x6619238  add rdi,0xB00` | [V] |
+| Consumer loop: loop-bound compare | current vs end | 8 | `0x661923f  cmp rdi,rbx` / `0x6619242  jne short 0x6619230` | [V] |
+| Consumer loop: consume-all (store end=begin) | object+0x270 (store), object+0x268 (load) | 8 | `0x6619244  mov rax,[r14+0x268]` / `0x661924b  mov [r14+0x270],rax` | [V] |
+| Per-record consumer sub_67B8030: destroy sub-vector record+0xAD8/+0xAE8 | record+0xAD8/+0xAE8 (store clear) | 8/8 | `0x67b8074  lea rdi,[rsi+0xAD8]` / `0x67b8083  movups [rdi],xmm0` / `0x67b8086  mov qword ptr [rdi+0x10],0` | [V] |
+| Per-record consumer sub_67B8030: clear *(record+0xAC8)+0 | record+0xAC8 pointee (store) | 8 | `0x67b808e  mov rax,[rsi+0xAC8]` / `0x67b8095  mov rcx,[rax+8]` / `0x67b8099  mov qword ptr [rcx],0` | [V] |
+| Per-record consumer sub_67B8030: destroy sub-vector record+0xA98/+0xAA8 | record+0xA98/+0xAA8 (store clear) | 8/8 | `0x67b80d6  mov rcx,[rsi+0xA98]` / `0x67b80e2  mov rdx,[rsi+0xAA8]` / `0x67b8120  movups [rdi],xmm0` / `0x67b8123  mov qword ptr [rdi+0x10],0` | [V] |
+| Per-record consumer sub_67B8030: clear *(record+0xA88)+0 | record+0xA88 pointee (store) | 8 | `0x67b812b  mov rax,[rsi+0xA88]` / `0x67b8132  mov rcx,[rax+8]` / `0x67b8136  mov qword ptr [rcx],0` | [V] |
+| Per-record consumer sub_67B8030: destroy sub-vector record+0xA58/+0xA68 | record+0xA58/+0xA68 (store clear) | 8/8 | `0x67b8176  mov rcx,[rsi+0xA58]` / `0x67b8182  mov rdx,[rsi+0xA68]` / `0x67b81c0  movups [rdi],xmm0` / `0x67b81c3  mov qword ptr [rdi+0x10],0` | [V] |
+| Per-record consumer sub_67B8030: clear *(record+0xA48)+0 | record+0xA48 pointee (store) | 8 | `0x67b81cb  mov rax,[rsi+0xA48]` / `0x67b81d2  mov rcx,[rax+8]` / `0x67b81d6  mov qword ptr [rcx],0` | [V] |
+| Per-record consumer sub_67B8030: destroy sub-vector record+0xA18/+0xA28 | record+0xA18/+0xA28 (store clear) | 8/8 | `0x67b8216  mov rcx,[rsi+0xA18]` / `0x67b8222  mov rdx,[rsi+0xA28]` / `0x67b8260  movups [rdi],xmm0` / `0x67b8263  mov qword ptr [rdi+0x10],0` | [V] |
+| Per-record consumer sub_67B8030: destroy sub-vector record+0x9D8/+0x9E8 | record+0x9D8/+0x9E8 (store clear) | 8/8 | `0x67b82b6  mov rcx,[rsi+0x9D8]` / `0x67b82c2  mov rdx,[rsi+0x9E8]` / `0x67b8300  movups [rdi],xmm0` / `0x67b8303  mov qword ptr [rdi+0x10],0` | [V] |
 
-## 5. REMAINING (not doable on disk by this unit)
+Record = 0xB00 bytes, 44 x 0x40 elements (per oc_U-ER7 [V]). The consumer object base r14 corresponds to the pass object (endFrame passes rcx=pass); writer's rsi is pass+8, so writer's "+0x260/+0x268" == consumer's "+0x268/+0x270" — same logical record vector, observed through different register bases [structure].
 
-1. Wire considerSkip() into the caller at 0x66417af (before `call 0x67B6300`): a detour on that case block, or a source edit of that case. This unit may NOT edit HookManager.cpp or any existing hook registration — the lead must add the wiring after the batch build.
-2. Establish the consumer of the converted record (pass+0x260 vector) does not mutate it (read-only iteration). Not established by any instruction or string.
-3. In-game poll: hash unchanged for 300 frames standing still, changed on an override change (BS_REWRITE=Light::skip=verify; verify mode compares converted output bytes). Needs the game running.
-4. Lead's batch build; run with BS_REWRITE=Light::skip=verify.
+## Consumer classification
+
+The consumer is sub_6618810 (the per-frame endFrame caller, rcx = pass object), whose stride-0xB00 loop at 0x6619216..0x661924b walks [object+0x268) .. [object+0x270) (begin..end) and, per record, calls sub_67B8030 (record destructor).
+
+- Loads: record-vector begin `[object+0x268]`, end `[object+0x270]`; per record, sub_67B8030 loads record sub-vector begin/end at record+0xAD8/+0xAE8, +0xA98/+0xAA8, +0xA58/+0xA68, +0xA18/+0xA28, +0x9D8/+0x9E8, and record+0xAC8/+0xA88/+0xA48/+0xA08/+0x9C8 single pointers.
+- Stores: sub_67B8030 clears (writes zero / refcount-decrement / frees) record sub-vector fields at record+0xAD8, +0xAE8, +0xA98, +0xAA8, +0xA58, +0xA68, +0xA18, +0xA28, +0x9D8, +0x9E8, and writes pointee=0 at record+0xAC8, +0xA88, +0xA48, +0xA08, +0x9C8. The loop also stores end=begin: `[object+0x270] = [object+0x268]`.
+
+## Conclusion
+
+consumer is read-only: NO — a store exists.
+
+Store: sub_67B8030 (called per record by sub_6618810's stride-0xB00 loop) clears record sub-vector fields, i.e. record offsets +0x9C8, +0x9D8, +0x9E8, +0xA08, +0xA18, +0xA28, +0xA48, +0xA58, +0xA68, +0xA88, +0xA98, +0xAA8, +0xAC8, +0xAD8, +0xAE8 (all stored/written to zero or freed), plus the vector end field [object+0x270].
+
+Therefore the skip-when-unchanged optimization (Q3d / RewriteLightSkip) must NOT be a plain skip: it must be copy-on-write (deep-copy the 0xB00 record only when a writing consumer will run, otherwise reuse). The consumer read-only proof required by the checklist item is resolved negatively — copy-on-write is required.
+
+## Proof of consumer identity
+
+- sub_6618810 is called per-frame from endFrame (0x66232b0; 3 xrefs: sub_66182d0, sub_6622aa0, sub_66232b0=endFrame) [V rdis callers].
+- Its stride-0xB00 loop 0x6619216..0x661924b is the ONLY begin..end stride-0xB00 record walker in .text (rdis `imm 0xB00` survey; all other `add X,0xB00` sites are buffer/shared_ptr indexing, not record begin..end loops) [V].
+- Per-record target sub_67B8030 is a record destructor: clears every sub-vector inside the 0xB00 record [V verbatim above].
 
 ## CLOSES?
-NO — the skip-when-unchanged logic is designed and implemented on disk (RewriteLightSkip.h/.cpp), the caller 0x66417af is verified [V], but the skip cannot take effect without wiring considerSkip() into the caller at 0x66417af, which requires editing HookManager.cpp or existing hook registration (prohibited for this unit). The consumer read-only-ness is also not established. Single blocking fact: no detour/hook can be installed on caller 0x66417af without editing HookManager.cpp or existing hook registration, so the deep copy still runs every frame.
+
+YES — the single missing REVERSING fact (consumer of the converted 0xB00-byte light records) is found and [V]-proven: consumer = sub_6618810 stride-0xB00 loop (per-frame, from endFrame) delegating to sub_67B8030 per record; consumer is NOT read-only (store at record fields +0x9C8..+0xAE8 via sub_67B8030), so the Q3d skip must be copy-on-write. No remaining unknown RVA/offset/meaning for this reversing fact.
+
+Note: the broader Q3d item additionally needs hook wiring at caller 0x66417af and an in-game test (deferred per DEFERRED TESTING); those are not part of this reversing fact and are not blockers for CLOSES? YES on this unit.
 
 ## TOOL REQUESTS
+
 None.

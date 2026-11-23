@@ -1,9 +1,11 @@
 #include "client/features/render/rewrite/RewriteDescriptions.h"
 #include "sdk/mc/deps/minecraft_renderer/framebuilder/FrameBuilder.h"
 #include "sdk/mc/deps/minecraft_renderer/framebuilder/Descriptions.h"
+#include "sdk/mc/deps/minecraft_renderer/framebuilder/BatchActorDescription.h"
 
 // Tags: FrameBuilder.h enums for Item / Effect / Ui / Sky / Editor; the Light group follows docs/progress/descriptions.md (tag 2 GameplayMetadata, 3 LightPoint, 4 an atlas-like 0x50 block,
 // 5 ServerGraphicsOverrideParameters; 6 and 7 not typed). Sizes of the untyped ones are 0.
+// BatchActor (Item tag 10) is typed via bluey::batchactor::Description (BatchActorDescription.h, 0x110, 34 [V]); closes M2c for BatchActor.
 static const RewriteDescInfo sRwDescTable[] = {
     {RewriteGroup::Item, 0, "EnvironmentalText", sizeof(mce::framebuilder::RenderEnvironmentalTextDescription)},
     {RewriteGroup::Item, 1, "Nametag", sizeof(mce::framebuilder::RenderNametagDescription)},
@@ -15,7 +17,7 @@ static const RewriteDescInfo sRwDescTable[] = {
     {RewriteGroup::Item, 7, "SkinnedMesh", sizeof(mce::framebuilder::RenderSkinnedMeshDescription)},
     {RewriteGroup::Item, 8, "BlockSelectionOverlayBlockEntity", sizeof(mce::framebuilder::RenderBlockSelectionOverlayDescription)},
     {RewriteGroup::Item, 9, "BlockChanges", sizeof(mce::framebuilder::RenderBlockChangesDescription)},
-    {RewriteGroup::Item, 10, "BatchActor", 0},
+    {RewriteGroup::Item, 10, "BatchActor", sizeof(bluey::batchactor::Description)},
     {RewriteGroup::Effect, 0, "FlameBillboard", sizeof(mce::framebuilder::RenderFlameBillboardDescription)},
     {RewriteGroup::Effect, 1, "BlitFlipbookTexture", sizeof(mce::framebuilder::RenderBlitFlipbookDescription)},
     {RewriteGroup::Effect, 2, "Particle", sizeof(mce::framebuilder::RenderParticleDescription)},

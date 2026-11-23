@@ -1,0 +1,846 @@
+sub_bc8ba47  [0xbc8ba47..0xbc8da47)  size 0x2000  0 xrefs in
+  bc8ba47  mov rcx,rsi                                   
+  bc8ba4a  call 0x79580                                  ; -> sub_79580
+  bc8ba4f  nop                                           
+  bc8ba50  mov rdx,[rbp+0x340]                           
+  bc8ba57  cmp qword ptr [rbp+0x348],0x10                
+  bc8ba5f  jb short 0xBC8BA68                            ; -> loc_bc8ba68
+  bc8ba61  mov rsi,[rbp+0x330]                           
+
+loc_bc8ba68:  ; from bc8ba5f
+  bc8ba68  test rdx,rdx                                  
+  bc8ba6b  je 0xBC8BBA8                                  ; -> loc_bc8bba8
+  bc8ba71  mov eax,edx                                   
+  bc8ba73  and eax,3                                     
+  bc8ba76  cmp rdx,4                                     
+  bc8ba7a  jae 0xBC8BD16                                 ; -> loc_bc8bd16
+  bc8ba80  mov rcx,0xCBF29CE484222325                    
+  bc8ba8a  xor r8d,r8d                                   
+  bc8ba8d  jmp 0xBC8BD72                                 ; -> loc_bc8bd72
+  bc8ba92  lea rcx,[0x12AE1B98]                          ; [data_12ae1b98]
+  bc8ba99  call 0xE938CB0                                ; -> sub_e938cb0
+  bc8ba9e  cmp dword ptr [0x12AE1B98],0xFFFFFFFF         ; [data_12ae1b98]
+  bc8baa5  jne 0xBC8A4E4                                 ; -> sub_bc8a4e4
+  bc8baab  xorps xmm0,xmm0                               
+  bc8baae  movaps [rbp+0x6F0],xmm0                       
+  bc8bab5  lea rax,[0xF5B67DB]                           ; [data_f5b67db] "Upscaling"
+  bc8babc  mov [rbp+0xB38],rax                           
+  bc8bac3  mov qword ptr [rbp+0xB40],9                   
+  bc8bace  lea rcx,[0x12AE1B88]                          ; [data_12ae1b88]
+  bc8bad5  lea rdx,[rbp+0xB38]                           
+  bc8badc  lea r8,[rbp+0x6F0]                            
+  bc8bae3  call 0x5668AC0                                ; -> sub_5668ac0
+  bc8bae8  nop                                           
+  bc8bae9  lea rcx,[0x12AE1B98]                          ; [data_12ae1b98]
+  bc8baf0  call 0xE938D70                                ; -> sub_e938d70
+  bc8baf5  jmp 0xBC8A4E4                                 ; -> sub_bc8a4e4
+  bc8bafa  lea rcx,[0x12AE1BA8]                          ; [data_12ae1ba8]
+  bc8bb01  call 0xE938CB0                                ; -> sub_e938cb0
+  bc8bb06  cmp dword ptr [0x12AE1BA8],0xFFFFFFFF         ; [data_12ae1ba8]
+  bc8bb0d  jne 0xBC8A644                                 ; -> sub_bc8a644
+  bc8bb13  lea rdx,[0xF7E41CA]                           ; [data_f7e41ca] "Color0"
+  bc8bb1a  lea r15,[rbp+0x330]                           
+  bc8bb21  mov rcx,r15                                   
+  bc8bb24  call 0x79580                                  ; -> sub_79580
+  bc8bb29  nop                                           
+  bc8bb2a  mov r8,[rbp+0x340]                            
+  bc8bb31  cmp qword ptr [rbp+0x348],0x10                
+  bc8bb39  jb short 0xBC8BB42                            ; -> loc_bc8bb42
+  bc8bb3b  mov r15,[rbp+0x330]                           
+
+loc_bc8bb42:  ; from bc8bb39
+  bc8bb42  test r8,r8                                    
+  bc8bb45  je short 0xBC8BBB7                            ; -> loc_bc8bbb7
+  bc8bb47  mov eax,r8d                                   
+  bc8bb4a  and eax,7                                     
+  bc8bb4d  mov rcx,0x100000001B3                         
+  bc8bb57  cmp r8,8                                      
+  bc8bb5b  jae 0xBC8BDBE                                 ; -> loc_bc8bdbe
+  bc8bb61  mov rdx,0xCBF29CE484222325                    
+  bc8bb6b  jmp 0xBC8BE3A                                 ; -> loc_bc8be3a
+  bc8bb70  call 0x75720                                  ; -> sub_75720
+  bc8bb75  nop                                           
+  bc8bb76  mov [rbp+0xC50],rcx                           
+  bc8bb7d  mov [rbp+0xC38],r9                            
+  bc8bb84  call 0x75740                                  ; -> sub_75740
+  bc8bb89  nop                                           
+  bc8bb8a  mov rcx,0xCBF29CE484222325                    
+  bc8bb94  jmp 0xBC8BC4A                                 ; -> loc_bc8bc4a
+  bc8bb99  mov rcx,0xCBF29CE484222325                    
+  bc8bba3  jmp 0xBC8BCF2                                 ; -> loc_bc8bcf2
+
+loc_bc8bba8:  ; from bc8ba6b
+  bc8bba8  mov rcx,0xCBF29CE484222325                    
+  bc8bbb2  jmp 0xBC8BD9A                                 ; -> loc_bc8bd9a
+
+loc_bc8bbb7:  ; from bc8bb45
+  bc8bbb7  mov rdx,0xCBF29CE484222325                    
+  bc8bbc1  jmp 0xBC8BE51                                 ; -> loc_bc8be51
+  bc8bbc6  and rdx,0xFFFFFFFFFFFFFFFC                    
+  bc8bbca  mov rcx,0xCBF29CE484222325                    
+  bc8bbd4  xor r8d,r8d                                   
+  bc8bbd7  mov r9,0x100000001B3                          
+
+loc_bc8bbe1:  ; from bc8bc1b
+  bc8bbe1  movzx r10d,byte ptr [rsi+r8]                  
+  bc8bbe6  xor r10,rcx                                   
+  bc8bbe9  imul r10,r9                                   
+  bc8bbed  movzx ecx,byte ptr [rsi+r8+1]                 
+  bc8bbf3  xor rcx,r10                                   
+  bc8bbf6  imul rcx,r9                                   
+  bc8bbfa  movzx r10d,byte ptr [rsi+r8+2]                
+  bc8bc00  xor r10,rcx                                   
+  bc8bc03  imul r10,r9                                   
+  bc8bc07  movzx ecx,byte ptr [rsi+r8+3]                 
+  bc8bc0d  xor rcx,r10                                   
+  bc8bc10  imul rcx,r9                                   
+  bc8bc14  add r8,4                                      
+  bc8bc18  cmp rdx,r8                                    
+  bc8bc1b  jne short 0xBC8BBE1                           ; -> loc_bc8bbe1
+  bc8bc1d  test rax,rax                                  
+  bc8bc20  je short 0xBC8BC4A                            ; -> loc_bc8bc4a
+  bc8bc22  add rsi,r8                                    
+  bc8bc25  xor edx,edx                                   
+  bc8bc27  mov r8,0x100000001B3                          
+  bc8bc31  mov r9,rcx                                    
+
+loc_bc8bc34:  ; from bc8bc48
+  bc8bc34  movzx ecx,byte ptr [rsi+rdx]                  
+  bc8bc38  xor rcx,r9                                    
+  bc8bc3b  imul rcx,r8                                   
+  bc8bc3f  inc rdx                                       
+  bc8bc42  mov r9,rcx                                    
+  bc8bc45  cmp rax,rdx                                   
+  bc8bc48  jne short 0xBC8BC34                           ; -> loc_bc8bc34
+
+loc_bc8bc4a:  ; from bc8bb94, bc8bc20
+  bc8bc4a  mov [0x12AE1B58],rcx                          ; [data_12ae1b58]
+  bc8bc51  lea rcx,[rbp+0x330]                           
+  bc8bc58  call 0x73150                                  ; -> sub_73150
+  bc8bc5d  lea rcx,[0x12AE1B60]                          ; [data_12ae1b60]
+  bc8bc64  call 0xE938D70                                ; -> sub_e938d70
+  bc8bc69  jmp 0xBC8A3E2                                 ; -> sub_bc8a3e2
+  bc8bc6e  and rdx,0xFFFFFFFFFFFFFFFC                    
+  bc8bc72  mov rcx,0xCBF29CE484222325                    
+  bc8bc7c  xor r8d,r8d                                   
+  bc8bc7f  mov r9,0x100000001B3                          
+
+loc_bc8bc89:  ; from bc8bcc3
+  bc8bc89  movzx r10d,byte ptr [rsi+r8]                  
+  bc8bc8e  xor r10,rcx                                   
+  bc8bc91  imul r10,r9                                   
+  bc8bc95  movzx ecx,byte ptr [rsi+r8+1]                 
+  bc8bc9b  xor rcx,r10                                   
+  bc8bc9e  imul rcx,r9                                   
+  bc8bca2  movzx r10d,byte ptr [rsi+r8+2]                
+  bc8bca8  xor r10,rcx                                   
+  bc8bcab  imul r10,r9                                   
+  bc8bcaf  movzx ecx,byte ptr [rsi+r8+3]                 
+  bc8bcb5  xor rcx,r10                                   
+  bc8bcb8  imul rcx,r9                                   
+  bc8bcbc  add r8,4                                      
+  bc8bcc0  cmp rdx,r8                                    
+  bc8bcc3  jne short 0xBC8BC89                           ; -> loc_bc8bc89
+  bc8bcc5  test rax,rax                                  
+  bc8bcc8  je short 0xBC8BCF2                            ; -> loc_bc8bcf2
+  bc8bcca  add rsi,r8                                    
+  bc8bccd  xor edx,edx                                   
+  bc8bccf  mov r8,0x100000001B3                          
+  bc8bcd9  mov r9,rcx                                    
+
+loc_bc8bcdc:  ; from bc8bcf0
+  bc8bcdc  movzx ecx,byte ptr [rsi+rdx]                  
+  bc8bce0  xor rcx,r9                                    
+  bc8bce3  imul rcx,r8                                   
+  bc8bce7  inc rdx                                       
+  bc8bcea  mov r9,rcx                                    
+  bc8bced  cmp rax,rdx                                   
+  bc8bcf0  jne short 0xBC8BCDC                           ; -> loc_bc8bcdc
+
+loc_bc8bcf2:  ; from bc8bba3, bc8bcc8
+  bc8bcf2  mov [0x12AE1B68],rcx                          ; [data_12ae1b68]
+  bc8bcf9  lea rcx,[rbp+0x330]                           
+  bc8bd00  call 0x73150                                  ; -> sub_73150
+  bc8bd05  lea rcx,[0x12AE1B70]                          ; [data_12ae1b70]
+  bc8bd0c  call 0xE938D70                                ; -> sub_e938d70
+  bc8bd11  jmp 0xBC8A407                                 ; -> sub_bc8a407
+
+loc_bc8bd16:  ; from bc8ba7a
+  bc8bd16  and rdx,0xFFFFFFFFFFFFFFFC                    
+  bc8bd1a  mov rcx,0xCBF29CE484222325                    
+  bc8bd24  xor r8d,r8d                                   
+  bc8bd27  mov r9,0x100000001B3                          
+
+loc_bc8bd31:  ; from bc8bd6b
+  bc8bd31  movzx r10d,byte ptr [rsi+r8]                  
+  bc8bd36  xor r10,rcx                                   
+  bc8bd39  imul r10,r9                                   
+  bc8bd3d  movzx ecx,byte ptr [rsi+r8+1]                 
+  bc8bd43  xor rcx,r10                                   
+  bc8bd46  imul rcx,r9                                   
+  bc8bd4a  movzx r10d,byte ptr [rsi+r8+2]                
+  bc8bd50  xor r10,rcx                                   
+  bc8bd53  imul r10,r9                                   
+  bc8bd57  movzx ecx,byte ptr [rsi+r8+3]                 
+  bc8bd5d  xor rcx,r10                                   
+  bc8bd60  imul rcx,r9                                   
+  bc8bd64  add r8,4                                      
+  bc8bd68  cmp rdx,r8                                    
+  bc8bd6b  jne short 0xBC8BD31                           ; -> loc_bc8bd31
+  bc8bd6d  test rax,rax                                  
+  bc8bd70  je short 0xBC8BD9A                            ; -> loc_bc8bd9a
+
+loc_bc8bd72:  ; from bc8ba8d
+  bc8bd72  add rsi,r8                                    
+  bc8bd75  xor edx,edx                                   
+  bc8bd77  mov r8,0x100000001B3                          
+  bc8bd81  mov r9,rcx                                    
+
+loc_bc8bd84:  ; from bc8bd98
+  bc8bd84  movzx ecx,byte ptr [rsi+rdx]                  
+  bc8bd88  xor rcx,r9                                    
+  bc8bd8b  imul rcx,r8                                   
+  bc8bd8f  inc rdx                                       
+  bc8bd92  mov r9,rcx                                    
+  bc8bd95  cmp rax,rdx                                   
+  bc8bd98  jne short 0xBC8BD84                           ; -> loc_bc8bd84
+
+loc_bc8bd9a:  ; from bc8bbb2, bc8bd70
+  bc8bd9a  mov [0x12AE1B78],rcx                          ; [data_12ae1b78]
+  bc8bda1  lea rcx,[rbp+0x330]                           
+  bc8bda8  call 0x73150                                  ; -> sub_73150
+  bc8bdad  lea rcx,[0x12AE1B80]                          ; [data_12ae1b80]
+  bc8bdb4  call 0xE938D70                                ; -> sub_e938d70
+  bc8bdb9  jmp 0xBC8A42C                                 ; -> sub_bc8a42c
+
+loc_bc8bdbe:  ; from bc8bb5b
+  bc8bdbe  and r8,0xFFFFFFFFFFFFFFF8                     
+  bc8bdc2  mov rdx,0xCBF29CE484222325                    
+
+loc_bc8bdcc:  ; from bc8be33
+  bc8bdcc  movzx r9d,byte ptr [r15]                      
+  bc8bdd0  imul rdx,rcx                                  
+  bc8bdd4  xor rdx,r9                                    
+  bc8bdd7  movzx r9d,byte ptr [r15+1]                    
+  bc8bddc  imul rdx,rcx                                  
+  bc8bde0  xor rdx,r9                                    
+  bc8bde3  movzx r9d,byte ptr [r15+2]                    
+  bc8bde8  imul rdx,rcx                                  
+  bc8bdec  xor rdx,r9                                    
+  bc8bdef  movzx r9d,byte ptr [r15+3]                    
+  bc8bdf4  imul rdx,rcx                                  
+  bc8bdf8  xor rdx,r9                                    
+  bc8bdfb  movzx r9d,byte ptr [r15+4]                    
+  bc8be00  imul rdx,rcx                                  
+  bc8be04  xor rdx,r9                                    
+  bc8be07  movzx r9d,byte ptr [r15+5]                    
+  bc8be0c  imul rdx,rcx                                  
+  bc8be10  xor rdx,r9                                    
+  bc8be13  movzx r9d,byte ptr [r15+6]                    
+  bc8be18  imul rdx,rcx                                  
+  bc8be1c  xor rdx,r9                                    
+  bc8be1f  movzx r9d,byte ptr [r15+7]                    
+  bc8be24  imul rdx,rcx                                  
+  bc8be28  xor rdx,r9                                    
+  bc8be2b  add r15,8                                     
+  bc8be2f  add r8,0xFFFFFFFFFFFFFFF8                     
+  bc8be33  jne short 0xBC8BDCC                           ; -> loc_bc8bdcc
+  bc8be35  test rax,rax                                  
+  bc8be38  je short 0xBC8BE51                            ; -> loc_bc8be51
+
+loc_bc8be3a:  ; from bc8bb6b
+  bc8be3a  xor r8d,r8d                                   
+
+loc_bc8be3d:  ; from bc8be4f
+  bc8be3d  movzx r9d,byte ptr [r15+r8]                   
+  bc8be42  imul rdx,rcx                                  
+  bc8be46  xor rdx,r9                                    
+  bc8be49  inc r8                                        
+  bc8be4c  cmp rax,r8                                    
+  bc8be4f  jne short 0xBC8BE3D                           ; -> loc_bc8be3d
+
+loc_bc8be51:  ; from bc8bbc1, bc8be38
+  bc8be51  mov [0x12AE1BA0],rdx                          ; [data_12ae1ba0]
+  bc8be58  lea rcx,[rbp+0x330]                           
+  bc8be5f  call 0x73150                                  ; -> sub_73150
+  bc8be64  lea rcx,[0x12AE1BA8]                          ; [data_12ae1ba8]
+  bc8be6b  call 0xE938D70                                ; -> sub_e938d70
+  bc8be70  jmp 0xBC8A644                                 ; -> sub_bc8a644
+  bc8be75  call 0x75740                                  ; -> sub_75740
+  bc8be7a  nop                                           
+  bc8be7b  int3                                          
+  bc8be7c  nop [rax]                                     ; R ret@75740+0x0
+  bc8be80  mov [rsp+0x10],rdx                            
+  bc8be85  push rbp                                      
+  bc8be86  push r15                                      
+  bc8be88  push r14                                      
+  bc8be8a  push r13                                      
+  bc8be8c  push r12                                      
+  bc8be8e  push rsi                                      
+  bc8be8f  push rdi                                      
+  bc8be90  push rbx                                      
+  bc8be91  sub rsp,0x48                                  
+  bc8be95  lea rbp,[rdx+0x80]                            
+  bc8be9c  movaps [rsp+0x30],xmm6                        
+  bc8bea1  lea rcx,[rbp+0x330]                           
+  bc8bea8  call 0x73150                                  ; -> sub_73150
+  bc8bead  movaps xmm6,[rsp+0x30]                        
+  bc8beb2  add rsp,0x48                                  
+  bc8beb6  pop rbx                                       
+  bc8beb7  pop rdi                                       
+  bc8beb8  pop rsi                                       
+  bc8beb9  pop r12                                       
+  bc8bebb  pop r13                                       
+  bc8bebd  pop r14                                       
+  bc8bebf  pop r15                                       
+  bc8bec1  pop rbp                                       
+  bc8bec2  ret                                           
+  bc8bec3  nop [rax+rax]                                 ; R ret@73150+0x0+idx
+  bc8bed0  mov [rsp+0x10],rdx                            
+  bc8bed5  push rbp                                      
+  bc8bed6  push r15                                      
+  bc8bed8  push r14                                      
+  bc8beda  push r13                                      
+  bc8bedc  push r12                                      
+  bc8bede  push rsi                                      
+  bc8bedf  push rdi                                      
+  bc8bee0  push rbx                                      
+  bc8bee1  sub rsp,0x48                                  
+  bc8bee5  lea rbp,[rdx+0x80]                            
+  bc8beec  movaps [rsp+0x30],xmm6                        
+  bc8bef1  mov rcx,[rbp+0xC50]                           
+  bc8bef8  call 0xBC8C5B0                                ; -> sub_bc8c5b0
+  bc8befd  movaps xmm6,[rsp+0x30]                        
+  bc8bf02  add rsp,0x48                                  
+  bc8bf06  pop rbx                                       
+  bc8bf07  pop rdi                                       
+  bc8bf08  pop rsi                                       
+  bc8bf09  pop r12                                       
+  bc8bf0b  pop r13                                       
+  bc8bf0d  pop r14                                       
+  bc8bf0f  pop r15                                       
+  bc8bf11  pop rbp                                       
+  bc8bf12  ret                                           
+  bc8bf13  nop [rax+rax]                                 ; R ret@bc8c5b0+0x0+idx
+  bc8bf20  mov [rsp+0x10],rdx                            
+  bc8bf25  push rbp                                      
+  bc8bf26  push r15                                      
+  bc8bf28  push r14                                      
+  bc8bf2a  push r13                                      
+  bc8bf2c  push r12                                      
+  bc8bf2e  push rsi                                      
+  bc8bf2f  push rdi                                      
+  bc8bf30  push rbx                                      
+  bc8bf31  sub rsp,0x48                                  
+  bc8bf35  lea rbp,[rdx+0x80]                            
+  bc8bf3c  movaps [rsp+0x30],xmm6                        
+  bc8bf41  mov rax,[rbp+0xC60]                           
+  bc8bf48  mov rcx,[rax+0x80]                            
+  bc8bf4f  test rcx,rcx                                  
+  bc8bf52  je short 0xBC8BF7D                            ; -> loc_bc8bf7d
+  bc8bf54  cmp rcx,[rbp+0xC48]                           
+  bc8bf5b  setne dl                                      
+  bc8bf5e  mov rax,[rcx]                                 
+  bc8bf61  mov rax,[rax+0x20]                            
+  bc8bf65  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  bc8bf6b  mov rax,[rbp+0xC60]                           
+  bc8bf72  mov qword ptr [rax+0x80],0                    
+
+loc_bc8bf7d:  ; from bc8bf52
+  bc8bf7d  mov rcx,[rbp+0xC40]                           
+  bc8bf84  call 0x568B950                                ; -> sub_568b950
+  bc8bf89  mov edx,0x340                                 
+  bc8bf8e  mov rcx,[rbp+0xC60]                           
+  bc8bf95  call 0xE935700                                ; -> sub_e935700
+  bc8bf9a  movaps xmm6,[rsp+0x30]                        
+  bc8bf9f  add rsp,0x48                                  
+  bc8bfa3  pop rbx                                       
+  bc8bfa4  pop rdi                                       
+  bc8bfa5  pop rsi                                       
+  bc8bfa6  pop r12                                       
+  bc8bfa8  pop r13                                       
+  bc8bfaa  pop r14                                       
+  bc8bfac  pop r15                                       
+  bc8bfae  pop rbp                                       
+  bc8bfaf  ret                                           
+  bc8bfb0  mov [rsp+0x10],rdx                            
+  bc8bfb5  push rbp                                      
+  bc8bfb6  push r15                                      
+  bc8bfb8  push r14                                      
+  bc8bfba  push r13                                      
+  bc8bfbc  push r12                                      
+  bc8bfbe  push rsi                                      
+  bc8bfbf  push rdi                                      
+  bc8bfc0  push rbx                                      
+  bc8bfc1  sub rsp,0x48                                  
+  bc8bfc5  lea rbp,[rdx+0x80]                            
+  bc8bfcc  movaps [rsp+0x30],xmm6                        
+  bc8bfd1  mov rax,[rbp+0xC50]                           
+  bc8bfd8  lock dec dword ptr [rax]                      
+  bc8bfdb  jne short 0xBC8C010                           ; -> loc_bc8c010
+  bc8bfdd  mov rcx,[rbp+0xC60]                           
+  bc8bfe4  mov rax,[rcx]                                 
+  bc8bfe7  mov rax,[rax]                                 
+  bc8bfea  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  bc8bff0  mov rax,[rbp+0xC38]                           
+  bc8bff7  lock dec dword ptr [rax]                      
+  bc8bffa  jne short 0xBC8C010                           ; -> loc_bc8c010
+  bc8bffc  mov rcx,[rbp+0xC60]                           
+  bc8c003  mov rax,[rcx]                                 
+  bc8c006  mov rax,[rax+8]                               
+  bc8c00a  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+
+loc_bc8c010:  ; from bc8bfdb, bc8bffa
+  bc8c010  movaps xmm6,[rsp+0x30]                        
+  bc8c015  add rsp,0x48                                  
+  bc8c019  pop rbx                                       
+  bc8c01a  pop rdi                                       
+  bc8c01b  pop rsi                                       
+  bc8c01c  pop r12                                       
+  bc8c01e  pop r13                                       
+  bc8c020  pop r14                                       
+  bc8c022  pop r15                                       
+  bc8c024  pop rbp                                       
+  bc8c025  ret                                           
+  bc8c026  nop [rax+rax]                                 
+  bc8c030  mov [rsp+0x10],rdx                            
+  bc8c035  push rbp                                      
+  bc8c036  push r15                                      
+  bc8c038  push r14                                      
+  bc8c03a  push r13                                      
+  bc8c03c  push r12                                      
+  bc8c03e  push rsi                                      
+  bc8c03f  push rdi                                      
+  bc8c040  push rbx                                      
+  bc8c041  sub rsp,0x48                                  
+  bc8c045  lea rbp,[rdx+0x80]                            
+  bc8c04c  movaps [rsp+0x30],xmm6                        
+  bc8c051  mov rax,[rbp+0xC58]                           
+  bc8c058  mov qword ptr [rax+0x58],0                    
+  bc8c060  movaps xmm6,[rsp+0x30]                        
+  bc8c065  add rsp,0x48                                  
+  bc8c069  pop rbx                                       
+  bc8c06a  pop rdi                                       
+  bc8c06b  pop rsi                                       
+  bc8c06c  pop r12                                       
+  bc8c06e  pop r13                                       
+  bc8c070  pop r14                                       
+  bc8c072  pop r15                                       
+  bc8c074  pop rbp                                       
+  bc8c075  ret                                           
+  bc8c076  nop [rax+rax]                                 
+  bc8c080  mov [rsp+0x10],rdx                            
+  bc8c085  push rbp                                      
+  bc8c086  push r15                                      
+  bc8c088  push r14                                      
+  bc8c08a  push r13                                      
+  bc8c08c  push r12                                      
+  bc8c08e  push rsi                                      
+  bc8c08f  push rdi                                      
+  bc8c090  push rbx                                      
+  bc8c091  sub rsp,0x48                                  
+  bc8c095  lea rbp,[rdx+0x80]                            
+  bc8c09c  movaps [rsp+0x30],xmm6                        
+  bc8c0a1  lea rcx,[rbp+0x330]                           
+  bc8c0a8  call 0xBC8C680                                ; -> sub_bc8c680
+  bc8c0ad  movaps xmm6,[rsp+0x30]                        
+  bc8c0b2  add rsp,0x48                                  
+  bc8c0b6  pop rbx                                       
+  bc8c0b7  pop rdi                                       
+  bc8c0b8  pop rsi                                       
+  bc8c0b9  pop r12                                       
+  bc8c0bb  pop r13                                       
+  bc8c0bd  pop r14                                       
+  bc8c0bf  pop r15                                       
+  bc8c0c1  pop rbp                                       
+  bc8c0c2  ret                                           
+  bc8c0c3  nop [rax+rax]                                 ; R ret@bc8c680+0x0+idx
+  bc8c0d0  mov [rsp+0x10],rdx                            
+  bc8c0d5  push rbp                                      
+  bc8c0d6  push r15                                      
+  bc8c0d8  push r14                                      
+  bc8c0da  push r13                                      
+  bc8c0dc  push r12                                      
+  bc8c0de  push rsi                                      
+  bc8c0df  push rdi                                      
+  bc8c0e0  push rbx                                      
+  bc8c0e1  sub rsp,0x48                                  
+  bc8c0e5  lea rbp,[rdx+0x80]                            
+  bc8c0ec  movaps [rsp+0x30],xmm6                        
+  bc8c0f1  lea rcx,[rbp+0xA68]                           
+  bc8c0f8  call 0x81CB0                                  ; -> sub_81cb0
+  bc8c0fd  lea rcx,[rbp+0xB48]                           
+  bc8c104  call 0x81CB0                                  ; -> sub_81cb0
+  bc8c109  lea rcx,[rbp+0xBA8]                           
+  bc8c110  call 0x81CB0                                  ; -> sub_81cb0
+  bc8c115  movaps xmm6,[rsp+0x30]                        
+  bc8c11a  add rsp,0x48                                  
+  bc8c11e  pop rbx                                       
+  bc8c11f  pop rdi                                       
+  bc8c120  pop rsi                                       
+  bc8c121  pop r12                                       
+  bc8c123  pop r13                                       
+  bc8c125  pop r14                                       
+  bc8c127  pop r15                                       
+  bc8c129  pop rbp                                       
+  bc8c12a  ret                                           
+  bc8c12b  nop [rax+rax]                                 ; R ret@81cb0+0x0+idx
+  bc8c130  mov [rsp+0x10],rdx                            
+  bc8c135  push rbp                                      
+  bc8c136  push r15                                      
+  bc8c138  push r14                                      
+  bc8c13a  push r13                                      
+  bc8c13c  push r12                                      
+  bc8c13e  push rsi                                      
+  bc8c13f  push rdi                                      
+  bc8c140  push rbx                                      
+  bc8c141  sub rsp,0x48                                  
+  bc8c145  lea rbp,[rdx+0x80]                            
+  bc8c14c  movaps [rsp+0x30],xmm6                        
+  bc8c151  lea rcx,[rbp-0x50]                            
+  bc8c155  call 0xBC8C720                                ; -> sub_bc8c720
+  bc8c15a  movaps xmm6,[rsp+0x30]                        
+  bc8c15f  add rsp,0x48                                  
+  bc8c163  pop rbx                                       
+  bc8c164  pop rdi                                       
+  bc8c165  pop rsi                                       
+  bc8c166  pop r12                                       
+  bc8c168  pop r13                                       
+  bc8c16a  pop r14                                       
+  bc8c16c  pop r15                                       
+  bc8c16e  pop rbp                                       
+  bc8c16f  ret                                           
+  bc8c170  mov [rsp+0x10],rdx                            
+  bc8c175  push rbp                                      
+  bc8c176  push r15                                      
+  bc8c178  push r14                                      
+  bc8c17a  push r13                                      
+  bc8c17c  push r12                                      
+  bc8c17e  push rsi                                      
+  bc8c17f  push rdi                                      
+  bc8c180  push rbx                                      
+  bc8c181  sub rsp,0x48                                  
+  bc8c185  lea rbp,[rdx+0x80]                            
+  bc8c18c  movaps [rsp+0x30],xmm6                        
+  bc8c191  lea rcx,[rbp+0xBF8]                           
+  bc8c198  call 0x73150                                  ; -> sub_73150
+  bc8c19d  movaps xmm6,[rsp+0x30]                        
+  bc8c1a2  add rsp,0x48                                  
+  bc8c1a6  pop rbx                                       
+  bc8c1a7  pop rdi                                       
+  bc8c1a8  pop rsi                                       
+  bc8c1a9  pop r12                                       
+  bc8c1ab  pop r13                                       
+  bc8c1ad  pop r14                                       
+  bc8c1af  pop r15                                       
+  bc8c1b1  pop rbp                                       
+  bc8c1b2  ret                                           
+  bc8c1b3  nop [rax+rax]                                 ; R ret@73150+0x0+idx
+  bc8c1c0  mov [rsp+0x10],rdx                            
+  bc8c1c5  push rbp                                      
+  bc8c1c6  push r15                                      
+  bc8c1c8  push r14                                      
+  bc8c1ca  push r13                                      
+  bc8c1cc  push r12                                      
+  bc8c1ce  push rsi                                      
+  bc8c1cf  push rdi                                      
+  bc8c1d0  push rbx                                      
+  bc8c1d1  sub rsp,0x48                                  
+  bc8c1d5  lea rbp,[rdx+0x80]                            
+  bc8c1dc  movaps [rsp+0x30],xmm6                        
+  bc8c1e1  call 0xEEC6E40                                ; -> sub_eec6e40
+  bc8c1e6  int3                                          
+  bc8c1e7  nop [rax+rax]                                 ; R ret@eec6e40+0x0+idx
+  bc8c1f0  mov [rsp+0x10],rdx                            
+  bc8c1f5  push rbp                                      
+  bc8c1f6  push r15                                      
+  bc8c1f8  push r14                                      
+  bc8c1fa  push r13                                      
+  bc8c1fc  push r12                                      
+  bc8c1fe  push rsi                                      
+  bc8c1ff  push rdi                                      
+  bc8c200  push rbx                                      
+  bc8c201  sub rsp,0x48                                  
+  bc8c205  lea rbp,[rdx+0x80]                            
+  bc8c20c  movaps [rsp+0x30],xmm6                        
+  bc8c211  lea rcx,[0x12AE1B60]                          ; [data_12ae1b60]
+  bc8c218  call 0xE938D30                                ; -> sub_e938d30
+  bc8c21d  movaps xmm6,[rsp+0x30]                        
+  bc8c222  add rsp,0x48                                  
+  bc8c226  pop rbx                                       
+  bc8c227  pop rdi                                       
+  bc8c228  pop rsi                                       
+  bc8c229  pop r12                                       
+  bc8c22b  pop r13                                       
+  bc8c22d  pop r14                                       
+  bc8c22f  pop r15                                       
+  bc8c231  pop rbp                                       
+  bc8c232  ret                                           
+  bc8c233  nop [rax+rax]                                 ; R ret@e938d30+0x0+idx
+  bc8c240  mov [rsp+0x10],rdx                            
+  bc8c245  push rbp                                      
+  bc8c246  push r15                                      
+  bc8c248  push r14                                      
+  bc8c24a  push r13                                      
+  bc8c24c  push r12                                      
+  bc8c24e  push rsi                                      
+  bc8c24f  push rdi                                      
+  bc8c250  push rbx                                      
+  bc8c251  sub rsp,0x48                                  
+  bc8c255  lea rbp,[rdx+0x80]                            
+  bc8c25c  movaps [rsp+0x30],xmm6                        
+  bc8c261  lea rcx,[0x12AE1B70]                          ; [data_12ae1b70]
+  bc8c268  call 0xE938D30                                ; -> sub_e938d30
+  bc8c26d  movaps xmm6,[rsp+0x30]                        
+  bc8c272  add rsp,0x48                                  
+  bc8c276  pop rbx                                       
+  bc8c277  pop rdi                                       
+  bc8c278  pop rsi                                       
+  bc8c279  pop r12                                       
+  bc8c27b  pop r13                                       
+  bc8c27d  pop r14                                       
+  bc8c27f  pop r15                                       
+  bc8c281  pop rbp                                       
+  bc8c282  ret                                           
+  bc8c283  nop [rax+rax]                                 ; R ret@e938d30+0x0+idx
+  bc8c290  mov [rsp+0x10],rdx                            
+  bc8c295  push rbp                                      
+  bc8c296  push r15                                      
+  bc8c298  push r14                                      
+  bc8c29a  push r13                                      
+  bc8c29c  push r12                                      
+  bc8c29e  push rsi                                      
+  bc8c29f  push rdi                                      
+  bc8c2a0  push rbx                                      
+  bc8c2a1  sub rsp,0x48                                  
+  bc8c2a5  lea rbp,[rdx+0x80]                            
+  bc8c2ac  movaps [rsp+0x30],xmm6                        
+  bc8c2b1  lea rcx,[0x12AE1B80]                          ; [data_12ae1b80]
+  bc8c2b8  call 0xE938D30                                ; -> sub_e938d30
+  bc8c2bd  movaps xmm6,[rsp+0x30]                        
+  bc8c2c2  add rsp,0x48                                  
+  bc8c2c6  pop rbx                                       
+  bc8c2c7  pop rdi                                       
+  bc8c2c8  pop rsi                                       
+  bc8c2c9  pop r12                                       
+  bc8c2cb  pop r13                                       
+  bc8c2cd  pop r14                                       
+  bc8c2cf  pop r15                                       
+  bc8c2d1  pop rbp                                       
+  bc8c2d2  ret                                           
+  bc8c2d3  nop [rax+rax]                                 ; R ret@e938d30+0x0+idx
+  bc8c2e0  mov [rsp+0x10],rdx                            
+  bc8c2e5  push rbp                                      
+  bc8c2e6  push r15                                      
+  bc8c2e8  push r14                                      
+  bc8c2ea  push r13                                      
+  bc8c2ec  push r12                                      
+  bc8c2ee  push rsi                                      
+  bc8c2ef  push rdi                                      
+  bc8c2f0  push rbx                                      
+  bc8c2f1  sub rsp,0x48                                  
+  bc8c2f5  lea rbp,[rdx+0x80]                            
+  bc8c2fc  movaps [rsp+0x30],xmm6                        
+  bc8c301  lea rcx,[0x12AE1B98]                          ; [data_12ae1b98]
+  bc8c308  call 0xE938D30                                ; -> sub_e938d30
+  bc8c30d  movaps xmm6,[rsp+0x30]                        
+  bc8c312  add rsp,0x48                                  
+  bc8c316  pop rbx                                       
+  bc8c317  pop rdi                                       
+  bc8c318  pop rsi                                       
+  bc8c319  pop r12                                       
+  bc8c31b  pop r13                                       
+  bc8c31d  pop r14                                       
+  bc8c31f  pop r15                                       
+  bc8c321  pop rbp                                       
+  bc8c322  ret                                           
+  bc8c323  nop [rax+rax]                                 ; R ret@e938d30+0x0+idx
+  bc8c330  mov [rsp+0x10],rdx                            
+  bc8c335  push rbp                                      
+  bc8c336  push r15                                      
+  bc8c338  push r14                                      
+  bc8c33a  push r13                                      
+  bc8c33c  push r12                                      
+  bc8c33e  push rsi                                      
+  bc8c33f  push rdi                                      
+  bc8c340  push rbx                                      
+  bc8c341  sub rsp,0x48                                  
+  bc8c345  lea rbp,[rdx+0x80]                            
+  bc8c34c  movaps [rsp+0x30],xmm6                        
+  bc8c351  lea rcx,[rbp+0x330]                           
+  bc8c358  call 0x7E6D0                                  ; -> sub_7e6d0
+  bc8c35d  movaps xmm6,[rsp+0x30]                        
+  bc8c362  add rsp,0x48                                  
+  bc8c366  pop rbx                                       
+  bc8c367  pop rdi                                       
+  bc8c368  pop rsi                                       
+  bc8c369  pop r12                                       
+  bc8c36b  pop r13                                       
+  bc8c36d  pop r14                                       
+  bc8c36f  pop r15                                       
+  bc8c371  pop rbp                                       
+  bc8c372  ret                                           
+  bc8c373  nop [rax+rax]                                 ; R ret@7e6d0+0x0+idx
+  bc8c380  mov [rsp+0x10],rdx                            
+  bc8c385  push rbp                                      
+  bc8c386  push r15                                      
+  bc8c388  push r14                                      
+  bc8c38a  push r13                                      
+  bc8c38c  push r12                                      
+  bc8c38e  push rsi                                      
+  bc8c38f  push rdi                                      
+  bc8c390  push rbx                                      
+  bc8c391  sub rsp,0x48                                  
+  bc8c395  lea rbp,[rdx+0x80]                            
+  bc8c39c  movaps [rsp+0x30],xmm6                        
+  bc8c3a1  lea rcx,[0x12AE1BA8]                          ; [data_12ae1ba8]
+  bc8c3a8  call 0xE938D30                                ; -> sub_e938d30
+  bc8c3ad  movaps xmm6,[rsp+0x30]                        
+  bc8c3b2  add rsp,0x48                                  
+  bc8c3b6  pop rbx                                       
+  bc8c3b7  pop rdi                                       
+  bc8c3b8  pop rsi                                       
+  bc8c3b9  pop r12                                       
+  bc8c3bb  pop r13                                       
+  bc8c3bd  pop r14                                       
+  bc8c3bf  pop r15                                       
+  bc8c3c1  pop rbp                                       
+  bc8c3c2  ret                                           
+  bc8c3c3  nop [rax+rax]                                 ; R ret@e938d30+0x0+idx
+  bc8c3d0  mov [rsp+0x10],rdx                            
+  bc8c3d5  push rbp                                      
+  bc8c3d6  push r15                                      
+  bc8c3d8  push r14                                      
+  bc8c3da  push r13                                      
+  bc8c3dc  push r12                                      
+  bc8c3de  push rsi                                      
+  bc8c3df  push rdi                                      
+  bc8c3e0  push rbx                                      
+  bc8c3e1  sub rsp,0x48                                  
+  bc8c3e5  lea rbp,[rdx+0x80]                            
+  bc8c3ec  movaps [rsp+0x30],xmm6                        
+  bc8c3f1  lea rcx,[rbp+0x720]                           
+  bc8c3f8  call 0x566D290                                ; -> sub_566d290
+  bc8c3fd  movaps xmm6,[rsp+0x30]                        
+  bc8c402  add rsp,0x48                                  
+  bc8c406  pop rbx                                       
+  bc8c407  pop rdi                                       
+  bc8c408  pop rsi                                       
+  bc8c409  pop r12                                       
+  bc8c40b  pop r13                                       
+  bc8c40d  pop r14                                       
+  bc8c40f  pop r15                                       
+  bc8c411  pop rbp                                       
+  bc8c412  ret                                           
+  bc8c413  nop [rax+rax]                                 ; R ret@566d290+0x0+idx
+  bc8c420  mov [rsp+0x10],rdx                            
+  bc8c425  push rbp                                      
+  bc8c426  push r15                                      
+  bc8c428  push r14                                      
+  bc8c42a  push r13                                      
+  bc8c42c  push r12                                      
+  bc8c42e  push rsi                                      
+  bc8c42f  push rdi                                      
+  bc8c430  push rbx                                      
+  bc8c431  sub rsp,0x48                                  
+  bc8c435  lea rbp,[rdx+0x80]                            
+  bc8c43c  movaps [rsp+0x30],xmm6                        
+  bc8c441  lea rcx,[rbp+0xB78]                           
+  bc8c448  call 0x81CB0                                  ; -> sub_81cb0
+  bc8c44d  lea rcx,[rbp+0xC18]                           
+  bc8c454  call 0x73150                                  ; -> sub_73150
+  bc8c459  lea rcx,[rbp+0x720]                           
+  bc8c460  call 0xBC8C5B0                                ; -> sub_bc8c5b0
+  bc8c465  movaps xmm6,[rsp+0x30]                        
+  bc8c46a  add rsp,0x48                                  
+  bc8c46e  pop rbx                                       
+  bc8c46f  pop rdi                                       
+  bc8c470  pop rsi                                       
+  bc8c471  pop r12                                       
+  bc8c473  pop r13                                       
+  bc8c475  pop r14                                       
+  bc8c477  pop r15                                       
+  bc8c479  pop rbp                                       
+  bc8c47a  ret                                           
+  bc8c47b  nop [rax+rax]                                 ; R ret@bc8c5b0+0x0+idx
+  bc8c480  mov [rsp+0x10],rdx                            
+  bc8c485  push rbp                                      
+  bc8c486  push r15                                      
+  bc8c488  push r14                                      
+  bc8c48a  push r13                                      
+  bc8c48c  push r12                                      
+  bc8c48e  push rsi                                      
+  bc8c48f  push rdi                                      
+  bc8c490  push rbx                                      
+  bc8c491  sub rsp,0x48                                  
+  bc8c495  lea rbp,[rdx+0x80]                            
+  bc8c49c  movaps [rsp+0x30],xmm6                        
+  bc8c4a1  lea rcx,[rbp+0xBD8]                           
+  bc8c4a8  call 0x7E6D0                                  ; -> sub_7e6d0
+  bc8c4ad  movaps xmm6,[rsp+0x30]                        
+  bc8c4b2  add rsp,0x48                                  
+  bc8c4b6  pop rbx                                       
+  bc8c4b7  pop rdi                                       
+  bc8c4b8  pop rsi                                       
+  bc8c4b9  pop r12                                       
+  bc8c4bb  pop r13                                       
+  bc8c4bd  pop r14                                       
+  bc8c4bf  pop r15                                       
+  bc8c4c1  pop rbp                                       
+  bc8c4c2  ret                                           
+  bc8c4c3  nop [rax+rax]                                 ; R ret@7e6d0+0x0+idx
+  bc8c4d0  mov [rsp+0x10],rdx                            
+  bc8c4d5  push rbp                                      
+  bc8c4d6  push r15                                      
+  bc8c4d8  push r14                                      
+  bc8c4da  push r13                                      
+  bc8c4dc  push r12                                      
+  bc8c4de  push rsi                                      
+  bc8c4df  push rdi                                      
+  bc8c4e0  push rbx                                      
+  bc8c4e1  sub rsp,0x48                                  
+  bc8c4e5  lea rbp,[rdx+0x80]                            
+  bc8c4ec  movaps [rsp+0x30],xmm6                        
+  bc8c4f1  lea rcx,[rbp+0x9B8]                           
+  bc8c4f8  call 0x56D4770                                ; -> sub_56d4770
+  bc8c4fd  movaps xmm6,[rsp+0x30]                        
+  bc8c502  add rsp,0x48                                  
+  bc8c506  pop rbx                                       
+  bc8c507  pop rdi                                       
+  bc8c508  pop rsi                                       
+  bc8c509  pop r12                                       
+  bc8c50b  pop r13                                       
+  bc8c50d  pop r14                                       
+  bc8c50f  pop r15                                       
+  bc8c511  pop rbp                                       
+  bc8c512  ret                                           
+  bc8c513  nop [rax+rax]                                 ; R ret@56d4770+0x0+idx
+  bc8c520  mov [rsp+0x10],rdx                            
+  bc8c525  push rbp                                      
+  bc8c526  push r15                                      
+  bc8c528  push r14                                      
+  bc8c52a  push r13                                      
+  bc8c52c  push r12                                      
+  bc8c52e  push rsi                                      
+  bc8c52f  push rdi                                      
+  bc8c530  push rbx                                      
+  bc8c531  sub rsp,0x48                                  
+  bc8c535  lea rbp,[rdx+0x80]                            
+  bc8c53c  movaps [rsp+0x30],xmm6                        
+  bc8c541  mov edx,0x88                                  
+  bc8c546  mov rcx,[rbp+0xC60]                           
+  bc8c54d  call 0xE935700                                ; -> sub_e935700
+  bc8c552  movaps xmm6,[rsp+0x30]                        
+  bc8c557  add rsp,0x48                                  
+  bc8c55b  pop rbx                                       
+  bc8c55c  pop rdi                                       
+  bc8c55d  pop rsi                                       
+  bc8c55e  pop r12                                       
+  bc8c560  pop r13                                       
+  bc8c562  pop r14                                       
+  bc8c564  pop r15                                       
+  bc8c566  pop rbp                                       
+  bc8c567  ret                                           
+  bc8c568  nop [rax+rax]                                 ; R ret@e935700+0x0+idx
+  bc8c570  mov [rsp+0x10],rdx                            
+  ... (--max 800)

@@ -267,7 +267,7 @@
   "max": 8,
   "every": 1,
   "why": "L17h: array1-builder get-option-by-id call (vtable[0xD8]) at 0x888c50: the id argument r8d is not visible statically; R8 at this instruction = the option id requested (0x243 upscaling_percentage? 0x246 targetResolution?); RCX = settings object",
-  "state": "pending"
+  "state": "done"
  },
  {
   "name": "em3e_flush_verify",
@@ -276,7 +276,7 @@
   "max": 8,
   "every": 1,
   "why": "U-EM3e: capture DrawBatcher rcx, records pointer, pending counts and first record fields at flush entry to verify header-to-record mapping in game",
-  "state": "pending"
+  "state": "done"
  },
  {
   "name": "u_em3f_submitcustom",
@@ -285,6 +285,96 @@
   "max": 6,
   "every": 1,
   "why": "M3f: who calls submitCustom with our renderer's fn once the queue point is wired; ret= names the caller; RCX=encoder, DX=viewId, R8=fn, R9=user",
+  "state": "done"
+ },
+ {
+  "name": "en1b_executor",
+  "rva": 243405088,
+  "size": 512,
+  "max": 8,
+  "every": 1,
+  "why": "U-EN1b: capture executor job context (rcx) at entry to correlate job+0x590 header base and job+0x250 batcher pointer for live header-to-record mapping verification",
+  "state": "done"
+ },
+ {
+  "name": "m2c_member_11886f0",
+  "rva": 18384624,
+  "size": 256,
+  "max": 8,
+  "every": 1,
+  "why": "M2c reflected-type member builder args",
+  "state": "done"
+ },
+ {
+  "name": "m2c_member_11884a0",
+  "rva": 18384032,
+  "size": 256,
+  "max": 8,
+  "every": 1,
+  "why": "M2c member-table callback",
+  "state": "done"
+ },
+ {
+  "name": "q6b_cull_detour_entry",
+  "rva": 82025648,
+  "size": 256,
+  "max": 6,
+  "every": 1,
+  "why": "Q6b: confirm the Optimizer::cull detour fires at insert<RenderBatchActorDescription> clone entry; RDX = InsertVariant*, tag read at variant+8 (ItemGroupTag::BatchActor = 10)",
+  "state": "done"
+ },
+ {
+  "name": "u_eq5c_submitcustom",
+  "rva": 197530976,
+  "size": 256,
+  "max": 6,
+  "every": 1,
+  "why": "Q5c: once the native-pass queue point is wired, confirm submitCustom entry is reached with R8=passNativeFn, R9=&PassNative (program + VB/IB), ret= names the queue point; 0x100-byte capture <= 0x200, max 6 samples.",
+  "state": "done"
+ },
+ {
+  "name": "u_eq5c_executor",
+  "rva": 243409920,
+  "size": 256,
+  "max": 6,
+  "every": 1,
+  "why": "Q5c: executor custom-item path 0xe822400; fires once per frame once the native-pass queue point is wired. Confirm RCX=user=&PassNative, RDX=&ctx with [RDX+0x00]=tag pointer 0xF4EDE00 [V], [RDX+0x08]=job pointer [I], [RDX+0x10]=live ID3D12GraphicsCommandList* [V live]; passNativeFn invoked once per frame in view order (bit 53). ret= names the dispatcher caller.",
+  "state": "done"
+ },
+ {
+  "name": "u_eq5a_fancy_dispatch",
+  "rva": 244318944,
+  "size": 512,
+  "max": 8,
+  "every": 1,
+  "why": "Q5a Fancy-mode pass-body membership: at each dispatch entry (endFrame -> 0xE9002E0), RCX = TaskList* gives begin/end/count/extra of the 0x80-byte entry array; register dumps (RCX/RDX/R8/R9) give the entry pointers and pass-name context of one Fancy frame",
+  "state": "done"
+ },
+ {
+  "name": "l14c_record_builder",
+  "rva": 107366240,
+  "size": 512,
+  "max": 8,
+  "every": 1,
+  "why": "L14c: record builder sub_6664760 that writes UI record from args (rbx=rdx=16-byte name ptr, rsi=rcx=object). Game running with chat text on screen. ret= names caller; entry regs give record pointer (arg8=16-byte atlas NAME bytes).",
+  "state": "done"
+ },
+ {
+  "name": "l14c_glyph_draw",
+  "rva": 108307360,
+  "size": 512,
+  "max": 8,
+  "every": 1,
+  "why": "L14c: GlyphTexture draw-time binder that binds GlyphTexture by 16-byte SSO NAME. Game running with chat text on screen (gamebridge state confirmed). Entry registers should give record pointer (arg8=16-byte atlas NAME bytes), ret= names caller.",
+  "state": "done"
+ },
+ {
+  "name": "l14c_uniform_writer",
+  "rva": 90676656,
+  "size": 256,
+  "max": 8,
+  "every": 1,
+  "why": "L14c: NEW per orchestrator hint 2026-11-22: UniformBlock::setVec4Array (0x5679db0) does the 16-byte memcpy of uniform names into hash-selected slots via sub_5679DB0. Capture entry regs to find calls whose name bytes match GlyphTexture slot hash; the 16 bytes ARE the atlas NAME [LIVE]. Replaces failed l14c_glyph_draw/l14c_record_builder captures (0 hits each) and name_resolver captures. If too hot (called for all uniforms), answer NO.",
   "state": "pending"
  }
 ]

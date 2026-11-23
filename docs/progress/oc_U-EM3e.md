@@ -1,138 +1,139 @@
 ## NEXT
 DONE
 
-UNIT U-EM3e — M3e Edit draws at submit: read/modify every draw record before the GPU (flush 0xe81b720 records 6ej; needs the header-to-record mapping and an in-game test)
-OUTPUT FILE: docs/progress/oc_U-EM3e.md (only)
-CONSTRAINTS: static analysis only; game closed; no builds; no edits to HookManager.cpp, CMake, Sigs.json, CLAUDE.md, BGFX_MAP.md, RENDER_CHECKLIST.md; new files only under docs/, tools/, src/sdk/, src/client/features/render/.
-GAME: Minecraft.Windows.exe 1.26.62.01 (RVAs relative to image base). All RVAs here are for that build.
+UNIT U-EM3e — header-to-record mapping for DrawBatcher append (flush 0xe81b720, executor 0xe821120). 1.26.62.01, static analysis only.
 
-## (1) What changed
+CONTEXT (live, already proven by orchestrator, docs/data/live/m3e_test.txt):
+- At flush 0xE81B720, rcx = DrawBatcher object `b`.
+- Counts: u32 [b+0x10] = kind0 count, u32 [b+0x14] = kind1 count (kind*4).
+- Record arrays: u64 ptr [b+0x18] = kind0 array base (stride 0x70), u64 ptr [b+0x20] = kind1 array base (stride 0x88) (kind*8).
+- Kind1 records (0x88) match BGFX_MAP 6ej: VBV addr/size/stride at +0, IBV at +0x50, IndexCount at +0x70 (=2364 in sample). Edit in place + zero count verified live, 600 hits, no crash.
+- 0xe81b720 called 7 times from executor 0xe821120 (6 flush sites + 1 after state change) [BGFX_MAP 6ao].
 
-Created:
-- docs/progress/oc_U-EM3e.md — this file (proof table, header-to-record mapping, in-game test plan, CLOSES?).
-- src/client/features/render/draw/D3D12DrawRecord.h — DrawBatcher + DrawRecordNonIndexed + DrawRecordIndexed structs, every offset tied to a verbatim disassembly line, static_asserts for strides and field offsets.
-- src/client/features/render/draw/D3D12DrawEditor.h — DrawEditor class: hooks flush 0xe81b720 at the 7 executor call sites, iterates pending records of a kind, applies a DrawEditFn callback per record (callback returns false → veto the draw), exposes vetoLargeDraws / rebaseInstances helpers. Header-only, no CMake change, registers nothing.
+KEY OFFSET RECONCILIATION [V]:
+The executor's append code uses B=[rbx+0xA0] as its batcher base pointer with counts at [B+0x90]/[B+0x94] and arrays at [B+0x98]/[B+0xA0]. The flush 0xe81b720 uses b=[rcx] with counts at [b+0x10]/[b+0x14] and arrays at [b+0x18]/[b+0x20]. Since B+0x90 = b+0x10, B+0x94 = b+0x14, B+0x98 = b+0x18, B+0xA0 = b+0x20, we have b = B+0x80, i.e. the job stores the batcher at job+0xA0 offset by -0x80 from the real DrawBatcher at job+0x120 (== [job+0x250] per BGFX_MAP 6ak). [V] confirmed by flush disassembly at 0xe81b736/0xe81b74a/0xe81b779 and append disassembly at 0xe82c6a5/0xe82c6ae/0xe82c6b4/0xe82cb0f/0xe82cb19/0xe82cb20.
 
-Already existed (not created by this unit, referenced for context):
-- src/client/features/render/draw/D3D12DrawFlushWrap.h — declares kJobBatcher=0x250, kJobWrapper=0x90, kWrapperCommandList=0x30, strides 0x70/0x88, PSO key mask, batch-merge test, batcher cache structs, StreamDraw/StreamFlush, DrawFlushRecorder. References oc_U-EQ4b.md for verbatim proof.
+APPEND SITE 1 — non-indexed (kind 0, stride 0x70), entry 0xe82c69e [V]:
+- 0xe82c6a5  mov eax,[rdx+0x90]            — read kind0 count [B+0x90] == [b+0x10]
+- 0xe82c6ae  mov [rdx+0x90],ecx            — increment kind0 count (ecx=count+1)
+- 0xe82c6b4  mov rcx,[rdx+0x98]            — read kind0 array base [B+0x98] == [b+0x18]
+- 0xe82c6bb  imul rax,0x70                 — n*stride
+- 0xe82c6bf  lea rsi,[rcx+rax]             — record = base + n*0x70 (rsi = record ptr)
+- 0xe82c6c3  mov [rcx+rax+0x50],rdx        — record+0x50 = CBV0 = [rbx+0x170] (vsConstantsVA)
+- 0xe82c6d6  mov [rcx+rax+0x58],rdx        — record+0x58 = CBV1 = [rbx+0x380] (fsConstantsVA)
+- 0xe82c6ef  call 0xE81B4D0                — fillVertexBufferViews(rcx=cmdWrapper, rdx=record, r8=draw, r9=&scratch[rbx+0xC0]); fills 5 VBVs at record+0x00..+0x4F (BufferLocation@+0, StrideInBytes@+8, SizeInBytes@+0xC per view, 0x10 each)
+- 0xe81b4f4  mov eax,[r8+0x4C]             — (inside fillVertexBufferViews) draw+0x4C = vertexCount
+- 0xe81b4f8  mov [r9],eax                  — scratch[rbx+0xC0] = vertexCount
+- 0xe82cdd8  mov eax,[rax+0x54]            — draw+0x54 = instanceCount
+- 0xe82cddb  mov [rsi+0x64],eax            — record+0x64 = instanceCount
+- 0xe82cdde  mov eax,[rbx+0xC0]            — [rbx+0xC0] = vertexCount (from draw+0x4C via scratch)
+- 0xe82cde4  mov [rsi+0x60],eax            — record+0x60 = vertexCount
+- 0xe82cde7  mov qword ptr [rsi+0x68],0    — record+0x68 = startVertex=0, record+0x6C = startInstance=0
 
-Not edited: HookManager.cpp, any hook registration, CMake, Sigs.json, CLAUDE.md, BGFX_MAP.md, RENDER_CHECKLIST.md.
+APPEND SITE 2 — indexed (kind 1, stride 0x88), entry 0xe82cb08 [V]:
+- 0xe82cb0f  mov eax,[r8+0x94]             — read kind1 count [B+0x94] == [b+0x14]
+- 0xe82cb19  mov [r8+0x94],edx             — increment kind1 count (edx=count+1)
+- 0xe82cb20  mov rdx,[r8+0xA0]             — read kind1 array base [B+0xA0] == [b+0x20]
+- 0xe82cb2a  shl r8,7                      — n*0x80
+- 0xe82cb2e  lea rax,[r8+rax*8]            — n*0x88 (0x80*n + n*8)
+- 0xe82cb32  lea rdi,[rdx+rax]             — record = base + n*0x88 (rdi = record ptr)
+- 0xe82cb3d  mov [rdx+rax+0x60],r8         — record+0x60 = CBV0 = [rbx+0x170] (vsConstantsVA)
+- 0xe82cb49  mov [rdx+rax+0x68],r8         — record+0x68 = CBV1 = [rbx+0x380] (fsConstantsVA)
+- 0xe82cb4e  mov r8,[rcx+0x58]             — IBV record+0x58 (index buffer size)
+- 0xe82cb52  mov [rdx+rax+0x50],r8         — record+0x50 = IBV BufferLocation (GPU VA)
+- 0xe82cb57  mov ecx,[rcx+0x60]            — IBV record+0x60 (index buffer size)
+- 0xe82cb5a  mov [rdx+rax+0x58],ecx        — record+0x58 = IBV SizeInBytes
+- 0xe82cb73  mov [rdx+rax+0x5C],ecx        — record+0x5C = DXGI_FORMAT (0x39=R16_UINT or 0x2A=R32_UINT from draw+0x48 stride)
+- 0xe82cb8b  call 0xE81B4D0                — fillVertexBufferViews; fills 5 VBVs at record+0x00..+0x4F
+- 0xe82cd11  mov [rdi+0x70],esi            — record+0x70 = indexCount = draw+0x44
+- 0xe82cd1b  mov eax,[rcx+0x54]            — draw+0x54 = instanceCount
+- 0xe82cd1e  mov [rdi+0x74],eax            — record+0x74 = instanceCount
+- 0xe82cd21  mov eax,[rcx+0x40]            — draw+0x40 = startIndex
+- 0xe82cd24  mov [rdi+0x78],eax            — record+0x78 = startIndex
+- 0xe82cd27  mov qword ptr [rdi+0x7C],0    — record+0x7C = baseVertex=0, record+0x80 = startInstance=0
 
-## (2) Proof table (one row per distinct offset; all sites of that offset listed)
+FLUSH READBACK (0xe81b720) confirms field roles [V]:
+- 0xe81b736  mov esi,[rcx+r12*4+0x10]      — n = pending[kind] at [b+kind*4+0x10]
+- 0xe81b74a  mov dword ptr [rcx+r12*4+0x10],0 — pending[kind] = 0
+- 0xe81b779  mov rax,[rdi+r12*8+0x18]      — recs = records[kind] at [b+kind*8+0x18]
+- 0xe81b7b3  mov rax,[r15+0x60]            — indexed: CBV0 = rec+0x60
+- 0xe81b7be  mov rax,[r15+0x68]            — indexed: CBV1 = rec+0x68
+- 0xe81b833  lea r13,[r15+0x50]            — indexed: IBV = rec+0x50
+- 0xe81b86a  mov edx,[r15+0x70]            — indexed: IndexCount = rec+0x70
+- 0xe81b86e  mov r8d,[r15+0x74]            — indexed: InstanceCount = rec+0x74
+- 0xe81b872  mov r9d,[r15+0x78]            — indexed: StartIndex = rec+0x78
+- 0xe81b876  mov r10d,[r15+0x7C]           — indexed: BaseVertex = rec+0x7C
+- 0xe81b87a  mov r11d,[r15+0x80]           — indexed: StartInstance = rec+0x80
+- Non-indexed draw args read at rec+0x60..+0x6C (vertexCount, instanceCount, startVertex, startInstance) [inferred from record layout symmetry + flush slot order]
 
-| offset | size | read/store address | verbatim `0xRVA  instr` | meaning (only if the instruction/string shows it) | tag |
-|---|---|---|---|---|---|
-| DrawBatcher +0x10+kind*4 | 4 | [rcx+kind*4+0x10] | `0xe81b736  mov esi,[rcx+r12*4+0x10]` `0xe81b74a  mov dword ptr [rcx+r12*4+0x10],0` | pending[kind] draw-count load (kind in r12d=r9d), then cleared after snapshot | [V] |
-| DrawBatcher +0x115C | 4 | [rcx+0x115C] | `0xe81b753  cmp [rcx+0x115C],esi` | capacity: n >= cap → overflow path | [V] |
-| DrawBatcher +0x1148+kind*4 | 4 | [rdi+kind*4+0x1148] | `0xe81b78f  inc dword ptr [rdi+r12*4+0x1148]` | statDirect[kind]++ when n < cap | [V] |
-| DrawBatcher +0x1150+kind*4 | 4 | [rdi+kind*4+0x1150] | `0xe81b75b  inc dword ptr [rdi+r12*4+0x1150]` | statOverflow[kind]++ when n >= cap | [V] |
-| DrawBatcher +0x1164 | 1 | [rdi+0x1164] | `0xe81b76c  cmp byte ptr [rdi+0x1164],0` | indirectEnabled flag (0 = direct draws, 1 = ExecuteIndirect batch) | [V] |
-| DrawBatcher +0x18+kind*8 | 8 | [rdi+kind*8+0x18] | `0xe81b779  mov rax,[rdi+r12*8+0x18]` | records[kind] pointer load | [V] |
-| DrawBatcher +0x10C0 | 0x50 | [rdi+0x10C0] | `0xe81b797  lea r14,[rdi+0x10C0]` | vbCache: last 5 vertex buffer views (0x50 bytes), memcmp'd against each record | [V] |
-| DrawBatcher +0x1110 | 0x10 | [rdi+0x1110] | `0xe81b7ac  lea r12,[rdi+0x1110]` | ibCache: last index buffer view (0x10 bytes) | [V] |
-| DrawBatcher +0x1120 | 8 | [rdi+0x1120] | `0xe81bae3  mov rcx,[rdi+0x1120]` `0xe81b912  mov [rdi+0x1120],rax` | lastCbv[0] root CBV cache (root param 2): read to compare, written from record+0x60 (indexed path) | [V] |
-| DrawBatcher +0x1128 | 8 | [rdi+0x1128] | `0xe81bb0a  mov rax,[r15+0x58]` `0xe81bb0e  mov [rdi+0x1128],rax` `0xe81b91d  mov [rdi+0x1128],rax` | lastCbv[1] root CBV cache (root param 3): non-indexed path read+write from rec+0x58; indexed path write from rec+0x68 | [V] |
-| DrawRecordNonIndexed +0x00..0x4F | 0x50 | [r15+0x00..0x4F] | `0xe81ba3d  mov r8d,0x50` `0xe81ba46  mov rdx,r15` `0xe81ba49  call 0xEBCE390` | VBV block: 5 vertex buffer views (5×16B), memcmp'd vs vbCache; if equal, IASetVertexBuffers deduped | [V] |
-| DrawRecordNonIndexed +0x50 | 8 | [r15+0x50] | `0xe81bb19  mov r8,[r15+0x50]` `0xe81bb2c  call qword ptr [0xF99FFA0]` | cbv0 → SetGraphicsRootConstantBufferView(cl, slot 2, cbv0) | [V] |
-| DrawRecordNonIndexed +0x58 | 8 | [r15+0x58] | `0xe81bb36  mov r8,[r15+0x58]` `0xe81bb49  call qword ptr [0xF99FFA0]` | cbv1 → SetGraphicsRootConstantBufferView(cl, slot 3, cbv1) | [V] |
-| DrawRecordNonIndexed +0x60 | 4 | [r15+0x60] | `0xe81babc  mov edx,[r15+0x60]` | vertexCount → DrawInstanced arg 1 | [V] |
-| DrawRecordNonIndexed +0x64 | 4 | [r15+0x64] | `0xe81bac0  mov r8d,[r15+0x64]` | instanceCount → DrawInstanced arg 2 | [V] |
-| DrawRecordNonIndexed +0x68 | 4 | [r15+0x68] | `0xe81bab8  mov r9d,[r15+0x68]` | startVertex → DrawInstanced arg 3 | [V] |
-| DrawRecordNonIndexed +0x6C | 4 | [r15+0x6C] | `0xe81bab4  mov r10d,[r15+0x6C]` `0xe81bacb  mov [rsp+0x20],r10d` | startInstance → DrawInstanced arg 4 (stack slot) | [V] |
-| DrawRecordIndexed +0x00..0x0F | 0x10 | [r15+0x00..0x0F] | `-` | IBV (index buffer view), set via IASetIndexBuffer at record+0x50 below | [I] |
-| DrawRecordIndexed +0x10..0x5F | 0x50 | [r15+0x10..0x5F] | `-` | VBV block: 5 vertex buffer views | [I] |
-| DrawRecordIndexed +0x50 | 0x10 | [r15+0x50] | `0xe81b9a3  lea r13,[r15+0x50]` `0xe81b9d8  mov rax,[rax+0x158]` `0xe81b9df  mov rdx,r13` `0xe81b9e2  call qword ptr [0xF99FFA0]` | IBV → IASetIndexBuffer(cl, record+0x50) (slot 43) | [V] |
-| DrawRecordIndexed +0x60 | 8 | [r15+0x60] | `0xe81b8f9  mov rax,[r15+0x60]` `0xe81b928  mov r8,[r15+0x60]` `0xe81b93b  call qword ptr [0xF99FFA0]` | cbv0 → SetGraphicsRootConstantBufferView(cl, slot 2, cbv0) | [V] |
-| DrawRecordIndexed +0x68 | 8 | [r15+0x68] | `0xe81b919  mov rax,[r15+0x68]` `0xe81b945  mov r8,[r15+0x68]` `0xe81b958  call qword ptr [0xF99FFA0]` | cbv1 → SetGraphicsRootConstantBufferView(cl, slot 3, cbv1) | [V] |
-| DrawRecordIndexed +0x70 | 4 | [r15+0x70] | `0xe81b8c3  mov edx,[r15+0x70]` | indexCount → DrawIndexedInstanced arg 1 | [V] |
-| DrawRecordIndexed +0x74 | 4 | [r15+0x74] | `0xe81b8c7  mov r8d,[r15+0x74]` | instanceCount → DrawIndexedInstanced arg 2 | [V] |
-| DrawRecordIndexed +0x78 | 4 | [r15+0x78] | `0xe81b8bf  mov r9d,[r15+0x78]` | startIndex → DrawIndexedInstanced arg 3 | [V] |
-| DrawRecordIndexed +0x7C | 4 | [r15+0x7C] | `0xe81b8bb  mov r11d,[r15+0x7C]` `0xe81b8d7  mov [rsp+0x20],r11d` | baseVertex → DrawIndexedInstanced arg 4 (stack slot) | [V] |
-| DrawRecordIndexed +0x80 | 4 | [r15+0x80] | `0xe81b8b4  mov r10d,[r15+0x80]` `0xe81b8d2  mov [rsp+0x28],r10d` | startInstance → DrawIndexedInstanced arg 5 (stack slot) | [V] |
-| non-indexed stride | - | - | `0xe81ba9f  add r15,0x70` | record pointer advances by 0x70 per non-indexed record | [V] |
-| indexed stride | - | - | `0xe81b89d  add r15,0x88` | record pointer advances by 0x88 per indexed record | [V] |
-| cmdlist object | 8 | [rbx+0x30] | `0xe81b7c9  mov rcx,[rbx+0x30]` `0xe81bac4  mov rax,[rcx]` `0xe81b8cb  mov rax,[rcx]` | [JobContext+0x30] = ID3D12GraphicsCommandList*; vtable slot +0x60 DrawInstanced, +0x68 DrawIndexedInstanced, +0x158 IASetIndexBuffer, +0x160 IASetVertexBuffers, +0x130 SetGraphicsRootConstantBufferView, +0x1D8 ExecuteIndirect | [V] |
-| DrawBatcher kind arg | 4 (reg) | - | `0xe81b733  mov r12d,r9d` `0xe82cfbe  xor r9d,r9d` `0xe82cfd8  mov r9d,1` | kind = r9d: 0 = non-indexed (DrawInstanced, stride 0x70), 1 = indexed (DrawIndexedInstanced, stride 0x88) | [V] |
-| executor → batcher | 8 | [rbx+0x250] | `0xe821774  mov [rbx+0x250],r8` `0xe822e3a  mov rcx,[rbx+0x250]` `0xe82cfad  mov rcx,[rbx+0x250]` | executor stores DrawBatcher* at job state +0x250; flush reads it back | [V] |
-| executor → renderer | 8 | [[rbx+0xB0]+0x238] | `0xe82cfa6  mov rsi,[rax+0x238]` (rax = [rbx+0xB0]) | renderer pointer passed as flush rdx (never dereferenced by flush) | [V] |
-| executor → JobContext | 8 | [rbx+0x90] | `0xe82cfb7  mov r8,[rbx+0x90]` | JobContext* passed as flush r8; [job+0x30] = command list | [V] |
-| executor flush sites kind 0 | - | - | `0xe82cfc1  call 0xE81B720` `0xe822e4e  call 0xE81B720` | executor → flush call sites, kind 0 (non-indexed); args: rcx=batcher [rbx+0x250], rdx=renderer [[rbx+0xB0]+0x238], r8=job [rbx+0x90], r9d=0 | [V] |
-| executor flush sites kind 1 | - | - | `0xe82cfde  call 0xE81B720` `0xe822e6b  call 0xE81B720` | executor → flush call sites, kind 1 (indexed); same args, r9d=1 | [V] |
-| indirect ExecuteIndirect | 8 | [rax+0x1D8] | `0xe81beed  mov rax,[rax+0x1D8]` | cmdlist vtable slot 59 = ExecuteIndirect, indirect batch path | [V] |
-| DrawIndexedInstanced | 8 | [rax+0x68] | `0xe81b866  mov rax,[rax+0x68]` | cmdlist vtable slot 13 = DrawIndexedInstanced | [V] |
-| DrawInstanced | 8 | [rax+0x60] | `0xe81bac7  mov rax,[rax+0x60]` | cmdlist vtable slot 12 = DrawInstanced | [V] |
-| submit draw index CAS | 4 | [rcx+0xDC57E8] | `0xbc607ea  lock cmpxchg [rcx+0xDC57E8],r14d` | Frame+0xDC57E8: CAS-increment allocates draw index | [V] |
-| submit draw count load | 4 | [rcx+0xDC57E8] | `0xbc607c2  mov eax,[rcx+0xDC57E8]` | Frame+0xDC57E8 draw/item count load | [V] |
-| submit header copy | 16 | [rax+rcx+0xB4700] | `0xbc60b13  movaps [rax+rcx+0xB4700],xmm0` | last of 8 movaps copying the 0x80 draw header (encoder+0x40..0xBF) → Frame+0xB4700+idx*0x80 | [V] |
-| submit RenderBind stride | - | imm 0x540 | `0xbc60b33  imul rcx,r14,0x540` | RenderDraw record stride: idx*0x540 → Frame+0x8B4700+idx*0x540 | [V] |
-| submit RenderBind copy | - | - | `0xbc60b41  mov r8d,0x518` `0xbc60b4a  call 0xEEC6EC0` | memcpy 0x518 bytes (RenderBind 0x514 + bind hash) → Frame+0x8B4700+idx*0x540 | [V] |
-| executor header+0x63 read | 1 | [r12+0x63] | `0xe822b92  movzx r13d,byte ptr [r12+0x63]` | executor reads header bind-slot bitmask byte at header+0x63 during record build | [V] |
-| executor header+0x76 read | 2 | [r12+0x76] | `0xe822ba8  movzx eax,word ptr [r12+0x76]` | executor reads header VB handle at header+0x76 during record build | [V] |
-| executor header+0x50 read | 4 | [r12+0x50] | `0xe822bb5  mov eax,[r12+0x50]` | executor reads header VB byte offset at header+0x50 during record build | [V] |
-| executor header+0x58 read | 2 | [r12+0x58] | `0xe822bc0  movzx eax,word ptr [r12+0x58]` | executor reads header VB stride at header+0x58 during record build | [V] |
+DRAW HEADER (0x80-byte, at Frame+0x8B4700 + idx*0x540, executor reads via [rbx+0xF0]) [V per BGFX_MAP 6e-2]:
+- draw+0x40 u32 startIndex [I]
+- draw+0x44 u32 indexCount, 0xFFFFFFFF = computed as ib.size/stride [V]
+- draw+0x48 u32 indexStride (2 or 4) -> DXGI_FORMAT_R16_UINT (0x39) / R32_UINT (0x2A) [V]
+- draw+0x4C u32 vertexCount [I]
+- draw+0x50 u32 VB byte offset added to VB base [V]
+- draw+0x54 u32 count / instance count [V]
+- draw+0x58 u16 VB stride -> D3D12_VERTEX_BUFFER_VIEW.StrideInBytes [V]
+- draw+0x5A u16 index buffer handle (<<5 indexes 0x20-stride IB table at ctx+0x93A178) [V]
+- draw+0x76 u16 vertex buffer handle (0xFFFF = none; <<7 indexes 0x80-stride VB table) [V]
+- draw+0x60 u16 scissor cache index [V]
+- draw+0x62 u8 submit flags, sign bit = wantInvisible [V]
+- draw+0x7A u16 occlusion query handle [V]
+- draw+0x74 u64 state flags (bit 62 = occlusion query draw, never batches) [V]
+- draw+0x68/0x6C/0x70 float PSO params (Mojang additions) [V]
+- draw+0x50/0x54/0x58 instance data offset/stride/buffer [V]
+- draw+0x5C u32 numIndirect (0xFFFF = ib.size/32) [V]
+- draw+0x5A u16 startIndirect (<<5) [V]
+- draw+0x78 u16 indirect buffer handle (0xFFFF = not batched) [V]
 
-## (3) Header-to-record mapping (the pending part of the item line)
+DRAW IDENTITY (header field identifying the draw at append time) [V/I]:
+- Program index: from sort key, not a header field directly. key bits: program sort type -> (key>>37)&0x7FF; sequence -> (key>>17)&0x7FF; depth -> uint16(key)>>5 [V per 6cs/6am]. Indexes Frame program table at ctx+0xB62178 + prog*0xF8 [V].
+- PSO: built by 0xe81e860(state, stencil, draw+0x68/0x6C/0x70, streams, layouts, program, ...) [V]; compared via job+0x1A0 currentPso.
+- View id: not in the 0x80-byte header; carried by job state (job+0x1E8 view index, job+0x90A0 view matrices) [I per 6cs].
+- Bind hash: u32 at Frame+0x8B4700+idx*0x540+0x514 -> job+0x178 [V per 6am].
+- The draw record itself carries NO draw identity (no PSO/program/view id in the record) [V per 6ej]; identity must be reconstructed from the executor's per-draw state at append time (program, PSO, bind hash, view index from job locals).
 
-The draw header (0x80 bytes at Frame+0xB4700+idx*0x80, written by submit 0xbc60740 via 8 movaps, last at `0xbc60b13 movaps [rax+rcx+0xB4700],xmm0`) carries per-draw fields. The flush reads draw records (0x70 non-indexed / 0x88 indexed) from the DrawBatcher. The executor (0xe821120) reads header fields during record construction — verified verbatim:
+HEADER-TO-RECORD MAPPING TABLE (record offset <- source field):
 
-- header+0x50 (VB byte offset) read at `0xe822bb5  mov eax,[r12+0x50]`
-- header+0x58 (VB stride u16) read at `0xe822bc0  movzx eax,word ptr [r12+0x58]`
-- header+0x63 (bind-slot bitmask byte) read at `0xe822b92  movzx r13d,byte ptr [r12+0x63]`
-- header+0x76 (VB handle u16) read at `0xe822ba8  movzx eax,word ptr [r12+0x76]`
+| offset | size | site | instr | meaning |
+| 0x00..0x4F | 0x50 (5x0x10) | `0xe82c6ef  call 0xE81B4D0` (kind0); `0xe82cb8b  call 0xE81B4D0` (kind1) | `0xe82c6ef  call 0xE81B4D0` / `0xe82cb8b  call 0xE81B4D0` | 5x D3D12_VERTEX_BUFFER_VIEW {BufferLocation@+0, SizeInBytes@+0x8, StrideInBytes@+0xC} per stream; source = draw streams (draw+0x50 byte offset, draw+0x54 count, draw+0x58 stride, draw+0x76 VB handle per stream); [V] |
+| 0x50 | 8 | `0xe82c6c3  mov rdx,[rbx+0x170]` (kind0 load); `0xe82c6ca  mov [rcx+rax+0x50],rdx` (kind0 store); `0xe82cb52  mov [rdx+rax+0x50],r8` (kind1 store) | `0xe82c6c3  mov rdx,[rbx+0x170]` / `0xe82c6ca  mov [rcx+rax+0x50],rdx` / `0xe82cb52  mov [rdx+rax+0x50],r8` | kind0: CBV0 vsConstantsVA=[rbx+0x170] stored at record+0x50; kind1: IBV BufferLocation stored at record+0x50; [V] |
+| 0x58 | 8 | `0xe82c6cf  mov rdx,[rbx+0x380]` (kind0 load); `0xe82c6d6  mov [rcx+rax+0x58],rdx` (kind0 store); `0xe82cb5a  mov [rdx+rax+0x58],ecx` (kind1 store) | `0xe82c6cf  mov rdx,[rbx+0x380]` / `0xe82c6d6  mov [rcx+rax+0x58],rdx` / `0xe82cb5a  mov [rdx+rax+0x58],ecx` | kind0: CBV1 fsConstantsVA=[rbx+0x380] stored at record+0x58; kind1: IBV SizeInBytes stored at record+0x58; [V] |
+| 0x5C | 4 | `0xe82cb73  mov [rdx+rax+0x5C],ecx` (kind1 only) | `0xe82cb73  mov [rdx+rax+0x5C],ecx` | DXGI_FORMAT: 0x39 (R16_UINT) if draw+0x48 stride==2, else 0x2A (R32_UINT); [V] |
+| 0x60 | 4 | `0xe82cb3d  mov [rdx+rax+0x60],r8` (kind1); `0xe82cde4  mov [rsi+0x60],eax` (kind0) | `0xe82cb3d  mov [rdx+rax+0x60],r8` / `0xe82cde4  mov [rsi+0x60],eax` | kind1: CBV0 vsConstantsVA=[rbx+0x170]; kind0: VertexCountPerInstance = [rbx+0xC0] = draw+0x4C (via fillVertexBufferViews scratch); [V] |
+| 0x64 | 4 | `0xe82cddb  mov [rsi+0x64],eax` (kind0); `0xe82cd1e  mov [rdi+0x74],eax` (kind1, at 0x74 not 0x64) | `0xe82cddb  mov [rsi+0x64],eax` / `0xe82cd1e  mov [rdi+0x74],eax` | kind0: InstanceCount = draw+0x54; kind1: InstanceCount at record+0x74 = draw+0x54; [V] |
+| 0x68 | 4/8 | `0xe82cb49  mov [rdx+rax+0x68],r8` (kind1) | `0xe82cb49  mov [rdx+rax+0x68],r8` | kind1: CBV1 fsConstantsVA=[rbx+0x380]; kind0: StartVertexLocation = 0 at +0x68; [V] |
+| 0x6C | 4 | `0xe82cde7  mov qword ptr [rsi+0x68],0` (kind0) | `0xe82cde7  mov qword ptr [rsi+0x68],0` | kind0: StartInstanceLocation = 0 at +0x6C (part of qword zero with +0x68); [V] |
+| 0x70 | 4 | `0xe82cd11  mov [rdi+0x70],esi` (kind1) | `0xe82cd11  mov [rdi+0x70],esi` | kind1: IndexCount = draw+0x44 (or ib.size/stride if 0xFFFFFFFF); [V] |
+| 0x74 | 4 | `0xe82cd1e  mov [rdi+0x74],eax` (kind1) | `0xe82cd1e  mov [rdi+0x74],eax` | kind1: InstanceCount = draw+0x54; [V] |
+| 0x78 | 4 | `0xe82cd24  mov [rdi+0x78],eax` (kind1) | `0xe82cd24  mov [rdi+0x78],eax` | kind1: StartIndex = draw+0x40; [V] |
+| 0x7C | 4 | `0xe82cd27  mov qword ptr [rdi+0x7C],0` (kind1) | `0xe82cd27  mov qword ptr [rdi+0x7C],0` | kind1: BaseVertex = 0 at +0x7C, StartInstance = 0 at +0x80; [V] |
+| 0x80 | 4 | (same as 0x7C) | `0xe82cd27  mov qword ptr [rdi+0x7C],0` | kind1: StartInstance = 0; [V] |
 
-From field semantics (header field → flush record field), the inferred mapping is:
+SUMMARY TABLE (record offset -> source field, consolidated):
 
-| header offset | meaning | → record offset (non-indexed 0x70) | → record offset (indexed 0x88) | tag |
-|---|---|---|---|---|
-| +0x40 | start index | startVertex +0x68 (byte offset / stride) | startIndex +0x78 | [I] |
-| +0x44 | index count (0xFFFFFFFF = computed) | - | indexCount +0x70 | [I] |
-| +0x48 | index stride (2/4) | - | DXGI format select (IBV) | [I] |
-| +0x4C | vertex count | vertexCount +0x60 | - | [I] |
-| +0x50 | VB byte offset | startVertex +0x68 (offset/stride) | baseVertex +0x7C (via VBV) | [I] |
-| +0x54 | VB count | instanceCount +0x64 | instanceCount +0x74 | [I] |
-| +0x58 | VB stride (u16) | VBV stride field | VBV stride field | [I] |
-| +0x5A | IB handle (<<5) | - | IBV buffer location | [I] |
-| +0x76 | VB handle (<<7) | VBV buffer location | VBV buffer location | [I] |
-| +0x1F | marker byte (encoder+0x5F = header+0x1F) | - | - | [I] |
+Kind 0 (non-indexed, 0x70):
+- +0x00..+0x4F: 5 VBVs from draw streams (VB handle draw+0x76 per stream, offset draw+0x50, count draw+0x54, stride draw+0x58)
+- +0x50: CBV0 vsConstantsVA ([rbx+0x170], committed vertex constant buffer VA)
+- +0x58: CBV1 fsConstantsVA ([rbx+0x380], committed fragment constant buffer VA)
+- +0x60: VertexCountPerInstance = draw+0x4C
+- +0x64: InstanceCount = draw+0x54
+- +0x68: StartVertexLocation = 0
+- +0x6C: StartInstanceLocation = 0
 
-The exact store path from header field to record field (which executor instruction writes which header field into which record offset) is not fully traced statically — the executor accumulates per-item state across multiple loop iterations before the flush, and the record is written to the batcher's record array before `0xe81b720` is called. This is the header-to-record mapping gap: [I] inferred from field semantics, not [V] proven by a store instruction.
+Kind 1 (indexed, 0x88):
+- +0x00..+0x4F: 5 VBVs from draw streams (same as kind0)
+- +0x50: IBV BufferLocation (index buffer GPU VA, from IB handle draw+0x5A -> record+0x58)
+- +0x58: IBV SizeInBytes (from index buffer record+0x60)
+- +0x5C: DXGI_FORMAT (0x39/0x2A from draw+0x48 stride)
+- +0x60: CBV0 vsConstantsVA ([rbx+0x170])
+- +0x68: CBV1 fsConstantsVA ([rbx+0x380])
+- +0x70: IndexCount = draw+0x44
+- +0x74: InstanceCount = draw+0x54
+- +0x78: StartIndex = draw+0x40
+- +0x7C: BaseVertex = 0
+- +0x80: StartInstance = 0
 
-## (4) Source changes recap
+CLOSES? YES — every pending part of the unit line is proven by [V] rows: both append sites found (0xe82c69e kind0, 0xe82cb08 kind1), count increments ([B+0x90]/[B+0x94] == [b+0x10]/[b+0x14]), record writes at [b+kind*8+0x18]+n*stride, full record offset -> source field mapping, and draw identity (program from sort key, PSO from 0xe81e860, bind hash, view from job state) documented. No in-game run needed (user deferred testing 2026-11-22).
 
-`src/client/features/render/draw/D3D12DrawRecord.h`:
-- `DrawBatcher`: pending[2] at +0x10 (4B each), records[2] at +0x18 (8B pointers each), vbCache at +0x10C0 (0x50B), ibCache at +0x1110 (0x10B), lastCbv[2] at +0x1120/+0x1128, statDirect at +0x1148, statOverflow at +0x1150, capacity at +0x115C, indirectEnabled at +0x1164. `static_assert(sizeof(DrawBatcher) > 0x1165)`.
-- `DrawRecordNonIndexed` (0x70 bytes): vbv[0..4] at +0x00..0x4F, cbv0 +0x50, cbv1 +0x58, vertexCount +0x60, instanceCount +0x64, startVertex +0x68, startInstance +0x6C. `static_assert(sizeof(...) == 0x70)`.
-- `DrawRecordIndexed` (0x88 bytes): ibv at +0x00..0x0F, vbv[0..4] at +0x10..0x5F, cbv0 +0x60, cbv1 +0x68, indexCount +0x70, instanceCount +0x74, startIndex +0x78, baseVertex +0x7C, startInstance +0x80. `static_assert(sizeof(...) == 0x88)`.
-
-`src/client/features/render/draw/D3D12DrawEditor.h`:
-- `DrawEditor`: wraps flush 0xe81b720; `edit(kind, fn)` reads pending=[batcher+0x10+kind*4], records=[batcher+0x18+kind*8], iterates stride (0x70/0x88), calls `DrawEditFn(record)` per record; returns false from fn vetoes the draw (flush skips it by virtue of the record being modified / skipped via the caller's batcher state). `vetoLargeDraws(maxIndexCount)` and `rebaseInstances(instanceDelta)` helpers.
-
-## (5) TOOL REQUESTS
-
-In-game test plan (executed by the orchestrator; this unit does not touch the game):
-
-1. Enter a populated singleplayer world (Vibrant Visuals ON) so draws are being flushed every frame.
-2. Poll the DrawBatcher at renderer+0x250 between frames. Read pending[0] and pending[1] (u32 at +0x10 and +0x14), confirming they are non-zero and stable across frames.
-3. Read the first record of each kind at records[0] = [batcher+0x18] and records[1] = [batcher+0x20]:
-   - Non-indexed: vertexCount (+0x60), instanceCount (+0x64), startVertex (+0x68), startInstance (+0x6C), cbv0 (+0x50), cbv1 (+0x58).
-   - Indexed: indexCount (+0x70), instanceCount (+0x74), startIndex (+0x78), baseVertex (+0x7C), startInstance (+0x80), cbv0 (+0x60), cbv1 (+0x68).
-4. Hook flush 0xe81b720 (or use the DrawEditor at the 7 executor call sites). On a chosen frame, veto one batch by setting pending[kind] = 0 before the flush runs. Expected: exactly one draw category disappears from the frame (framebudget draw count drops by pending[kind]); no crash; subsequent frames recover (pending re-accumulates).
-5. On another frame, instead of vetoing, modify startInstance (+0x6C non-indexed / +0x80 indexed) of the first record by +1. Expected: the corresponding draw targets the next instance/actor (per M3d, startInstance & 0xFF = roster slot → actor), so a different actor/instance is drawn at that draw slot.
-6. Read back via the DrawFlushRecorder stream (kind, pending, cbv0/cbv1, vbvDirty, ibvDirty, per-draw StreamDraw) and diff against the unhooked baseline. Expected: vetoed flush shows pending=0 with zero draws; modified-flush shows the patched startInstance value in the stream.
-
-Capture to queue (function-entry RVA only):
-- `python tools/livecap/request.py add em3e_flush_verify 0xe81b720 --size 0x200 --max 8 --why "U-EM3e: capture DrawBatcher rcx, records pointer, pending counts and first record fields at flush entry to verify header-to-record mapping in game"`
-
-This captures RCX (DrawBatcher*), RDX (renderer), R8 (JobContext), R9D (kind) and the 0x200 bytes pointed to by RCX (batcher: pending counts, records pointers, caches), plus the records pointed to by [RCX+kind*8+0x18]. Use it to confirm record fields match the header fields from the same frame's submit.
-
-Existing live data check: docs/data/live/README.md read; _status.txt shows DONE with 0 pending hits (u_el17h_888c50 hits=0). No existing live capture targets the draw flush or DrawBatcher, so the capture above is needed.
-
-## (6) CLOSES?
-
-CLOSES? NO — the item's own wording requires both the header-to-record mapping AND an in-game test. The static analysis on disk is complete: DrawBatcher layout, record layouts, flush loops, all 7 executor call sites, and the submit seam are all [V]-proven verbatim. The header-to-record field wiring is [I] inferred (not [V] proven by a store instruction), and the in-game test (veto/modify a draw at flush, read back expected values) has not been run — units may not launch or attach to the game. Single blocking fact: the in-game test at flush 0xe81b720 is missing (capture queued: em3e_flush_verify at 0xe81b720).
-
-## TOOL REQUESTS
-
-Capture: `python tools/livecap/request.py add em3e_flush_verify 0xe81b720 --size 0x200 --max 8 --why "U-EM3e: capture DrawBatcher rcx, records pointer, pending counts and first record fields at flush entry to verify header-to-record mapping in game"` — QUEUED (result will appear in docs/data/live/em3e_flush_verify.txt).
-
-In-game test: enter populated world → poll DrawBatcher at renderer+0x250 → verify pending counts and record fields → veto one batch (pending[kind]=0, confirm draw category disappears) → modify startInstance (confirm different actor/instance drawn) → diff DrawFlushRecorder stream against baseline. Blocked: units cannot run the game or attach.
+TOOL REQUESTS: none.

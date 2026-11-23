@@ -3,6 +3,16 @@
 #include "client/features/render/rewrite/RewriteVerify.h"
 #include "client/core/diagnostics/Log.h"
 #include "sdk/SigManager.h"
+#include "sdk/mc/deps/minecraft_renderer/framebuilder/FrameBuilder.h"
+
+// Layout the detours read: detourInsertBatchActor reads the InsertVariant tag at variant + 8.
+// Pinned to the SDK header (mce::framebuilder::InsertVariant { void* mDescription; uint64_t mTag; })
+// which mirrors mce::FrameBuilder::_insert's variant on 1.26.62.01; verified against the clone
+// at 0x4E39CB0 which stores tag 0xA at variant+8 (docs/progress/oc_U-EQ6b.md row 0x4E39D24).
+static_assert(offsetof(mce::framebuilder::InsertVariant, mTag) == 8,
+              "InsertVariant::mTag must stay at +8: detourInsertBatchActor reads the tag there");
+static_assert(sizeof(mce::framebuilder::InsertVariant) == 0x10,
+              "InsertVariant size must stay 0x10 (two qwords)");
 
 // Q6b: Optimization module — culling/batching/LOD driven by probe + profiler data, each feature registry-toggled.
 // Proof rows and seam pinning: docs/progress/oc_U-EQ6b.md.
@@ -109,11 +119,12 @@ uint64_t __fastcall RewriteOptimizer::detourInsertBatchActor(void* self, void* v
     if (mode == RewriteMode::Off || RewriteBusy::depth > 0)
         return e.original<&RewriteOptimizer::detourInsertBatchActor>()(self, variant, a3, a4);
 
-    // InsertVariant = {void* mDescription; uint64_t mTag;} (FrameBuilder.h): tag at +8.
-    const uint64_t tag = variant ? *reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(variant) + 8) : 0ull;
+    // InsertVariant = {void* mDescription; uint64_t mTag;} (FrameBuilder.h): tag at +8. variant is a required
+    // argument of _insert: read it directly, no null guard (fail fast).
+    const uint64_t tag = *reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(variant) + 8);
     incInsert(tag);
 
-    // Cull decision uses last frame's count (this frame's count is still being gathered); when armed and over
+    // Cull decision uses this frame's count so far (incInsert above just added this insert); when armed and over
     // threshold for an actor-ish tag, skip the original insert -> the whole class is culled this frame.
     uint32_t countThisFrame = tag < kTagTable ? sInsertCount[tag].load(std::memory_order_relaxed) : 0u;
     if (mode == RewriteMode::On && shouldCull(0 /*group*/, tag, countThisFrame)) {
@@ -135,9 +146,8 @@ void __fastcall RewriteOptimizer::detourDrawFlush(void* batcher, void* renderer,
         return;
     }
     // DrawBatcher pending count per kind: u32 at +0x10 + kind*4 (dossier docs/functions/e81b720.md). Read-only.
-    uint32_t pending = 0;
-    if (batcher)
-        pending = *reinterpret_cast<const uint32_t*>(reinterpret_cast<const uint8_t*>(batcher) + 0x10 + static_cast<size_t>(kind) * 4);
+    // batcher is a required argument of flush: read directly, no null guard (fail fast).
+    const uint32_t pending = *reinterpret_cast<const uint32_t*>(reinterpret_cast<const uint8_t*>(batcher) + 0x10 + static_cast<size_t>(kind) * 4);
     if (mode == RewriteMode::On && shouldSkipBatch(kind, pending)) {
         sBatchesSkippedThisFrame.fetch_add(1, std::memory_order_relaxed);
         return; // batch: skip emitting this tiny batch

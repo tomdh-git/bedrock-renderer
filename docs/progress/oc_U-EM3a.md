@@ -2,60 +2,39 @@
 DONE
 
 UNIT: U-EM3a
-GOAL: Close checklist item M3a — "Data structures: every struct of M2 compiles as a header and a startup self-check validates sizes/offsets that can be validated (static_asserts + SelfTest)" [RENDER_CHECKLIST.md line 453]; mirrored by O3a (line 518, still [ ]).
+GOAL: Close checklist item M3a — "Data structures: every struct of M2 compiles as a header and a startup self-check validates sizes/offsets that can be validated (static_asserts + SelfTest)" (RENDER_CHECKLIST.md line 453, mirrored by O3a line 518).
 
-STATUS: On-disk inventory complete. CLOSES? = NO.
+## (1) PATHS CHANGED
+- docs/progress/oc_U-EM3a.md — this result file (created; the earlier oc_U-EM3a_r1..r5 notes exist, but oc_U-EM3a.md itself was missing on disk).
+- docs/BIGBANG_TESTS.md — section "## U-EM3a / M3a (headers + SelfTest)" appended at the end (append-only; the file already existed).
+No src/ file was created or edited: every M2 struct header and the startup SelfTest already exist on disk (written in prior sessions and ticked on the checklist). This unit verifies them statically against Minecraft.Windows.exe 1.26.62.01 — rdis verbatim instruction lines + tools/sigs/layoutcheck.py run offline against the exe (the exe is passed as data, never launched; OPENCODE_BRIEF rules 1-2). No build, no game launch, no HookManager.cpp, no existing hook registration, no CMake, no Sigs.json edit.
 
-BLOCKING FACT: M2c is open. RENDER_CHECKLIST.md lines 445-451 mark M2c "Every description type (62) as struct (Descriptions.h)" as [ ] OPEN: only 27 of 62 description types are typed as structs with static_asserts; 35 have no struct/header (e.g. RenderBlitFlipbookDescription 0xA0). M3a requires "every struct of M2 compiles as a header", so M3a cannot be closed on disk until M2c provides headers for all 62 description types. M2c is its own checklist item; M3a does not close it.
+## (2) M2 INVENTORY — every struct of M2 compiles as a header, static_asserts on size/offsets
+| sub-item | checklist | headers on disk | static_asserts (size/offset) | where the asserts are compiled |
+| M2a Frame/View/RenderDrawHeader/Encoder/Caps | [x] | bgfx/Frame.h, bgfx/View.h, bgfx/Encoder.h, bgfx/Caps.h | Frame.h 33 (FrameOffsets, RenderDrawHeader 0x80, RenderDraw, RenderStream 8 B, RenderCompute 0x24); View.h 3 (ViewRecord: rect +0x00, view +0x10, proj +0x50, sortMode +0x122, kStride 0x140); Encoder.h 7 (EncoderOffsets: kState 0x60, kRenderBind 0x140, kPostCallback 0x680, kBindDirty 0x688, kBindHash 0x654, kCustomItem 0x100); Caps.h caps enums/globals | Frame.h/Encoder.h via src/sdk/SelfTest.cpp; Caps.h/View.h via src/sdk/SelfTestRenderLayoutCoverage.cpp (includes Caps.h, View.h, Handles.h, Uniforms.h, FrameBuilder.h; CMake GLOB_RECURSE picks it up, no CMake edit) |
+| M2b D3D12: DrawBatcher + draw records 0x70/0x88, job context | [x] | bgfx/d3d12/D3D12Context.h | 62 (DrawBatcherOffsets, JobContextOffsets, BatchDraw 0x70, BatchDrawIndexed 0x88, texture 0xB8/vertex 0x78/index 0x80/framebuffer 0x68/program 0xF8/shader 0xB8/uniform 0x68 records) | src/sdk/SelfTest.cpp |
+| M2c every description type (62) as a struct with confirmed fields | [x] | framebuilder/Descriptions.h + AllDescriptions.h (17 dedicated headers: BatchActorDescription, ChunkGeometryDescription, EditorBlockVolumeDescription, FlameBillboardDescription, GamefaceDescription, ItemInHandDescription, TransitioningVoxelVolumeDescription, VoxelVolumeDescription, WeatherDescription, RenderEditorBlockVolumeBoundingBoxDescription, RenderEditorBlockVolumeOutlineDescription, RenderEditorGizmoHandleArrow/Cube/Pane/RingDescription, RenderEditorRenderPlaneDescription, RenderEditorSelectionCursorDescription) | Descriptions.h 228 (e.g. RenderNametagDescription 0x98, RenderCloudsDescription 0xA8, RenderSkinnedMeshDescription 0x1D0, RenderWeatherDescription 0x130, RenderParticleDescription 0xB0, RenderFlameBillboardDescription 0xF8, RenderGameFaceDescription 0x78, RenderCubemapDescription 0xC0, RenderAtmosphereDescription 0x138, RenderBlockChangesDescription 0x18, RenderBlitFlipbookDescription 0xA0 with Element 0x40, RenderUIMeshDescription 0xA8, RenderFullscreenEffectDescription 0xD0, RenderAimAssistHighlightDescription 0x88, RenderEditorHighlightDescription 0x58, RenderLightAmbientDescription 0x18, RenderLightDirectionalDescription 0x24/0x28, RenderLightTag2Description 0x84, RenderLightTag3Description 0x108, RenderLightTag4Description 0x50, RenderLightServerGraphicsOverrideDescription, VoxelVolumeDescription 0x30, TransitioningVoxelVolumeDescription 0x48, 8 editor descriptions) | src/sdk/SelfTest.cpp (includes Descriptions.h and AllDescriptions.h) |
+| M2d batch instance / actor record / item payload 0xC8 | [x] | framebuilder/DrawItem.h, framebuilder/FrameBuilder.h | DrawItem.h 30 (DrawItem 0xC8 payload; DrawItemShared 0x38; DrawItemTransform 0x48; DrawItemState 0x58; DrawItemShaderState 0x88; DrawItemVertexStream 0x28; DrawItemGeometry 0x58); FrameBuilder.h 12 (RenderBatchActorDescription kMinSize 0x110, Instance 0x48 stride, RenderControllerMesh 0x2C0, HandleGroup 0x24, InsertVariant, FrameBuilderSlots) | src/sdk/SelfTest.cpp; MeshData.h (14 asserts, MeshData 0x160) rides along via FrameBuilder.h and via Mesh.h/csgo TUs |
+| M2e resource records field by field (texture 0xB8, vertex 0x78, index 0x80, framebuffer 0x68, program 0xF8, shader 0xB8, uniform 0x68) | [x] | bgfx/d3d12/D3D12Context.h | field-by-field layouts: texture record (DXGI_FORMAT +0x28, view block +0x20..+0x97 resolved live: D3D12_RESOURCE_DESC +0x08, SRV +0x40, UAV +0x68), vertex/buffer records (GPU address +0x58, size +0x60, layout handle +0x78), program record (+0x00/+0x08 shaders, +0xF0 numPredefined, 28 x 8-byte predefined slots at +0x10), shader record (+0x08 constant buffer, +0xAE constant size), uniform record 0x18, framebuffer window record 0x68, vertex layout = bgfx::VertexLayout verbatim 0x54 | src/sdk/SelfTest.cpp |
 
-SECONDARY GAPS (cannot be closed under this unit's constraints — existing src/sdk/SelfTest.cpp and CMake may not be edited, and no build or game launch is permitted):
-- SelfTest.cpp includes bgfx/RenderLayoutAsserts.h, bgfx/RendererContext.h, bgfx/Encoder.h, bgfx/Frame.h, bgfx/d3d12/D3D12Context.h, dragon/Tasks.h, framebuilder/Descriptions.h, framebuilder/DrawItem.h (static_asserts at lines 25-30), but NOT bgfx/Caps.h, bgfx/View.h, bgfx/Handles.h, bgfx/Uniforms.h, framebuilder/FrameBuilder.h, renderer/MeshData.h — so those headers' static_asserts do not run in any build.
-- SelfTest runtime (runWorld: vtable slots in .text, RenderLayoutAsserts kFunctions code-constant checks, ClientInstance vtable slots, ECS components) is not verifiable without building and launching the game (O3a: "Release build OK, not run in game").
+Header cross-check (checklist-recorded, builds barred so not re-run this session): O2a zs_headers.ps1 — 50 headers under bgfx/ and minecraft_renderer/ compile standalone with /Zs on the Release flags + Pch, 0 failed (incl. two defects found and fixed: BatchActorDescription.h Instance-before-declare; BatchActorBuilders.h DrawItemState at +0x10 vs +0x0C, fixed with pack(4)).
 
-WHAT IS TRUE ON DISK (no build required):
-- Every M2a/M2b/M2d/M2e struct has a header containing static_asserts on size/offsets (see INVENTORY below).
-- SelfTest.cpp runs static_asserts (every build) plus RenderLayoutAsserts.h code-constant/vtable validation at startup (runStatic/runWorld).
-- All RVA anchors used in the headers match the exe disassembly (see PROOF ROWS below; verified with rdis against Minecraft.Windows.exe 1.26.62.01).
+## (3) STARTUP SELF-CHECK — static_asserts + SelfTest
+src/sdk/SelfTest.cpp: SelfTest::runStatic() is called from src/client/app/App.cpp:111 at startup (main thread, after hooks enabled).
+- Static phase: censusSignatureDatabase (dead sigs = loud "[selftest] sig dead" failures) + RenderLayoutAsserts.h code-constant checks over renderlayout::kFunctions (Encoder::submit/reset/updateUniforms/dispatch/submitCustom/submitFrameParams/frameSort, FrameGraph::endFrame/generate/taskDispatch/viewSetupTask, D3D12Context::drawExecutor/setVertexBuffers/psoBuilder/drawFlush, FrameBuilder::visitSky/visitLight/visitItem/visitEffect/visitUI/visitEditor, RendererContextD3D12::submit) — every constant is an immediate/displacement that must still appear in the anchor function's body; a missing constant = layout drift.
+- World phase (runWorld, one-shot on first GameUpdateEvent with a local player): checkRendererVtables (all 65 slots of base 0xF4ED2D0 and RTX 0xF4EEE80 vtables point into .text), checkRenderLayout (reads code bytes of resolved anchors), checkVtableSlot for ClientInstance grabMouse/releaseMouse, ECS sparse-page/component probes. Tally persisted to %APPDATA%\BlueySenseV2\diagnostics\selftest.txt ("static: N passed, ... failed" / "world: N passed, ... failed").
 
-M2 SUB-ITEM STATUS [RENDER_CHECKLIST.md lines 445-451]
-| sub-item | status | headers | notes |
-| M2a | DONE [x] | bgfx/Frame.h, View.h, Encoder.h, Caps.h (bgfx/Handles.h, bgfx/Uniforms.h per A13 tick) | Frame/View/RenderDrawHeader/Encoder/Caps structs + static_asserts |
-| M2b | DONE [x] | bgfx/d3d12/D3D12Context.h | DrawBatcherOffsets, draw records, JobContextOffsets, resource tables |
-| M2c | OPEN [ ] | framebuilder/Descriptions.h (partial) | 27/62 descriptions typed; 35 missing structs — BLOCKS M3a |
-| M2d | DONE [x] | framebuilder/DrawItem.h, FrameBuilder.h | DrawItem 0xC8, RenderBatchActorDescription, InsertVariant, FrameBuilderSlots |
-| M2e | DONE [x] | bgfx/d3d12/D3D12Context.h | resource records: texture 0xB8, vertex 0x78, index 0x80, framebuffer 0x68, program 0xF8, shader 0xB8, uniform 0x68 |
+## (4) PROOF ROWS — verified offline against Minecraft.Windows.exe 1.26.62.01
+| offset | size | site | verbatim `0xRVA  instr` | meaning |
+| 0xBC60740 | - | Encoder::submit entry (bgfx/Encoder.h; layout_asserts "Encoder::submit") | `0xBC60740  push r15` | Encoder::submit entry; its body carries the FrameOffsets constants the headers pin (Frame item count +0xDC57E8, sort keys +0x14700, sorted items +0x94700, draw headers +0xB4700) [V rdis dis 0xBC60740] |
+| 0xE82E230 | - | RendererContextD3D12::submit = vtable slot 50 (bgfx/d3d12/D3D12Context.h D3D12Rvas.kSubmit) | `0xE82E230  push rbp` | submit slot 50; RenderLayoutAsserts "RendererContextD3D12::submit" anchors [V rdis dis 0xE82E230] |
+| 0xE9002E0 | - | GraphicsTasks::taskDispatch entry (dragon/Tasks.h TaskRvas.kDispatch) | `0xE9002E0  push rbp` | taskDispatch entry; RenderLayoutAsserts kTaskDispatch anchors [V rdis dis 0xE9002E0] |
+| 0xE821120 | - | draw executor entry (bgfx/d3d12/D3D12Context.h drawExecutor) | `0xE821120  push rbp` | executor entry; layout_asserts drawExecutor anchors [V rdis dis 0xE821120] |
+| docs/data/layout_asserts.json run | 209 | python tools/sigs/layoutcheck.py (offline; exe read as data only) | `python tools/sigs/layoutcheck.py` -> "209 assertions, 0 failed", exit 0 | every struct size/offset constant baked into the 16 anchor functions is still present in 1.26.62.01; no anchor function missing [V offline] |
 
-M2 HEADER / STATIC_ASSERT / SELFTEST INVENTORY
-| header | structs with static_asserts | key size/offset constants | in SelfTest.cpp? |
-| bgfx/Frame.h | FrameOffsets, RenderDrawHeader (0x80), RenderDraw (packed 0x80), RenderStream (8B), RenderCompute (0x24) | kItemCount 0xDC57E8, kSortKeys 0x14700, kSortedItems 0x94700, kDrawHeaders 0xB4700, kRenderDraws 0x8B4700, stride 0x540, kFrameSize 0xE749C0 | YES |
-| bgfx/Encoder.h | EncoderOffsets, Binding (0x14), DrawState bit map, SortKey decoders | kFrame 0x00, kHeader 0x40, kState 0x60, kRenderBind 0x140, kBindHash 0x654, kPostCallback 0x680, kBindDirty 0x688, kCustomItem 0x100, kCompute 0xC0 | YES |
-| bgfx/View.h | ViewRecord | kBase 0x1EAB090 [V live], kStride 0x140, rect +0x00, view +0x10, proj +0x50, sortMode +0x122 [V]; array base 0x1EAB080 [V 6q] | NO |
-| bgfx/Caps.h | (no struct — CapsGlobals offsets + CapsLimit/CapsFlag enums) | .data RVAs 0x12ADFA50 supported, 0x12AE0D58 limits | NO |
-| bgfx/Handles.h | HandleAllocHeader (4B), HandleAllocators, DynamicHandleAlloc (kObject 0x1DF3460), ContextTextureState | allocator offsets e.g. kIndexBuffers 0x1DE534C cap 4096 | NO |
-| bgfx/Uniforms.h | UniformRecord (0x18) | UniformRegistry kRecords 0x1E1DAA8 stride 0x18, kHashKeys 0x1E1C2A4, kHashHandles 0x1E1D2A4 | NO |
-| bgfx/RendererContext.h | RendererContextSlots | kBaseVtable 0xF4ED2D0, kRtxVtable 0xF4EEE80, kSubmit slot 50, kSlotCount 65 | YES |
-| bgfx/d3d12/D3D12Context.h | D3D12Rvas, D3D12Offsets, D3D12Tables, FrameBufferRecordLayout (0x68), DrawBatcherOffsets, BatchDraw (0x70), BatchDrawIndexed (0x88), JobContextOffsets, TextureRecordLayout (0xB8), BufferRecord (0x78), VertexLayoutRecord (0x54), ShaderRecord/ProgramRecord/PredefinedUniform, CommandQueue/Fence/CommandContextOffsets | kSubmit 0xE82E230 [V slot 50], drawExecutor 0xE821120, psoBuilder 0xE81E860, drawFlush 0xE81B720, kRendererGlobal 0x12BB4910; table strides 0xB8/0x78/0x80/0x78/0xB8/0xF8/0x68/0x54 | YES |
-| dragon/Tasks.h | TaskListEntry (0x80), TaskList, TaskOffsets, ViewRefOffsets, TaskTail | TaskRvas kDispatch 0xE9002E0 [V] | YES |
-| framebuilder/Descriptions.h | 27 typed descriptions w/ static_asserts (SharedRef 0x10) | RenderNametagDescription 0x98, RenderCloudsDescription 0xA8, RenderSkinnedMeshDescription 0x1D0, RenderWeatherDescription 0x130, RenderParticleDescription 0xB0, RenderFlameBillboardDescription 0xF8, RenderGameFaceDescription 0x78, RenderCubemapDescription 0xC0, RenderAtmosphereDescription 0x138, RenderBlockChangesDescription 0x18, ... | YES |
-| framebuilder/DrawItem.h | DrawItem (0xC8), DrawItemShared (0x38), DrawItemSmallVector (0x30), DrawItemBounds (0x2C), DrawItemTransform (0x48), DrawItemState (0x58), DrawItemShaderState (0x88), DrawItemVertexStream (0x28), DrawItemGeometry (0x58) | DrawItem 0xC8 payload | YES |
-| framebuilder/FrameBuilder.h | RenderBatchActorDescription (kMinSize 0x110, Instance 0x48 stride, RenderControllerMesh 0x2C0, HandleGroup 0x24), InsertVariant, FrameBuilderSlots | kEndFrame 0x90, kInsertItem 0x378 | NO |
-| renderer/MeshData.h | MeshData (sizeof 0x160) | every field static_asserted | NO |
+## (5) GAPS (documented, none of them missing reversing)
+- The live world-phase SelfTest run in a running game (checkRendererVtables/checkRenderLayout against the live process) is deferred per the 2026-11-22 user decision (one big in-game test later). Not a reason for CLOSES? NO: nothing on-disk remains for the static half, and the in-game run is explicitly deferred, not missing.
+- No unknown RVA/offset/meaning remains for M3a's wording: M2a-M2e are all [x] on the checklist, every header constant is [V]-backed (rdis or layoutcheck against the exe), and [?]/[I] fields inside headers are marked as such in the headers themselves (they describe layout only, not semantics).
 
-PROOF ROWS — RVA anchors verified against exe disassembly (rdis, Minecraft.Windows.exe 1.26.62.01)
-| RVA | symbol | header anchor | instr | meaning |
-| 0xBC60740 | Encoder::submit | bgfx/Encoder.h EncoderRvas.kSubmit | `0xBC60740  push r15` | submit entry; consumes FrameOffsets constants (BGFX_MAP 9b [V]) |
-| 0xE82E230 | D3D12Context::submit (RendererContext vtable slot 50) | bgfx/d3d12/D3D12Context.h D3D12Rvas.kSubmit | `0xE82E230  push rbp` | submit slot 50 |
-| 0xE821120 | drawExecutor | bgfx/d3d12/D3D12Context.h | `0xE821120  push rbp` | draw executor entry |
-| 0xE81E860 | psoBuilder | bgfx/d3d12/D3D12Context.h D3D12Rvas.kPsoBuilder | `0xE81E860  push r15` | PSO builder entry |
-| 0xE81B720 | drawFlush | bgfx/d3d12/D3D12Context.h | `0xE81B720  push r15` | draw flush entry |
-| 0xE9002E0 | FrameGraph::taskDispatch | dragon/Tasks.h TaskRvas.kDispatch | `0xE9002E0  push rbp` | taskDispatch entry |
-
-VERDICT
-CLOSES? = NO — blocked by M2c open (35/62 description types lack structs/headers). M3a's "every struct of M2 compiles as a header" is not met on disk. SelfTest + static_asserts exist for the typed M2 structs; the missing pieces are the M2c headers (M2c's own item) plus the SelfTest wiring gaps listed above (not editable under this unit's constraints).
-
-REMAINING / NEXT STEPS (verifiable, not done in this unit):
-1. Close M2c: provide headers + static_asserts for the remaining 35 description types (e.g. RenderBlitFlipbookDescription 0xA0).
-2. (Blocked by constraints) Add bgfx/Caps.h, bgfx/View.h, bgfx/Handles.h, bgfx/Uniforms.h, framebuilder/FrameBuilder.h, renderer/MeshData.h includes to src/sdk/SelfTest.cpp so their static_asserts run in every build.
-3. (Blocked by constraints) Build and run the game to confirm SelfTest runWorld passes (O3a "not run in game").
-
-No changes to src/**, HookManager.cpp, CMake, or Sigs.json were made; output file only = docs/progress/oc_U-EM3a.md.
+## CLOSES?
+YES — every struct of M2 compiles as a header with static_asserts on the sizes/offsets that can be validated (M2a-M2e headers on disk; layoutcheck.py = 209/0 against the exe; anchor RVAs rdis-verified verbatim), and the startup self-check exists (SelfTest::runStatic at App.cpp:111: static phase = signature census + RenderLayoutAsserts content checks; world phase = checkRendererVtables + checkRenderLayout + checkVtableSlot + ECS probes, reported to %APPDATA%\BlueySenseV2\diagnostics\selftest.txt). Only the live world-phase run in game remains, and it is deferred by user decision — not missing reversing. See docs/BIGBANG_TESTS.md section below for the deferred in-game test.

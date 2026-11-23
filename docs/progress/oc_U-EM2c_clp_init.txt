@@ -1,0 +1,110 @@
+sub_118a6f0  [0x118a6f0..0x118c6f0)  size 0x2000  6 xrefs in
+  118a6f0  sub rsp,0x28                                  
+  118a6f4  mov eax,[0x128E49B0]                          ; [data_128e49b0]
+  118a6fa  mov ecx,[0x128767C8]                          ; [data_128767c8]
+  118a700  mov rdx,gs:[0x58]                             
+  118a709  mov rcx,[rdx+rcx*8]                           
+  118a70d  cmp eax,[rcx+4]                               
+  118a713  jg short 0x118A749                            ; -> loc_118a749
+
+loc_118a715:  ; from 118a75c, 118a77f
+  118a715  mov eax,[0x128E49AC]                          ; [data_128e49ac]
+  118a71b  mov [0x128E4990],eax                          ; [data_128e4990]
+  118a721  mov dword ptr [0x128E4994],0x8CBEF799         ; [data_128e4994]
+  118a72b  lea rax,[0xF641A33]                           ; [data_f641a33] "mce::framebuilder::CloudParameters]"
+  118a732  mov [0x128E4998],rax                          ; [data_128e4998]
+  118a739  mov qword ptr [0x128E49A0],0x22               ; [data_128e49a0]
+  118a744  add rsp,0x28                                  
+  118a748  ret                                           
+
+loc_118a749:  ; from 118a713
+  118a749  lea rcx,[0x128E49B0]                          ; [data_128e49b0]
+  118a750  call 0xE938CB0                                ; -> sub_e938cb0
+  118a755  cmp dword ptr [0x128E49B0],0xFFFFFFFF         ; [data_128e49b0]
+  118a75c  jne short 0x118A715                           ; -> loc_118a715
+  118a75e  mov eax,[0x128C2024]                          ; [data_128c2024]
+  118a764  lea ecx,[rax+1]                               
+  118a767  mov [0x128C2024],ecx                          ; [data_128c2024]
+  118a76d  mov [0x128E49AC],eax                          ; [data_128e49ac]
+  118a773  lea rcx,[0x128E49B0]                          ; [data_128e49b0]
+  118a77a  call 0xE938D70                                ; -> sub_e938d70
+  118a77f  jmp short 0x118A715                           ; -> loc_118a715
+  118a781  int3                                          
+  118a782  int3                                          
+  118a783  int3                                          
+  118a784  int3                                          
+  118a785  int3                                          
+  118a786  int3                                          
+  118a787  int3                                          
+  118a788  int3                                          
+  118a789  int3                                          
+  118a78a  int3                                          
+  118a78b  int3                                          
+  118a78c  int3                                          
+  118a78d  int3                                          
+  118a78e  int3                                          
+  118a78f  int3                                          
+  118a790  push rsi                                      
+  118a791  push rdi                                      
+  118a792  push rbx                                      
+  118a793  sub rsp,0x20                                  
+  118a797  mov rdi,rdx                                   
+  118a79a  mov rsi,rcx                                   
+  118a79d  lea rax,[0x118A880]                           ; [sub_118a880]
+  118a7a4  mov [rcx+0x10],rax                            
+  118a7a8  mov dword ptr [rcx+0x20],0x8CBEF799           
+  118a7af  lea rax,[0xDE5ED0]                            ; [sub_de5ed0]
+  118a7b6  mov [rcx+0x18],rax                            
+  118a7ba  mov byte ptr [rcx+0x24],1                     
+  118a7be  mov rcx,[0x1233E1A8]                          ; [data_1233e1a8]
+  118a7c5  mov rax,[rcx]                                 
+  118a7c8  mov rax,[rax+8]                               
+  118a7cc  mov edx,0x28                                  
+  118a7d1  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  118a7d7  test rax,rax                                  
+  118a7da  je short 0x118A840                            ; -> loc_118a840
+
+loc_118a7dc:  ; from 118a850
+  118a7dc  xorps xmm0,xmm0                               
+  118a7df  movaps [rax+0x10],xmm0                        
+  118a7e3  mov qword ptr [rax+0x20],0                    
+  118a7eb  movaps xmm0,[0xF0CD370]                       ; [data_f0cd370] = sub_1800000
+  118a7f2  movups [rax],xmm0                             
+  118a7f5  mov word ptr [rax+0x10],0x101                 
+  118a7fb  mov rcx,0x403F666666                          
+  118a805  mov [rax+0x14],rcx                            
+  118a809  mov dword ptr [rax+0x1C],1                    
+  118a810  mov byte ptr [rax+0x20],1                     
+  118a814  mov dword ptr [rax+0x24],0x40000000           
+  118a81b  mov [rsi],rax                                 
+  118a81e  mov [rsi+0x28],rdi                            
+  118a822  mov qword ptr [rsi+0x30],0                    
+  118a82a  lea rax,[0x118A860]                           ; [sub_118a860]
+  118a831  mov [rsi+0x38],rax                            
+  118a835  mov rax,rsi                                   
+  118a838  add rsp,0x20                                  
+  118a83c  pop rbx                                       
+  118a83d  pop rdi                                       
+  118a83e  pop rsi                                       
+  118a83f  ret                                           
+
+loc_118a840:  ; from 118a7da
+  118a840  mov ecx,0x28                                  
+  118a845  mov rbx,rax                                   
+  118a848  call 0x9BC830                                 ; -> sub_9bc830
+  118a84d  mov rax,rbx                                   
+  118a850  jmp short 0x118A7DC                           ; -> loc_118a7dc
+  118a852  int3                                          
+  118a853  int3                                          
+  118a854  int3                                          
+  118a855  int3                                          
+  118a856  int3                                          
+  118a857  int3                                          
+  118a858  int3                                          
+  118a859  int3                                          
+  118a85a  int3                                          
+  118a85b  int3                                          
+  118a85c  int3                                          
+  118a85d  int3                                          
+  118a85e  int3                                          
+  ... (--max 100)

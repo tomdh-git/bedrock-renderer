@@ -13,12 +13,14 @@
 //
 // Fail-fast style (CLAUDE.md): static_assert on every layout, no null guards, no SEH.
 
-#include <cstdint>
-#include <functional>
 
 #include "D3D12DrawRecord.h"
+#include "D3D12DrawFlushWrap.h"
 
 namespace bgfx::d3d12edit {
+
+using namespace bgfx::d3d12draw;
+using namespace bgfx::d3d12wrap;
 
 // Callback signature for per-record editing.
 //   rec  — pointer to the DrawBatcher record (0x70 non-indexed / 0x88 indexed)

@@ -1,0 +1,1823 @@
+sub_c27b40e  [0xc27b40e..0xc27d40e)  size 0x2000  0 xrefs in
+  c27b40e  mov esi,[rbp+0x33F0]                          
+  c27b414  mov rbx,[rbp+0x33F8]                          
+  c27b41b  mov rcx,rsi                                   
+  c27b41e  mov rdx,rbx                                   
+  c27b421  mov r8b,1                                     
+  c27b424  call 0xE93BA60                                ; -> sub_e93ba60
+  c27b429  test rax,rax                                  
+  c27b42c  je 0xC27B5E4                                  ; -> loc_c27b5e4
+  c27b432  mov rdi,rax                                   
+  c27b435  mov r13,[rbp-0x48]                            
+  c27b439  sub rbx,rsi                                   
+  c27b43c  xor eax,eax                                   
+  c27b43e  lea r14,[rbp+0x2FF0]                          
+  c27b445  lea r15,[rbp+0x3310]                          
+  c27b44c  jmp short 0xC27B46A                           ; -> loc_c27b46a
+
+loc_c27b44e:  ; from c27b492
+  c27b44e  mov [rdx],rax                                 
+  c27b451  add qword ptr [rbp+0x2FF8],8                  
+  c27b459  nop [rax]                                     
+
+loc_c27b460:  ; from c27b47a, c27b482, c27b4a0
+  c27b460  mov rax,[rbp+0x3310]                          
+  c27b467  inc rax                                       
+
+loc_c27b46a:  ; from c27b44c
+  c27b46a  mov [rbp+0x3310],rax                          
+  c27b471  cmp rax,rbx                                   
+  c27b474  jae short 0xC27B4A2                           ; -> loc_c27b4a2
+  c27b476  cmp byte ptr [rsi+rax],0                      
+  c27b47a  je short 0xC27B460                            ; -> loc_c27b460
+  c27b47c  cmp qword ptr [r13+rax*8],0                   
+  c27b482  jne short 0xC27B460                           ; -> loc_c27b460
+  c27b484  mov rdx,[rbp+0x2FF8]                          
+  c27b48b  cmp rdx,[rbp+0x3000]                          
+  c27b492  jne short 0xC27B44E                           ; -> loc_c27b44e
+  c27b494  mov rcx,r14                                   
+  c27b497  mov r8,r15                                    
+  c27b49a  call 0xA4EC0                                  ; -> sub_a4ec0
+  c27b49f  nop                                           
+  c27b4a0  jmp short 0xC27B460                           ; -> loc_c27b460
+
+loc_c27b4a2:  ; from c27b474
+  c27b4a2  mov rcx,[rbp+0x2FF0]                          
+  c27b4a9  mov rax,[rbp+0x2FF8]                          
+  c27b4b0  cmp rcx,rax                                   
+  c27b4b3  je 0xC27B61E                                  ; -> loc_c27b61e
+  c27b4b9  mov rbx,[rbp-0x28]                            
+  c27b4bd  jmp short 0xC27B4CE                           ; -> loc_c27b4ce
+  c27b4bf  nop                                           
+
+loc_c27b4c0:  ; from c27b599
+  c27b4c0  mov rcx,[rbp+0x2FF0]                          
+  c27b4c7  mov rax,[rbp+0x2FF8]                          
+
+loc_c27b4ce:  ; from c27b4bd, c27b4f1
+  c27b4ce  cmp rcx,rax                                   
+  c27b4d1  je 0xC27B619                                  ; -> loc_c27b619
+  c27b4d7  mov rdx,[rax-8]                               
+  c27b4db  add rax,0xFFFFFFFFFFFFFFF8                    
+  c27b4df  mov [rbp+0x3310],rdx                          
+  c27b4e6  mov [rbp+0x2FF8],rax                          
+  c27b4ed  cmp byte ptr [rsi+rdx],0                      
+  c27b4f1  je short 0xC27B4CE                            ; -> loc_c27b4ce
+  c27b4f3  mov byte ptr [rsi+rdx],0                      
+  c27b4f7  mov rdx,[rbp+0x3388]                          
+  c27b4fe  cmp rdx,[rbp+0x3390]                          
+  c27b505  je short 0xC27B520                            ; -> loc_c27b520
+  c27b507  mov rax,[rbp+0x3310]                          
+  c27b50e  mov [rdx],rax                                 
+  c27b511  add qword ptr [rbp+0x3388],8                  
+  c27b519  jmp short 0xC27B53B                           ; -> loc_c27b53b
+  c27b51b  nop [rax+rax]                                 
+
+loc_c27b520:  ; from c27b505
+  c27b520  lea rcx,[rbp+0x3380]                          
+  c27b527  lea r8,[rbp+0x3310]                           
+  c27b52e  call 0xA4EC0                                  ; -> sub_a4ec0
+  c27b533  nop                                           
+  c27b534  mov rax,[rbp+0x3310]                          
+
+loc_c27b53b:  ; from c27b519
+  c27b53b  shl rax,5                                     
+  c27b53f  mov r14,[rbx+rax+8]                           
+  c27b544  mov rax,[rbx+rax+0x10]                        
+  c27b549  mov r15,rax                                   
+  c27b54c  sub r15,r14                                   
+  c27b54f  cmp r15,0xFFFFFFFFFFFFFFF8                    
+  c27b553  je 0xC27B7B3                                  ; -> loc_c27b7b3
+  c27b559  test r14,r14                                  
+  c27b55c  sete cl                                       
+  c27b55f  test rax,rax                                  
+  c27b562  setne al                                      
+  c27b565  test al,cl                                    
+  c27b567  jne 0xC27B7B3                                 ; -> loc_c27b7b3
+  c27b56d  dec rdi                                       
+  c27b570  sar r15,3                                     
+  c27b574  xor r12d,r12d                                 
+  c27b577  jmp short 0xC27B593                           ; -> loc_c27b593
+
+loc_c27b579:  ; from c27b5cb
+  c27b579  lea rcx,[rbp+0x2FF0]                          
+  c27b580  lea r8,[rbp+0x32E0]                           
+  c27b587  call 0xA4EC0                                  ; -> sub_a4ec0
+  c27b58c  nop                                           
+  c27b58d  nop [rax]                                     ; R ret@a4ec0+0x0
+
+loc_c27b590:  ; from c27b5b4, c27b5bb
+  c27b590  inc r12d                                      
+
+loc_c27b593:  ; from c27b577, c27b5e2
+  c27b593  mov eax,r12d                                  
+  c27b596  cmp r15,rax                                   
+  c27b599  je 0xC27B4C0                                  ; -> loc_c27b4c0
+  c27b59f  jbe 0xC27B7B3                                 ; -> loc_c27b7b3
+  c27b5a5  mov rax,[r14+rax*8]                           
+  c27b5a9  mov [rbp+0x32E0],rax                          
+  c27b5b0  cmp byte ptr [rsi+rax],0                      
+  c27b5b4  je short 0xC27B590                            ; -> loc_c27b590
+  c27b5b6  dec qword ptr [r13+rax*8]                     
+  c27b5bb  jne short 0xC27B590                           ; -> loc_c27b590
+  c27b5bd  mov rdx,[rbp+0x2FF8]                          
+  c27b5c4  cmp rdx,[rbp+0x3000]                          
+  c27b5cb  je short 0xC27B579                            ; -> loc_c27b579
+  c27b5cd  mov rax,[rbp+0x32E0]                          
+  c27b5d4  mov [rdx],rax                                 
+  c27b5d7  add qword ptr [rbp+0x2FF8],8                  
+  c27b5df  inc r12d                                      
+  c27b5e2  jmp short 0xC27B593                           ; -> loc_c27b593
+
+loc_c27b5e4:  ; from c27b42c
+  c27b5e4  movdqu [rbp+0x3319],xmm7                      
+  c27b5ec  movdqa [rbp+0x3310],xmm7                      
+  c27b5f4  movdqa [rbp+0x3380],xmm7                      
+  c27b5fc  mov qword ptr [rbp+0x3390],0                  
+  c27b607  xor r12d,r12d                                 
+  c27b60a  xor r15d,r15d                                 
+  c27b60d  mov rsi,[rbp+0x3448]                          
+  c27b614  jmp 0xC27B808                                 ; -> loc_c27b808
+
+loc_c27b619:  ; from c27b4d1
+  c27b619  test rdi,rdi                                  
+  c27b61c  jle short 0xC27B62D                           ; -> loc_c27b62d
+
+loc_c27b61e:  ; from c27b4b3
+  c27b61e  mov dword ptr [rbp+0x3310],6                  
+  c27b628  mov sil,1                                     
+  c27b62b  jmp short 0xC27B660                           ; -> loc_c27b660
+
+loc_c27b62d:  ; from c27b61c
+  c27b62d  mov rax,[rbp+0x3390]                          
+  c27b634  mov qword ptr [rbp+0x3390],0                  
+  c27b63f  movaps xmm0,[rbp+0x3380]                      
+  c27b646  xorps xmm1,xmm1                               
+  c27b649  movaps [rbp+0x3380],xmm1                      
+  c27b650  movaps [rbp+0x3310],xmm0                      
+  c27b657  mov [rbp+0x3320],rax                          
+  c27b65e  xor esi,esi                                   
+
+loc_c27b660:  ; from c27b62b
+  c27b660  mov [rbp+0x3328],sil                          
+  c27b667  mov rax,[rbp+0x3380]                          
+  c27b66e  test rax,rax                                  
+  c27b671  je short 0xC27B6B1                            ; -> loc_c27b6b1
+  c27b673  mov rdx,[rbp+0x3390]                          
+  c27b67a  sub rdx,rax                                   
+  c27b67d  cmp rdx,0x1000                                
+  c27b684  jb short 0xC27B6A2                            ; -> loc_c27b6a2
+  c27b686  mov rcx,[rax-8]                               
+  c27b68a  add rax,0xFFFFFFFFFFFFFFF8                    
+  c27b68e  sub rax,rcx                                   
+  c27b691  cmp rax,0x20                                  
+  c27b695  jae 0xC27BCD1                                 ; -> loc_c27bcd1
+  c27b69b  add rdx,0x27                                  
+  c27b69f  mov rax,rcx                                   
+
+loc_c27b6a2:  ; from c27b684
+  c27b6a2  mov rcx,rax                                   
+  c27b6a5  call 0xE935700                                ; -> sub_e935700
+  c27b6aa  mov rcx,[rbp+0x2FF0]                          
+
+loc_c27b6b1:  ; from c27b671
+  c27b6b1  test rcx,rcx                                  
+  c27b6b4  je short 0xC27B6F1                            ; -> loc_c27b6f1
+  c27b6b6  mov rdx,[rbp+0x3000]                          
+  c27b6bd  sub rdx,rcx                                   
+  c27b6c0  cmp rdx,0x1000                                
+  c27b6c7  jb short 0xC27B6E5                            ; -> loc_c27b6e5
+  c27b6c9  mov rax,[rcx-8]                               
+  c27b6cd  add rcx,0xFFFFFFFFFFFFFFF8                    
+  c27b6d1  sub rcx,rax                                   
+  c27b6d4  cmp rcx,0x20                                  
+  c27b6d8  jae 0xC27BCD1                                 ; -> loc_c27bcd1
+  c27b6de  add rdx,0x27                                  
+  c27b6e2  mov rcx,rax                                   
+
+loc_c27b6e5:  ; from c27b6c7
+  c27b6e5  call 0xE935700                                ; -> sub_e935700
+  c27b6ea  movzx esi,byte ptr [rbp+0x3328]               
+
+loc_c27b6f1:  ; from c27b6b4
+  c27b6f1  cmp sil,1                                     
+  c27b6f5  jne short 0xC27B71B                           ; -> loc_c27b71b
+  c27b6f7  mov dil,1                                     
+  c27b6fa  mov ebx,[rbp+0x3310]                          
+  c27b700  mov qword ptr [rbp+0x3418],0                  
+  c27b70b  mov qword ptr [rbp+0x3450],0                  
+  c27b716  jmp 0xC27BBDD                                 ; -> loc_c27bbdd
+
+loc_c27b71b:  ; from c27b6f5
+  c27b71b  test sil,sil                                  
+  c27b71e  jne 0xC27BE86                                 ; -> loc_c27be86
+  c27b724  mov rbx,[rbp+0x3310]                          
+  c27b72b  mov r14,[rbp+0x3318]                          
+  c27b732  mov rax,r14                                   
+  c27b735  sub rax,rbx                                   
+  c27b738  xorps xmm0,xmm0                               
+  c27b73b  movaps [rbp+0x3380],xmm0                      
+  c27b742  mov qword ptr [rbp+0x3390],0                  
+  c27b74d  sub r14,rbx                                   
+  c27b750  mov rsi,[rbp+0x3448]                          
+  c27b757  je short 0xC27B7AB                            ; -> loc_c27b7ab
+  c27b759  sar rax,3                                     
+  c27b75d  mov rcx,rax                                   
+  c27b760  shr rcx,0x3D                                  
+  c27b764  jne 0xC27BE8C                                 ; -> loc_c27be8c
+  c27b76a  cmp rax,0x200                                 
+  c27b770  jb short 0xC27B7B8                            ; -> loc_c27b7b8
+  c27b772  lea rdi,[r14+0x27]                            
+  c27b776  mov rcx,[0x1233E1A8]                          ; [data_1233e1a8]
+  c27b77d  mov rax,[rcx]                                 
+  c27b780  mov rax,[rax+8]                               
+  c27b784  mov rdx,rdi                                   
+  c27b787  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  c27b78d  nop                                           
+  c27b78e  mov r15,rax                                   
+  c27b791  test rax,rax                                  
+  c27b794  je 0xC27BDF2                                  ; -> loc_c27bdf2
+
+loc_c27b79a:  ; from c27bdfb
+  c27b79a  mov rax,r15                                   
+  c27b79d  add r15,0x27                                  
+  c27b7a1  and r15,0xFFFFFFFFFFFFFFE0                    
+  c27b7a5  mov [r15-8],rax                               
+  c27b7a9  jmp short 0xC27B7DC                           ; -> loc_c27b7dc
+
+loc_c27b7ab:  ; from c27b757
+  c27b7ab  xor r12d,r12d                                 
+  c27b7ae  xor r15d,r15d                                 
+  c27b7b1  jmp short 0xC27B808                           ; -> loc_c27b808
+
+loc_c27b7b3:  ; from c27b553, c27b567, c27b59f
+  c27b7b3  call 0x78ED0                                  ; -> sub_78ed0
+
+loc_c27b7b8:  ; from c27b770
+  c27b7b8  mov rcx,[0x1233E1A8]                          ; [data_1233e1a8]
+  c27b7bf  mov rax,[rcx]                                 
+  c27b7c2  mov rax,[rax+8]                               
+  c27b7c6  mov rdx,r14                                   
+  c27b7c9  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  c27b7cf  nop                                           
+  c27b7d0  mov r15,rax                                   
+  c27b7d3  test rax,rax                                  
+  c27b7d6  je 0xC27BE00                                  ; -> loc_c27be00
+
+loc_c27b7dc:  ; from c27b7a9, c27be0c
+  c27b7dc  mov [rbp+0x3380],r15                          
+  c27b7e3  mov rdi,r14                                   
+  c27b7e6  add rdi,r15                                   
+  c27b7e9  mov [rbp+0x3390],rdi                          
+  c27b7f0  mov rcx,r15                                   
+  c27b7f3  mov rdx,rbx                                   
+  c27b7f6  mov r8,r14                                    
+  c27b7f9  call 0xEEC6DE0                                ; -> sub_eec6de0
+  c27b7fe  mov r12,rdi                                   
+  c27b801  mov [rbp+0x3388],rdi                          
+
+loc_c27b808:  ; from c27b614, c27b7b1
+  c27b808  mov rbx,[rsi+0x10]                            
+  c27b80c  sub rbx,[rsi+8]                               
+  c27b810  je 0xC27B896                                  ; -> loc_c27b896
+  c27b816  js 0xC27BE80                                  ; -> loc_c27be80
+  c27b81c  mov rax,[rbp+0x3260]                          
+  c27b823  mov rcx,[rax]                                 
+  c27b826  lea rdx,[rbp+0x2FF0]                          
+  c27b82d  mov r9d,1                                     
+  c27b833  mov r8,rbx                                    
+  c27b836  call 0xA78940                                 ; -> sub_a78940
+  c27b83b  nop                                           
+  c27b83c  mov rsi,[rbp+0x3000]                          
+  c27b843  mov rax,[rbp+0x2FF0]                          
+  c27b84a  mov rdi,[rbp+0x2FF8]                          
+  c27b851  mov r14,[rax]                                 
+  c27b854  test rdi,rdi                                  
+  c27b857  je short 0xC27B884                            ; -> loc_c27b884
+  c27b859  lock dec dword ptr [rdi+8]                    
+  c27b85d  jne short 0xC27B884                           ; -> loc_c27b884
+  c27b85f  mov rax,[rdi]                                 
+  c27b862  mov rax,[rax]                                 
+  c27b865  mov rcx,rdi                                   
+  c27b868  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  c27b86e  lock dec dword ptr [rdi+0xC]                  
+  c27b872  jne short 0xC27B884                           ; -> loc_c27b884
+  c27b874  mov rax,[rdi]                                 
+  c27b877  mov rax,[rax+8]                               
+  c27b87b  mov rcx,rdi                                   
+  c27b87e  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+
+loc_c27b884:  ; from c27b857, c27b85d, c27b872
+  c27b884  mov rdi,r14                                   
+  c27b887  add rdi,rsi                                   
+  c27b88a  add rbx,rdi                                   
+  c27b88d  mov rsi,[rbp+0x3448]                          
+  c27b894  jmp short 0xC27B89A                           ; -> loc_c27b89a
+
+loc_c27b896:  ; from c27b810
+  c27b896  xor ebx,ebx                                   
+  c27b898  xor edi,edi                                   
+
+loc_c27b89a:  ; from c27b894
+  c27b89a  sub r12,r15                                   
+  c27b89d  mov [rbp+0x3458],r12                          
+  c27b8a4  sar r12,3                                     
+  c27b8a8  mov [rbp+0x3460],r12                          
+  c27b8af  mov [rbp+0x3450],rdi                          
+  c27b8b6  xor ecx,ecx                                   
+  c27b8b8  mov [rbp+0x3470],r15                          
+  c27b8bf  jmp short 0xC27B8F4                           ; -> loc_c27b8f4
+  c27b8c1  nop [rax+rax]                                 
+
+loc_c27b8d0:  ; from c27ba34
+  c27b8d0  mov rdi,rsi                                   
+  c27b8d3  mov [rsi],r15                                 
+  c27b8d6  mov [rsi+8],r12                               
+  c27b8da  add rdi,0x10                                  
+  c27b8de  mov ecx,[rbp+0x3468]                          
+  c27b8e4  inc ecx                                       
+
+loc_c27b8e6:  ; from c27bb3d
+  c27b8e6  mov rsi,[rbp+0x3448]                          
+  c27b8ed  mov r15,[rbp+0x3470]                          
+
+loc_c27b8f4:  ; from c27b8bf
+  c27b8f4  mov eax,ecx                                   
+  c27b8f6  cmp [rbp+0x3460],rax                          
+  c27b8fd  jbe 0xC27BB52                                 ; -> loc_c27bb52
+  c27b903  mov [rbp+0x3468],ecx                          
+  c27b909  mov rcx,rsi                                   
+  c27b90c  mov rsi,rdi                                   
+  c27b90f  mov rax,[r15+rax*8]                           
+  c27b913  mov rcx,[rcx+8]                               
+  c27b917  shl rax,4                                     
+  c27b91b  mov r15,[rcx+rax]                             
+  c27b91f  mov rdi,[rbp+0x32D0]                          
+  c27b926  mov rcx,[rdi+8]                               
+  c27b92a  xor r13d,r13d                                 
+  c27b92d  cmp byte ptr [rcx+0x19],0                     
+  c27b931  je short 0xC27B950                            ; -> loc_c27b950
+  c27b933  mov r14,rcx                                   
+  c27b936  mov r12,rdi                                   
+  c27b939  cmp byte ptr [r12+0x19],0                     
+  c27b93f  jne short 0xC27B99D                           ; -> loc_c27b99d
+  c27b941  jmp short 0xC27B992                           ; -> loc_c27b992
+  c27b943  nop [rax+rax]                                 
+
+loc_c27b950:  ; from c27b931
+  c27b950  mov r12,rdi                                   
+  c27b953  nop [rax+rax]                                 
+
+loc_c27b960:  ; from c27b97e
+  c27b960  mov r14,rcx                                   
+  c27b963  mov rax,[rcx+0x20]                            
+  c27b967  xor ecx,ecx                                   
+  c27b969  cmp rax,r15                                   
+  c27b96c  setb cl                                       
+  c27b96f  cmovae r12,r14                                
+  c27b973  shl ecx,4                                     
+  c27b976  mov rcx,[r14+rcx]                             
+  c27b97a  cmp byte ptr [rcx+0x19],0                     
+  c27b97e  je short 0xC27B960                            ; -> loc_c27b960
+  c27b980  xor r13d,r13d                                 
+  c27b983  cmp rax,r15                                   
+  c27b986  setae r13b                                    
+  c27b98a  cmp byte ptr [r12+0x19],0                     
+  c27b990  jne short 0xC27B99D                           ; -> loc_c27b99d
+
+loc_c27b992:  ; from c27b941
+  c27b992  cmp r15,[r12+0x20]                            
+  c27b997  jae 0xC27BA2D                                 ; -> loc_c27ba2d
+
+loc_c27b99d:  ; from c27b93f, c27b990
+  c27b99d  mov rax,0x5D1745D1745D17                      
+  c27b9a7  cmp [rbp+0x32D8],rax                          
+  c27b9ae  je 0xC27BE11                                  ; -> loc_c27be11
+  c27b9b4  mov rcx,[0x1233E1A8]                          ; [data_1233e1a8]
+  c27b9bb  mov rax,[rcx]                                 
+  c27b9be  mov rax,[rax+8]                               
+  c27b9c2  mov edx,0x2C0                                 
+  c27b9c7  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  c27b9cd  nop                                           
+  c27b9ce  mov r12,rax                                   
+  c27b9d1  test rax,rax                                  
+  c27b9d4  je 0xC27BB42                                  ; -> loc_c27bb42
+
+loc_c27b9da:  ; from c27bb4d
+  c27b9da  mov [r12+0x20],r15                            
+  c27b9df  mov rcx,r12                                   
+  c27b9e2  add rcx,0x28                                  
+  c27b9e6  mov r8d,0x298                                 
+  c27b9ec  xor edx,edx                                   
+  c27b9ee  call 0xEEC6ED0                                ; -> sub_eec6ed0
+  c27b9f3  mov [r12],rdi                                 
+  c27b9f7  mov [r12+8],rdi                               
+  c27b9fc  mov [r12+0x10],rdi                            
+  c27ba01  mov word ptr [r12+0x18],0                     
+  c27ba09  mov [rbp+0x2FF0],r14                          
+  c27ba10  mov [rbp+0x2FF8],r13d                         
+  c27ba17  lea rcx,[rbp+0x32D0]                          
+  c27ba1e  lea rdx,[rbp+0x2FF0]                          
+  c27ba25  mov r8,r12                                    
+  c27ba28  call 0xA4C70                                  ; -> sub_a4c70
+
+loc_c27ba2d:  ; from c27b997
+  c27ba2d  add r12,0x28                                  
+  c27ba31  cmp rsi,rbx                                   
+  c27ba34  jne 0xC27B8D0                                 ; -> loc_c27b8d0
+  c27ba3a  sub rbx,[rbp+0x3450]                          
+  c27ba41  mov rax,rbx                                   
+  c27ba44  sar rax,4                                     
+  c27ba48  lea rdx,[rax+1]                               
+  c27ba4c  mov r13,rax                                   
+  c27ba4f  shr r13,1                                     
+  c27ba52  mov r8,0xFFFFFFFFFFFFFFF                      
+  c27ba5c  mov rcx,r8                                    
+  c27ba5f  sub rcx,r13                                   
+  c27ba62  add r13,rax                                   
+  c27ba65  cmp r13,rdx                                   
+  c27ba68  mov rsi,rdx                                   
+  c27ba6b  cmovbe r13,rdx                                
+  c27ba6f  cmp rax,rcx                                   
+  c27ba72  cmova r13,r8                                  
+  c27ba76  shl r13,4                                     
+  c27ba7a  mov rax,[rbp+0x3260]                          
+  c27ba81  mov rcx,[rax]                                 
+  c27ba84  mov r9d,1                                     
+  c27ba8a  lea rdx,[rbp+0x2FF0]                          
+  c27ba91  mov r8,r13                                    
+  c27ba94  call 0xA78940                                 ; -> sub_a78940
+  c27ba99  nop                                           
+  c27ba9a  mov rcx,[rbp+0x3000]                          
+  c27baa1  mov rax,[rbp+0x2FF0]                          
+  c27baa8  mov r14,[rbp+0x2FF8]                          
+  c27baaf  mov rdi,[rax]                                 
+  c27bab2  test r14,r14                                  
+  c27bab5  je short 0xC27BB00                            ; -> loc_c27bb00
+  c27bab7  lock dec dword ptr [r14+8]                    
+  c27babc  jne short 0xC27BB00                           ; -> loc_c27bb00
+  c27babe  mov rax,[r14]                                 
+  c27bac1  mov rax,[rax]                                 
+  c27bac4  mov [rbp+0x3438],rcx                          
+  c27bacb  mov rcx,r14                                   
+  c27bace  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  c27bad4  mov rcx,[rbp+0x3438]                          
+  c27badb  lock dec dword ptr [r14+0xC]                  
+  c27bae0  jne short 0xC27BB00                           ; -> loc_c27bb00
+  c27bae2  mov rax,[r14]                                 
+  c27bae5  mov rax,[rax+8]                               
+  c27bae9  mov rcx,r14                                   
+  c27baec  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  c27baf2  mov rcx,[rbp+0x3438]                          
+  c27baf9  nop [rax]                                     
+
+loc_c27bb00:  ; from c27bab5, c27babc, c27bae0
+  c27bb00  add rdi,rcx                                   
+  c27bb03  mov [rbx+rdi],r15                             
+  c27bb07  mov [rbx+rdi+8],r12                           
+  c27bb0c  mov rcx,rdi                                   
+  c27bb0f  mov rdx,[rbp+0x3450]                          
+  c27bb16  mov r8,rbx                                    
+  c27bb19  call 0xEEC6DE0                                ; -> sub_eec6de0
+  c27bb1e  shl rsi,4                                     
+  c27bb22  add rsi,rdi                                   
+  c27bb25  add r13,rdi                                   
+  c27bb28  mov ecx,[rbp+0x3468]                          
+  c27bb2e  inc ecx                                       
+  c27bb30  mov rbx,r13                                   
+  c27bb33  mov [rbp+0x3450],rdi                          
+  c27bb3a  mov rdi,rsi                                   
+  c27bb3d  jmp 0xC27B8E6                                 ; -> loc_c27b8e6
+
+loc_c27bb42:  ; from c27b9d4
+  c27bb42  mov ecx,0x2C0                                 
+  c27bb47  call 0x9BC830                                 ; -> sub_9bc830
+  c27bb4c  nop                                           
+  c27bb4d  jmp 0xC27B9DA                                 ; -> loc_c27b9da
+
+loc_c27bb52:  ; from c27b8fd
+  c27bb52  test r15,r15                                  
+  c27bb55  je short 0xC27BB8B                            ; -> loc_c27bb8b
+  c27bb57  mov rdx,[rbp+0x3458]                          
+  c27bb5e  cmp rdx,0x1000                                
+  c27bb65  jb short 0xC27BB83                            ; -> loc_c27bb83
+  c27bb67  mov rax,[r15-8]                               
+  c27bb6b  add r15,0xFFFFFFFFFFFFFFF8                    
+  c27bb6f  sub r15,rax                                   
+  c27bb72  cmp r15,0x20                                  
+  c27bb76  jae 0xC27BCD1                                 ; -> loc_c27bcd1
+  c27bb7c  add rdx,0x27                                  
+  c27bb80  mov r15,rax                                   
+
+loc_c27bb83:  ; from c27bb65
+  c27bb83  mov rcx,r15                                   
+  c27bb86  call 0xE935700                                ; -> sub_e935700
+
+loc_c27bb8b:  ; from c27bb55
+  c27bb8b  cmp byte ptr [rbp+0x3328],0                   
+  c27bb92  mov [rbp+0x3418],rdi                          
+  c27bb99  jne short 0xC27BBDB                           ; -> loc_c27bbdb
+  c27bb9b  mov rcx,[rbp+0x3310]                          
+  c27bba2  test rcx,rcx                                  
+  c27bba5  je short 0xC27BBDB                            ; -> loc_c27bbdb
+  c27bba7  mov rdx,[rbp+0x3320]                          
+  c27bbae  sub rdx,rcx                                   
+  c27bbb1  cmp rdx,0x1000                                
+  c27bbb8  jb short 0xC27BBD6                            ; -> loc_c27bbd6
+  c27bbba  mov rax,[rcx-8]                               
+  c27bbbe  add rcx,0xFFFFFFFFFFFFFFF8                    
+  c27bbc2  sub rcx,rax                                   
+  c27bbc5  cmp rcx,0x20                                  
+  c27bbc9  jae 0xC27BCD1                                 ; -> loc_c27bcd1
+  c27bbcf  add rdx,0x27                                  
+  c27bbd3  mov rcx,rax                                   
+
+loc_c27bbd6:  ; from c27bbb8
+  c27bbd6  call 0xE935700                                ; -> sub_e935700
+
+loc_c27bbdb:  ; from c27bb99, c27bba5
+  c27bbdb  xor edi,edi                                   
+
+loc_c27bbdd:  ; from c27b716
+  c27bbdd  mov rcx,[rbp+0x33F0]                          
+  c27bbe4  test rcx,rcx                                  
+  c27bbe7  je short 0xC27BC1D                            ; -> loc_c27bc1d
+  c27bbe9  mov rdx,[rbp+0x3400]                          
+  c27bbf0  sub rdx,rcx                                   
+  c27bbf3  cmp rdx,0x1000                                
+  c27bbfa  jb short 0xC27BC18                            ; -> loc_c27bc18
+  c27bbfc  mov rax,[rcx-8]                               
+  c27bc00  add rcx,0xFFFFFFFFFFFFFFF8                    
+  c27bc04  sub rcx,rax                                   
+  c27bc07  cmp rcx,0x20                                  
+  c27bc0b  jae 0xC27BCD1                                 ; -> loc_c27bcd1
+  c27bc11  add rdx,0x27                                  
+  c27bc15  mov rcx,rax                                   
+
+loc_c27bc18:  ; from c27bbfa
+  c27bc18  call 0xE935700                                ; -> sub_e935700
+
+loc_c27bc1d:  ; from c27bbe7
+  c27bc1d  cmp byte ptr [rbp-8],0                        
+  c27bc21  jne 0xC274CBC                                 ; -> sub_c274cbc
+  c27bc27  mov rax,[rbp-0x28]                            
+  c27bc2b  test rax,rax                                  
+  c27bc2e  je 0xC274CBC                                  ; -> sub_c274cbc
+  c27bc34  mov rcx,[rbp-0x20]                            
+  c27bc38  cmp rax,rcx                                   
+  c27bc3b  je 0xC274CBC                                  ; -> sub_c274cbc
+  c27bc41  xorps xmm0,xmm0                               
+  c27bc44  jmp short 0xC27BC5D                           ; -> loc_c27bc5d
+  c27bc46  nop [rax+rax]                                 
+
+loc_c27bc50:  ; from c27bc62, c27bc73
+  c27bc50  add rax,0x20                                  
+  c27bc54  cmp rax,rcx                                   
+  c27bc57  je 0xC274CBC                                  ; -> sub_c274cbc
+
+loc_c27bc5d:  ; from c27bc44
+  c27bc5d  cmp qword ptr [rax+8],0                       
+  c27bc62  je short 0xC27BC50                            ; -> loc_c27bc50
+  c27bc64  lea rdx,[rax+8]                               
+  c27bc68  movups [rdx],xmm0                             
+  c27bc6b  mov qword ptr [rdx+0x10],0                    
+  c27bc73  jmp short 0xC27BC50                           ; -> loc_c27bc50
+  c27bc75  call 0xA4EA0                                  ; -> sub_a4ea0
+  c27bc7a  nop                                           
+  c27bc7b  mov ecx,0x2C0                                 
+  c27bc80  call 0x9BC830                                 ; -> sub_9bc830
+  c27bc85  nop                                           
+  c27bc86  jmp 0xC2735AB                                 ; -> sub_c2735ab
+  c27bc8b  mov ecx,0x30                                  
+  c27bc90  call 0x9BC830                                 ; -> sub_9bc830
+  c27bc95  nop                                           
+  c27bc96  jmp 0xC2735F3                                 ; -> sub_c2735f3
+  c27bc9b  mov ecx,0x20                                  
+  c27bca0  call 0x9BC830                                 ; -> sub_9bc830
+  c27bca5  nop                                           
+  c27bca6  jmp 0xC273D68                                 ; -> sub_c273d68
+  c27bcab  mov ecx,0x80                                  
+  c27bcb0  call 0x9BC830                                 ; -> sub_9bc830
+  c27bcb5  nop                                           
+  c27bcb6  jmp 0xC273DD1                                 ; -> sub_c273dd1
+  c27bcbb  mov ecx,0x58                                  
+  c27bcc0  call 0x9BC830                                 ; -> sub_9bc830
+  c27bcc5  nop                                           
+  c27bcc6  jmp 0xC275006                                 ; -> sub_c275006
+  c27bccb  call 0x75720                                  ; -> sub_75720
+  c27bcd0  nop                                           
+
+loc_c27bcd1:  ; from c27b695, c27b6d8, c27bb76, c27bbc9, c27bc0b
+  c27bcd1  mov qword ptr [rsp+0x20],0                    
+  c27bcda  xor ecx,ecx                                   
+  c27bcdc  xor edx,edx                                   
+  c27bcde  xor r8d,r8d                                   
+  c27bce1  xor r9d,r9d                                   
+  c27bce4  call qword ptr [0xF9A8C78]                    ; [data_f9a8c78]
+  c27bcea  nop                                           
+  c27bceb  call 0x1166E0                                 ; -> sub_1166e0
+  c27bcf0  nop                                           
+  c27bcf1  call 0x75720                                  ; -> sub_75720
+  c27bcf6  nop                                           
+  c27bcf7  call 0x75720                                  ; -> sub_75720
+  c27bcfc  nop                                           
+  c27bcfd  call 0x75720                                  ; -> sub_75720
+  c27bd02  nop                                           
+  c27bd03  call 0x1166E0                                 ; -> sub_1166e0
+  c27bd08  nop                                           
+  c27bd09  mov rcx,rdi                                   
+  c27bd0c  call 0x9BC830                                 ; -> sub_9bc830
+  c27bd11  nop                                           
+  c27bd12  jmp 0xC277D89                                 ; -> sub_c277d89
+  c27bd17  mov rcx,rdi                                   
+  c27bd1a  call 0x9BC830                                 ; -> sub_9bc830
+  c27bd1f  nop                                           
+  c27bd20  xor ebx,ebx                                   
+  c27bd22  jmp 0xC277E7C                                 ; -> sub_c277e7c
+  c27bd27  call 0xEEC59E0                                ; -> sub_eec59e0
+  c27bd2c  nop                                           
+  c27bd2d  lea rcx,[0xF5B2BCD]                           ; [data_f5b2bcd] "unordered_map/set too long"
+  c27bd34  call 0xEEC5850                                ; -> sub_eec5850
+  c27bd39  nop                                           
+  c27bd3a  lea rcx,[0xF5B2BCD]                           ; [data_f5b2bcd] "unordered_map/set too long"
+  c27bd41  call 0xEEC5850                                ; -> sub_eec5850
+  c27bd46  nop                                           
+  c27bd47  mov ecx,0x20                                  
+  c27bd4c  call 0x9BC830                                 ; -> sub_9bc830
+  c27bd51  nop                                           
+  c27bd52  jmp 0xC27B21A                                 ; -> sub_c27b21a
+  c27bd57  call 0xA4EA0                                  ; -> sub_a4ea0
+  c27bd5c  nop                                           
+  c27bd5d  call 0x1166E0                                 ; -> sub_1166e0
+  c27bd62  nop                                           
+  c27bd63  mov [rbp+0x3460],r12                          
+  c27bd6a  lea rcx,[0xF5B2BCD]                           ; [data_f5b2bcd] "unordered_map/set too long"
+  c27bd71  call 0xEEC5850                                ; -> sub_eec5850
+  c27bd76  nop                                           
+  c27bd77  call 0x1166E0                                 ; -> sub_1166e0
+  c27bd7c  nop                                           
+  c27bd7d  call 0x1166E0                                 ; -> sub_1166e0
+  c27bd82  nop                                           
+  c27bd83  call 0x1166E0                                 ; -> sub_1166e0
+  c27bd88  nop                                           
+  c27bd89  lea rcx,[0xF53078E]                           ; [data_f53078e] "invalid hash bucket count"
+  c27bd90  call 0xEEC5850                                ; -> sub_eec5850
+  c27bd95  nop                                           
+  c27bd96  mov rcx,rdi                                   
+  c27bd99  call 0x9BC830                                 ; -> sub_9bc830
+  c27bd9e  nop                                           
+  c27bd9f  jmp 0xC277E44                                 ; -> sub_c277e44
+  c27bda4  mov rcx,rbx                                   
+  c27bda7  call 0x9BC830                                 ; -> sub_9bc830
+  c27bdac  nop                                           
+  c27bdad  xor esi,esi                                   
+  c27bdaf  jmp 0xC27ACB3                                 ; -> sub_c27acb3
+  c27bdb4  lea rcx,[0xF53078E]                           ; [data_f53078e] "invalid hash bucket count"
+  c27bdbb  call 0xEEC5850                                ; -> sub_eec5850
+  c27bdc0  nop                                           
+  c27bdc1  call 0xA4EA0                                  ; -> sub_a4ea0
+  c27bdc6  nop                                           
+  c27bdc7  call 0xA4EA0                                  ; -> sub_a4ea0
+  c27bdcc  nop                                           
+  c27bdcd  call 0xA4EA0                                  ; -> sub_a4ea0
+  c27bdd2  nop                                           
+  c27bdd3  call 0x75740                                  ; -> sub_75740
+  c27bdd8  nop                                           
+  c27bdd9  call 0x75740                                  ; -> sub_75740
+  c27bdde  nop                                           
+  c27bddf  call 0xA4EA0                                  ; -> sub_a4ea0
+  c27bde4  nop                                           
+  c27bde5  lea rcx,[0xF5B2BCD]                           ; [data_f5b2bcd] "unordered_map/set too long"
+  c27bdec  call 0xEEC5850                                ; -> sub_eec5850
+  c27bdf1  nop                                           
+
+loc_c27bdf2:  ; from c27b794
+  c27bdf2  mov rcx,rdi                                   
+  c27bdf5  call 0x9BC830                                 ; -> sub_9bc830
+  c27bdfa  nop                                           
+  c27bdfb  jmp 0xC27B79A                                 ; -> loc_c27b79a
+
+loc_c27be00:  ; from c27b7d6
+  c27be00  mov rcx,r14                                   
+  c27be03  call 0x9BC830                                 ; -> sub_9bc830
+  c27be08  nop                                           
+  c27be09  xor r15d,r15d                                 
+  c27be0c  jmp 0xC27B7DC                                 ; -> loc_c27b7dc
+
+loc_c27be11:  ; from c27b9ae
+  c27be11  call 0xA4EA0                                  ; -> sub_a4ea0
+  c27be16  nop                                           
+  c27be17  call 0xA4EA0                                  ; -> sub_a4ea0
+  c27be1c  nop                                           
+  c27be1d  call 0x1166E0                                 ; -> sub_1166e0
+  c27be22  nop                                           
+  c27be23  call 0x75740                                  ; -> sub_75740
+  c27be28  nop                                           
+  c27be29  call 0x75B60                                  ; -> sub_75b60
+  c27be2e  nop                                           
+  c27be2f  call 0x75740                                  ; -> sub_75740
+  c27be34  nop                                           
+  c27be35  call 0x1A2800                                 ; -> sub_1a2800
+  c27be3a  nop                                           
+  c27be3b  call 0x75740                                  ; -> sub_75740
+  c27be40  nop                                           
+  c27be41  call 0x75B60                                  ; -> sub_75b60
+  c27be46  nop                                           
+  c27be47  lea rcx,[0xF5B2BCD]                           ; [data_f5b2bcd] "unordered_map/set too long"
+  c27be4e  call 0xEEC5850                                ; -> sub_eec5850
+  c27be53  nop                                           
+  c27be54  lea rcx,[0xF53078E]                           ; [data_f53078e] "invalid hash bucket count"
+  c27be5b  call 0xEEC5850                                ; -> sub_eec5850
+  c27be60  nop                                           
+  c27be61  call 0x75B60                                  ; -> sub_75b60
+  c27be66  nop                                           
+  c27be67  call 0x1166E0                                 ; -> sub_1166e0
+  c27be6c  nop                                           
+  c27be6d  call 0x75B60                                  ; -> sub_75b60
+  c27be72  nop                                           
+  c27be73  lea rcx,[0xF5B2BCD]                           ; [data_f5b2bcd] "unordered_map/set too long"
+  c27be7a  call 0xEEC5850                                ; -> sub_eec5850
+  c27be7f  nop                                           
+
+loc_c27be80:  ; from c27b816
+  c27be80  call 0x75B60                                  ; -> sub_75b60
+  c27be85  nop                                           
+
+loc_c27be86:  ; from c27b71e
+  c27be86  call 0x1166E0                                 ; -> sub_1166e0
+  c27be8b  nop                                           
+
+loc_c27be8c:  ; from c27b764
+  c27be8c  call 0x75B60                                  ; -> sub_75b60
+  c27be91  nop                                           
+  c27be92  int3                                          
+  c27be93  nop [rax+rax]                                 ; R ret@75b60+0x0+idx
+  c27bea0  mov [rsp+0x10],rdx                            
+  c27bea5  push rbp                                      
+  c27bea6  push r15                                      
+  c27bea8  push r14                                      
+  c27beaa  push r13                                      
+  c27beac  push r12                                      
+  c27beae  push rsi                                      
+  c27beaf  push rdi                                      
+  c27beb0  push rbx                                      
+  c27beb1  sub rsp,0xC8                                  
+  c27beb8  lea rbp,[rdx+0x80]                            
+  c27bebf  movaps [rsp+0x20],xmm15                       
+  c27bec5  movaps [rsp+0x30],xmm14                       
+  c27becb  movaps [rsp+0x40],xmm13                       
+  c27bed1  movdqa [rsp+0x50],xmm12                       
+  c27bed8  movdqa [rsp+0x60],xmm11                       
+  c27bedf  movdqa [rsp+0x70],xmm10                       
+  c27bee6  movdqa [rsp+0x80],xmm9                        
+  c27bef0  movdqa [rsp+0x90],xmm8                        
+  c27befa  movdqa [rsp+0xA0],xmm7                        
+  c27bf03  movaps [rsp+0xB0],xmm6                        
+  c27bf0b  call 0xEEC6E40                                ; -> sub_eec6e40
+  c27bf10  int3                                          
+  c27bf11  nop [rax+rax]                                 ; R ret@eec6e40+0x0+idx
+  c27bf20  mov [rsp+0x10],rdx                            
+  c27bf25  push rbp                                      
+  c27bf26  push r15                                      
+  c27bf28  push r14                                      
+  c27bf2a  push r13                                      
+  c27bf2c  push r12                                      
+  c27bf2e  push rsi                                      
+  c27bf2f  push rdi                                      
+  c27bf30  push rbx                                      
+  c27bf31  sub rsp,0xC8                                  
+  c27bf38  lea rbp,[rdx+0x80]                            
+  c27bf3f  movaps [rsp+0x20],xmm15                       
+  c27bf45  movaps [rsp+0x30],xmm14                       
+  c27bf4b  movaps [rsp+0x40],xmm13                       
+  c27bf51  movdqa [rsp+0x50],xmm12                       
+  c27bf58  movdqa [rsp+0x60],xmm11                       
+  c27bf5f  movdqa [rsp+0x70],xmm10                       
+  c27bf66  movdqa [rsp+0x80],xmm9                        
+  c27bf70  movdqa [rsp+0x90],xmm8                        
+  c27bf7a  movdqa [rsp+0xA0],xmm7                        
+  c27bf83  movaps [rsp+0xB0],xmm6                        
+  c27bf8b  call 0xEEC6E40                                ; -> sub_eec6e40
+  c27bf90  int3                                          
+  c27bf91  nop [rax+rax]                                 ; R ret@eec6e40+0x0+idx
+  c27bfa0  mov [rsp+0x10],rdx                            
+  c27bfa5  push rbp                                      
+  c27bfa6  push r15                                      
+  c27bfa8  push r14                                      
+  c27bfaa  push r13                                      
+  c27bfac  push r12                                      
+  c27bfae  push rsi                                      
+  c27bfaf  push rdi                                      
+  c27bfb0  push rbx                                      
+  c27bfb1  sub rsp,0xC8                                  
+  c27bfb8  lea rbp,[rdx+0x80]                            
+  c27bfbf  movaps [rsp+0x20],xmm15                       
+  c27bfc5  movaps [rsp+0x30],xmm14                       
+  c27bfcb  movaps [rsp+0x40],xmm13                       
+  c27bfd1  movdqa [rsp+0x50],xmm12                       
+  c27bfd8  movdqa [rsp+0x60],xmm11                       
+  c27bfdf  movdqa [rsp+0x70],xmm10                       
+  c27bfe6  movdqa [rsp+0x80],xmm9                        
+  c27bff0  movdqa [rsp+0x90],xmm8                        
+  c27bffa  movdqa [rsp+0xA0],xmm7                        
+  c27c003  movaps [rsp+0xB0],xmm6                        
+  c27c00b  mov edx,0x20                                  
+  c27c010  mov rcx,[rbp+0x3468]                          
+  c27c017  call 0xE935700                                ; -> sub_e935700
+  c27c01c  movaps xmm6,[rsp+0xB0]                        
+  c27c024  movdqa xmm7,[rsp+0xA0]                        
+  c27c02d  movdqa xmm8,[rsp+0x90]                        
+  c27c037  movdqa xmm9,[rsp+0x80]                        
+  c27c041  movdqa xmm10,[rsp+0x70]                       
+  c27c048  movdqa xmm11,[rsp+0x60]                       
+  c27c04f  movdqa xmm12,[rsp+0x50]                       
+  c27c056  movaps xmm13,[rsp+0x40]                       
+  c27c05c  movaps xmm14,[rsp+0x30]                       
+  c27c062  movaps xmm15,[rsp+0x20]                       
+  c27c068  add rsp,0xC8                                  
+  c27c06f  pop rbx                                       
+  c27c070  pop rdi                                       
+  c27c071  pop rsi                                       
+  c27c072  pop r12                                       
+  c27c074  pop r13                                       
+  c27c076  pop r14                                       
+  c27c078  pop r15                                       
+  c27c07a  pop rbp                                       
+  c27c07b  ret                                           
+  c27c07c  nop [rax]                                     ; R ret@e935700+0x0
+  c27c080  mov [rsp+0x10],rdx                            
+  c27c085  push rbp                                      
+  c27c086  push r15                                      
+  c27c088  push r14                                      
+  c27c08a  push r13                                      
+  c27c08c  push r12                                      
+  c27c08e  push rsi                                      
+  c27c08f  push rdi                                      
+  c27c090  push rbx                                      
+  c27c091  sub rsp,0xC8                                  
+  c27c098  lea rbp,[rdx+0x80]                            
+  c27c09f  movaps [rsp+0x20],xmm15                       
+  c27c0a5  movaps [rsp+0x30],xmm14                       
+  c27c0ab  movaps [rsp+0x40],xmm13                       
+  c27c0b1  movdqa [rsp+0x50],xmm12                       
+  c27c0b8  movdqa [rsp+0x60],xmm11                       
+  c27c0bf  movdqa [rsp+0x70],xmm10                       
+  c27c0c6  movdqa [rsp+0x80],xmm9                        
+  c27c0d0  movdqa [rsp+0x90],xmm8                        
+  c27c0da  movdqa [rsp+0xA0],xmm7                        
+  c27c0e3  movaps [rsp+0xB0],xmm6                        
+  c27c0eb  call 0xEEC6E40                                ; -> sub_eec6e40
+  c27c0f0  int3                                          
+  c27c0f1  nop [rax+rax]                                 ; R ret@eec6e40+0x0+idx
+  c27c100  mov [rsp+0x10],rdx                            
+  c27c105  push rbp                                      
+  c27c106  push r15                                      
+  c27c108  push r14                                      
+  c27c10a  push r13                                      
+  c27c10c  push r12                                      
+  c27c10e  push rsi                                      
+  c27c10f  push rdi                                      
+  c27c110  push rbx                                      
+  c27c111  sub rsp,0xC8                                  
+  c27c118  lea rbp,[rdx+0x80]                            
+  c27c11f  movaps [rsp+0x20],xmm15                       
+  c27c125  movaps [rsp+0x30],xmm14                       
+  c27c12b  movaps [rsp+0x40],xmm13                       
+  c27c131  movdqa [rsp+0x50],xmm12                       
+  c27c138  movdqa [rsp+0x60],xmm11                       
+  c27c13f  movdqa [rsp+0x70],xmm10                       
+  c27c146  movdqa [rsp+0x80],xmm9                        
+  c27c150  movdqa [rsp+0x90],xmm8                        
+  c27c15a  movdqa [rsp+0xA0],xmm7                        
+  c27c163  movaps [rsp+0xB0],xmm6                        
+  c27c16b  call 0xEEC6E40                                ; -> sub_eec6e40
+  c27c170  int3                                          
+  c27c171  nop [rax+rax]                                 ; R ret@eec6e40+0x0+idx
+  c27c180  mov [rsp+0x10],rdx                            
+  c27c185  push rbp                                      
+  c27c186  push r15                                      
+  c27c188  push r14                                      
+  c27c18a  push r13                                      
+  c27c18c  push r12                                      
+  c27c18e  push rsi                                      
+  c27c18f  push rdi                                      
+  c27c190  push rbx                                      
+  c27c191  sub rsp,0xC8                                  
+  c27c198  lea rbp,[rdx+0x80]                            
+  c27c19f  movaps [rsp+0x20],xmm15                       
+  c27c1a5  movaps [rsp+0x30],xmm14                       
+  c27c1ab  movaps [rsp+0x40],xmm13                       
+  c27c1b1  movdqa [rsp+0x50],xmm12                       
+  c27c1b8  movdqa [rsp+0x60],xmm11                       
+  c27c1bf  movdqa [rsp+0x70],xmm10                       
+  c27c1c6  movdqa [rsp+0x80],xmm9                        
+  c27c1d0  movdqa [rsp+0x90],xmm8                        
+  c27c1da  movdqa [rsp+0xA0],xmm7                        
+  c27c1e3  movaps [rsp+0xB0],xmm6                        
+  c27c1eb  call 0xEEC6E40                                ; -> sub_eec6e40
+  c27c1f0  int3                                          
+  c27c1f1  nop [rax+rax]                                 ; R ret@eec6e40+0x0+idx
+  c27c200  mov [rsp+0x10],rdx                            
+  c27c205  push rbp                                      
+  c27c206  push r15                                      
+  c27c208  push r14                                      
+  c27c20a  push r13                                      
+  c27c20c  push r12                                      
+  c27c20e  push rsi                                      
+  c27c20f  push rdi                                      
+  c27c210  push rbx                                      
+  c27c211  sub rsp,0xC8                                  
+  c27c218  lea rbp,[rdx+0x80]                            
+  c27c21f  movaps [rsp+0x20],xmm15                       
+  c27c225  movaps [rsp+0x30],xmm14                       
+  c27c22b  movaps [rsp+0x40],xmm13                       
+  c27c231  movdqa [rsp+0x50],xmm12                       
+  c27c238  movdqa [rsp+0x60],xmm11                       
+  c27c23f  movdqa [rsp+0x70],xmm10                       
+  c27c246  movdqa [rsp+0x80],xmm9                        
+  c27c250  movdqa [rsp+0x90],xmm8                        
+  c27c25a  movdqa [rsp+0xA0],xmm7                        
+  c27c263  movaps [rsp+0xB0],xmm6                        
+  c27c26b  call 0xEEC6E40                                ; -> sub_eec6e40
+  c27c270  int3                                          
+  c27c271  nop [rax+rax]                                 ; R ret@eec6e40+0x0+idx
+  c27c280  mov [rsp+0x10],rdx                            
+  c27c285  push rbp                                      
+  c27c286  push r15                                      
+  c27c288  push r14                                      
+  c27c28a  push r13                                      
+  c27c28c  push r12                                      
+  c27c28e  push rsi                                      
+  c27c28f  push rdi                                      
+  c27c290  push rbx                                      
+  c27c291  sub rsp,0xC8                                  
+  c27c298  lea rbp,[rdx+0x80]                            
+  c27c29f  movaps [rsp+0x20],xmm15                       
+  c27c2a5  movaps [rsp+0x30],xmm14                       
+  c27c2ab  movaps [rsp+0x40],xmm13                       
+  c27c2b1  movdqa [rsp+0x50],xmm12                       
+  c27c2b8  movdqa [rsp+0x60],xmm11                       
+  c27c2bf  movdqa [rsp+0x70],xmm10                       
+  c27c2c6  movdqa [rsp+0x80],xmm9                        
+  c27c2d0  movdqa [rsp+0x90],xmm8                        
+  c27c2da  movdqa [rsp+0xA0],xmm7                        
+  c27c2e3  movaps [rsp+0xB0],xmm6                        
+  c27c2eb  call 0xEEC6E40                                ; -> sub_eec6e40
+  c27c2f0  int3                                          
+  c27c2f1  nop [rax+rax]                                 ; R ret@eec6e40+0x0+idx
+  c27c300  mov [rsp+0x10],rdx                            
+  c27c305  push rbp                                      
+  c27c306  push r15                                      
+  c27c308  push r14                                      
+  c27c30a  push r13                                      
+  c27c30c  push r12                                      
+  c27c30e  push rsi                                      
+  c27c30f  push rdi                                      
+  c27c310  push rbx                                      
+  c27c311  sub rsp,0xC8                                  
+  c27c318  lea rbp,[rdx+0x80]                            
+  c27c31f  movaps [rsp+0x20],xmm15                       
+  c27c325  movaps [rsp+0x30],xmm14                       
+  c27c32b  movaps [rsp+0x40],xmm13                       
+  c27c331  movdqa [rsp+0x50],xmm12                       
+  c27c338  movdqa [rsp+0x60],xmm11                       
+  c27c33f  movdqa [rsp+0x70],xmm10                       
+  c27c346  movdqa [rsp+0x80],xmm9                        
+  c27c350  movdqa [rsp+0x90],xmm8                        
+  c27c35a  movdqa [rsp+0xA0],xmm7                        
+  c27c363  movaps [rsp+0xB0],xmm6                        
+  c27c36b  call 0xEEC6E40                                ; -> sub_eec6e40
+  c27c370  int3                                          
+  c27c371  nop [rax+rax]                                 ; R ret@eec6e40+0x0+idx
+  c27c380  mov [rsp+0x10],rdx                            
+  c27c385  push rbp                                      
+  c27c386  push r15                                      
+  c27c388  push r14                                      
+  c27c38a  push r13                                      
+  c27c38c  push r12                                      
+  c27c38e  push rsi                                      
+  c27c38f  push rdi                                      
+  c27c390  push rbx                                      
+  c27c391  sub rsp,0xC8                                  
+  c27c398  lea rbp,[rdx+0x80]                            
+  c27c39f  movaps [rsp+0x20],xmm15                       
+  c27c3a5  movaps [rsp+0x30],xmm14                       
+  c27c3ab  movaps [rsp+0x40],xmm13                       
+  c27c3b1  movdqa [rsp+0x50],xmm12                       
+  c27c3b8  movdqa [rsp+0x60],xmm11                       
+  c27c3bf  movdqa [rsp+0x70],xmm10                       
+  c27c3c6  movdqa [rsp+0x80],xmm9                        
+  c27c3d0  movdqa [rsp+0x90],xmm8                        
+  c27c3da  movdqa [rsp+0xA0],xmm7                        
+  c27c3e3  movaps [rsp+0xB0],xmm6                        
+  c27c3eb  call 0xEEC6E40                                ; -> sub_eec6e40
+  c27c3f0  int3                                          
+  c27c3f1  nop [rax+rax]                                 ; R ret@eec6e40+0x0+idx
+  c27c400  mov [rsp+0x10],rdx                            
+  c27c405  push rbp                                      
+  c27c406  push r15                                      
+  c27c408  push r14                                      
+  c27c40a  push r13                                      
+  c27c40c  push r12                                      
+  c27c40e  push rsi                                      
+  c27c40f  push rdi                                      
+  c27c410  push rbx                                      
+  c27c411  sub rsp,0xC8                                  
+  c27c418  lea rbp,[rdx+0x80]                            
+  c27c41f  movaps [rsp+0x20],xmm15                       
+  c27c425  movaps [rsp+0x30],xmm14                       
+  c27c42b  movaps [rsp+0x40],xmm13                       
+  c27c431  movdqa [rsp+0x50],xmm12                       
+  c27c438  movdqa [rsp+0x60],xmm11                       
+  c27c43f  movdqa [rsp+0x70],xmm10                       
+  c27c446  movdqa [rsp+0x80],xmm9                        
+  c27c450  movdqa [rsp+0x90],xmm8                        
+  c27c45a  movdqa [rsp+0xA0],xmm7                        
+  c27c463  movaps [rsp+0xB0],xmm6                        
+  c27c46b  lea rcx,[rbp+0x1FD8]                          
+  c27c472  call 0x75D00                                  ; -> sub_75d00
+  c27c477  lea rcx,[rbp+0x1FC8]                          
+  c27c47e  call 0x42AAF0                                 ; -> sub_42aaf0
+  c27c483  movaps xmm6,[rsp+0xB0]                        
+  c27c48b  movdqa xmm7,[rsp+0xA0]                        
+  c27c494  movdqa xmm8,[rsp+0x90]                        
+  c27c49e  movdqa xmm9,[rsp+0x80]                        
+  c27c4a8  movdqa xmm10,[rsp+0x70]                       
+  c27c4af  movdqa xmm11,[rsp+0x60]                       
+  c27c4b6  movdqa xmm12,[rsp+0x50]                       
+  c27c4bd  movaps xmm13,[rsp+0x40]                       
+  c27c4c3  movaps xmm14,[rsp+0x30]                       
+  c27c4c9  movaps xmm15,[rsp+0x20]                       
+  c27c4cf  add rsp,0xC8                                  
+  c27c4d6  pop rbx                                       
+  c27c4d7  pop rdi                                       
+  c27c4d8  pop rsi                                       
+  c27c4d9  pop r12                                       
+  c27c4db  pop r13                                       
+  c27c4dd  pop r14                                       
+  c27c4df  pop r15                                       
+  c27c4e1  pop rbp                                       
+  c27c4e2  ret                                           
+  c27c4e3  nop [rax+rax]                                 ; R ret@42aaf0+0x0+idx
+  c27c4f0  mov [rsp+0x10],rdx                            
+  c27c4f5  push rbp                                      
+  c27c4f6  push r15                                      
+  c27c4f8  push r14                                      
+  c27c4fa  push r13                                      
+  c27c4fc  push r12                                      
+  c27c4fe  push rsi                                      
+  c27c4ff  push rdi                                      
+  c27c500  push rbx                                      
+  c27c501  sub rsp,0xC8                                  
+  c27c508  lea rbp,[rdx+0x80]                            
+  c27c50f  movaps [rsp+0x20],xmm15                       
+  c27c515  movaps [rsp+0x30],xmm14                       
+  c27c51b  movaps [rsp+0x40],xmm13                       
+  c27c521  movdqa [rsp+0x50],xmm12                       
+  c27c528  movdqa [rsp+0x60],xmm11                       
+  c27c52f  movdqa [rsp+0x70],xmm10                       
+  c27c536  movdqa [rsp+0x80],xmm9                        
+  c27c540  movdqa [rsp+0x90],xmm8                        
+  c27c54a  movdqa [rsp+0xA0],xmm7                        
+  c27c553  movaps [rsp+0xB0],xmm6                        
+  c27c55b  call 0xEEC6E40                                ; -> sub_eec6e40
+  c27c560  int3                                          
+  c27c561  nop [rax+rax]                                 ; R ret@eec6e40+0x0+idx
+  c27c570  mov [rsp+0x10],rdx                            
+  c27c575  push rbp                                      
+  c27c576  push r15                                      
+  c27c578  push r14                                      
+  c27c57a  push r13                                      
+  c27c57c  push r12                                      
+  c27c57e  push rsi                                      
+  c27c57f  push rdi                                      
+  c27c580  push rbx                                      
+  c27c581  sub rsp,0xC8                                  
+  c27c588  lea rbp,[rdx+0x80]                            
+  c27c58f  movaps [rsp+0x20],xmm15                       
+  c27c595  movaps [rsp+0x30],xmm14                       
+  c27c59b  movaps [rsp+0x40],xmm13                       
+  c27c5a1  movdqa [rsp+0x50],xmm12                       
+  c27c5a8  movdqa [rsp+0x60],xmm11                       
+  c27c5af  movdqa [rsp+0x70],xmm10                       
+  c27c5b6  movdqa [rsp+0x80],xmm9                        
+  c27c5c0  movdqa [rsp+0x90],xmm8                        
+  c27c5ca  movdqa [rsp+0xA0],xmm7                        
+  c27c5d3  movaps [rsp+0xB0],xmm6                        
+  c27c5db  mov edx,0x20                                  
+  c27c5e0  mov rcx,[rbp+0x3428]                          
+  c27c5e7  call 0xE935700                                ; -> sub_e935700
+  c27c5ec  movaps xmm6,[rsp+0xB0]                        
+  c27c5f4  movaps xmm7,[rsp+0xA0]                        
+  c27c5fc  movaps xmm8,[rsp+0x90]                        
+  c27c605  movaps xmm9,[rsp+0x80]                        
+  c27c60e  movaps xmm10,[rsp+0x70]                       
+  c27c614  movaps xmm11,[rsp+0x60]                       
+  c27c61a  movaps xmm12,[rsp+0x50]                       
+  c27c620  movaps xmm13,[rsp+0x40]                       
+  c27c626  movaps xmm14,[rsp+0x30]                       
+  c27c62c  movaps xmm15,[rsp+0x20]                       
+  c27c632  add rsp,0xC8                                  
+  c27c639  pop rbx                                       
+  c27c63a  pop rdi                                       
+  c27c63b  pop rsi                                       
+  c27c63c  pop r12                                       
+  c27c63e  pop r13                                       
+  c27c640  pop r14                                       
+  c27c642  pop r15                                       
+  c27c644  pop rbp                                       
+  c27c645  ret                                           
+  c27c646  nop [rax+rax]                                 ; R ret@e935700+0x0+idx
+  c27c650  mov [rsp+0x10],rdx                            
+  c27c655  push rbp                                      
+  c27c656  push r15                                      
+  c27c658  push r14                                      
+  c27c65a  push r13                                      
+  c27c65c  push r12                                      
+  c27c65e  push rsi                                      
+  c27c65f  push rdi                                      
+  c27c660  push rbx                                      
+  c27c661  sub rsp,0xC8                                  
+  c27c668  lea rbp,[rdx+0x80]                            
+  c27c66f  movaps [rsp+0x20],xmm15                       
+  c27c675  movaps [rsp+0x30],xmm14                       
+  c27c67b  movaps [rsp+0x40],xmm13                       
+  c27c681  movdqa [rsp+0x50],xmm12                       
+  c27c688  movdqa [rsp+0x60],xmm11                       
+  c27c68f  movdqa [rsp+0x70],xmm10                       
+  c27c696  movdqa [rsp+0x80],xmm9                        
+  c27c6a0  movdqa [rsp+0x90],xmm8                        
+  c27c6aa  movdqa [rsp+0xA0],xmm7                        
+  c27c6b3  movaps [rsp+0xB0],xmm6                        
+  c27c6bb  mov rcx,[rbp+0x3278]                          
+  c27c6c2  test rcx,rcx                                  
+  c27c6c5  je short 0xC27C6D1                            ; -> loc_c27c6d1
+  c27c6c7  mov edx,0x88                                  
+  c27c6cc  call 0xE935700                                ; -> sub_e935700
+
+loc_c27c6d1:  ; from c27c6c5
+  c27c6d1  movaps xmm6,[rsp+0xB0]                        
+  c27c6d9  movdqa xmm7,[rsp+0xA0]                        
+  c27c6e2  movdqa xmm8,[rsp+0x90]                        
+  c27c6ec  movdqa xmm9,[rsp+0x80]                        
+  c27c6f6  movdqa xmm10,[rsp+0x70]                       
+  c27c6fd  movdqa xmm11,[rsp+0x60]                       
+  c27c704  movdqa xmm12,[rsp+0x50]                       
+  c27c70b  movaps xmm13,[rsp+0x40]                       
+  c27c711  movaps xmm14,[rsp+0x30]                       
+  c27c717  movaps xmm15,[rsp+0x20]                       
+  c27c71d  add rsp,0xC8                                  
+  c27c724  pop rbx                                       
+  c27c725  pop rdi                                       
+  c27c726  pop rsi                                       
+  c27c727  pop r12                                       
+  c27c729  pop r13                                       
+  c27c72b  pop r14                                       
+  c27c72d  pop r15                                       
+  c27c72f  pop rbp                                       
+  c27c730  ret                                           
+  c27c731  nop [rax+rax]                                 ; R ret@e935700+0x0+idx
+  c27c740  mov [rsp+0x10],rdx                            
+  c27c745  push rbp                                      
+  c27c746  push r15                                      
+  c27c748  push r14                                      
+  c27c74a  push r13                                      
+  c27c74c  push r12                                      
+  c27c74e  push rsi                                      
+  c27c74f  push rdi                                      
+  c27c750  push rbx                                      
+  c27c751  sub rsp,0xC8                                  
+  c27c758  lea rbp,[rdx+0x80]                            
+  c27c75f  movaps [rsp+0x20],xmm15                       
+  c27c765  movaps [rsp+0x30],xmm14                       
+  c27c76b  movaps [rsp+0x40],xmm13                       
+  c27c771  movdqa [rsp+0x50],xmm12                       
+  c27c778  movdqa [rsp+0x60],xmm11                       
+  c27c77f  movdqa [rsp+0x70],xmm10                       
+  c27c786  movdqa [rsp+0x80],xmm9                        
+  c27c790  movdqa [rsp+0x90],xmm8                        
+  c27c79a  movdqa [rsp+0xA0],xmm7                        
+  c27c7a3  movaps [rsp+0xB0],xmm6                        
+  c27c7ab  call 0xEEC6E40                                ; -> sub_eec6e40
+  c27c7b0  int3                                          
+  c27c7b1  nop [rax+rax]                                 ; R ret@eec6e40+0x0+idx
+  c27c7c0  mov [rsp+0x10],rdx                            
+  c27c7c5  push rbp                                      
+  c27c7c6  push r15                                      
+  c27c7c8  push r14                                      
+  c27c7ca  push r13                                      
+  c27c7cc  push r12                                      
+  c27c7ce  push rsi                                      
+  c27c7cf  push rdi                                      
+  c27c7d0  push rbx                                      
+  c27c7d1  sub rsp,0xC8                                  
+  c27c7d8  lea rbp,[rdx+0x80]                            
+  c27c7df  movaps [rsp+0x20],xmm15                       
+  c27c7e5  movaps [rsp+0x30],xmm14                       
+  c27c7eb  movaps [rsp+0x40],xmm13                       
+  c27c7f1  movdqa [rsp+0x50],xmm12                       
+  c27c7f8  movdqa [rsp+0x60],xmm11                       
+  c27c7ff  movdqa [rsp+0x70],xmm10                       
+  c27c806  movdqa [rsp+0x80],xmm9                        
+  c27c810  movdqa [rsp+0x90],xmm8                        
+  c27c81a  movdqa [rsp+0xA0],xmm7                        
+  c27c823  movaps [rsp+0xB0],xmm6                        
+  c27c82b  lea rcx,[rbp+0x3380]                          
+  c27c832  call 0x75D00                                  ; -> sub_75d00
+  c27c837  lea rcx,[rbp+0x2FF0]                          
+  c27c83e  call 0x75D00                                  ; -> sub_75d00
+  c27c843  movaps xmm6,[rsp+0xB0]                        
+  c27c84b  movdqa xmm7,[rsp+0xA0]                        
+  c27c854  movdqa xmm8,[rsp+0x90]                        
+  c27c85e  movdqa xmm9,[rsp+0x80]                        
+  c27c868  movdqa xmm10,[rsp+0x70]                       
+  c27c86f  movdqa xmm11,[rsp+0x60]                       
+  c27c876  movdqa xmm12,[rsp+0x50]                       
+  c27c87d  movaps xmm13,[rsp+0x40]                       
+  c27c883  movaps xmm14,[rsp+0x30]                       
+  c27c889  movaps xmm15,[rsp+0x20]                       
+  c27c88f  add rsp,0xC8                                  
+  c27c896  pop rbx                                       
+  c27c897  pop rdi                                       
+  c27c898  pop rsi                                       
+  c27c899  pop r12                                       
+  c27c89b  pop r13                                       
+  c27c89d  pop r14                                       
+  c27c89f  pop r15                                       
+  c27c8a1  pop rbp                                       
+  c27c8a2  ret                                           
+  c27c8a3  nop [rax+rax]                                 ; R ret@75d00+0x0+idx
+  c27c8b0  mov [rsp+0x10],rdx                            
+  c27c8b5  push rbp                                      
+  c27c8b6  push r15                                      
+  c27c8b8  push r14                                      
+  c27c8ba  push r13                                      
+  c27c8bc  push r12                                      
+  c27c8be  push rsi                                      
+  c27c8bf  push rdi                                      
+  c27c8c0  push rbx                                      
+  c27c8c1  sub rsp,0xC8                                  
+  c27c8c8  lea rbp,[rdx+0x80]                            
+  c27c8cf  movaps [rsp+0x20],xmm15                       
+  c27c8d5  movaps [rsp+0x30],xmm14                       
+  c27c8db  movaps [rsp+0x40],xmm13                       
+  c27c8e1  movdqa [rsp+0x50],xmm12                       
+  c27c8e8  movdqa [rsp+0x60],xmm11                       
+  c27c8ef  movdqa [rsp+0x70],xmm10                       
+  c27c8f6  movdqa [rsp+0x80],xmm9                        
+  c27c900  movdqa [rsp+0x90],xmm8                        
+  c27c90a  movdqa [rsp+0xA0],xmm7                        
+  c27c913  movaps [rsp+0xB0],xmm6                        
+  c27c91b  call 0xEEC6E40                                ; -> sub_eec6e40
+  c27c920  int3                                          
+  c27c921  nop [rax+rax]                                 ; R ret@eec6e40+0x0+idx
+  c27c930  mov [rsp+0x10],rdx                            
+  c27c935  push rbp                                      
+  c27c936  push r15                                      
+  c27c938  push r14                                      
+  c27c93a  push r13                                      
+  c27c93c  push r12                                      
+  c27c93e  push rsi                                      
+  c27c93f  push rdi                                      
+  c27c940  push rbx                                      
+  c27c941  sub rsp,0xC8                                  
+  c27c948  lea rbp,[rdx+0x80]                            
+  c27c94f  movaps [rsp+0x20],xmm15                       
+  c27c955  movaps [rsp+0x30],xmm14                       
+  c27c95b  movaps [rsp+0x40],xmm13                       
+  c27c961  movdqa [rsp+0x50],xmm12                       
+  c27c968  movdqa [rsp+0x60],xmm11                       
+  c27c96f  movdqa [rsp+0x70],xmm10                       
+  c27c976  movdqa [rsp+0x80],xmm9                        
+  c27c980  movdqa [rsp+0x90],xmm8                        
+  c27c98a  movdqa [rsp+0xA0],xmm7                        
+  c27c993  movaps [rsp+0xB0],xmm6                        
+  c27c99b  lea rcx,[rbp+0x3380]                          
+  c27c9a2  call 0x75D00                                  ; -> sub_75d00
+  c27c9a7  movaps xmm6,[rsp+0xB0]                        
+  c27c9af  movdqa xmm7,[rsp+0xA0]                        
+  c27c9b8  movdqa xmm8,[rsp+0x90]                        
+  c27c9c2  movdqa xmm9,[rsp+0x80]                        
+  c27c9cc  movdqa xmm10,[rsp+0x70]                       
+  c27c9d3  movdqa xmm11,[rsp+0x60]                       
+  c27c9da  movdqa xmm12,[rsp+0x50]                       
+  c27c9e1  movaps xmm13,[rsp+0x40]                       
+  c27c9e7  movaps xmm14,[rsp+0x30]                       
+  c27c9ed  movaps xmm15,[rsp+0x20]                       
+  c27c9f3  add rsp,0xC8                                  
+  c27c9fa  pop rbx                                       
+  c27c9fb  pop rdi                                       
+  c27c9fc  pop rsi                                       
+  c27c9fd  pop r12                                       
+  c27c9ff  pop r13                                       
+  c27ca01  pop r14                                       
+  c27ca03  pop r15                                       
+  c27ca05  pop rbp                                       
+  c27ca06  ret                                           
+  c27ca07  nop [rax+rax]                                 ; R ret@75d00+0x0+idx
+  c27ca10  mov [rsp+0x10],rdx                            
+  c27ca15  push rbp                                      
+  c27ca16  push r15                                      
+  c27ca18  push r14                                      
+  c27ca1a  push r13                                      
+  c27ca1c  push r12                                      
+  c27ca1e  push rsi                                      
+  c27ca1f  push rdi                                      
+  c27ca20  push rbx                                      
+  c27ca21  sub rsp,0xC8                                  
+  c27ca28  lea rbp,[rdx+0x80]                            
+  c27ca2f  movaps [rsp+0x20],xmm15                       
+  c27ca35  movaps [rsp+0x30],xmm14                       
+  c27ca3b  movaps [rsp+0x40],xmm13                       
+  c27ca41  movdqa [rsp+0x50],xmm12                       
+  c27ca48  movdqa [rsp+0x60],xmm11                       
+  c27ca4f  movdqa [rsp+0x70],xmm10                       
+  c27ca56  movdqa [rsp+0x80],xmm9                        
+  c27ca60  movdqa [rsp+0x90],xmm8                        
+  c27ca6a  movdqa [rsp+0xA0],xmm7                        
+  c27ca73  movaps [rsp+0xB0],xmm6                        
+  c27ca7b  lea rcx,[rbp+0x3310]                          
+  c27ca82  call 0x20197F0                                ; -> sub_20197f0
+  c27ca87  movaps xmm6,[rsp+0xB0]                        
+  c27ca8f  movdqa xmm7,[rsp+0xA0]                        
+  c27ca98  movdqa xmm8,[rsp+0x90]                        
+  c27caa2  movdqa xmm9,[rsp+0x80]                        
+  c27caac  movdqa xmm10,[rsp+0x70]                       
+  c27cab3  movdqa xmm11,[rsp+0x60]                       
+  c27caba  movdqa xmm12,[rsp+0x50]                       
+  c27cac1  movaps xmm13,[rsp+0x40]                       
+  c27cac7  movaps xmm14,[rsp+0x30]                       
+  c27cacd  movaps xmm15,[rsp+0x20]                       
+  c27cad3  add rsp,0xC8                                  
+  c27cada  pop rbx                                       
+  c27cadb  pop rdi                                       
+  c27cadc  pop rsi                                       
+  c27cadd  pop r12                                       
+  c27cadf  pop r13                                       
+  c27cae1  pop r14                                       
+  c27cae3  pop r15                                       
+  c27cae5  pop rbp                                       
+  c27cae6  ret                                           
+  c27cae7  nop [rax+rax]                                 ; R ret@20197f0+0x0+idx
+  c27caf0  mov [rsp+0x10],rdx                            
+  c27caf5  push rbp                                      
+  c27caf6  push r15                                      
+  c27caf8  push r14                                      
+  c27cafa  push r13                                      
+  c27cafc  push r12                                      
+  c27cafe  push rsi                                      
+  c27caff  push rdi                                      
+  c27cb00  push rbx                                      
+  c27cb01  sub rsp,0xC8                                  
+  c27cb08  lea rbp,[rdx+0x80]                            
+  c27cb0f  movaps [rsp+0x20],xmm15                       
+  c27cb15  movaps [rsp+0x30],xmm14                       
+  c27cb1b  movaps [rsp+0x40],xmm13                       
+  c27cb21  movdqa [rsp+0x50],xmm12                       
+  c27cb28  movdqa [rsp+0x60],xmm11                       
+  c27cb2f  movdqa [rsp+0x70],xmm10                       
+  c27cb36  movdqa [rsp+0x80],xmm9                        
+  c27cb40  movdqa [rsp+0x90],xmm8                        
+  c27cb4a  movdqa [rsp+0xA0],xmm7                        
+  c27cb53  movaps [rsp+0xB0],xmm6                        
+  c27cb5b  lea rcx,[rbp+0x1FC0]                          
+  c27cb62  call 0x14C560                                 ; -> sub_14c560
+  c27cb67  movaps xmm6,[rsp+0xB0]                        
+  c27cb6f  movdqa xmm7,[rsp+0xA0]                        
+  c27cb78  movdqa xmm8,[rsp+0x90]                        
+  c27cb82  movdqa xmm9,[rsp+0x80]                        
+  c27cb8c  movdqa xmm10,[rsp+0x70]                       
+  c27cb93  movdqa xmm11,[rsp+0x60]                       
+  c27cb9a  movdqa xmm12,[rsp+0x50]                       
+  c27cba1  movaps xmm13,[rsp+0x40]                       
+  c27cba7  movaps xmm14,[rsp+0x30]                       
+  c27cbad  movaps xmm15,[rsp+0x20]                       
+  c27cbb3  add rsp,0xC8                                  
+  c27cbba  pop rbx                                       
+  c27cbbb  pop rdi                                       
+  c27cbbc  pop rsi                                       
+  c27cbbd  pop r12                                       
+  c27cbbf  pop r13                                       
+  c27cbc1  pop r14                                       
+  c27cbc3  pop r15                                       
+  c27cbc5  pop rbp                                       
+  c27cbc6  ret                                           
+  c27cbc7  nop [rax+rax]                                 ; R ret@14c560+0x0+idx
+  c27cbd0  mov [rsp+0x10],rdx                            
+  c27cbd5  push rbp                                      
+  c27cbd6  push r15                                      
+  c27cbd8  push r14                                      
+  c27cbda  push r13                                      
+  c27cbdc  push r12                                      
+  c27cbde  push rsi                                      
+  c27cbdf  push rdi                                      
+  c27cbe0  push rbx                                      
+  c27cbe1  sub rsp,0xC8                                  
+  c27cbe8  lea rbp,[rdx+0x80]                            
+  c27cbef  movaps [rsp+0x20],xmm15                       
+  c27cbf5  movaps [rsp+0x30],xmm14                       
+  c27cbfb  movaps [rsp+0x40],xmm13                       
+  c27cc01  movdqa [rsp+0x50],xmm12                       
+  c27cc08  movdqa [rsp+0x60],xmm11                       
+  c27cc0f  movdqa [rsp+0x70],xmm10                       
+  c27cc16  movdqa [rsp+0x80],xmm9                        
+  c27cc20  movdqa [rsp+0x90],xmm8                        
+  c27cc2a  movdqa [rsp+0xA0],xmm7                        
+  c27cc33  movaps [rsp+0xB0],xmm6                        
+  c27cc3b  lea rcx,[rbp+0x1FC0]                          
+  c27cc42  call 0x14C560                                 ; -> sub_14c560
+  c27cc47  movaps xmm6,[rsp+0xB0]                        
+  c27cc4f  movdqa xmm7,[rsp+0xA0]                        
+  c27cc58  movdqa xmm8,[rsp+0x90]                        
+  c27cc62  movdqa xmm9,[rsp+0x80]                        
+  c27cc6c  movdqa xmm10,[rsp+0x70]                       
+  c27cc73  movdqa xmm11,[rsp+0x60]                       
+  c27cc7a  movdqa xmm12,[rsp+0x50]                       
+  c27cc81  movaps xmm13,[rsp+0x40]                       
+  c27cc87  movaps xmm14,[rsp+0x30]                       
+  c27cc8d  movaps xmm15,[rsp+0x20]                       
+  c27cc93  add rsp,0xC8                                  
+  c27cc9a  pop rbx                                       
+  c27cc9b  pop rdi                                       
+  c27cc9c  pop rsi                                       
+  c27cc9d  pop r12                                       
+  c27cc9f  pop r13                                       
+  c27cca1  pop r14                                       
+  c27cca3  pop r15                                       
+  c27cca5  pop rbp                                       
+  c27cca6  ret                                           
+  c27cca7  nop [rax+rax]                                 ; R ret@14c560+0x0+idx
+  c27ccb0  mov [rsp+0x10],rdx                            
+  c27ccb5  push rbp                                      
+  c27ccb6  push r15                                      
+  c27ccb8  push r14                                      
+  c27ccba  push r13                                      
+  c27ccbc  push r12                                      
+  c27ccbe  push rsi                                      
+  c27ccbf  push rdi                                      
+  c27ccc0  push rbx                                      
+  c27ccc1  sub rsp,0xC8                                  
+  c27ccc8  lea rbp,[rdx+0x80]                            
+  c27cccf  movaps [rsp+0x20],xmm15                       
+  c27ccd5  movaps [rsp+0x30],xmm14                       
+  c27ccdb  movaps [rsp+0x40],xmm13                       
+  c27cce1  movdqa [rsp+0x50],xmm12                       
+  c27cce8  movdqa [rsp+0x60],xmm11                       
+  c27ccef  movdqa [rsp+0x70],xmm10                       
+  c27ccf6  movdqa [rsp+0x80],xmm9                        
+  c27cd00  movdqa [rsp+0x90],xmm8                        
+  c27cd0a  movdqa [rsp+0xA0],xmm7                        
+  c27cd13  movaps [rsp+0xB0],xmm6                        
+  c27cd1b  lea rcx,[rbp+0x1FC0]                          
+  c27cd22  call 0x14C560                                 ; -> sub_14c560
+  c27cd27  movaps xmm6,[rsp+0xB0]                        
+  c27cd2f  movdqa xmm7,[rsp+0xA0]                        
+  c27cd38  movdqa xmm8,[rsp+0x90]                        
+  c27cd42  movdqa xmm9,[rsp+0x80]                        
+  c27cd4c  movdqa xmm10,[rsp+0x70]                       
+  c27cd53  movdqa xmm11,[rsp+0x60]                       
+  c27cd5a  movdqa xmm12,[rsp+0x50]                       
+  c27cd61  movaps xmm13,[rsp+0x40]                       
+  c27cd67  movaps xmm14,[rsp+0x30]                       
+  c27cd6d  movaps xmm15,[rsp+0x20]                       
+  c27cd73  add rsp,0xC8                                  
+  c27cd7a  pop rbx                                       
+  c27cd7b  pop rdi                                       
+  c27cd7c  pop rsi                                       
+  c27cd7d  pop r12                                       
+  c27cd7f  pop r13                                       
+  c27cd81  pop r14                                       
+  c27cd83  pop r15                                       
+  c27cd85  pop rbp                                       
+  c27cd86  ret                                           
+  c27cd87  nop [rax+rax]                                 ; R ret@14c560+0x0+idx
+  c27cd90  mov [rsp+0x10],rdx                            
+  c27cd95  push rbp                                      
+  c27cd96  push r15                                      
+  c27cd98  push r14                                      
+  c27cd9a  push r13                                      
+  c27cd9c  push r12                                      
+  c27cd9e  push rsi                                      
+  c27cd9f  push rdi                                      
+  c27cda0  push rbx                                      
+  c27cda1  sub rsp,0xC8                                  
+  c27cda8  lea rbp,[rdx+0x80]                            
+  c27cdaf  movaps [rsp+0x20],xmm15                       
+  c27cdb5  movaps [rsp+0x30],xmm14                       
+  c27cdbb  movaps [rsp+0x40],xmm13                       
+  c27cdc1  movdqa [rsp+0x50],xmm12                       
+  c27cdc8  movdqa [rsp+0x60],xmm11                       
+  c27cdcf  movdqa [rsp+0x70],xmm10                       
+  c27cdd6  movdqa [rsp+0x80],xmm9                        
+  c27cde0  movdqa [rsp+0x90],xmm8                        
+  c27cdea  movdqa [rsp+0xA0],xmm7                        
+  c27cdf3  movaps [rsp+0xB0],xmm6                        
+  c27cdfb  call 0xEEC6E40                                ; -> sub_eec6e40
+  c27ce00  int3                                          
+  c27ce01  nop [rax+rax]                                 ; R ret@eec6e40+0x0+idx
+  c27ce10  mov [rsp+0x10],rdx                            
+  c27ce15  push rbp                                      
+  c27ce16  push r15                                      
+  c27ce18  push r14                                      
+  c27ce1a  push r13                                      
+  c27ce1c  push r12                                      
+  c27ce1e  push rsi                                      
+  c27ce1f  push rdi                                      
+  c27ce20  push rbx                                      
+  c27ce21  sub rsp,0xC8                                  
+  c27ce28  lea rbp,[rdx+0x80]                            
+  c27ce2f  movaps [rsp+0x20],xmm15                       
+  c27ce35  movaps [rsp+0x30],xmm14                       
+  c27ce3b  movaps [rsp+0x40],xmm13                       
+  c27ce41  movdqa [rsp+0x50],xmm12                       
+  c27ce48  movdqa [rsp+0x60],xmm11                       
+  c27ce4f  movdqa [rsp+0x70],xmm10                       
+  c27ce56  movdqa [rsp+0x80],xmm9                        
+  c27ce60  movdqa [rsp+0x90],xmm8                        
+  c27ce6a  movdqa [rsp+0xA0],xmm7                        
+  c27ce73  movaps [rsp+0xB0],xmm6                        
+  c27ce7b  lea rcx,[rbp+0x1FC0]                          
+  c27ce82  call 0x14C560                                 ; -> sub_14c560
+  c27ce87  movaps xmm6,[rsp+0xB0]                        
+  c27ce8f  movdqa xmm7,[rsp+0xA0]                        
+  c27ce98  movdqa xmm8,[rsp+0x90]                        
+  c27cea2  movdqa xmm9,[rsp+0x80]                        
+  c27ceac  movdqa xmm10,[rsp+0x70]                       
+  c27ceb3  movdqa xmm11,[rsp+0x60]                       
+  c27ceba  movdqa xmm12,[rsp+0x50]                       
+  c27cec1  movaps xmm13,[rsp+0x40]                       
+  c27cec7  movaps xmm14,[rsp+0x30]                       
+  c27cecd  movaps xmm15,[rsp+0x20]                       
+  c27ced3  add rsp,0xC8                                  
+  c27ceda  pop rbx                                       
+  c27cedb  pop rdi                                       
+  c27cedc  pop rsi                                       
+  c27cedd  pop r12                                       
+  c27cedf  pop r13                                       
+  c27cee1  pop r14                                       
+  c27cee3  pop r15                                       
+  c27cee5  pop rbp                                       
+  c27cee6  ret                                           
+  c27cee7  nop [rax+rax]                                 ; R ret@14c560+0x0+idx
+  c27cef0  mov [rsp+0x10],rdx                            
+  c27cef5  push rbp                                      
+  c27cef6  push r15                                      
+  c27cef8  push r14                                      
+  c27cefa  push r13                                      
+  c27cefc  push r12                                      
+  c27cefe  push rsi                                      
+  c27ceff  push rdi                                      
+  c27cf00  push rbx                                      
+  c27cf01  sub rsp,0xC8                                  
+  c27cf08  lea rbp,[rdx+0x80]                            
+  c27cf0f  movaps [rsp+0x20],xmm15                       
+  c27cf15  movaps [rsp+0x30],xmm14                       
+  c27cf1b  movaps [rsp+0x40],xmm13                       
+  c27cf21  movdqa [rsp+0x50],xmm12                       
+  c27cf28  movdqa [rsp+0x60],xmm11                       
+  c27cf2f  movdqa [rsp+0x70],xmm10                       
+  c27cf36  movdqa [rsp+0x80],xmm9                        
+  c27cf40  movdqa [rsp+0x90],xmm8                        
+  c27cf4a  movdqa [rsp+0xA0],xmm7                        
+  c27cf53  movaps [rsp+0xB0],xmm6                        
+  c27cf5b  lea rcx,[rbp+0x1FC0]                          
+  c27cf62  call 0x14C560                                 ; -> sub_14c560
+  c27cf67  movaps xmm6,[rsp+0xB0]                        
+  c27cf6f  movdqa xmm7,[rsp+0xA0]                        
+  c27cf78  movdqa xmm8,[rsp+0x90]                        
+  c27cf82  movdqa xmm9,[rsp+0x80]                        
+  c27cf8c  movdqa xmm10,[rsp+0x70]                       
+  c27cf93  movdqa xmm11,[rsp+0x60]                       
+  c27cf9a  movdqa xmm12,[rsp+0x50]                       
+  c27cfa1  movaps xmm13,[rsp+0x40]                       
+  c27cfa7  movaps xmm14,[rsp+0x30]                       
+  c27cfad  movaps xmm15,[rsp+0x20]                       
+  c27cfb3  add rsp,0xC8                                  
+  c27cfba  pop rbx                                       
+  c27cfbb  pop rdi                                       
+  c27cfbc  pop rsi                                       
+  c27cfbd  pop r12                                       
+  c27cfbf  pop r13                                       
+  c27cfc1  pop r14                                       
+  c27cfc3  pop r15                                       
+  c27cfc5  pop rbp                                       
+  c27cfc6  ret                                           
+  c27cfc7  nop [rax+rax]                                 ; R ret@14c560+0x0+idx
+  c27cfd0  mov [rsp+0x10],rdx                            
+  c27cfd5  push rbp                                      
+  c27cfd6  push r15                                      
+  c27cfd8  push r14                                      
+  c27cfda  push r13                                      
+  c27cfdc  push r12                                      
+  c27cfde  push rsi                                      
+  c27cfdf  push rdi                                      
+  c27cfe0  push rbx                                      
+  c27cfe1  sub rsp,0xC8                                  
+  c27cfe8  lea rbp,[rdx+0x80]                            
+  c27cfef  movaps [rsp+0x20],xmm15                       
+  c27cff5  movaps [rsp+0x30],xmm14                       
+  c27cffb  movaps [rsp+0x40],xmm13                       
+  c27d001  movdqa [rsp+0x50],xmm12                       
+  c27d008  movdqa [rsp+0x60],xmm11                       
+  c27d00f  movdqa [rsp+0x70],xmm10                       
+  c27d016  movdqa [rsp+0x80],xmm9                        
+  c27d020  movdqa [rsp+0x90],xmm8                        
+  c27d02a  movdqa [rsp+0xA0],xmm7                        
+  c27d033  movaps [rsp+0xB0],xmm6                        
+  c27d03b  lea rcx,[rbp-0x50]                            
+  c27d03f  call 0x7E6D0                                  ; -> sub_7e6d0
+  c27d044  movaps xmm6,[rsp+0xB0]                        
+  c27d04c  movdqa xmm7,[rsp+0xA0]                        
+  c27d055  movdqa xmm8,[rsp+0x90]                        
+  c27d05f  movdqa xmm9,[rsp+0x80]                        
+  c27d069  movdqa xmm10,[rsp+0x70]                       
+  c27d070  movdqa xmm11,[rsp+0x60]                       
+  c27d077  movdqa xmm12,[rsp+0x50]                       
+  c27d07e  movaps xmm13,[rsp+0x40]                       
+  c27d084  movaps xmm14,[rsp+0x30]                       
+  c27d08a  movaps xmm15,[rsp+0x20]                       
+  c27d090  add rsp,0xC8                                  
+  c27d097  pop rbx                                       
+  c27d098  pop rdi                                       
+  c27d099  pop rsi                                       
+  c27d09a  pop r12                                       
+  c27d09c  pop r13                                       
+  c27d09e  pop r14                                       
+  c27d0a0  pop r15                                       
+  c27d0a2  pop rbp                                       
+  c27d0a3  ret                                           
+  c27d0a4  nop [rax+rax]                                 ; R ret@7e6d0+0x0+idx
+  c27d0b0  mov [rsp+0x10],rdx                            
+  c27d0b5  push rbp                                      
+  c27d0b6  push r15                                      
+  c27d0b8  push r14                                      
+  c27d0ba  push r13                                      
+  c27d0bc  push r12                                      
+  c27d0be  push rsi                                      
+  c27d0bf  push rdi                                      
+  c27d0c0  push rbx                                      
+  c27d0c1  sub rsp,0xC8                                  
+  c27d0c8  lea rbp,[rdx+0x80]                            
+  c27d0cf  movaps [rsp+0x20],xmm15                       
+  c27d0d5  movaps [rsp+0x30],xmm14                       
+  c27d0db  movaps [rsp+0x40],xmm13                       
+  c27d0e1  movdqa [rsp+0x50],xmm12                       
+  c27d0e8  movdqa [rsp+0x60],xmm11                       
+  c27d0ef  movdqa [rsp+0x70],xmm10                       
+  c27d0f6  movdqa [rsp+0x80],xmm9                        
+  c27d100  movdqa [rsp+0x90],xmm8                        
+  c27d10a  movdqa [rsp+0xA0],xmm7                        
+  c27d113  movaps [rsp+0xB0],xmm6                        
+  c27d11b  call 0xEEC6E40                                ; -> sub_eec6e40
+  c27d120  int3                                          
+  c27d121  nop [rax+rax]                                 ; R ret@eec6e40+0x0+idx
+  c27d130  mov [rsp+0x10],rdx                            
+  c27d135  push rbp                                      
+  c27d136  push r15                                      
+  c27d138  push r14                                      
+  c27d13a  push r13                                      
+  c27d13c  push r12                                      
+  c27d13e  push rsi                                      
+  c27d13f  push rdi                                      
+  c27d140  push rbx                                      
+  c27d141  sub rsp,0xC8                                  
+  c27d148  lea rbp,[rdx+0x80]                            
+  c27d14f  movaps [rsp+0x20],xmm15                       
+  c27d155  movaps [rsp+0x30],xmm14                       
+  c27d15b  movaps [rsp+0x40],xmm13                       
+  c27d161  movdqa [rsp+0x50],xmm12                       
+  c27d168  movdqa [rsp+0x60],xmm11                       
+  c27d16f  movdqa [rsp+0x70],xmm10                       
+  c27d176  movdqa [rsp+0x80],xmm9                        
+  c27d180  movdqa [rsp+0x90],xmm8                        
+  c27d18a  movdqa [rsp+0xA0],xmm7                        
+  c27d193  movaps [rsp+0xB0],xmm6                        
+  c27d19b  lea rcx,[rbp+0x33F0]                          
+  c27d1a2  call 0x75D00                                  ; -> sub_75d00
+  c27d1a7  movaps xmm6,[rsp+0xB0]                        
+  c27d1af  movdqa xmm7,[rsp+0xA0]                        
+  c27d1b8  movdqa xmm8,[rsp+0x90]                        
+  c27d1c2  movdqa xmm9,[rsp+0x80]                        
+  c27d1cc  movdqa xmm10,[rsp+0x70]                       
+  c27d1d3  movdqa xmm11,[rsp+0x60]                       
+  c27d1da  movdqa xmm12,[rsp+0x50]                       
+  c27d1e1  movaps xmm13,[rsp+0x40]                       
+  c27d1e7  movaps xmm14,[rsp+0x30]                       
+  c27d1ed  movaps xmm15,[rsp+0x20]                       
+  c27d1f3  add rsp,0xC8                                  
+  c27d1fa  pop rbx                                       
+  c27d1fb  pop rdi                                       
+  c27d1fc  pop rsi                                       
+  c27d1fd  pop r12                                       
+  c27d1ff  pop r13                                       
+  c27d201  pop r14                                       
+  c27d203  pop r15                                       
+  c27d205  pop rbp                                       
+  c27d206  ret                                           
+  c27d207  nop [rax+rax]                                 ; R ret@75d00+0x0+idx
+  c27d210  mov [rsp+0x10],rdx                            
+  c27d215  push rbp                                      
+  c27d216  push r15                                      
+  c27d218  push r14                                      
+  c27d21a  push r13                                      
+  c27d21c  push r12                                      
+  c27d21e  push rsi                                      
+  c27d21f  push rdi                                      
+  c27d220  push rbx                                      
+  c27d221  sub rsp,0xC8                                  
+  c27d228  lea rbp,[rdx+0x80]                            
+  c27d22f  movaps [rsp+0x20],xmm15                       
+  c27d235  movaps [rsp+0x30],xmm14                       
+  c27d23b  movaps [rsp+0x40],xmm13                       
+  c27d241  movdqa [rsp+0x50],xmm12                       
+  c27d248  movdqa [rsp+0x60],xmm11                       
+  c27d24f  movdqa [rsp+0x70],xmm10                       
+  c27d256  movdqa [rsp+0x80],xmm9                        
+  c27d260  movdqa [rsp+0x90],xmm8                        
+  c27d26a  movdqa [rsp+0xA0],xmm7                        
+  c27d273  movaps [rsp+0xB0],xmm6                        
+  c27d27b  lea rcx,[rbp-0x50]                            
+  c27d27f  call 0xC27E9D0                                ; -> sub_c27e9d0
+  c27d284  movaps xmm6,[rsp+0xB0]                        
+  c27d28c  movaps xmm7,[rsp+0xA0]                        
+  c27d294  movaps xmm8,[rsp+0x90]                        
+  c27d29d  movaps xmm9,[rsp+0x80]                        
+  c27d2a6  movaps xmm10,[rsp+0x70]                       
+  c27d2ac  movaps xmm11,[rsp+0x60]                       
+  c27d2b2  movaps xmm12,[rsp+0x50]                       
+  c27d2b8  movaps xmm13,[rsp+0x40]                       
+  c27d2be  movaps xmm14,[rsp+0x30]                       
+  c27d2c4  movaps xmm15,[rsp+0x20]                       
+  c27d2ca  add rsp,0xC8                                  
+  c27d2d1  pop rbx                                       
+  c27d2d2  pop rdi                                       
+  c27d2d3  pop rsi                                       
+  c27d2d4  pop r12                                       
+  c27d2d6  pop r13                                       
+  c27d2d8  pop r14                                       
+  c27d2da  pop r15                                       
+  c27d2dc  pop rbp                                       
+  c27d2dd  ret                                           
+  c27d2de  xchg ax,ax                                    
+  c27d2e0  mov [rsp+0x10],rdx                            
+  c27d2e5  push rbp                                      
+  c27d2e6  push r15                                      
+  c27d2e8  push r14                                      
+  c27d2ea  push r13                                      
+  c27d2ec  push r12                                      
+  c27d2ee  push rsi                                      
+  c27d2ef  push rdi                                      
+  c27d2f0  push rbx                                      
+  c27d2f1  sub rsp,0xC8                                  
+  c27d2f8  lea rbp,[rdx+0x80]                            
+  c27d2ff  movaps [rsp+0x20],xmm15                       
+  c27d305  movaps [rsp+0x30],xmm14                       
+  c27d30b  movaps [rsp+0x40],xmm13                       
+  c27d311  movdqa [rsp+0x50],xmm12                       
+  c27d318  movdqa [rsp+0x60],xmm11                       
+  c27d31f  movdqa [rsp+0x70],xmm10                       
+  c27d326  movdqa [rsp+0x80],xmm9                        
+  c27d330  movdqa [rsp+0x90],xmm8                        
+  c27d33a  movdqa [rsp+0xA0],xmm7                        
+  c27d343  movaps [rsp+0xB0],xmm6                        
+  c27d34b  lea rcx,[rbp+0x1FC0]                          
+  c27d352  call 0x14C560                                 ; -> sub_14c560
+  c27d357  movaps xmm6,[rsp+0xB0]                        
+  c27d35f  movdqa xmm7,[rsp+0xA0]                        
+  c27d368  movdqa xmm8,[rsp+0x90]                        
+  c27d372  movdqa xmm9,[rsp+0x80]                        
+  c27d37c  movdqa xmm10,[rsp+0x70]                       
+  c27d383  movdqa xmm11,[rsp+0x60]                       
+  c27d38a  movdqa xmm12,[rsp+0x50]                       
+  c27d391  movaps xmm13,[rsp+0x40]                       
+  c27d397  movaps xmm14,[rsp+0x30]                       
+  c27d39d  movaps xmm15,[rsp+0x20]                       
+  c27d3a3  add rsp,0xC8                                  
+  c27d3aa  pop rbx                                       
+  c27d3ab  pop rdi                                       
+  c27d3ac  pop rsi                                       
+  c27d3ad  pop r12                                       
+  c27d3af  pop r13                                       
+  c27d3b1  pop r14                                       
+  c27d3b3  pop r15                                       
+  c27d3b5  pop rbp                                       
+  c27d3b6  ret                                           
+  c27d3b7  nop [rax+rax]                                 ; R ret@14c560+0x0+idx
+  c27d3c0  mov [rsp+0x10],rdx                            
+  c27d3c5  push rbp                                      
+  c27d3c6  push r15                                      
+  c27d3c8  push r14                                      
+  c27d3ca  push r13                                      
+  c27d3cc  push r12                                      
+  c27d3ce  push rsi                                      
+  c27d3cf  push rdi                                      
+  c27d3d0  push rbx                                      
+  c27d3d1  sub rsp,0xC8                                  
+  c27d3d8  lea rbp,[rdx+0x80]                            
+  c27d3df  movaps [rsp+0x20],xmm15                       
+  c27d3e5  movaps [rsp+0x30],xmm14                       
+  c27d3eb  movaps [rsp+0x40],xmm13                       
+  c27d3f1  movdqa [rsp+0x50],xmm12                       
+  c27d3f8  movdqa [rsp+0x60],xmm11                       
+  c27d3ff  movdqa [rsp+0x70],xmm10                       
+  c27d406  (bad)                                         
