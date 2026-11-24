@@ -58,3 +58,18 @@ If a helper you need does not exist, write it as `tools/sigs/<name>.py` with a u
 
 ## rtools MCP tools: DO NOT USE (2026-11-16)
 Calls to tools.rtools.* through the execute tool hang for minutes (the shared MCP process stalls). Use the bash tool with the same commands from the Toolbox table (python tools/sigs/*.py, rdis.exe). Never ask the orchestrator questions: choose the conservative reading, note [UNVERIFIED: 0xrva question], continue.
+
+## Shared data files (hard rule, learned 2026-11-23)
+Never write or overwrite docs/data/native_roots.txt, native_functions.tsv, native_deps.tsv, native_boundary_candidates.tsv or docs/RENDER_CHECKLIST.md yourself. Units that classify boundary rows write ONLY their own docs/progress/oc_U-E<ID>.md (put `lift` rows in a table there); the orchestrator merges them (X0b5). Register new lift functions only with `python tools/native_checklist_gen.py --add <rva>`. Do not run tools/sigs/closure2.py --write-roots.
+
+## Callees that are `lift` but not lifted yet (hard rule)
+A callee classified `lift` (in docs/data/native_functions.tsv or native_boundary.tsv) is NOT a blocker. Forward-declare it with its exact ABI signature in your own header (name `sub_<rva>`, namespace native) and CALL it like any lifted function: it will be lifted by its own unit and links at the milestone gate. Do not write Boundary wrappers for `lift` callees and do not stop with CLOSES? NO because of them. Only callees in neither table are blockers (name them after CLOSES? NO).
+
+## Indirect calls through data slots (hard rule)
+`call [rip+slot]` / `call [0xRVA]` is not a blocker: read the pointer from the slot at call time (exactly what the instruction does) and call it as a function pointer with the same arguments, documenting the slot RVA. A tiny forwarder (jmp to another function) is a normal lift item: forward-declare it.
+
+## Tools (added 2026-11-23)
+- `python tools/sigs/liftcheck.py --explain <rva>`: prints per-failed-check fix data (uncovered instruction ranges with disassembly, missing call quotes as verbatim lines, stub/TODO matches with line numbers, verify_oc mismatches).
+- `python tools/sigs/lift_scaffold.py <rva> [--out path]`: generates a starting-point C++ file + dossier skeleton from rdis output (LIFT marker, ABI placeholder, call quotes, basic-block range citations, static_assert placeholder, LIFT_FN registry, forward declarations for lift-set callees); the scaffold passes coverage/call-quote checks once LIFT-BODY markers are replaced.
+
+Quote format trap: verify_oc only parses PLAIN lines `0xRVA  mnemonic operands` (two spaces, nothing before 0x on the line except whitespace). A `// 0xRVA  call ...` comment line is not parsed, so a source with only commented quotes fails with 'verify_oc found no quoted instruction lines'. Put the verbatim quotes as plain lines inside a /* */ block comment in the .cpp (see sub_bc7a3d0.cpp ~line 263) or in a code block in docs/functions/<rva>.md.

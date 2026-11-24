@@ -1,4 +1,4 @@
-// LIFT 0xe84c7d0 size 0x62f 1.26.62.01 
+// LIFT 0xe84c7d0 size 0x62f 1.26.62.01 sub_e84c7d0
 #include "client/features/render/native/Lift.h"
 #include "client/features/render/native/d3d12/sub_e84c7d0.h"
 

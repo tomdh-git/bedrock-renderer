@@ -234,4 +234,34 @@ def write_check(rows):
     print("%d functions, %.2f MB of code, checklist written to %s" % (n, tb / 1048576, CHECK))
     import subprocess
     env = dict(os.environ, CHECKLIST=CHECK, PYTHONUTF8="1")
-    print(subprocess.run([sys.executable, "tools/checklist_status.py", "checklist
+    print(subprocess.run([sys.executable, "tools/checklist_status.py", "checklist regenerated"], capture_output=True, text=True, env=env).stdout.strip())
+
+
+def write_outside(rows):
+    cnt = defaultdict(int)
+    inset = {r["rva"] for r in rows}
+    for r in rows:
+        for c in r["outside"]:
+            cnt[c] += 1
+    lines = ["# rva\tcallers_in_set\tclass(fill in X0b: lift|stl|crt|os|d3d|vendor|other-subsystem)\tname"]
+    for c, k in sorted(cnt.items(), key=lambda t: -t[1]):
+        lines.append("%#x\t%d\t?\t" % (c, k))
+    open(OUTSIDE, "w", encoding="utf-8").write("\n".join(lines) + "\n")
+
+
+def main():
+    a = sys.argv[1:]
+    if "--add" in a:
+        rv = [int(x, 16) for x in a[a.index("--add") + 1:] if not x.startswith("--")]
+        with open(D + "native_roots.txt", "a", encoding="utf-8") as f:
+            for r in rv: f.write("%x added %#x\n" % (r, r))
+        rows = scan()
+        save(rows); write_outside(rows); write_check(rows); return
+    if "--cached" in a or "--expand" in a:
+        rows = load()
+    else:
+        rows = scan(); save(rows); write_outside(rows)
+    write_check(rows)
+
+
+main()

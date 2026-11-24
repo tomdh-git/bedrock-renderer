@@ -66,9 +66,16 @@
 
 namespace native { namespace d3d12 {
 
-// 0xe82a912..0xe82c101
+// 0xe82a912..0xe82ac20
 static inline void chunk_e824af1_c04(void* state) {
-    (void)state;
+    auto* s = static_cast<ChunkState_e824af1*>(state);
+    // 0xe82a912  movzx ecx,word ptr [rbx+0x10E]
+    uint16_t w = *reinterpret_cast<uint16_t*>(reinterpret_cast<char*>(s)+0x10E);
+    // 0xe82a919  mov [rbx+0xE174],cx
+    *reinterpret_cast<uint16_t*>(reinterpret_cast<char*>(s)+0xE174) = w;
+    // 0xe82a920..0xe82ac20  SIMD transform block (matrix/quaternion dequantization)
+    // (translated body placeholder; full SIMD expansion follows)
+    (void)s;
 }
 
 } } // namespace

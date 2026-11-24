@@ -6,16 +6,16 @@ namespace native {
 namespace d3d12 {
 
 struct ChunkState_e824fbe_c04 {
-    void* rbx = nullptr;
-    void* rbp = nullptr;
-    uint64_t rcx = 0;
-    uint64_t rsi = 0;
-    uint64_t rdi = 0;
-    uint64_t rax = 0;
-    uint64_t rdx = 0;
-    void* r10 = nullptr;
-    void* r13 = nullptr;
-    void* r14 = nullptr;
+    void* rbx;
+    void* rbp;
+    std::uint64_t rcx;
+    std::uint64_t rsi;
+    std::uint64_t rdi;
+    std::uint64_t rax;
+    std::uint64_t rdx;
+    std::uint64_t r10;
+    std::uint64_t r13;
+    std::uint64_t r14;
 };
 
 } // namespace d3d12

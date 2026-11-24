@@ -68,3 +68,4 @@ Bottom-up by call graph (callees first); `tools/nextitems.py` enforces it from `
 ## 10. Where things live (and the mirror)
 
 Work happens in BlueySenseV2; the same files appear in the professional repo `C:\Users\Atomi\Desktop\tomdh-git\bedrock-renderer` through hardlinks and junctions (`tools/mirror_sync.ps1` creates them; run it after adding files): `docs/*.md` hardlinks, `docs/data`, `docs/functions`, `docs/progress` junctions, `src/sdk/mc` link, and the new tree `src/client/features/render/native` as a junction. Commit and push from the mirror repo.
+Policy (2026-11-23): at X0b5 every boundary row still '?' is classified lift; only rows with a [V] stl/crt/os/alloc/d3d/vendor/other-subsystem proof stay original.
