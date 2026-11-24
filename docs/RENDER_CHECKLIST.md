@@ -1,612 +1,1462 @@
-# Render reversal master checklist (bgfx, RenderDragon, FrameBuilder, adjacent)
+<!-- NATIVE -->
+# Native render checklist: every render function lifted to our own verified source, then run as our own code
 
 <!-- STATUS:BEGIN -->
-## STATUS (auto-updated by tools/checklist_status.py after every tick; last update 2026-11-21)
-**Overall: 341 done / 80 open** (core sections A-J: 138 done / 9 open; L-layer mirrors: 156 done / 15 open).
-**Last change:** L1q r7: NO (41/41) but orchestrator resolved the 0x130 mystery: 0xA32178 stride is 0x78 (createFrameBuffer imul 0x78); hint rewritten to decode the 0x78 record
+## STATUS (auto-updated by tools/checklist_status.py after every tick; last update 2026-11-23)
+**Items: 5 done / 1392 open.** Lifted code (L1, statically complete, liftcheck OK): **0 of 3162 KB (0%)**. The done state is Native mode over the whole path (X6z); until then this number is the honest progress, and nothing is live-verified (L2) before the gates.
+**Last change:** 
 
-**Full reversal of the renderer (high level):** Static decode of the FrameBuilder layer (descriptions, visitors, producers) is mostly done; extractor bodies (chunk, item-in-hand, batch-actor) done; bgfx/D3D12/RenderDragon internals (sections A-C) are mapped by anchor, with record layouts and queue/PSO/root-signature internals still open.
-
-**Full control over the renderer (high level):** Seams are identified (submit hook, per-draw executor, custom item, frame-graph task list) and some hooks exist, but none of the takeover design (J, M3c-M3f, N1) has been exercised in game; no whole-frame replacement yet.
-
-| Section | done | open |
-|---|---|---|
-| A bgfx core | 26 | 0 |
-| B D3D12 backend | 23 | 0 |
-| C RenderDragon | 14 | 2 |
-| D FrameBuilder descriptions | 25 | 1 |
-| E Extractors/registry | 12 | 0 |
-| F Frame-graph passes | 8 | 1 |
-| G Materials/textures | 5 | 3 |
-| H Geometry/level | 6 | 0 |
-| I Lighting/actors/sky/UI/post | 17 | 1 |
-| J Whole-frame control | 2 | 1 |
-| K Full-RE program | 165 | 15 |
-| M Dossiers/acceptance | 10 | 11 |
-| N Integration/threading | 8 | 5 |
-| O DLL infrastructure | 5 | 4 |
-| P Rewrite capability | 6 | 5 |
-| Q Rewrite program | 2 | 24 |
-| R Partials ledger | 7 | 7 |
+| Section | done | open | lifted bytes |
+|---|---|---|---|
+| X0 | 5 | 9 |  |
+| X1 | 0 | 189 | 0 / 282 KB (0%) |
+| X2 | 0 | 231 | 0 / 347 KB (0%) |
+| X3 | 0 | 145 | 0 / 214 KB (0%) |
+| X4 | 0 | 564 | 0 / 1739 KB (0%) |
+| X5 | 0 | 242 | 0 / 579 KB (0%) |
+| X6 | 0 | 6 |  |
+| XO | 0 | 6 |  |
 <!-- STATUS:END -->
 
-Rule for ticking: `[x]` only when the item is written down in `docs/BGFX_MAP.md` (or the named doc) with RVAs/offsets AND has an SDK header or hook where one is listed. There is NO partial state (rule of 2026-11-14): only `[x]` (fully done, evidence written, constants in both assertion lists) or `[ ]` (anything less, including "partly done"). Progress notes stay inside the item text but never change its box. "Done" for the whole effort = every box below is `[x]`. Work order: top to bottom inside each section, sections in the order of "Execution order" at the end. Last updated 2026-11-12.
-
-## A. bgfx core
-- [x] A1 Frame buffer layout (view remap, matrices, draw headers, tail block, counters) — 6e, `Frame.h` (P2) — offsets move per patch
-- [x] A2 Draw header (0x80) fields read by the executor — 6e-2
-- [x] A3 bgfx::Caps (limits, flags, globals) — 6j, `Caps.h` (P1) — version-stable concepts
-- [x] A4a Context init + thread start 0xbc63690 — 6q
-- [x] A4b Context global 0x12ae1748 + view array + semaphores — 6r (handle allocators A8 pending) | TICKED (2026-11-16 oc_U-A4b.md, verify_oc 112/112): s_ctx 0x12AE1748 referencers; Context alloc 0xBC6D852 / init 0xBC63690; View array ctx+0x1EAB080 stride 0x140 x256 with every offset = disp-0x1EAB080 quoted; semaphores ctx+0x80/+0x100 created at 0xBC6B560 via 0xEBDBC20 (CreateSemaphoreW), wait 0xEBDBC60, post 0xEBDBC50. Caveats: field meanings at +0x04..+0x0E/+0x10..+0x16 and sortMode value names are inferred ([I]), +0x0E qword overlaps +0x16/+0x18 unresolved
-- [x] A5a frame()/swap = 0xbc66de0, handoff 0xbc65800, thread 0xbc65720 — 6r,6s
-- [x] A5b Encoder::submit 0xbc5fb40 decoded: encoder object layout, draw index alloc (Frame+0xDC57E8), key build, header copy (6cq) (P2) — RVA moves per patch
-- [x] A5c Encoder setters: inlined stores (state +0x60, rect +0x80, binds +0x140 block) — no call sites (6cr)
-- [x] A5d Encoder submit variants + reset + Frame::sort 0xbc61220 (6cq, 6cr); setters are inlined stores into Encoder+0x40..0x680
-- [x] A6a View struct (0x140, 256 views at ctx+0x1eab080) — 6q
-- [x] A6b View matrices: s_ctx view array +0x20 (6q, live 6r)
-- [x] A6c Sorted item list Frame+0x94700 (6am); sort key bit layout partly | TICKED (2026-11-15 opencode U-A6c, re-checked): docs/progress/oc_U-A6c.md: key built in Encoder::submit 0xbc60740 (view<<54 mask 0x3FC0000000000000, type tags 0x10/0x14/0x18 at bits 50..52, depth/seq/program/trans shifts from the quoted immediates), stored at 0xbc60991 (key u64 Frame+0x14700) and 0xbc6099c (u16 index Frame+0x94700), consumed by Frame::sort 0xbc61e20 -> radix sort 0xbc62040/0xbc62bc0, count Frame+0xDC57E8; 74/74 verify_oc. Open [?] (non-blocking): radix inner body, live key values, custom-item payload words
-- [x] A7a Uniform name lookup + createUniform registry (hash table, records, allocator) — 6ag, 6ah
-- [x] A7b Predefined uniforms list (14, Mojang additions marked) — 6ag
-- [x] A7c Per-draw constant stream cursor + 20-byte binding records (type 0-8) — 6an; opcode set pending | TICKED (2026-11-16 oc_U-A7c.md, verify_oc 57/57): cursor advance (stream obj rbx+0xB8: +8 cursor, +0x10 ptr, +0x18 stride), type-byte jump table 0xF4EE774 (9 entries), per-type record fields read; record bytes +0x00..0x09,+0x0C/+0x0E/+0x10 are not read by any handler; default handler 0xe824fbe not quoted
-- [x] A8a Handle allocators located in Context (offsets) — 6s, 6ai (API fn map; per-allocator roles [I]) | TICKED (2026-11-16 oc_U-A8a.md, verify_oc 188/188): allocator offsets+create/destroy RVAs for index/vertex/layout/texture/framebuffer/dynamic texture/uniform buffers (ctx+0x1DE534C, +0x1DDD308, +0x1DE1348, +0x1DFC298, +0x1DF145C, +0x1DFB48C, +0x1DFB690), shader/program fixed tables, view 256 fixed, encoder pool; occlusion-query allocator not found [UNVERIFIED] | UPDATE 2026-11-16 oc_U-EL1p.md: occlusion-query allocator = ctx+0x1DFBE94 (max 256), no create/destroy exists
-- [x] A8b Record tables: texture 0xB8 [V]; shader 0xB8 @+0xAAA178 and program 0xF8 @+0xB62178 layouts — 6au; 0x78/0x80/0x130/0x68 field layouts pending | TICKED (2026-11-16 oc_U-A8b.md, verify_oc 112/112): index 0x78 @+0x93A178, vertex 0x80 @+0x9B2178, framebuffer (create stride 0x78 imul at 0xe816396 vs table spacing explained), window fb 0x68, field stores quoted; five earlier questions resolved in-file; some field meanings tagged [I]
-- [x] A8c Guarded paged array layout (4096 inline + chained pages, guard byte +0xC96190) — 6z
-- [x] A9 Render item state bits: u64 S bit map (write mask 0-3, depth func 4-7, blend factors 12-27, equation 28-30, cull 36-37, flags) + stencil state2 + PSO key mask (6ct); a few bit names (31-35, 48-50, 56-58) still candidates — enum tables dumped (6cu) (P1) — bit semantics version-stable -- 6fs: bits 31-35 and 56-58 now named from the PSO desc (alpha equation 31-33, independent blend 34, alpha-to-coverage 35, MSAA 56, line AA 57, conservative raster 58); stencil word map and all five enum tables dumped.
-- [x] A10 render thread proc, semaphores ctx+0x80/+0x100, surface array stride 0x700 — 6as; 0xbc63150 internals pending | TICKED (2026-11-16 oc_U-A10.md, verify_oc 189/189, 0 UNVERIFIED): 0xbc63150 = Context::renderFrame(msecs) instruction-complete (thread entry 0xbc65720 loops until result 3), semaphore wait ctx+0x80 / release ctx+0x100, state flags, return codes 1/2/3; the unit's 'submit only if reset requested' reading and the surface stride 0x700 were not independently re-checked
-- [x] A11 init/reset/shutdown: lifecycle (6di), reset entry = submit prologue + slot 60 0xe81a610 (6dn); shutdown ordering = slot 59 (not exercised live)
-- [x] A12a dynamic texture handles = reset flag 0x400000 + caps bit 0x12ADFA54&0x10 + free-list (6ei); createDynamicTexture 0xbc74a80 | TICKED (2026-11-16 oc_U-A12a.md, verify_oc 385/385): createDynamicTexture 0xbc74a80 instruction-complete, caps test at 0xBC67284 (byte 0x12ADFA54 & 0x10), reset flag 0x400000 test vs ctx+0x1EBF19C, free-list exhaustion/recycle, callers; Caps.h bit identity and desc element layout left [UNVERIFIED]
-- [x] A12b ranged vertex-buffer binds: only the RTX skinning range check (0xe83f1d0) found (6ei); setter API not isolated -- 6fe: storage side decoded (Frame+0x8B4778 SideTable* per item, 0x41 x {Binding*, count}, fed from Encoder+0x680 by 0xbc60f10); the setter filling the encoder table is still open | PROGRESS 2026-11-16 oc_U-A12b.md (spot-checked 0xbc60b4f/0xbc60b60): the four callers of 0xBC60F10 (0xBC60740/0xBC61140/0xBC61560/0xBC618E0) are Encoder submit variants that only READ Encoder+0x680 (mov r8,[rsi+0x680] at 0xbc60b4f) and clear dirty flag +0x688; encoder fields +0x68C/+0x690/+0x694/+0x698/+0x6AC/+0x6AD tabulated; the writer of +0x680 is still unfound (U-A12c) | PROGRESS 2026-11-16 (orch, from L_bc60d10.txt): 0xBC60D10 (called at 0x568CF7A) is the Encoder reset/begin, not an iterator: sets +0x6AD=0 (0xbc60d21), defaults +0x60..+0xE3, then walks the table at [encoder+0x680] (0xbc60e65 mov rdi,[rsi+0x680]): 0x41 slots of 0x10 bytes (loop add rbx,0x10 / cmp rbx,0x410 at 0xbc60ec2/0xbc60ec6), each released via vcall [[rcx]+8] (0xbc60eb1) and zeroed (movups [r14],xmm6), count dword [rdi+0x410]=0 (0xbc60eec), dirty +0x688=1 (0xbc60ef6) | CLOSED 2026-11-21 oc_U-EA12b.md [V 9/9]: setter = 0xBC6E360, writes Encoder+0x680 at 0xbc6e3da and dirty +0x688 at 0xbc6e533
-- [x] A12c RTX handles: pass+string anchors (6ei); fork handle/call API not isolated | PROGRESS 2026-11-16 oc_U-A12c.md (verify_oc 280/280): common creation function 0xe812740 (size 0x446) instruction-complete, callers 0xe83e200 (LObjectInstances/LVisibleBLASes), 0xe8165a0 (LBLAS Quad Indices); handle index table ctx+0x4186740 (u16 per entry), count ctx+0x4165EC0, flags ctx+0x41666C8; heap handles 0xe807ff0 -> ctx+0x19F10/0x19F18/0x19F20/0x19F30 via 0xe927fc0; NOT done: the unit's 'CreateHeap = device vtable+0xD0' is wrong (SDK slot 26 = GetCustomHeapProperties; CreateHeap is +0xE0) and 0xe815590/0xe927fc0 are unlisted | TICKED (2026-11-16 oc_U-A12c.md 280/280 + oc_U-A12e.md 308/308): RTX handle creation API isolated and instruction-complete: 0xe812740 (buffer/handle record, handle table ctx+0x4186740/count +0x4165EC0/flags +0x41666C8), 0xe927fc0 (heap, 0xe92822d), 0xe815590 (TLAS/resource, 0xe81583f). Caveats: the D3D12 method behind the 0xF99FFA0 thunk calls (device wrapper +8, resource vtable +0x58) is NOT identified; earlier 'CreateHeap=+0xD0' claim retracted | CORRECTION 2026-11-16 (oc_U-A12f.md + rdis dis 0x73820): the 0xF99FFA0 thunk is a CFG `jmp rax`; `[0x1233E1A8]` vtable+8 is the global allocator's allocate(size=edx), so those calls are allocations, not CreateHeap; 0xe927fc0/0xe928660 'heap' names need re-reading as allocator-backed pools
-- [x] A12d upscaling: DLSS/NGX parameter set in 0xe83ec70 + 0xe8403d0, TAAU/FSR1 passes (6ei); call wrappers not isolated | TICKED (2026-11-16 oc_U-A12d.md, verify_oc 310/310): RTX slot 60 0xe83ec70 DLSS/NGX parameter set instruction-complete (21 parameter writes: Width/Height/OutWidth/OutHeight/PerfQualityValue/Sharpness/DLSS.Feature.Create.Flags ..., wrappers sub_ed36950/ed369b0/ed36ad0/ed36a70), mode strings 'Upscaling Mode: DLSS/Fallback', requested-mode fields this+0x3C5642C/0x3C56430/0x3C56438/0x3C56418, virtual-call trigger from submit; the 'slot 60 call' reading at 0xE82E2A4 is flagged [UNVERIFIED] by the unit
-- [x] A13 SDK headers: Encoder.h and View.h added (Frame.h, Caps.h existed); Handles.h/Uniforms.h pending | TICKED (2026-11-16 orchestrator, file check): src/sdk/mc/deps/bgfx/{Encoder,View,Handles,Uniforms}.h all exist (144/30/99/54 lines, static_asserts 7/3/17/6), Handles.h and Uniforms.h were the pending ones
-
-## B. D3D12 backend (RendererContextD3D12 + RTX subclass)
-- [x] B1 vtable slots named; corrections in 6aj — 6k, 6aj (P1) — interface survives
-- [x] B2a Slots 0-21 verified by disassembly — 6aj (table-evidence)
-- [x] B2b Slots 22-49 verified — 6aj (table-evidence)
-- [x] B2c Slots 50-62 verified — 6aj (table-evidence)
-- [x] B2d RTX slots 54/63/64 and overrides verified — 6al
-- [x] B3a submit stage map by callees — 6t, 6af (P2) — callees move | TICKED (2026-11-15 oc_U-B3a.md, verify_oc 17/17): 0xe82e230 size 0x4d91, 55 callees in order, stage map S1.., single caller 0xe83d440; stage ranges approximate (body-level reversal is B3b)
-- [x] B3b submit: descriptor binding types (6an), sort-key program field, descriptor flush (6ao) | TICKED (2026-11-15 oc_U-B3b.md, verify_oc 76/76): binding-type table, program field = shr 0x15 / and 0x7FF of sort key at 0xe822483, descriptor flush 0xe81b720; the 7 flush call sites not individually quoted
-- [x] B3c Draw emitter found: 0xe81b720 DrawBatcher flush (DrawInstanced 0x70-stride records, DrawIndexedInstanced 0x88-stride records, ExecuteIndirect for batches); executor calls it at 0xe822e4e etc. (6ej); sig D3D12Context.drawFlush; not run in game
-- [x] B3d submit stats/timers/debug overlay: stock bgfx stats text + timers inlined in slot 50 (6dh); flag bit positions to confirm live
-- [x] B4 PSO cache: builder 0xe81dc60 decodes state to D3D12 PSO desc, key mask known (6ct, 6ao); disk cache 0xe8feb10 pending -- 6fr/6fs: key (Murmur2A over 13 inputs) and the blend/rasterizer/depth-stencil part of the desc reversed; RenderDraw +0x68/+0x6C/+0x70 = depth bias fields; input layout, formats, CreateGraphicsPipelineState and cache insert still to do. -- 6ft: builder transcribed end to end (input layout, topology, targets, sample desc, create, cache insert); disk cache 0xe8feb10 still pending. | TICKED (2026-11-15 opencode U-B4disk, re-checked): PipelineDiskCache::tick 0xe8feb10 decoded in phases (90/90 verify_oc), callee table, PipelineDiskCache object fields, sibling save/flush functions (0xe8fc760, 0xe8fee80), single caller 0x67c9c20 (docs/progress/oc_U-B4disk.md); with the earlier PSO key (Murmur2A over 13 inputs) and blend/raster decode this completes B4. Residual [?] non-blocking: load entry point not found, indirect callers
-- [x] B5 Root signature serialized in init (6ak); >=6 root params, tables 2/3, value 5 (6ao); full layout pending | TICKED (2026-11-15 opencode U-B5, re-checked): docs/progress/oc_U-B5.md: root-signature builder 0xe80c600 (called from init 0xe807ff0 at 0xe809350 in a loop), serializer D3D12SerializeRootSignature resolved into global 0x12BB4930; EXACTLY 5 root parameters (tables at 0,1,4; CBV root descriptors at 2,3; no 32-bit constants) with every descriptor range (sampler 16, SRV/sampler unbounded 0xFFFFFFFF), corrects the older '>=6 params' claim; 54/54 verify_oc. Residual [?]: the context offset where the created ID3D12RootSignature is stored (goes through sub_e80c180 after the loop) is not traced
-- [x] B6 Queue wrapper +0xCC9268, current list +0x19F58, submit/flush slots 8/61/62, frame-context ring — 6av; fence wait internals pending | TICKED (2026-11-15 oc_U-B6.md, verify_oc 329/329): slots 8/61/62, ring advance 0xe81ac80, fence wait 0xe80ecb0/0xe818490/0xe81b3b0, fence layout; residual unknowns are outside B6 scope (fatal helper 0x1a2800 msg, slot-7 mapping)
-- [x] B7a createTexture signature + table access — 6z | TICKED (2026-11-15 opencode U-B7a, re-checked): docs/progress/oc_U-B7a.md: createTexture = vtable slot 26, 0xe8143c0 (size 0x2e1), register map (rcx this, rdx handle, r8 Memory*, r9 flags, skip on stack), texture record table indexing/stride/bounds check, first record stores, callees in order; 45/45 verify_oc; open [UNVERIFIED] (caller-frame [rbp+0x10], import-slot call 0xF9A8C78) non-blocking
-- [x] B7b State transition helper 0xe82d960 + tracker entries — 6ae | TICKED (2026-11-15 opencode U-B7b, re-checked): docs/progress/oc_U-B7b.md: helper 0xe82d960 register map and flow, TrackerEntry field layout, state-value mapping to D3D12_RESOURCE_STATES, ResourceBarrier emission/batching (vtable byte offset 0xD0), callers; 66/66 verify_oc; open [UNVERIFIED] (indirect xrefs, firstUse initial/current state writes) non-blocking
-- [x] B7c Upload tracking lists (0x48/0x18 entries @+0x1A000/+0x1A018) + destroy path slot 57 (6ba); slot 55 init (6bb); copy path + slot 56 pending | TICKED (2026-11-15 oc_U-B7c.md, verify_oc 34/34): slots 55/56/57 push/pop/erase + 0x48/0x18 entry layouts; some entry-field meanings remain [UNVERIFIED] in the doc
-- [x] B8a Swapchain: create slot 39 (6az), reset slot 60 (6aw/6ax), present slot 6 (6ay), window table 0xC97698 (stride 0x68)
-- [x] B8b TDR / device lost handling (slot 7) — 6ak
-- [x] B9a createShader blob formats (CSH3/FSH5/VSH5 wrapping DXBC; no DXIL) — 6at (P1) — format semantics stable
-- [x] B9b createProgram/destroyShader records (6au); input-layout builder ('TEXCOORD' user 0xe81xxxx) pending | TICKED (2026-11-15 opencode U-B9b, re-checked): docs/progress/oc_U-B9b.md: createProgram 0xe8142c0 (slot 24, 0xd6), destroyShader 0xe8141e0 (slot 23, 0xd8), destroyProgram 0xe8143a0 (slot 25, 0x1e) with record stores, input-layout builder 0xe81e860 (0x1c9a) filling D3D12_INPUT_ELEMENT_DESC (0x20-byte entries, semantic tables); 106/106 verify_oc; open [UNVERIFIED] (some table roles, PSO create slot name) non-blocking
-- [x] B10a RTX GPU skinning (slot 63 = 0xe83f1d0, 0x107b) anchor — 6al, 6bc (P3) — RTX, low priority unless RTX hardware | DONE 2026-11-21 oc_U-EB10a.md verify_oc 11 rows: slot 63 entry 0xe83f1d0 (RTX vtable 0xF4EEE80), full body disassembled, both skinning strings incl. vertex-format mismatch check at element +0x3C, per-handle guarded-table state, slot-63 dispatch from submit
-- [x] B10b DLSS/SuperSampling surface: mode select slot 60, param-key vocabulary slot 64 — 6al, 6bc
-- [x] B10c TLAS/BLAS: PrepareTLAS 0xbbe5c43, PreBlasSkinDispatch 0xbbe4399, RTXAccelerationStructure ref 0xbbf5bea (6ei); the D3D12 build call sites not located | PROGRESS 2026-11-16 oc_U-B10c.md (verify_oc 57/57): anchors PrepareTLAS/PreBlasSkinDispatch/RTXAccelerationStructure all inside sub_bbe2d50 (0xbbe2d50..0xbbf62cf); candidate [0x240] calls at 0xe82ebaa/0xe82f329 in submit (contradicts vv_lambda_bodies.md line 102) but the descriptor stores do not match D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC (overlapping offsets), so slot/object identity unresolved; NOT ticked | PROGRESS 2026-11-16 oc_U-B10d.md (verify_oc 28/28): the two locals [rbp+0x16B8]/[rbp+0x16B0] in 0xe82e230 (4 stores each) hold wrapper objects with calls at +0x240 (0xe82ebaa, 0xe82f329), +0x248 (0xe82fa07), +0x250 (0xe82f701), +0x78, +0xD0, +0x88; the unit's 'proof' that 0x240 is BuildRaytracingAccelerationStructure is circular (its slot table is asserted, not read from an exe or SDK) and SDK order (Build 0x230, Emit 0x238, Copy 0x240, SetPipelineState1 0x248, DispatchRays 0x250 by my count) disagrees; slot identity still unresolved | CLOSED 2026-11-21 oc_U-EB10c.md [V 33/33]: D3D12 build call sites 0xe82ebaa (BLAS) and 0xe82f329 (TLAS), vtable disp 0x240 on ID3D12GraphicsCommandList4
-- [x] B11 SDK header bgfx/d3d12/D3D12Context.h: rvas, offsets, six resource tables, slots (6eg); compile-checked, not in DLL build
-
-## C. RenderDragon
-- [x] C1 BgfxContext::endFrame (0xc270460) flow — 6n (P1) — architecture, survives
-- [x] C2a GraphicsTasks Render lambda 0xc267200 + chain — 6ab, 6ac
-- [x] C2b Execute 0xc25fc50 and Wait for previous frame 0xc25f960 — 6ac
-- [x] C3a Task scheduler 0xc25b1a0 call map — 6ac; queue layout pending | TICKED (2026-11-15 oc_U-C3a.md, verify_oc 509/521; the 12 'mismatches' are several instructions merged onto one quoted line, content matches): full 0xc25b1a0 phases, 12 callees, scheduler field table, single caller 0x660d940; +0x0/+0x4/+0x8 meaning and vtable 0xF0E4640 identity left [UNVERIFIED]
-- [ ] C3b Task kind = FNV-1a 64 of a uniform name (UseAlphaRewrite, LightWorldSpaceDirection) — 6ad; record layout pending | PROGRESS 2026-11-16 oc_U-EC3b.md (check OK 11 rows): only record+0x28 = kind hash [V]; BatchActor bucket/slot fields (+0x28/+0x30/+0x38/+0x42/+0x48/+0x52/+0x78, slot 0x10 stride) mapped; record size and other record fields unknown, not ticked (unit claimed YES, orchestrator says NO) | PROGRESS 2026-11-21 oc_U-EL3e.md rerun (verify_oc 21/21): only record+0x28 kind hash and +0x34 u8 flag [V]; orchestrator hypothesis for next try: record = TaskList entry (stride 0x80, 0xE900412) - check +0x28 against pass-name hashes | PROGRESS 2026-11-21 oc_U-EL3e_r3.md (verify_oc 35/35): hypothesis record = TaskList entry refuted (kind comes from vtbl[3]() in the dispatcher; record kind is FNV-1a of uniform names); only +0x28 kind hash and +0x34 flag [V]; record creation still unlocated
-- [x] C4a DragonFrameResources: +0x298/+0x2A0 vector<shared_ptr<Task>> found via endFrame/0xe9002e0 (6cx); remaining fields pending | PROGRESS (2026-11-16 oc_U-C4a.md, verify_oc 24/24): in endFrame 0xe9002e0 this=rcx->rdi (0xe90032d); accessed fields +0x08 q, +0x0C dword, +0x10 q, +0x18 byte (state 0/1 else call 0x1166E0 at 0xe900325), +0x290/+0x298/+0x2A0 (vector begin/cursor/end style, 0x10-byte stride add at 0xe9004c5); no object size/ctor yet, not ticked | CORRECTION 2026-11-16 oc_U-EC4a.md (check OK): +0x08/+0x0C/+0x10/+0x18 seen via rdi are taskList/shared_ptr fields (rdi=taskList until 0xe900483), NOT DragonFrameResources; DFR vector +0x290/+0x298/+0x2A0 [V]; object size + ctor still unknown, not ticked | PROGRESS 2026-11-21 oc_U-EC4a.md rerun (verify_oc 4/4): still no DFR ctor/size; orchestrator hint: DFR is embedded at owner+0x268 (0x67ca3c0), vector triple = owner+0x4F8/+0x500/+0x508, so look for the inlined init in the owner constructor | PROGRESS 2026-11-21 oc_U-EL3f_r2.md (verify_oc 34/34, hint worked): DFR ctor part closed [V]: owner ctor sub_2b5670 @ 0x2b5670 (vptr 0xEFF8DD0) zero-inits DFR+0x290/+0x298/+0x2A0 and ctor-inits DFR+0x240/+0x244/+0x248/+0x260; highest DFR field +0x6F0 (size >= 0x6F8); only exact sizeof(DFR) still open (next: owner allocation size at the caller of 0x2b5670) | DONE 2026-11-21 oc_U-EL3f_r3.md [V 24/24] (hints worked) + oc_U-EL3f_r2.md: ctor = owner ctor sub_2b5670 @ 0x2b5670 (embedded DFR at owner+0x268, vector triple zero-init); size sizeof(DragonFrameResources) = 0xA78 [I, squeeze-proven]: owner ctor high-water store owner+0xCD8 (orchestrator re-checked mov [rcx+0xCD8],rax at 0x2b632c) => size >= 0xA78, next member begins at owner+0xCE0 => size <= 0xA78
-- [x] C4b IntraFrameAllocator: wrapper over pooled arena via 0xa78940 blocks with refcounted control (6cy); exact field list pending | PROGRESS (2026-11-16 oc_U-C4b.md, verify_oc 54/54): allocate 0xa78940 (this=rcx, out=rdx, size=r8, count=r9), bump core 0xa79700, small wrapper 0xa78fc0, grow 0xa79120, ctrl builder 0xa79330, release 0xa790d0, init 0xa79900 listed; NOT ticked: field table has [UNVERIFIED] rows (+0x18/+0x28 reads not located, 9+ callers unidentified), no sizeof | PROGRESS 2 (oc_U-C4f.md, 9/9 verified by me): allocate this=r15 fields: +0x08 qword lock inc 0xa7897d / lock dec 0xa78a1a (refcount), +0x10 R 0xa78b27, +0x18 qword atomic add 0xa78cc8 (counter, written not read), +0x28 R 0xa78b2b, +0x30 R 0xa78b2f, +0x40 R 0xa78b46, +0x48 R 0xa78b4a, +0x90 dword R 0xa78a2f, +0x88 lea 0xa78a1f/0xa78ad7 (embedded sub-object); +0x00 not accessed in allocate. Still no allocator size / other-function fields, so not ticked | DONE 2026-11-16 oc_U-EC4b.md (verify_oc 24/24): exact field list proven [V] (highest field IFA+0x90, end +0x94); sizeof not determinable from disassembly (no alloc size/memset/bounds check) -> [UNVERIFIED] noted
-- [ ] C5a Declarator<RenderContext> + five Bind* dependency kinds + module names — 6aq; registration call addresses pending
-- [x] C5b drawutils pass-declaration templates (178 signatures) — 6aq; per-pass bodies pending | 2026-11-16 oc_U-EC5b.md (58 rows OK): NO; sub_5667860 fully decoded (fields 0x0..0x110), variants sub_5667c80/sub_5667e70 and hash helper sub_5668ac0 [V]; remaining dozens of per-pass instantiations (sub_5667fe0, sub_56685c0, sub_566xxxx..sub_568xxxx called from sub_55f1450/sub_bbe2d50) undecoded | PROGRESS 2026-11-21 oc_U-EC5b.md rerun (verify_oc 285/285): 7 element-loop bodies (sub_567E510, 567FD70, 56815D0, 5682E20, 5684660, 5685EA0, 56876F0) entry-decoded only (reads a1+0x10/0x18/0x28/0x60, 0x290-stride loop [V]; per-element fill/dest writes not); 0x569xxxx helpers (5693680, 5694510, 5695960, 5696540, 5697650) and tail of 0xbbe2d50 undecoded | PROGRESS 2026-11-21 oc_U-EL3i.md rerun (verify_oc 179/179): every named instantiation now [V] except the 7 element-loop bodies (sub_5684660 etc.); their per-element callees sub_5690960/sub_5690e10/sub_56912d0 undecoded | TICKED 2026-11-21 oc_U-EL3i_r3.md (verify_oc 1044/1044): sub_5690960/5690e10/56912d0 instruction-complete, per-element fill and dest writes of all 7 element-loop bodies [V]; mirror pair C5b/L3i
-- [x] C5c HashedString hash = FNV-1a 64, names built inline — 6o (P1) — algorithm constant
-- [x] C6 Deferred Texture/Buffer Transactions flush 0x6632bf0 (two labelled vector<Transaction*>, vtbl slot1 run + slot0 delete) (6dv); aliasing not found | TICKED (2026-11-15 oc_U-C6.md, verify_oc 233/233): instruction-complete flush 0x6632bf0, two vector members, vtable slot use, no aliasing logic in it; pushers and Transaction size not located [UNVERIFIED]
-- [x] C7a 0xc273420 prologue + stages: 51 callees, hot helpers mapped (6n-2); stage split pending a live breakpoint on 0xc27f940 | TICKED (2026-11-16 oc_U-C7a2.md, verify_oc 172/172): prologue listing, frame, arg map, ordered callees, static stage split (no live breakpoint used); Declarator+0x50 / pass-entry +0x238/+0x240 meanings left [UNVERIFIED]
-- [x] C7b per-pass loop located (0xc277e8c..0xc2793fe), dependency records = 24/40-byte vectors (6cz); body fields pending | TICKED (2026-11-15 oc_U-C7b.md, verify_oc 1139/1139, 0 UNVERIFIED): instruction-complete listing 0xc277e8c..0xc2793fe, growth sites, 0x80-byte per-pass record stores; NOTE the unit's element-size labels (24 vs stride 0x20, 40 vs 0x28) are inconsistent: trust the quoted stores, re-derive element headers in C7c/E-section work
-- [x] C7c Dispatch 0xe9002e0 + task classes + live pass order/names (6cx, 6da, 6db) (P2) — task dispatch RVAs move
-- [x] C8 Threading: draw executor runs as parallel jobs, one command list per job (this+0x19F60[job]), job slices of the sorted list (6cp); encode-thread side pending [RVAs in 6cp are 60.05, see 6cw] | TICKED (2026-11-16 oc_U-C8.md, verify_oc 90/90; RVAs re-found on 62.01): job count this+0x3DA0A8 vector, slice div 0xe82f3f5, launch via scheduler global 0x12ADF808 vtable+0xB0 with job fn 0xe83c390, per-job cmdlist this+0x19F60[job], worker 0xe821120, join via fence 0xe80ecb0; open: 0x19F60 array allocation, 0xe821120 close/execute sites (50KB fn), max job count [UNVERIFIED]
-- [x] C9 dragon/Tasks.h (task list, class vtables, name offsets, taskName) + PassNames.h written (6eg); the per-frame enumeration detour on 0xE9002E0 not written | DONE 2026-11-16 oc_U-EC9.md verify_oc 17/17: detour exists (TaskDispatchHook.cpp/.h, used by RewriteProbe; sig taskDispatch in Sigs.json) and every fact it relies on is [V] (hook site 0xE9002E0, TaskList begin/end/+0x18, 0x80 stride, loop 0xE90041A, kind vcall slot 0x18, caller 0xC270460)
-
-## D. FrameBuilder
-- [x] D1 vtable group slots + endFrame — `FrameBuilder.h` (P2) — slots shift per patch
-- [x] D2 Catalog of 62 types / 50 clones with group — `DescriptionClones.h`, RENDER_CATALOG
-- [x] D3 Clone calling convention + Nametag clone — 6l (P1) — calling convention stable
-- [x] D4 BatchActor description layout — 6d
-- [x] D5a Nametag description (0x98) typed in Descriptions.h — 6m
-- [x] D5b ChunkGeometry description: extractor + pointer route (6be); 6 live dumps taken (6iq, docs/data/live_chunk_desc_*.txt): layout +0x00..+0x7F confirmed; +0xB8/+0xD8 byte flags vs live pointers unresolved; header asserts for the typed live fields pending | 2026-11-16 oc_U-ED5b.md (17 rows OK): NO; typed fields proven (+0x38/+0x40 are count/ptr, not pad) but +0xB8/+0xD8 byte-flag vs pointer-low-byte unresolved (all 6 live samples read 0x00) | PROGRESS 2026-11-21 oc_U-EL4f.md (31/31): layout and +0xB8/+0xD8 qword resolution proven [V]; header ChunkGeometryDescription.h still has mFlagB8/mModeD8 as bytes and lacks the corrections -> edit header + asserts before ticking | DONE 2026-11-21 oc_U-ED5b.md [V 11/11] + oc_U-EL4f.md: ChunkGeometryDescription.h corrected (mShared2Ptr/Ctl +0x20/+0x28, mSpanCount/mSpanPtr +0x38/+0x40, mPtrB8/mPtrD8 qword at +0xB8/+0xD8) with matching static_asserts; no other users of the old mFlagB8/mModeD8; compiled in the final batch build
-- [x] D5c ChunkOccluders: thin clone 0x5369920 -> Item vslot 0x378 tag 4, handler 0x6646a89 creates "ChunkOccluder" render object, fields +0x30..+0x48 (6dx); field types pending | TICKED (2026-11-15 opencode unit, orchestrator re-checked): docs/progress/oc_U-D5c.md: handler reads (rdi: mat4 +0x00, mesh +0x40, u16 +0x48; view 0x4A) + producer 0x53def00 stack stores, 12/12 verify_oc, matches Descriptions.h RenderChunkOccludersDescription (size 0x50 asserts)
-- [x] D5d Crack: fat clone 0x539fff0 builds from a destroy-progress list at B+0x3280 (node+0x10 pos, +0x20 progress float) (6ea); final description fields pending | TICKED (2026-11-15 opencode unit, orchestrator re-checked): docs/progress/oc_U-D5d.md: clone 0x539fff0 stores (+0x00 mesh, +0x08 texture ref, +0x18 camera record, +0x20 stage, +0x22 flags), tag 5 store 0x53a052a, insert 0x53a0541, visitor case 0x66471de reads; spot-checked with rdis; matches RenderCrackDescription asserts
-- [x] D5e ItemInHand: thin clone 0x531b180 -> tag 6 -> extractor 0x6698e30; ItemInHandDescription.h (size 0x180 [V ctor], offsetof asserts) LIVE-confirmed 6ir (mat4 +0x38, FogColor +0xE8, fog dist +0xF8, 128.0 +0x100); +0x1D0/+0x1D4 are fields of the item-data object [desc+0x28 ptr] read by the extractor (itemTexParamId, dossier 6698e30.md), not of the description; the 0x180+ bytes in the live dump are neighbouring stack
-- [x] D5f SkinnedMesh: general clone 0x6b84e60 fields +0x10/+0x18/+0x20/+0x30/+0x38/+0x60/+0x74-76/+0x108-118 and second producer 0x4e39f20 (6ec); field meanings pending | TICKED (opencode U-D5f, re-checked): builder 0x668d350 store table for every field of RenderSkinnedMeshDescription (0x1D0), 98/98 verify_oc, tag 7 store 0x6b86693, second producer 0x4e39f20 writes no field directly (passes args to the builder 0x668d350 at 0x4e3a43e), no mismatches vs Descriptions.h
-- [x] D5g MeshFallback description head typed (Descriptions.h); tail to 0x1d0 pending | TICKED (2026-11-15 opencode unit, orchestrator re-checked): docs/progress/oc_U-D5g.md: ctor 0x668b850 store table 0x000..0x1CF with gaps marked, 74/74 verify_oc, matches Descriptions.h RenderMeshFallbackDescription (size 0x1D0 asserts)
-- [x] D5h BlockSelectionOverlayBlockEntity: fat clone 0x539b7c0, Item tag 8, built from the selected block position + region block-entity lookup (6eh); description fields pending | TICKED (2026-11-15 opencode U-D5h, re-checked): builder 0x668d990 store table for every field of RenderBlockSelectionOverlayDescription (0xB8), 35/35 verify_oc, tag 8 store 0x539c91d, no mismatches vs Descriptions.h
-- [x] D5i EnvironmentalText/UIText: shared clone 0xe71330 -> Item vslot 0x378 or UI vslot 0x368; text = shared string at desc+0x90/0x98/0xA0, font obj +0xB0, flag +0x75 (6eb); +0x60 struct pending | TICKED (opencode U-D5i, re-checked): builders 0x668b400 (EnvironmentalText, Item tag 0, 0xE8) and 0x668c750 (UIText, UI tag 3, 0x60) store tables for every header field, visitor reads (Item case 0x6646a10, UI case 0x6664c83), clone 0xe71330 inserts (0xe71c51 Item +0x378, 0xe72187 UI +0x368); 75/75 verify_oc, no mismatches
-- [x] D6a Sky / Stars description (tag 5; fields pending) — 6w. NOT done (merge agent, 6el): the joins 0x665b624/0x665c269/0x665c38a + cold range are instruction-complete, but the Stars head 0x6656812 / base draw 0x6658ffc..0x6659615 (where description +0x00/+0x18/+0x58/+0x5A are read) and the Sky tag-5 body 0x66574d8 were never decoded at instruction level | UPDATE (RE agent, static): Stars (tag 6) and Sky (tag 5) case bodies are now decoded at read level (docs/functions/66560f0_sky_cases.md sections 4-5, SkyDescriptions.h StarsDescriptionReads/SkyDescriptionReads, listings docs/data/listings/sky_*.txt); the jump table (11 targets) is recorded. Stars head confirmed to read no description field; 0x6658ffc..0x6659340 is the EndSky tail, not Stars. REMAINS: producer of the tag-5 layout is unmatched (Descriptions.h RenderSkyDescription 0xB0 equals the tag-3 reads), Stars +0x5A byte not read by the visitor, the payload tails 0x665a7b7/0x665a8e5 not re-decoded, role names of callees [I] | TICKED (static RE pass 2): Sky tag 5 + Stars tag 6 visitor reads decoded (docs/functions/66560f0_sky_cases.md s4/s5/s9, listings docs/data/listings/sky_*.txt, 30+20 rdis re-verified claims), producer of tag 5 found (inline in clone 0x5369b30 0x536a146..0x536a25a, tag byte 0x536a2d8, Descriptions.h RenderSkyColorsDescription), payload tails 0x665a7b7/0x665a8e5 listed; Stars +0x5A is not read by the visitor; the 'Stars base draw' label of oc_U-SK5b was the EndSky tail (fixed in the docs)
-- [x] D6b Sky-group clones: EndSky 0x53707a0 tag3, Celestial 0x5370b20 tag7, Cubemap 0x660b720 tag2 (thin); LegacyCubemap 0x660b1a0 tag4 (fat, texture variant select) (6ed); fields pending. NOT done (6el): Cubemap (head 0x66562d5 + body 0x6659615..0x665aee8) and LegacyCubemap reads are closed (SkyDescriptions.h), but CelestialBody (tag 7) and the EndSky head/body (0x665649c, 0x6656bec) have no instruction-complete decode | UPDATE (RE agent, static): CelestialBody (tag 7) and EndSky (tag 3) head+body are now covered at read level (66560f0_sky_cases.md sections 3 and 6, SkyDescriptions.h CelestialBodyDescriptionReads/EndSkyDescriptionReads; uniform names resolved from the cold initialisers). REMAINS: tails 0x665c11b/0x665af0b not re-decoded, Atmosphere body 0x6656d4b, Clouds/Weather tail targets (D6c), clone-side field producers | TICKED (static RE pass 2): EndSky (RenderSkyDescription 0xB0, inserted tag 3 by 0x53707a0), Celestial, Cubemap and Legacy visitor reads all closed with static_assert views (SkyDescriptions.h; Legacy +0x20/+0x28/+0x2C added); tails 0x665c11b/0x665af0b listed; Atmosphere/Clouds/Weather reads added too. Residual (not blocking): pool/callee roles [I], Cubemap producer fields +0x60..+0xBF are visitor-unread
-- [x] D6c Clouds, Weather, Atmosphere — clone kind/group/tag table 6ee; fields pending | PROGRESS (2026-11-16 oc_U-D6cC.md, verify_oc 55/55): Atmosphere producer 0x6656d4b reads description +0x04,+0x08,+0x0C/+0x10,+0x14..+0x74 (16B blocks); Clouds and Weather still open | TICKED (2026-11-16 opencode units, orchestrator-verified): Clouds clone 0x53e88a0 + ctor 0x668e940 oc_U-Cld.md (784/784 listing instructions quoted, check OK 79 rows), Weather clone 0x5ad5800 + ctor 0x668dd20 oc_U-Wth.md (255/255, 130 rows), Atmosphere producer 0x6656d4b oc_U-Atm.md (139/139, 86 rows). Caveat: identities of a few globals/helpers in Weather stay flagged [UNVERIFIED] in oc_U-Wth.md (names only, no instruction left unquoted); field meanings only where an instruction shows them
-- [x] D7a Particle, FlameBillboard — descriptions decoded from ctor + extractor + helper listings: docs/functions/effect_descriptions.md, EffectDescriptions.h
-- [x] D7b Shadow, PlayerVision, VolumetricFog — producers + visitor + both shadow extractors at description level: docs/functions/effect_descriptions.md | TICKED (2026-11-15 audit, description level as the item states): producers 0x53E62B0/0x53E6C30/0x53E3AA0, visitor heads and both shadow extractors (0x66A9D50 / 0x66A6830) in effect_descriptions.md s4-6 + 66560f0_sky_visitor.md; layouts with offset/size static_asserts in EffectDescriptions.h (PlayerVision 0x14, Shadow 0x20, VolumetricFog producer ~0x5C); 34/34 quoted instructions re-verified
-- [x] D7c FullscreenEffect, BlitFlipbookTexture — clone kind/group/tag table 6ee; fields pending; BLOCKED: tag-7 visitor body (0x666b5cf.., ~3700 insns) not decoded, only reach-attributed reads; slot [rbp+0x668] shared with tags 1,6; Blit part done (effect_descriptions.md) | TICKED (2026-11-16 oc_U-D7c.md, verify_oc 3994/3994, no gaps >20 bytes): tag-7 visitor body 0x666b5cf..0x667005b instruction-complete with a first-read-site table of description fields (+0x00,+0x08,+0x10,+0x18..+0x57 matrix rows,+0x58,+0x64,+0x78 mesh,+0x80,+0x88,+0xC8) and flipbook element stride 0x40. Caveats: base-register attribution (description vs frame ctx via r15/r11/rax) is partly inferred; +0xC9 never read; field names are the unit's, meaning from header comparison
-- [x] D8 UI descriptions (Mesh, Gameface, HudIcon) — clone kind/group/tag table 6ee; fields pending -- D8 pass: listings ui_visitor_6664a00_6668510 + gameface_66ade80_66b0eb0, UIMesh arg-slot map + uiMeshMode, HudIcon source object (+0x00 -> mesh ptr, +0x18 count, +0x20 vec3 array), Gameface +0x80 = pointer to {begin,end} (UiEditorDescriptions.h, docs/functions/ui_editor_descriptions.md). OPEN: UIMesh qwords +0x00/+0x08/+0x10/+0x60/+0x68/+0x78 and the Gameface flag bytes have no semantic names (only forwarded to 0x674a3a0, its stack-argument slots not re-mapped); UIImGui (tag 4) fields not decoded. | REVIEW 2026-11-16 oc_U-D8c.md NOT ACCEPTED (cannot be verify_oc-checked; spot-check of its UIMesh table against rdis: the cited site 0x6664C33 is movzx edi,byte ptr [r9+0x80], not mov r11,[r9+0x60]; one instruction (movss xmm0,[r9+0x70] at 0x6664C25) is cited for three different offsets; stack slots are assigned twice): only the extractor frame facts are plausible (stack args saved at [rbp+0xE80..0xEF8]; r12d=r8d mode branch at 0x674A4E2, UI/Base vs UI/Blit material per path, unverified) | PROGRESS (2026-11-16, orchestrator, oc_U-D8d.md verify_oc 70/70): UIMesh part done: all 17 stack slots of the 0x674A3A0 call at 0x6664F4A mapped to description offsets (+0x00,+0x08,+0x10,+0x18,+0x28,+0x30,+0x40,+0x58,+0x60,+0x68,+0x70,+0x78,+0x80..+0x85,+0x88). HudIcon (call 0x6664D46) 17-slot map done too; Gameface read tables (description +0x00..+0x17,+0x80 -> {begin,end}, element stride 0x1A0, fields +0x00..+0x190) done; still open: the Gameface extractor call arg mapping. | TICKED (2026-11-16 oc_U-D8d.md, verify_oc 159/159): UIMesh (call 0x6664f4a, 17 slots), HudIcon (call 0x6664d46, 17 slots) and Gameface (call 0x66aedf1 to 0x66B2730, 4 regs + 3 stack slots; element stride 0x1A0 reads) argument maps with verbatim instructions; description reads from casewalk. Struct sizes are not visible in the visitors (see R10), tracked there
-- [x] D9a Light descriptions (Ambient, Directional, Point) — clone kind/group/tag table 6ee; fields pending | TICKED (2026-11-15 audit): visitor reads tags 0/1/3 (6640d80 + light_game_descriptions.md s2.1-2.3), producers (clone 0x53e2c00, 0x5369b30 two sites + thin 0x5370960, ctor 0x668ADE0), sizes 0x18/0x24/0x108 with static_asserts in LightGameDescriptions.h; 869/869 quoted instructions re-verified (verify_oc.py), cl /Zs clean. Field meanings stay [I] (lighting-pass consumer not located), same standard as D9b
-- [x] D9b Voxel/TransitioningVoxel volumes, ShadowAtlasFrame, SkyAmbientSamples — clone kind/group/tag table 6ee; fields pending. SkyAmbientSamples PART is done (6el: case 0x6656983 + body 0x665708b..0x665803c, 833/836 instr matched, gaps filled in docs/functions/66560f0_sky_visitor.md; reads +0x00 u16, +0x08, +0x10 ctrl; SkyDescriptions.h); item stays open because Voxel/TransitioningVoxel/ShadowAtlasFrame (Light visitor) have no unit DONE for the Light visitor part: docs/functions/6640d80_light_visitor.md (tags 4/6/7 = ShadowAtlasFrame/VoxelVolume/TransitioningVoxelVolume, visitor reads + exits + producer insert sites, LightDescriptions.h); builder internals (0x5AE5760, 0x6B19E30) and pass-vector consumers stay open [?].
-- [ ] D9c gamecomponents (GameplayMetadata, ServerGraphicsOverrideParameters, EditorHighlightConfiguration) — clone kind/group/tag table 6ee; fields pending | PROGRESS 2026-11-16 oc_U-D9c.md (62/62) + oc_U-D9c2.md (4/4): clone/visitor offsets tabulated (GameplayMetadata Light tag 2 fat 0x804 clone 0x53e5910; ServerGraphicsOverrideParameters Light tag 5 clone 0x6c2e820 fat 0x105e; EditorHighlightConfiguration Effect tag 8 clone 0x4c8a5b0 thin 0x139), but 25 rows still [UNVERIFIED] (visitor reads without matching producer stores; 18x0x40 override blocks not decoded) -> open | PROGRESS (2026-11-16 oc_U-LgtB.md, delegate.py check OK, offsets 100% vs casewalk): Light tags 4-7 (ShadowAtlasFrame, ServerGraphicsOverrideParameters visitor reads, VoxelVolume, TransitioningVoxelVolume) read tables; Light tags 0-3 and EditorHighlight pending | PROGRESS 2 (oc_U-LgtA.md, check OK 94 rows, coverage 100%): Light tags 0-3 (incl. GameplayMetadata tag 2) done; only EditorHighlight (Effect tag 8, unit U-EffB) left before tick | PROGRESS 2026-11-21 oc_U-ED9c.md (verify_oc 108/108): GameplayMetadata fully [V]; ServerGraphicsOverrideParameters visitor +0x260/+0x268 and block metadata [V] (block Value type [?]); EditorHighlightConfiguration visitor reads (+0x1C..+0xC9) have no matching producer stores, so still open | PROGRESS 2026-11-21 oc_U-EL4w.md (verify_oc 28/28): corrects ED9c Part C: after 0x666b3a6 r15 is the pass-vector cursor, so only description read is eh+0x08 (0x666b3be mov rax,[rbx+8], refcounted); producer stores +0x38/+0x40/+0x48/+0x60/+0x70 [V]; no store to +0x08 found (set before producer), so open | PROGRESS 2026-11-21 oc_U-ED9c.md rerun (verify_oc 92/92): EditorHighlightConfiguration producer 0x4c88900 has no direct callers, but orchestrator found it is vtable slot 0 of the .rdata vtable at 0xf20aa50 (virtual call); next: find who stores that vtable/calls slot 0 (sets desc+0x08)
-- [x] D10 Editor group descriptions (gizmos, block volumes, render plane, selection cursor) — clone kind/group/tag table 6ee; fields pending -- D10 pass: listing editor_visitor_66742f0_667e290; per-tag read-views for tags 1-7 with offsetof asserts, materials per case (UiEditorDescriptions.h). OPEN: producers reuse one stack object for four gizmo types (overlapping layouts), so no struct size is proven (extents 0xD8/0x128/0x1F0/0xE8 are [I]) and the padding between seen offsets (+0x80..+0xCF, object bodies behind 0x66a6060/0x66a6190) is not decoded. | PROGRESS (2026-11-16 oc_U-D10c.md, verify_oc 178/178): quoted per-tag [rdi+off] read views for all 8 tags (heads 0x6674388,0x667499f,0x6674518,0x667463c,0x66743f4,0x6674ac3,0x6674d02,0x6674760); oc_U-D10a/b rejected (unit output = unjoined tool dumps); size still unresolved (overlapping producers) | TICKED (2026-11-16): per-tag read views with quoted instructions for all 8 editor tags: tags 1-7 annotated by units U-D10x1/x2/x3 (delegate.py check OK, offset coverage vs casewalk 100%) and tag 0 (tail jump to 0x66A1860) via rdis walk, all in oc_U-D10c.md / oc_U-D10x1-3.md (verify_oc clean). Struct size: producers share one stack object across gizmo types, so no per-type allocation size is visible (documented limit)
-- [x] D11 Descriptions.h: Nametag, MeshFallback head; BatchActor in FrameBuilder.h -- DONE D11 pass: Nametag (0x98) and MeshFallback (0x1D0) re-verified store by store against the ctor listings 0x668b6e0 / 0x668b850; BatchActor: producer listing 4e355a0, head + 7 spans + 7 raw begin pointers decoded, kMinSize corrected 0x100 -> 0x110 (FrameBuilder.h); span meanings [I], second producer 0x6ebb510 unread.
-- [x] D12 Group tag enums for all six groups added (FrameBuilder.h) — 6w; typed hooks pending -- DONE D12 pass: all six enums re-derived from the clone tag stores + visitor case counts (FrameBuilder.h): Effect 0 is FlameBillboard (UIGameface was wrong), added Effect FadeToBlack 5, UIImGui 4, Sky Stars 6, Light LightPoint 3 / ShadowAtlasFrame 4 / VoxelVolume 6 / TransitioningVoxelVolume 7; names FadeToBlack and BlockChanges (Item 9) rest on the variant order (no clone found).
-
-## E. Extractors and registry
-- [x] E1a Item visitor jump table with verified tag identities — 6w (P2) — RVAs shift per patch
-- [x] E1b Tag 0/4: entries (6ci); live field decode (6cv: transform, colours, pointer arrays); per-field names partial | TICKED (2026-11-16 oc_U-E1b.md, verify_oc 83/83): handlers 0x6646a10 (tag 0) and 0x6646a89 (tag 4) instruction-complete, field reads vs Descriptions.h; the +0x68 read is frame_context (FrameBuilder+0xF0) not the description, tag-0 +0x40 check is the text texture resource; NO live capture exists for tag 4 (needs a livecap target, not done)
-- [x] E1c Tag 1/5 and 2/3/7/9: entries (6ci); tag 7 and 1 fields decoded from live dumps (6cv: model matrix pair, AABB, material node at +0x140) | TICKED (2026-11-16 oc_U-E1c.md, verify_oc 358/358): handlers tags 1,5,2,9,3,7 instruction-complete, per-handler field read tables, live comparison, Descriptions.h cross-ref; open: tag 1 mOwner+0x39, tag 2 two mHasOverride bytes (+0xE0 vs +0x1C8), tag 7 fallback object 0x1232E708/hash 0x0694BEA7E37055A4; no live capture for tags 5/9
-- [x] E1d Tag 6/8/10 forwarders: entries 0x6647320 / 0x66473e6 / 0x6647383 (6ci); GlowInkSign inside 8 | TICKED (2026-11-15 orchestrator, rdis re-run): all three forwarder stubs listed instruction-complete and their tail-call targets (6 -> 0x6698E30 ItemInHand, 10 -> 0x66D9AF0 BatchActor, 8 -> 0x66E75F0 BlockSelectionOverlay) in docs/functions/item_forwarders_6647320.md; the 'GlowInkSign inside 8' claim is corrected (string ref 0x66476d2 is in the visitor's shared hash chain, not the forwarder)
-- [x] E2 BatchActor extractor callee map — 6u (inner decode pending) | TICKED (2026-11-15 opencode U-E2, re-checked): docs/progress/oc_U-E2.md lists all 51 distinct direct callees of 0x66d9af0 (273 call sites) with first site, quoted call lines (16/16 verify_oc), 18 uniform/texture strings, 2 indirect call sites, 10 variant builders; callee meanings tagged [V]/[I]; the inner field decode is a separate item
-- [x] E3 Tag 7 = skinned items incl. entity models (live: ender_dragon.skinning, 6cn) + block-entity overlays (6cj); general skinned clone 0x6b84e60 not decoded | TICKED (2026-11-16 oc_U-E3.md, verify_oc 484/484, 0 UNVERIFIED): clone 0x6b84e60 instruction-complete (0x1bf0 bytes), two 0x1A8 intermediate descriptions, final builder 0x668d350 (0x1D0 RenderSkinnedMeshDescription), tag-7 store 0x6b86693, insert vslot 0x378, callers 0x6b80870/0x6b80f00/0x6e8dff0
-- [x] E4 Chunk geometry extractor 0x66ea3d0 anchors + materials/uniforms (6be); inner decode: instruction-complete source map docs/functions/66ea3d0_bodies.md (bodies A-D, builders, bodyActor all verified)
-- [x] E5a Component vocabulary: 12,836 entt type names + 94 render/anim/camera components (6dt, docs/data/entt_*) (P1) — __FUNCSIG__ strings survive
-- [x] E5b entt storage layout (sparse pages 2048, packed pages 128, tombstones): EnttStorage.h + EntityContext, notes 6du
-- [x] E6 Actor identity route: bodyActor 0x66D0A00 S+0xC8, item records 0xC8, passLookup 0x5ABA5C0 — 6bg (implemented in RenderMarkHook) (P1) — identity route is architecture
-- [x] E7 draw-list builders per variant located — 6u | TICKED (2026-11-15, from U-E2 + docs/functions/66d9af0_builders.md): the ten variant draw-list builders called by the BatchActor extractor are located with family sizes and call sites (0x66BF290, 0x66C1920, 0x66C3840, 0x66C5760 = 0x12E6B family; 0x66CC7A0, 0x66CE8D0, 0x66C7680, 0x66C98E0 = 0x13F2B; 0x66BB7B0 = 0x114F; 0x66BD430 = 0x11F0), see docs/progress/oc_U-E2.md
-- [x] E8 Typed ExtractionObserver: ExtractionObserver.h (Group+tag registry, veto) wired into the Item/Sky/UI insert detours (6ef); header syntax-checked, DLL not rebuilt
-
-## F. Frame-graph renderers and passes
-- [x] F1a VV pass names and implementation lambdas — 6p, 6v | PROGRESS 2026-11-16 oc_U-EF1a.md (check OK 106 rows): most VV pass names hash-proven; not closed: IBLSyncPoint, DebugBlitPhase (no imm64 site) and 8 names absent from render_hashes (RasterizedOpaque/AlphaTest/Transparent, ForceForwardPBROpaque, FullScreenOverlayTransparent, TransparentDegamma, WaterDepthBufferBlit, SSRColorBufferBlit, BlitUncompressed, LuminanceHistogram exact); lambdas not covered | PROGRESS 2026-11-21 oc_U-EF1a.md rerun (verify_oc 121/121): IBLSyncPoint (fnv1 0x463A4116E7586005) and DebugBlitPhase (0xBB07784B1B637368) still have no imm64 hash site; IBLSyncPoint IS proven by inline string pieces at 0x562be6c/0x562be7d (oc_U-EL11d.md); DebugBlitPhase, LuminanceHistogram-exact, 8 render_hashes-absent names and the lambdas remain open | DONE 2026-11-21 oc_U-EL6a.md rerun [V 8/8] (hint worked) + oc_U-EF1a.md [V 121/121] + oc_U-EL11d.md: DebugBlitPhase proven by inline string pieces + length + declare call (0x5633b30/0x5633b46/0x5633b57), LuminanceHistogram-exact by rdata string + length (0xbc8ed6b/0xbc8ed79), IBLSyncPoint by string pieces (0x562be6c/0x562be7d), the 8 render_hashes-absent names by builder imm64 rows (e.g. RasterizedOpaque 0x562e978); lambda bodies per 6v first-use RVAs and L6d 0xBC3 lambdas; names without hash imms have no lambda hash-use site by construction
-- [ ] F1b VV pass order from builder 0x55f1450 (6ar); in/out resources per pass pending | PROGRESS 2026-11-16: ordered pass-name strings (210 refs, Shadow Cascades .. FullScreenOverlayObjects ..) in docs/functions/vv_builder_pass_order_55f1450.md; in/out resources per pass still pending | PROGRESS 2026-11-21 oc_U-EL6b.md (verify_oc 11/11): pass declaration fns (0x5698290, 0x5684660, 0x5667860, 0x5693680 ...) copy a 28-byte descriptor struct opaquely [V]; nothing in 0x55f1450 or callees separates input from output resources statically, so in/out stays open
-- [x] F2a Frame renderer entry 0x67c9c20 + Fancy function set — 6aa, 6ab (P2) — entry RVA moves
-- [x] F2b Fancy frame pass list (6da-6dc); Scene/HUD task body = bgfx per-view setup (view rect, 4 matrices, sort mode) 0x568CD90 (6dd); the 0xBC3.... lambdas pending [per-view matrices live-verified] | PROGRESS 2026-11-16 oc_U-F2b.md (verify_oc 170/170): 0x568CD90 body decoded (view record V=ctx+0x1EAB090+viewId*0x140: rect +0x00/+0x04, 4 mat4 at +0x10/+0x50/+0x90/+0xD0, sortMode 16B +0x110, byte +0x122); all 13 std::function _Copy slots (0xBC36B10..0xBC37300, 0x56AE9C0) share _Do_call 0x568CD70 (thunk jmp 0x568CD90), so lambdas differ only by captured state; open: Scene[0..11] -> pass-name map, callees 0xBCC1A30/0xBC60D10/0x568DB90/0x568D480/0xC4BBA0/0xE86D7F0 | PROGRESS 2026-11-16 oc_U-F2c.md (not verify_oc-checkable, inline quotes; spot-checked): 0xBCC1A30 capture-handler dispatch over [rcx+0x50..0x58] by byte [rdi+0x10] (handlers 0xBC5DDB0/0xBC5DAF0/0xBC5DED0); 0xBC60D10 = Encoder reset (see A12b), unit's 'iterator' label wrong | PROGRESS 2026-11-16 oc_U-F2c.md (verify_oc 1410/1420): callees of 0x568CD90 listed instruction-complete: 0xBCC1A30, 0xBC60D10, 0x568DB90 (jump table 0xF25D03C -> 0x5698490/0x5698710 -> 0x5698510), 0x568D480, 0xC4BBA0 (binary search of sorted array [rsi+0x2F8]), 0xE86D7F0 (encoder submit); per-item loop stride 0x18 over [rbx+0x68]..; 28 UNVERIFIED gaps, Scene[0..11]->pass-name map still open | PROGRESS 2026-11-21 oc_U-EF2b.md (verify_oc 15/15): Scene[0..11] names exist only as FNV-1 64 hash immediates and match no known name; only index->handler map via 0xF25D03C (tags 5-16 [I], handlers [V]) proven; still open | DONE 2026-11-21 oc_U-EL6d.md [V 12/12]: the 0xBC3.... lambdas (12 _Copy slots) proven; pair L6d/F2b ticked together; Scene[0..11]->pass-name map remains a separate lead (names exist only as hash imms)
-- [x] F3 No separate legacy frame renderer: Fancy shares 0x67c9c20; legacy = LegacyCubemap + legacy-UI draw helpers (6ds); GraphicsMode consumers 0x3a10d20 0x3a10e40 0x7ea7de0 0x88beee0
-- [x] F4 RTX pass names (0xbcc.. region) — 6p, 6v | DONE 2026-11-16 oc_U-EF4.md (verify_oc 51/51 rows): 50 RTX pass-name hash stores in fn 0xbcc4b90 decoded; orchestrator re-computed FNV-1 64 of 46 table names, all match the hash immediates
-- [x] F5a Pass name hash = FNV-1 64 verified, 752 hashes resolved — 6p, PassNames.h (P1) — algorithm constant
-- [x] F5b Pass registry hash->name table — docs/data/render_hashes.txt, PassNames.h
-- [x] F5c Pass enable/disable/reorder hook: recipe on 0xe9002e0 task list (6dg, untested in game) (P1) — hook seam stable -- 6eo: generate-time ordering also exists: stable sort by index in endFrame's names vector (0xc27ab07..); but the sole caller passes an EMPTY vector (6ep), so it is inert in 62.01
-
-## G. Materials / shaders / textures
-- [x] G1a File format: header, samplers, uniforms, passes, axes, shader records — 6ap, `tools/lce/matparse.py` (P1) — file format stable
-- [x] G1b MaterialPtr = shared_ptr<void> (SDK); async loader 0xc26caa0 + 0xF0 material-set / 0x258 objects mapped (6dr); name->info lookup pending | TICKED (2026-11-16 oc_U-G1b2.md, verify_oc 579/579): loader 0xc26caa0 instruction-complete, 0xF0 material-set + 0x258 group object layouts, holder (a0) layout, name->info lookup sub_e8fe660 (key FNV-1a64 hash, chained hash table, via vtable slot 15 thunk 0xc272190)
-- [ ] G2 Variant axes + (pass, flags) permutation keys (6ap); runtime selection code pending
-- [x] G3 Per-material uniform lists + extractor bind slots and names — 6ap, 6ca-6cc (RenderChunk fully resolved; ForwardPBR sampler tail variant needs matparse fix)
-- [ ] G4a Sampler flag decode + sampler cache (6ax); texture/atlas management pending
-- [x] G4b Live texture census + record layout (Fancy) — 6z-2; VV/RTX RTs pending | DONE 2026-11-16 oc_U-EG4b.md verify_oc 47 rows: all 55 target-declarator call sites enumerated (54 across 20 VV/RTX builders + 1 bloom), descriptor stack offsets and dword format stores
-- [x] G5 Pack reload path — docs/resourcepack-1.26.60-notes.md + memory (6bh; RVAs 1.26.51, stale) (P3) — version-stale RVAs
-- [ ] G6 Material swap hook: control point = pass-name resolver 0x675e440 + item-visitor hash switches (6cj); not implemented | PROGRESS 2026-11-21: oc_U-EG6 [V]: tag-7 FNV-1 BST at 0x6646dc2 decoded, resolver 0x675e440 = ResourceCache::get (mutex cache+0x98); call-site 'this' provenance still [I]; hook itself not implemented | PROGRESS 2026-11-21 oc_U-EL7h.md (verify_oc 30/30): control point fully [V]: BST consts 0x6646dde/0x6646df1/0x6646e00/0x6647449/0x6647458, resolver call 0x6646eab with this=frameCtx+0x68 (0x6646e5c), resolver 0x675e440 body (mutex cache+0x98, FNV-1 basis 0xCBF29CE484222325); only the hook implementation itself remains (item still says not implemented)
-
-## H. Geometry / level renderer
-- [x] H1a RenderChunkCoordinator anchor + task name — 6x (P2) — anchor RVA moves | TICKED (audit): launcher 0x7923d50 (0xb6b) with task string 'renderchunk coordinator chunk visibility task' in BGFX_MAP 6x; scheduleChunkBuild 0x533c910 'Render Chunk Build'
-- [x] H1b visibility: launcher 0x7923d50, task body 0x792e630, compute 0x791f170 (+store 0x6b0c4c0), face matrix state+0x38..0x3d, listener 0x537dab0 (6bo-6br); phase 1 voxel occupancy read (6bs, Block+0xA3 opaque flag); flood 0x6b1ba90 read (6bt); BFS queue 0x6b0d380 (6bv), render-chunk record +0x254/0x258/0x25E (6bw); RenderChunk ctor 0x7926f20 layout (6bx); event processor 0x5334850 (6by) writes depth to draw record +0x63 via 0x533f580; draw-record handle lookup 0x533f580 (6bz, 6ca: ECS guess dropped); +0x63 reader pending | PROGRESS 2026-11-16 oc_U-H1b.md (verify_oc 474/474): flood 0x6b1ba90 and BFS queue 0x6b0d380 instruction-complete; still to do: launcher 0x7923d50, task body 0x792e630, compute 0x791f170, listener 0x537dab0 | PROGRESS 2026-11-16 (verify_oc 2750/2750): launcher 0x7923d50, task body 0x792e630, compute 0x791f170, listener 0x537dab0, RenderChunk ctor 0x7926f20, draw-record lookup 0x533f580 instruction-complete; event processor 0x5334850 (size 0x5f3c) only listed to 0x5334ba3; +0x63 reader pending | PROGRESS 2026-11-16 oc_U-H1c.md (verify_oc 672/672, whole 0x5334850..0x533a78c phase-tabled with field tables per 400-line block; key lines quoted, 21 gaps >200 bytes so NOT instruction-complete): +0x63 WRITER decoded: depth byte [rax+0x25E] (0x533655F/0x53365D8, 0x5337B71/0x5337E8E) -> handle lookup 0x533F580 (0x53365E8) -> mov [rax+0x63],bl at 0x53365FA; +0x63 READER still unfound | PROGRESS 2026-11-16 oc_U-H1d.md (5/5, orch-verified): +0x63 READER found: 0x53398EE cmp byte ptr [rax+0x63],0 / 0x53398F2 jne 0x53398D0 in sub_5334850 after call 0x533F580 (0x53398E3), loop skips records whose +0x63 depth byte != 0, else checks [rsi] (0x53398F4) and stores via 0x53398A0 (or crashes 0xDEADC0DE at 0x53398F9); 0x533F580 has only sub_5334850 as caller (3 sites, rdis callers), so no other reader; unit's second writer site 0x5337EB1 is NOT a valid instruction boundary (unverified). Remaining for H1b: event processor still not instruction-complete (21 gaps) | 2026-11-16 oc_U-EH1b.md (135 rows OK): NO; only gap: event processor depth write 0x53365FA and +0x63 reader 0x53398EE/0x53398F2 lack [V] proof lines (input listing stops at 0x53364c5) | DONE 2026-11-21 oc_U-EL9b.md [V 11/11]: +0x63 reader = 0x53398ee cmp byte ptr [rax+0x63],0 on record from 0x533f580 (call 0x53398e3), skip via jne 0x53398f2; 0x533f580 sole caller 0x5334850
-- [x] H2 Occlusion: 0x660ecd0 is the bgfx caps JSON dump (6bl), not a query pool; ChunkOccluder/SimpleOccluder are materials (6bk); real occlusion-query user not found | PROGRESS 2026-11-16 oc_U-H3c.md: 0x660ecd0 (1052 lines) = bgfx Caps JSON dump (flag names + limits, real strings re-read from exe), 0x10f09f0 (3511 lines) = lighting config deserializer, 0x6646980 (7679 lines) = ChunkOccluder/SimpleOccluder material dispatcher; the real occlusion-query user / frustum cull function still not found | PROGRESS 2026-11-16 oc_U-H3d.md (verify_oc 12/12): no 6-plane frustum test and no CreateQueryHeap (vtable+0xB8) call found; chunk visibility = voxel flood fill (launcher 0x7923d50, task body 0x792e630, compute 0x791f170, Block+0xA3 opaque flag); debug overlay 0xe7f5380 reads occlusion count ctx+0x2035F0 at 0xe7fcb30 (writer unknown) | PROGRESS 2026-11-16 oc_U-H2b.md (verify_oc 28/28): ctx+0x2035F0 only has 3 direct accesses: lea rcx,[r12+0x2035F0] at 0xe7f5452 (arg to 0xE805480, init/reset, in overlay 0xe7f5380), lea rcx,[rsi+0x2035F0] at 0xe7f1619 (reset path in 0xe7f0f40), read at 0xe7fcb30; sibling stat objects +0x2035D0/+0x2035B0/+0x203590/+0x203570 (read 0xe7fcb37..0xe7fcb4c, printed with "%6d | ..."); the incrementer (if any) works through 0xE805480-style methods on the object, not a direct field write; real occlusion-query use still not found | DONE 2026-11-16 oc_U-EH2.md (verify_oc 16/16): occlusion-query user = D3D12 resolve fn 0xe85e5c0 writes Frame.m_occlusion[q] (0xe85f04d/0xe8607ad/0xe86447d), draw executor 0xe821120 reads it at 0xe82270b (cmp [r9+rdx*4+0x14300],0), Frame ctor 0xbc779d0 memsets to 0xFF; ctx+0x2035F0 counter incrementer still [?] (debug stat only)
-- [x] H3a Camera/projection/view: bgfx per-view record (0x1EAB090+viewId*0x140), CI+0x418 view, LevelRendererPlayer cameraPos/fovScale, CameraComponent FOV (6dd, 6dw) (P1) — per-view record semantics stable
-- [x] H3b Frustum/culling anchors (6bf, 6bi); 6bj: frustum_visibility is a light-scoring weight (fn 0x10f09f0), real cull fn still unfound | PROGRESS 2026-11-16 oc_U-H3c.md: 0x660ecd0 (1052 lines) = bgfx Caps JSON dump (flag names + limits, real strings re-read from exe), 0x10f09f0 (3511 lines) = lighting config deserializer, 0x6646980 (7679 lines) = ChunkOccluder/SimpleOccluder material dispatcher; the real occlusion-query user / frustum cull function still not found | PROGRESS 2026-11-16 oc_U-H3d.md (verify_oc 12/12): no 6-plane frustum test and no CreateQueryHeap (vtable+0xB8) call found; chunk visibility = voxel flood fill (launcher 0x7923d50, task body 0x792e630, compute 0x791f170, Block+0xA3 opaque flag); debug overlay 0xe7f5380 reads occlusion count ctx+0x2035F0 at 0xe7fcb30 (writer unknown) | DONE 2026-11-21 oc_U-EH3b.md [V 12/12]: real cull = view-ray/distance cone flood, task body 0x53cc570 (rejects 0x53CD110/0x53CD559/0x53CD587), consumed by slot-9 section query 0x5343590; no 6-plane frustum test exists in the exe (whole-.text scans)
-- [x] H4 Per-frame constants: live ViewPositionAndTime (w = seconds), FogColor, MeshContext, GlobalRoughness read (6co); FogAndDistanceControl/sky/weather pending | PROGRESS 2026-11-16 oc_U-EH4.md (check OK 9 rows): FogAndDistanceControl vec4 = Weather desc+0x98 (0x6746335) written via 0x5679db0 (0x67463b4), name hash static 0x129F9FF0; sky FogColor desc+0x18 (0x665854f) via 0x66590dd, hash 0x129F9F30; not closed: other sky/weather per-frame uniforms not enumerated, unit claimed YES | DONE 2026-11-16 oc_U-EH4.md (verify_oc, supersedes _r1): all RenderWeatherDescription per-frame vec4 uniforms in extractor 0x6745440 (+0x80 OcclusionHeightOffset, +0x88..+0x118) + sky FogColor desc+0x18 proven with verbatim lines and name-hash statics
-
-## I. Lighting, actors, particles, sky, UI, post
-- [x] I1a Shadow cascade anchors — 6x | TICKED (2026-11-15 audit): anchor RVAs, sizes and strings are in the verified table BGFX_MAP 6x (cascade setup 0x53fcac0/0x543c950, weather 0x6745440, particle 0x67417f0, TAAU 0xbc8cfd0 + upscale 0xbc8a380, FSR1 0xbcb64f0, DLSS callback 0xe83ec70) and the extractor dossiers
-- [x] I1b Light volumes: CPU point-light scoring (6bj) + shader inputs zLights 128B Light, zLightLookupArray, VoxelBuffer, cluster uniforms (6cd) | TICKED (2026-11-16 oc_U-I1b.md, verify_oc 3832/3832, no gaps): 17 string sites + pass bodies instruction-complete: light clustering sub_bc57460 0xbc57460..0xbc5a28f (zLights/zLightLookupArray/ClusterDimensions/LightClustering sites) and sub_bc5bad0 0xbc5bad0..0xbc5d4a1 (ClusterNearFarWidthHeight/ClusterDepthBounds/ClusterSize), VV-builder declarations 0x5635c14..0x56372db, TransitioningVoxelBuffer 0xbb403a8; field meanings only where visible in code
-- [x] I2a Actor renderer dispatch anchors (ActorRenderDispatcher::render, DataDrivenRendererV2::tryAddActor, bodyActor) — 6bg; internals pending | PROGRESS 2026-11-16 oc_U-I2a.md (verify_oc 483/483): render 0x594c5c0..0x594caba and tryAddActor 0x6ebb280..0x6ebb50a instruction-complete; bodyActor 0x66d0a00 internals are in oc_U-BA*.md (cross-link pending) | DONE 2026-11-21 oc_U-EL12a.md [V 123/123]: internals of ActorRenderDispatcher::render 0x594C5C0 (renderer lookup 0x5951530, builder 0x594CBE0, no-renderer string 0xF7CEDD3), DataDrivenRendererV2::tryAddActor 0x6EBB280 (FNV-1a registry lookup, mListA/mListB/mQueue pushes) and bodyActor 0x66D0A00 (sole caller 0x664b7bc, item build 0x6698060); origin register of *(+0xC8) actor pointer [I]
-- [x] I2b Bones/skeleton interface: Bones mat4[8] (0x200 B per draw), PrevBones mat4[8], PrevWorld mat4; actor extractors 0x66d9af0/0x66b2de0; skinned mesh builders (6ch); Molang CPU side not reversed (outside renderer) (P1) — bone semantics stable
-- [x] I2c Hands / held items — docs/first-person-hand-notes-1.26.60.md (6bh); 1.26.62 re-check pending | DONE 2026-11-21 oc_U-EI2c.md [V 36/36]: 1.26.62 re-check: renderHands 0x530c700, drawArm 0x530a1b0, renderItem 0x531a580, renderItemFull 0x531b490, applyToPose 0x617a100, BobHurt 0x53a1320
-- [x] I3 Particle pass anchor + strings — 6x | TICKED (2026-11-15 audit): anchor RVAs, sizes and strings are in the verified table BGFX_MAP 6x (cascade setup 0x53fcac0/0x543c950, weather 0x6745440, particle 0x67417f0, TAAU 0xbc8cfd0 + upscale 0xbc8a380, FSR1 0xbcb64f0, DLSS callback 0xe83ec70) and the extractor dossiers
-- [x] I4a Weather pass strings — 6x | TICKED (2026-11-15 audit): anchor RVAs, sizes and strings are in the verified table BGFX_MAP 6x (cascade setup 0x53fcac0/0x543c950, weather 0x6745440, particle 0x67417f0, TAAU 0xbc8cfd0 + upscale 0xbc8a380, FSR1 0xbcb64f0, DLSS callback 0xe83ec70) and the extractor dossiers
-- [x] I4b Clouds pass strings — 6x; sky/stars/celestial pending. NOT done (6el): Stars/StarsForwardPBR/Cubemap/LegacyCubemap/EndSky strings are seen at quoted sites, but Sky, SunMoon (Celestial) and Clouds have no decode | TICKED (2026-11-16 oc_U-I4b.md, verify_oc 114/114): Sky/Clouds VV-builder strings at 0x560CA58..0x560CA6F and 0x560E1A8..0x560E1BF (inside 0x55F1450, ' Sky (pre-water)'/'ForwardPBR - Sky (pre-water)' etc.), Clouds body strings 0x67376C0/0x673AE3B/0x673AE85 (0x67375A0), Sky visitor 0x66560F0 sites for SunMoon 0x665658C/0x665D5B8, EndSky 0x66564B9, Stars 0x665686F, Sky 0x6656725, material resolver 0x675E440. Caveats: SunMoon/Stars/EndSky have no separate VV pass strings (rendered by the Sky visitor); '0x9D6D0 pass-registration helper' role is inferred; material object layout open
-- [x] I5a UI render passes + context: 0x674a3a0 UI group extractor (UI/Text,Glint,Blit,Base,Sprite,Fill), 0x6664a00 UI+ImGui frame fn (6ce) | TICKED (2026-11-16 oc_U-I5a.md 2235/2235 + oc_U-I5a2.md 3135/3135): extractor 0x674a3a0..0x674f006 and UI+ImGui frame fn 0x6664a00..0x666850b (hot path to 0x6668106 + cold blocks to 0x6668510) instruction-complete with per-phase string tables; ScreenRenderer internals split out as I5d
-- [x] I5d ScreenRenderer internals (CPU-side screen draw feeding the UI frame fn 0x6664a00): not started; callers of 0x6664a00 and what builds its input | PROGRESS 2026-11-16 oc_U-I5d.md (verify_oc 117/117): sole caller of 0x6664a00 is sub_6664760 (0x6664760..0x6664978, call at 0x66648C8) = the 'FrameBuilder - Insert UI' task (string 0xF7CB7C5 at 0x6664911, registered via sub_2fe330 at 0x6664955); args rcx=[a0+0x20], rdx=stack struct {a0+0xF0,+0x380,+0x100,+0x260,...}, r8=copy of [a1]; sub_6664760 has 0 direct xrefs (invoked through a function pointer: who stores it is open; what builds a0 open) | PROGRESS 2026-11-16 oc_U-I5e.md (verify_oc 36/36) + docs/functions/framebuilder_insert_task_vtable.md: sub_6664760 is slot 4 (+0x20) of the FrameBuilder insert-task vtable at 0xF2BE1F8 (editor/effect/UI/sky/item/light tasks, all calling sub_2FE330 with a name string and a data table); vtable constructor/loader and the builder of a0 (+0x20/+0xF0/+0x100/+0x260/+0x380) still unfound | PROGRESS 2026-11-16 oc_U-I5g.md (verify_oc 38/38): 0x5e3dd30 is NOT the vtable constructor: it is a 5-case task-object manager (jump table 0xF281DBC on cl 0..4: 0x5e3dd5d..0x5e3dd6b; stored as fn pointer [obj+0x10] with magic 0xA2436688 at +0x20, 0x5e3ddd5..0x5e3ddf2); the 0xF2BE108 ref at 0x5e3df24 was a mid-instruction false positive; no COL at vtable-8 for 0xF2BE0F8/0xF2BE1F0/0xF2BE1F8; vtable owner/constructor still unfound | PROGRESS 2026-11-16 oc_U-I5h.md (partial, spot-checked): the insert-task entries are slots 7..14 of a vtable starting at 0xF2BE1C0 (slot0 sub_6639a80 = mov eax,[0x12AE0D90], slot2 sub_661edc0 = mov byte ptr [rcx+0x898],1, slot4 sub_660ecb0 size 0x4000, slot7 sub_668acc0, slot8 sub_6685f30, 9 editor 6674050, 10 effect 666aa00, 11 UI 6664760, 12 sky 6655de0, 13 item 66466e0, 14 light 6640ae0 (rdis vt 0xF2BE1C0)); ripscan finds no real `lea reg,[0xF2BE1C0]` in .text (the one hit at 0xda35bf5 is mid-instruction: real insn mov qword ptr [rbp+0x188],0 at 0xda35bf4); installer/constructor of this vtable still unfound (absolute pointer in .rdata/.data to try) | DONE 2026-11-16 oc_U-EI5d.md verify_oc 12/12: caller sub_6664760 (call 0x66648C8), vtable BgfxFrameBuilder 0xF2BDEB0 slot 109, ctor sub_660d940, builder sub_980300, input struct fields; upstream indirect-call trigger remains [?] but outside the item wording
-- [x] I5b Ore UI / cohtml: glue fn 0x52d26a0 + ui_textured_premultiplied_alpha (6cf) | TICKED (2026-11-16 docs/listings/L_52d26a0.txt tool-generated listing 0x52d26a0..0x52d4bee + oc_U-I5b.md analysis): phase table, string/callee tables, field-store table; 'ui_textured_premultiplied_alpha' (0xF60E118, len 0x1F) is passed in r9 to 0x9D6D0 at 0x52d349c with the 0x168-byte material record in r12 (record init 0x52d3421..0x52d3521). Caveats: object roles (Cohtml view/material record) are the unit's inference; 'virtual at [0xF99FFA0]' in its text is the CFG jmp-rax thunk
-- [x] I5f cohtml backend upload/draw callees of 0x52d26a0: 0xA0233E0, 0xA0228E0, 0xA01BDD0, 0xA018300, 0xA0264A0, 0x1F383F0, 0x1F38E40, 0x1F39A30, 0x4FDE750  | TICKED (2026-11-16 oc_U-I5f.md verify_oc 134/134): exact listings docs/listings/L_a0233e0/L_a0228e0/L_a01bdd0/L_a018300/L_a0264a0/L_1f383f0/L_1f38e40/L_1f39a30/L_4fde750.txt + per-function role guess [I], callees, [reg+off] tables. Caveat: roles (element creation, draw call setup, texture upload, view creation, layout, draw command encoding) are inferences, not proven names
-- [ ] I5c Text/font: SDF glyph uniforms + FONT_TYPE permutation (6ce); glyph atlas pending | PROGRESS 2026-11-16 oc_U-I5c.md (verify_oc 97/97): font init 0xE82E00 (DefaultFont/RuneFont/UIFont/UnicodeFont/SmoothFontLatin via 0xE84070, vtable 0xF09AA70), ClearAndResetFontData 0x186E6A0 (callers 0x8F6919, 0x104237E), uniform registrations GlyphTexture/GlyphHeight/GlyphSmoothRadius in extractor 0x674a3a0 (0x674dca3), FONT_TYPE permutation concatenation 0xF2EA00; atlas texture creation/update not isolated (the unit's 0xF0BCA58 'FontTexture' claim was wrong: data bytes) | 2026-11-16 oc_U-EI5c.md (5 rows OK): still NO; atlas texture creation/update not found, GlyphTexture handle untraced | PROGRESS 2026-11-21 oc_U-EL14c.md (verify_oc 7/7): GlyphTexture uniform only bound at draw time (0x674dca3 in 0x674a3a0); no createTexture/updateTexture for a glyph atlas in font paths; fetch 0x4f78830 returns handle via CFG thunk call 0xEEC7570 at 0x4f78966 (target unresolvable statically) -> atlas creation still open (needs live trace) | PROGRESS 2026-11-21 oc_U-EI5c.md (verify_oc 9/9) + orchestrator check: the "unresolvable" 0x4f78966 call 0xEEC7570 is an import thunk (jmp [0xF9A9048]; live slot = 0x7FFBDDA45F00 in another module, read via livemem.py) called with rcx = C string ("textures/ui/Caution"/"textures/ui/ErrorGlyph" via lea at 0x4f78946/0x4f7894d) and rax tested as a length (test rax,rax / js) i.e. a strlen-style call, NOT a texture-handle fetch; glyph atlas creation/update still not located | PROGRESS 2026-11-21 oc_U-EI5c.md rerun (verify_oc 12/12): GlyphTexture is bound BY NAME (16-byte SSO string at object+0x38 of [rbp+0xE80] in 0x674a3a0 via 0x674aa91->0x5679DB0->memcpy 0xEEC6EC0), not a bgfx handle; atlas is likely a named pack texture, writer of the name and the glyph name pattern still to find
-- [x] I6a TAAU + upscale pass uniforms — 6x | TICKED (2026-11-15 audit): anchor RVAs, sizes and strings are in the verified table BGFX_MAP 6x (cascade setup 0x53fcac0/0x543c950, weather 0x6745440, particle 0x67417f0, TAAU 0xbc8cfd0 + upscale 0xbc8a380, FSR1 0xbcb64f0, DLSS callback 0xe83ec70) and the extractor dossiers
-- [x] I6b FSR1/DLSS anchors — 6x, 6bc, 6bh | TICKED (2026-11-15 audit): anchor RVAs, sizes and strings are in the verified table BGFX_MAP 6x (cascade setup 0x53fcac0/0x543c950, weather 0x6745440, particle 0x67417f0, TAAU 0xbc8cfd0 + upscale 0xbc8a380, FSR1 0xbcb64f0, DLSS callback 0xe83ec70) and the extractor dossiers
-- [x] I6c tonemap/SSR strings — 6x | TICKED (2026-11-16 oc_U-I6c.md, verify_oc 355/355): Tonemap sites (TonemapperType 0xe84a5cd in 0xe8403d0; tonemapper params 0xbcacd90: 0xbcafc09/0xbcafb97/0xbcafa41; RTXPostFX.ToneMapping 0xbbf46b7), SSR (SSRColorBufferBlit 0x56235fe, SSRParameters 0x563c572, SSRTexture 0x563c8a1 in the VV builder; SSR module 0xbc82ad0: ScreenSpaceReflections 0xbc82c2d, SSRFillGaps 0xbc84c1d, SSRRayMarch 0xbc84b75, SSRRayMarchHZB 0xbc84bc9, SSRGetReflectedColor 0xbc84c71), Bloom (modules 0xbc98310/0xbc9ada0, BloomDownscale*/Upscale passes in 0xe7ec1f0). No SSAO/AmbientOcclusion strings exist (searched); the 'pass registration helper 0x9d6d0' role is inferred
-- [x] I6d tonemap/SSR/bloom pass bodies: 0xbcacd90 (tonemapper params), 0xbc82ad0 (SSR module), 0xbc98310/0xbc9ada0 (bloom down/up), 0xe7ec1f0 (bloom material passes) | TICKED (2026-11-16): tool-generated exact listings docs/listings/L_bcacd90/L_bc82ad0/L_bc98310/L_bc9ada0/L_e7ec1f0.txt (instruction-complete, verify_oc clean) + analyses oc_U-I6f.md (4140 lines, 11 ranges), oc_U-I6e.md, oc_U-I6d.md; uniform/pass strings re-read from exe bytes by the orchestrator (corrections appended in each file, tools/sigs/rvastr.py rvastrdoc.py checkstrs.py). Caveats: unit labels for movups-loaded strings are 16-byte slices; roles of helper callees are [I]
-- [x] I7 RTX passes: 0xbbe2d50 main declaration, 0xc28e330 G-buffer/denoiser resources, 0xbcc4b90 compute list, 0xe8403d0 context init (6cg); lambda bodies + BLAS/TLAS build pending (P3) — RTX, low priority unless RTX hardware | PROGRESS 2026-11-21 oc_U-EI7.md (verify_oc 35/35): BLAS/TLAS build proven (0xe82ebaa BLAS, 0xe82f329 TLAS, disp 0x240); still open: per-lambda body binding inside 0xbbe2d50 (only group-level install known [I]) | DONE 2026-11-21 oc_U-EL16c.md [V 44/44]: 6 vtable installs in 0xbbe2d50; bodies PreBlasSkinDispatch 0xbc068f0, PrepareTLAS 0xbc07a70, RTX driver 0xbc080c0 (runs all 43 RTX passes), NothingTask-type 0x56aeeb0, closures 0xbc07890/0xbc084b0 (I7: with BLAS/TLAS build from oc_U-EB10c.md)
-
-## J. Whole-frame control
-- [ ] J1 Takeover design written against A-F: seams 1-6 with data and risks (6dy); consistent by static+live evidence, no patch exercised in game (P1) — architecture-level, survives
-- [x] J2 Startup self-check: 9 unique sigs added to Sigs.json (6dj); content checks (mask immediate, offset refs) to code in SelfTest, not built (P1) — infra; sigs re-checked per patch | DONE 2026-11-16 oc_U-EJ2.md (8 rows OK): mask immediate, Frame displacement refs and 0x80 task stride proven; the missing stride assert added by hand to RenderLayoutAsserts.h kTaskDispatch + docs/data/layout_asserts.json (0xFFFFFF80); tools/sigs/layoutcheck.py: 187 assertions, 0 failed
-- [x] J3 Optimisation hook seams listed (6bh) + docs/PLAN_OPTIMIZATION.md; validation pending (P1) — seams are version-stable | 2026-11-16 oc_U-EJ3.md (14 rows OK): NO; bgfx core seams (submit/reset/frameSort) are version-stable per port_check, but drawExecutor 0xE821120 is not (dead on 50.04/51.01, +0xC00 on 62.01) and DLSS slot 60/terrain extractor/bodyActor/passLookup/VV builder have no port-check data | DONE 2026-11-21 oc_U-EL18c.md [V 14/14]: all 14 optimisation hook seams of 6bh confirmed present in 1.26.62.01 (first instruction at each RVA verbatim); PLAN_OPTIMIZATION.md cross-checked; version stability per row (bgfx core seams stable, executor/psoBuilder/endFrame/taskDispatch/viewSetupTask sensitive)
-
-## Execution order
-1. D5 (descriptions via extractors) + E1-E4  2. C5/C5c/F5 (hash + pass capture)  3. A4-A8 (Context, handles)  4. B2-B3 (slots, submit)  5. F1-F4  6. G  7. H  8. I  9. B4-B11, A9-A13, C2-C9  10. J.
-
-## K. Full Reverse Engineering — Complete Checklist
-
-Every layer needed to fully reverse the rendering engine (not just chams), organized L1-L18 to match docs/RENDER_REVERSAL_PLAN.md. Rule for ticking: `[x]` only when written down in `docs/BGFX_MAP.md` (or the named doc) with RVAs/offsets AND an SDK header or hook where listed. There is no partial state: only `[x]` or `[ ]`. `[ ]` = not started. Section references (e.g. `6e`) point to `docs/BGFX_MAP.md`.
-
-### L1. Frame, submit and the bgfx core (foundation)
-- [x] L1a Frame buffer layout (view remap, matrices, draw headers, tail block, counters) — 6e, Frame.h
-- [x] L1b Draw header (0x80) fields read by the executor — 6e-2
-- [x] L1c bgfx::Caps (limits, flags, globals) — 6j, Caps.h
-- [x] L1d Context init + thread start 0xbc63690 — 6q
-- [x] L1e Context global 0x12ae1748 + view array + semaphores — 6r (handle allocators L1h pending) | DONE 2026-11-16 oc_U-EL1e.md verify_oc 37/37 rows: Context global 0x12ae1748, view array and semaphores proven; the parenthetical handle-allocators note is covered by other items (A8a/L1p)
-- [x] L1f frame()/swap = 0xbc66de0, handoff 0xbc65800, thread 0xbc65720 — 6r,6s
-- [x] L1g Encoder::submit 0xbc5fb40 decoded: encoder layout, draw index alloc (Frame+0xDC57E8), key build, header copy — 6cq, 6cr
-- [x] L1h Encoder setters: inlined stores (state +0x60, rect +0x80, binds +0x140 block) — no call sites (6cr)
-- [x] L1i Encoder submit variants + reset + Frame::sort 0xbc61220 — 6cq, 6cr
-- [x] L1j View struct (0x140, 256 views at ctx+0x1eab080) — 6q
-- [x] L1k View matrices: s_ctx view array +0x20 (6q, live 6r)
-- [x] L1l Sorted item list Frame+0x94700 (6am); sort key bit layout partly | TICKED (2026-11-15 opencode U-A6c, re-checked): docs/progress/oc_U-A6c.md: key built in Encoder::submit 0xbc60740 (view<<54 mask 0x3FC0000000000000, type tags 0x10/0x14/0x18 at bits 50..52, depth/seq/program/trans shifts from the quoted immediates), stored at 0xbc60991 (key u64 Frame+0x14700) and 0xbc6099c (u16 index Frame+0x94700), consumed by Frame::sort 0xbc61e20 -> radix sort 0xbc62040/0xbc62bc0, count Frame+0xDC57E8; 74/74 verify_oc. Open [?] (non-blocking): radix inner body, live key values, custom-item payload words
-- [x] L1m Uniform name lookup + createUniform registry (hash table, records, allocator) — 6ag, 6ah
-- [x] L1n Predefined uniforms list (14) — 6ag
-- [x] L1o Per-draw constant stream cursor + 20-byte binding records (type 0-8) — 6an; opcode set pending | DONE 2026-11-16 oc_U-EL1o.md verify_oc 36/36 rows: opcode set 0-8 via jump table 0xF4EE774 (9 int32 entries), type-byte load/range check 0xe8230aa..0xe8230b2, every handler entry quoted, default handler 0xe824fbe; residual record bytes not read by any handler and stream-end struct rbx+0x110 undecoded
-- [x] L1p Handle allocators located in Context (offsets) — 6s, 6ai (API fn map; per-allocator roles [I]) | DONE 2026-11-16 mirror of A8a; last pending allocator (occlusion queries) located at ctx+0x1DFBE94 max 256, never allocated from, oc_U-EL1p.md verify_oc 8/8 rows
-- [ ] L1q Record tables: texture 0xB8 [V]; shader 0xB8 @+0xAAA178 and program 0xF8 @+0xB62178 layouts — 6au; 0x78/0x80/0x130/0x68 field layouts pending | PROGRESS 2026-11-16 oc_U-EL1q.md (check OK 50 rows): 0x78 index-buffer, 0x80 vertex-buffer and 0x68 framebuffer-window layouts [V]; remaining: the 0x130 framebuffer-texture record (only the attachment-descriptor memcpy at 0xe81652f is a [V] store; +0x01..+0x12F unproven) | PROGRESS 2026-11-21 oc_U-EL1q.md rerun (verify_oc 5/5) + orchestrator: 0xEEC6EC0 is an import thunk (jmp [0xF9A8A98], 50737 xrefs, live slot 0x7FFBC6F8F020 in another module) called as (rcx=dst, rdx=src, r8=size) i.e. memcpy/memmove-style, so the 0xe81652f call is a bulk copy into the record (dst r12, src r14, size rbx), not an unresolved writer; field layout of the 0x130 record still needs the size/source of that copy and the other writers | PROGRESS 2026-11-21 oc_U-EL1q.md rerun (verify_oc 38/38): record dest offset of the 0xe81652f copy unresolvable from the unit's wrong anchor; orchestrator found ctx = [0x12BB4910] and the 0x130-stride table at ctx+0xA32178 (add rdi,0xA32178 at 0xe81651a), readable live; hint written for a live-layout retry
-- [x] L1r Guarded paged array layout (4096 inline + chained pages, guard byte +0xC96190) — 6z
-- [x] L1s Render item state bits: u64 S bit map (write mask 0-3, depth func 4-7, blend factors 12-27, equation 28-30, cull 36-37, flags) + stencil state2 + PSO key mask (6ct); enum tables dumped (6cu)
-- [x] L1t render thread proc, semaphores ctx+0x80/+0x100, surface array stride 0x700 — 6as; 0xbc63150 internals pending | DONE 2026-11-16 oc_U-EL1t.md (verify_oc 26/26 rows): internals of 0xbc63150 proven; ctx+0x100 reached only via call 0xEBDBC50 (0xbc633da) and the 0x700 surface stride lives in 0xbc65800 (BGFX_MAP 752), both already recorded under 6as, not re-proven here
-- [x] L1u init/reset/shutdown: lifecycle (6di), reset entry = submit prologue + slot 60 0xe81a610 (6dn); shutdown ordering = slot 59 (not exercised live)
-- [x] L1v dynamic texture handles = reset flag 0x400000 + caps bit 0x12ADFA54&0x10 + free-list (6ei); createDynamicTexture 0xbc74a80 | DONE 2026-11-16 oc_U-EL1v.md verify_oc 20/20 rows: caps test 0xBC67284, reset flag 0x400000 tested at 0xBC672A9..0xBC672BD, free-list ctx+0x1DFB48C/+0x1DFB48E/+0x1DFB490 in createDynamicTexture 0xBC74A80 and destroyDynamicTexture 0xBC750B0, single caller 0xE905C8E; matches mirror A12a
-- [x] L1w ranged vertex-buffer binds: only the RTX skinning range check (0xe83f1d0) found (6ei); setter API not isolated | DONE 2026-11-21 oc_U-EL1w.md [V 22/22] + mirror of A12b (oc_U-EA12b.md): range check 0xe83f1d0 w/ string 0xe83fbb0; applier setVertexBuffers 0xe81b4d0; encoder setter 0xBC6E360 writes Encoder+0x680
-- [x] L1x RTX handles: pass+string anchors (6ei); fork handle/call API not isolated | DONE 2026-11-21 oc_U-EL1x.md [V 24/24]: fork handle/call API isolated: handle creation 0xe812740, heap record 0xE927FC0, resource 0xE815590, RTX submit override 0xE83D440, RT pipeline 0xE84BA30, AS build 0xE84C7D0, BLAS cleanup 0xE84B980; resource_vtable[11] identity [I]
-- [x] L1y upscaling: DLSS/NGX parameter set in 0xe83ec70 + 0xe8403d0, TAAU/FSR1 passes (6ei); call wrappers not isolated | DONE 2026-11-21 oc_U-EL1y.md [V 65/65] + A12d params (310/310): NGX call wrappers isolated as vtable-slot thunks (+0x8/+0x18/+0x20/+0x30/+0x40/+0x60/+0x70 + Create/Destroy/EvaluateFeature); semantic names [I]
-- [x] L1z SDK headers: Encoder.h and View.h added (Frame.h, Caps.h existed); Handles.h/Uniforms.h pending | TICKED (2026-11-16 orchestrator, file check): src/sdk/mc/deps/bgfx/{Encoder,View,Handles,Uniforms}.h all exist (144/30/99/54 lines, static_asserts 7/3/17/6), Handles.h and Uniforms.h were the pending ones (mirror of A13)
-
-### L2. RendererContextD3D12 and the D3D12 backend
-- [x] L2a vtable slots named; corrections in 6aj — 6k, 6aj
-- [x] L2b Slots 0-21 verified by disassembly — 6aj (table-evidence)
-- [x] L2c Slots 22-49 verified — 6aj (table-evidence)
-- [x] L2d Slots 50-62 verified — 6aj (table-evidence)
-- [x] L2e RTX slots 54/63/64 and overrides verified — 6al
-- [x] L2f submit stage map by callees — 6t, 6af | DONE 2026-11-16 oc_U-EL2f.md verify_oc 55/55 rows: all 46 direct callees at the 6t call counts + 70 IAT-thunk indirect calls + call r10 x2 (227 calls, size 0x4d91 = 6t); 6af executor confirmed a sibling of submit, not a callee
-- [x] L2g submit: descriptor binding types (6an), sort-key program field, descriptor flush (6ao) | DONE 2026-11-16 mirror of ticked B3b; oc_U-EL2g.md verify_oc 8/8 rows: the 7 executor call sites of 0xe81b720 proven; per 6ek that function is the draw-batch flush, no separate descriptor flush exists
-- [x] L2h Draw emitter found: 0xe81b720 DrawBatcher flush (DrawInstanced 0x70-stride records, DrawIndexedInstanced 0x88-stride records, ExecuteIndirect for batches); executor calls it at 0xe822e4e etc. (6ej); sig D3D12Context.drawFlush; not run in game
-- [x] L2i submit stats/timers/debug overlay: stock bgfx stats text + timers inlined in slot 50 (6dh); flag bit positions to confirm live
-- [x] L2j PSO cache: builder 0xe81dc60 decodes state to D3D12 PSO desc, key mask known (6ct, 6ao); disk cache 0xe8feb10 pending | TICKED (2026-11-15 opencode U-B4disk, re-checked): PipelineDiskCache::tick 0xe8feb10 decoded in phases (90/90 verify_oc), callee table, PipelineDiskCache object fields, sibling save/flush functions (0xe8fc760, 0xe8fee80), single caller 0x67c9c20 (docs/progress/oc_U-B4disk.md); with the earlier PSO key (Murmur2A over 13 inputs) and blend/raster decode this completes B4. Residual [?] non-blocking: load entry point not found, indirect callers
-- [x] L2k Root signature serialized in init (6ak); >=6 root params, tables 2/3, value 5 (6ao); full layout pending | TICKED (2026-11-15 opencode U-B5, re-checked): docs/progress/oc_U-B5.md: root-signature builder 0xe80c600 (called from init 0xe807ff0 at 0xe809350 in a loop), serializer D3D12SerializeRootSignature resolved into global 0x12BB4930; EXACTLY 5 root parameters (tables at 0,1,4; CBV root descriptors at 2,3; no 32-bit constants) with every descriptor range (sampler 16, SRV/sampler unbounded 0xFFFFFFFF), corrects the older '>=6 params' claim; 54/54 verify_oc. Residual [?]: the context offset where the created ID3D12RootSignature is stored (goes through sub_e80c180 after the loop) is not traced
-- [x] L2l Queue wrapper +0xCC9268, current list +0x19F58, submit/flush slots 8/61/62, frame-context ring — 6av; fence wait internals pending | DONE 2026-11-16 oc_U-EL2l.md verify_oc 25/25 rows: fence wait internals (fence wrapper [this+0x3C563B0], +0x18/+0x20/+0x28/+0x30, SetEventOnCompletion vtbl+0x48 + WaitForSingleObjectEx, slot 8 flushAndWaitIdle 0xe80f630 passes INFINITE); API names [I]
-- [x] L2m createTexture signature + table access — 6z | TICKED (2026-11-15 opencode U-B7a, re-checked): docs/progress/oc_U-B7a.md: createTexture = vtable slot 26, 0xe8143c0 (size 0x2e1), register map (rcx this, rdx handle, r8 Memory*, r9 flags, skip on stack), texture record table indexing/stride/bounds check, first record stores, callees in order; 45/45 verify_oc; open [UNVERIFIED] (caller-frame [rbp+0x10], import-slot call 0xF9A8C78) non-blocking
-- [x] L2n State transition helper 0xe82d960 + tracker entries — 6ae | TICKED (2026-11-15 opencode U-B7b, re-checked): docs/progress/oc_U-B7b.md: helper 0xe82d960 register map and flow, TrackerEntry field layout, state-value mapping to D3D12_RESOURCE_STATES, ResourceBarrier emission/batching (vtable byte offset 0xD0), callers; 66/66 verify_oc; open [UNVERIFIED] (indirect xrefs, firstUse initial/current state writes) non-blocking
-- [x] L2o Upload tracking lists (0x48/0x18 entries @+0x1A000/+0x1A018) + destroy path slot 57 (6ba); slot 55 init (6bb); copy path + slot 56 pending | DONE 2026-11-16 oc_U-EL2o.md verify_oc 99/99 rows: copy path (ctx +0x19F58/+0x1A000..+0x1A028, side34/rec78/e48 records, list-A 0x18 append) and slot 56 (list-B +0x19FE0/+0x19FE8/+0x19FF0, e18B entry, rec78 rewrites) proven; field meanings not shown by instructions left as -
-- [x] L2p Swapchain: create slot 39 (6az), reset slot 60 (6aw/6ax), present slot 6 (6ay), window table 0xC97698 (stride 0x68)
-- [x] L2q TDR / device lost handling (slot 7) — 6ak
-- [x] L2r createShader blob formats (CSH3/FSH5/VSH5 wrapping DXBC; no DXIL) — 6at
-- [x] L2s createProgram/destroyShader records (6au); input-layout builder ('TEXCOORD' user 0xe81xxxx) pending | TICKED (2026-11-15 opencode U-B9b, re-checked): docs/progress/oc_U-B9b.md: createProgram 0xe8142c0 (slot 24, 0xd6), destroyShader 0xe8141e0 (slot 23, 0xd8), destroyProgram 0xe8143a0 (slot 25, 0x1e) with record stores, input-layout builder 0xe81e860 (0x1c9a) filling D3D12_INPUT_ELEMENT_DESC (0x20-byte entries, semantic tables); 106/106 verify_oc; open [UNVERIFIED] (some table roles, PSO create slot name) non-blocking
-- [x] L2t RTX GPU skinning (slot 63 = 0xe83f1d0, 0x107b) anchor — 6al, 6bc | DONE 2026-11-21 mirror of tick B10a
-- [x] L2u DLSS/SuperSampling surface: mode select slot 60, param-key vocabulary slot 64 — 6al, 6bc
-- [x] L2v TLAS/BLAS: PrepareTLAS 0xbbe5c43, PreBlasSkinDispatch 0xbbe4399, RTXAccelerationStructure ref 0xbbf5bea (6ei); the D3D12 build call sites not located | DONE 2026-11-21 oc_U-EL2v.md [V 11/11] + mirror of B10c: build call sites 0xe82ebaa (BLAS), 0xe82f329 (TLAS), disp 0x240
-- [x] L2w SDK header bgfx/d3d12/D3D12Context.h: rvas, offsets, six resource tables, slots (6eg); compile-checked, not in DLL build
-
-### L3. RenderDragon: platform, tasks, scheduler, frame graph encoding
-- [x] L3a BgfxContext::endFrame (0xc270460) flow — 6n
-- [x] L3b GraphicsTasks Render lambda 0xc267200 + chain — 6ab, 6ac
-- [x] L3c Execute 0xc25fc50 and Wait for previous frame 0xc25f960 — 6ac
-- [x] L3d Task scheduler 0xc25b1a0 call map — 6ac; queue layout pending | DONE 2026-11-16 mirror of ticked C3a; queue layout of ctor 0xc25b1a0 (+0x10 queue obj, +0x18/+0x20/+0x28 entries buffer, +0x120/+0x130/+0x138/+0x140/+0x148, +0xA8 link) oc_U-EL3d.md verify_oc 10/10 rows; several fields only zero-initialised here (meaning not shown)
-- [ ] L3e Task kind = FNV-1a 64 of a uniform name (UseAlphaRewrite, LightWorldSpaceDirection) — 6ad; record layout pending | PROGRESS 2026-11-16 oc_U-EC3b.md (check OK 11 rows): only record+0x28 = kind hash [V]; BatchActor bucket/slot fields (+0x28/+0x30/+0x38/+0x42/+0x48/+0x52/+0x78, slot 0x10 stride) mapped; record size and other record fields unknown, not ticked (unit claimed YES, orchestrator says NO) | PROGRESS 2026-11-21 oc_U-EL3e.md (verify_oc 9/9): re-confirmed only record+0x28 kind hash [V]; records are only compared within 0x66dc900..0x66de900, allocator/initializer not found; still open | PROGRESS 2026-11-21 oc_U-EL3e.md rerun (verify_oc 21/21): only record+0x28 kind hash and +0x34 u8 flag [V]; orchestrator hypothesis for next try: record = TaskList entry (stride 0x80, 0xE900412) - check +0x28 against pass-name hashes | PROGRESS 2026-11-21 oc_U-EL3e_r3.md (verify_oc 35/35): hypothesis record = TaskList entry refuted (kind comes from vtbl[3]() in the dispatcher; record kind is FNV-1a of uniform names); only +0x28 kind hash and +0x34 flag [V]; record creation still unlocated
-- [x] L3f DragonFrameResources: +0x298/+0x2A0 vector<shared_ptr<Task>> found via endFrame/0xe9002e0 (6cx); remaining fields pending | CORRECTION 2026-11-16 oc_U-EC4a.md (check OK): +0x08/+0x0C/+0x10/+0x18 seen via rdi are taskList/shared_ptr fields (rdi=taskList until 0xe900483), NOT DragonFrameResources; DFR vector +0x290/+0x298/+0x2A0 [V]; object size + ctor still unknown, not ticked | PROGRESS 2026-11-21 oc_U-EL3f.md (verify_oc 17/17): endFrame 0xe9002e0 and its sole caller 0x67ca3cd only borrow DFR (+0x268); no ctor/alloc/zero-init of DFR+0x290..0x2A0 found, size only bounded >= 0x2A8; still open | PROGRESS 2026-11-21 oc_U-EC4a.md rerun (verify_oc 4/4): still no DFR ctor/size; orchestrator hint: DFR is embedded at owner+0x268 (0x67ca3c0), vector triple = owner+0x4F8/+0x500/+0x508, so look for the inlined init in the owner constructor | PROGRESS 2026-11-21 oc_U-EL3f_r2.md (verify_oc 34/34, hint worked): DFR ctor part closed [V]: owner ctor sub_2b5670 @ 0x2b5670 (vptr 0xEFF8DD0) zero-inits DFR+0x290/+0x298/+0x2A0 and ctor-inits DFR+0x240/+0x244/+0x248/+0x260; highest DFR field +0x6F0 (size >= 0x6F8); only exact sizeof(DFR) still open (next: owner allocation size at the caller of 0x2b5670) | DONE 2026-11-21 oc_U-EL3f_r3.md [V 24/24] (hints worked) + oc_U-EL3f_r2.md: ctor = owner ctor sub_2b5670 @ 0x2b5670 (embedded DFR at owner+0x268, vector triple zero-init); size sizeof(DragonFrameResources) = 0xA78 [I, squeeze-proven]: owner ctor high-water store owner+0xCD8 (orchestrator re-checked mov [rcx+0xCD8],rax at 0x2b632c) => size >= 0xA78, next member begins at owner+0xCE0 => size <= 0xA78
-- [x] L3g IntraFrameAllocator: wrapper over pooled arena via 0xa78940 blocks with refcounted control (6cy); exact field list pending | DONE 2026-11-16 oc_U-EC4b.md (verify_oc 24/24): exact field list proven [V] (highest field IFA+0x90, end +0x94); sizeof not determinable from disassembly (no alloc size/memset/bounds check) -> [UNVERIFIED] noted
-- [x] L3h Declarator<RenderContext> + five Bind* dependency kinds + module names — 6aq; registration call addresses pending | DONE 2026-11-21 oc_U-EL3h.md [V 127/127]: all 111 call 0x567b570 registration sites enumerated (90 in 0x55f1450, 3 in 0xbbe2d50, 4 in 0xbb3e2b0, 1 in 0xbb6b350, 5 in 0xbbce7b0, 6 in 0x6753b50, 2 in 0x56a06a0); callee decoded (FNV-1 hash, vector stride 0x48, kind byte)
-- [x] L3i drawutils pass-declaration templates (178 signatures) — 6aq; per-pass bodies pending | PROGRESS 2026-11-21 oc_U-EL3i.md (verify_oc 64/64): bodies of sub_5667fe0 and sub_56685c0 added [V] to the 5667860/5667c80/5667e70/5668ac0 sample; ~50 builder-called instantiations (0x5668d90, 0x5669ae0, 0x567c110, 0x5689800, 0x56c1fa0 ...) still undecoded | PROGRESS 2026-11-21 oc_U-EC5b.md rerun (verify_oc 285/285): 7 element-loop bodies (sub_567E510, 567FD70, 56815D0, 5682E20, 5684660, 5685EA0, 56876F0) entry-decoded only (reads a1+0x10/0x18/0x28/0x60, 0x290-stride loop [V]; per-element fill/dest writes not); 0x569xxxx helpers (5693680, 5694510, 5695960, 5696540, 5697650) and tail of 0xbbe2d50 undecoded | PROGRESS 2026-11-21 oc_U-EL3i.md rerun (verify_oc 179/179): every named instantiation now [V] except the 7 element-loop bodies (sub_5684660 etc.); their per-element callees sub_5690960/sub_5690e10/sub_56912d0 undecoded | TICKED 2026-11-21 oc_U-EL3i_r3.md (verify_oc 1044/1044): sub_5690960/5690e10/56912d0 instruction-complete, per-element fill and dest writes of all 7 element-loop bodies [V]; mirror pair C5b/L3i
-- [x] L3j HashedString hash = FNV-1a 64, names built inline — 6o
-- [x] L3k Deferred Texture/Buffer Transactions flush 0x6632bf0 (two labelled vector<Transaction*>, vtbl slot1 run + slot0 delete) (6dv); aliasing not found | PROGRESS 2026-11-16 oc_U-EL3k.md (check OK 19 rows): no aliasing logic in the body 0x6632bf0..0x6632f3b (run slot1 -> delete slot0 -> free, sample-verified rows); NOT closed: callee 0x12893d0(pair,&outVec) called once per vector before the run loop was not inspected (could merge/dedupe), and the proof rows are a sample, not instruction-complete | DONE 2026-11-16 oc_U-EL3k.md (35 rows OK, supersedes r1): 0x12893d0 = run+delete+collect continuations, not merge/dedupe; no aliasing logic anywhere in 0x6632bf0 (buffer then texture)
-- [x] L3l 0xc273420 prologue + stages: 51 callees, hot helpers mapped (6n-2); stage split pending a live breakpoint on 0xc27f940 | DONE 2026-11-16 oc_U-EL3l.md (17 rows OK): 17 contiguous stage boundaries covering 0xc273420..0xc27be93 (sizes sum 0x8A73), each row starts at a verified line; 0xc27f940 resolved statically (3 call sites in stage 9), no live breakpoint needed; stage names are inferred labels
-- [x] L3m per-pass loop located (0xc277e8c..0xc2793fe), dependency records = 24/40-byte vectors (6cz); body fields pending | DONE 2026-11-16 oc_U-EL3m.md verify_oc 14/14 rows: pass-loop body fields proven: record offsets +0x00/+0x08/+0x10/+0x1C/+0x30/+0x40/+0x48/+0x58/+0x60/+0x70/+0x78 on both store paths, stack stores accumulator rbp-0x50+pass*16, pass counter +0x1FB0, xmm save +0x3310
-- [x] L3n Dispatch 0xe9002e0 + task classes + live pass order/names (6cx, 6da, 6db)
-- [x] L3o Threading: draw executor runs as parallel jobs, one command list per job (this+0x19F60[job]), job slices of the sorted list (6cp); encode-thread side pending [RVAs in 6cp are 60.05, see 6cw] | DONE 2026-11-21 oc_U-EL3o.md verify_oc 22 rows: job wrapper 0xe83c390 and executor 0xe821120 re-verified on 62.01 by content (this+0x19F60[job], job+0x168 Frame*, slices Frame+0x94700 sorted u16, 0x540 record stride)
-- [x] L3p dragon/Tasks.h (task list, class vtables, name offsets, taskName) + PassNames.h written (6eg); the per-frame enumeration detour on 0xE9002E0 not written | DONE 2026-11-21 oc_U-EL3p.md [V 46/46]: hook site 0xE9002E0 (rcx=TaskList*, stride 0x80, count (end-begin)>>7, kind via vtable slot 0x18) proven; detour source = src/client/features/hooks/hooks/render/TaskDispatchHook.cpp (HOOK FrameGraph::taskDispatch, listeners); in-game run belongs to M3c/P1b/Q5b
-
-### L4. FrameBuilder layer (mce::framebuilder)
-- [x] L4a vtable group slots + endFrame — FrameBuilder.h
-- [x] L4b Catalog of 62 types / 50 clones with group — DescriptionClones.h, RENDER_CATALOG
-- [x] L4c Clone calling convention + Nametag clone — 6l
-- [x] L4d BatchActor description layout — 6d
-- [x] L4e Nametag description (0x98) typed in Descriptions.h — 6m
-- [x] L4f ChunkGeometry description: extractor + pointer route (6be); field layout pending (needs live capture) | DONE 2026-11-21 oc_U-EL4f.md [V 31/31]: full typed layout +0x00..+0xEC from instructions + 6 live dumps; +0xB8/+0xD8 are qword-wide (extractor reads low byte as flag); corrections +0x20/+0x28 third shared pair, +0x38/+0x40 span count/ptr
-- [x] L4g ChunkOccluders: thin clone 0x5369920 -> Item vslot 0x378 tag 4, handler 0x6646a89 creates "ChunkOccluder" render object, fields +0x30..+0x48 (6dx); field types pending | TICKED (mirror of D5c/D5d/D5g)
-- [x] L4h Crack: fat clone 0x539fff0 builds from a destroy-progress list at B+0x3280 (node+0x10 pos, +0x20 progress float) (6ea); final description fields pending -- 6ga: description fields {mesh, texture, camera record, stage, flags} typed in Descriptions.h; the 6ea list attribution corrected. | TICKED (mirror of D5c/D5d/D5g)
-- [x] L4i ItemInHand: see D5e
-- [x] L4j SkinnedMesh: general clone 0x6b84e60 fields +0x10/+0x18/+0x20/+0x30/+0x38/+0x60/+0x74-76/+0x108-118 and second producer 0x4e39f20 (6ec); field meanings pending -- 6gc: the description itself is now complete (every field from constructor 0x668d350); producers' bodies still partial. | TICKED (mirror of D5f)
-- [x] L4k MeshFallback description head typed (Descriptions.h); tail to 0x1d0 pending -- DONE 6fz: all 0x1D0 bytes written by the fully reversed constructor 0x668b850.
-- [x] L4l BlockSelectionOverlayBlockEntity: fat clone 0x539b7c0, Item tag 8, built from the selected block position + region block-entity lookup (6eh); description fields pending | TICKED (mirror of D5h)
-- [x] L4m EnvironmentalText/UIText: shared clone 0xe71330 -> Item vslot 0x378 or UI vslot 0x368; text = shared string at desc+0x90/0x98/0xA0, font obj +0xB0, flag +0x75 (6eb); +0x60 struct pending | TICKED (mirror of D5i)
-- [x] L4n Sky / Stars description (tag 5; fields pending) — 6w
-- [x] L4o Sky-group clones: EndSky 0x53707a0 tag3, Celestial 0x5370b20 tag7, Cubemap 0x660b720 tag2 (thin); LegacyCubemap 0x660b1a0 tag4 (fat, texture variant select) (6ed); fields pending
-- [x] L4p Clouds, Weather, Atmosphere | TICKED (mirror of D6c) — clone kind/group/tag table 6ee; fields pending
-- [x] L4q Particle, FlameBillboard — see D7a
-- [x] L4r Shadow, PlayerVision, VolumetricFog — see D7b | TICKED (2026-11-15 audit, description level as the item states): producers 0x53E62B0/0x53E6C30/0x53E3AA0, visitor heads and both shadow extractors (0x66A9D50 / 0x66A6830) in effect_descriptions.md s4-6 + 66560f0_sky_visitor.md; layouts with offset/size static_asserts in EffectDescriptions.h (PlayerVision 0x14, Shadow 0x20, VolumetricFog producer ~0x5C); 34/34 quoted instructions re-verified
-- [x] L4s FullscreenEffect, BlitFlipbookTexture — clone kind/group/tag table 6ee; fields pending; BLOCKED, see D7c | TICKED (2026-11-16, mirror of D7c, blocker cleared): tag-7 visitor body instruction-complete (oc_U-D7c.md 3994/3994) plus FullscreenEffect clone/ctor/emplace oc_U-Full.md (711/711 instructions quoted) and BlitFlipbook clone/element/builder/producer/vecview oc_U-Blit.md (1270/1270, 8 added by orchestrator). Caveat: R3/R9 (unread fields, true sizes, config layout) stay open
-- [x] L4t UI descriptions (Mesh, Gameface, HudIcon) — clone kind/group/tag table 6ee; fields pending -- D8 pass: listings ui_visitor_6664a00_6668510 + gameface_66ade80_66b0eb0, UIMesh arg-slot map + uiMeshMode, HudIcon source object (+0x00 -> mesh ptr, +0x18 count, +0x20 vec3 array), Gameface +0x80 = pointer to {begin,end} (UiEditorDescriptions.h, docs/functions/ui_editor_descriptions.md). OPEN: UIMesh qwords +0x00/+0x08/+0x10/+0x60/+0x68/+0x78 and the Gameface flag bytes have no semantic names (only forwarded to 0x674a3a0, its stack-argument slots not re-mapped); UIImGui (tag 4) fields not decoded. | TICKED (2026-11-16 oc_U-D8d.md, verify_oc 159/159): UIMesh (call 0x6664f4a, 17 slots), HudIcon (call 0x6664d46, 17 slots) and Gameface (call 0x66aedf1 to 0x66B2730, 4 regs + 3 stack slots; element stride 0x1A0 reads) argument maps with verbatim instructions; description reads from casewalk. Struct sizes are not visible in the visitors (see R10), tracked there
-- [x] L4u Light descriptions (Ambient, Directional, Point) — clone kind/group/tag table 6ee; fields pending | TICKED (2026-11-15 audit): visitor reads tags 0/1/3 (6640d80 + light_game_descriptions.md s2.1-2.3), producers (clone 0x53e2c00, 0x5369b30 two sites + thin 0x5370960, ctor 0x668ADE0), sizes 0x18/0x24/0x108 with static_asserts in LightGameDescriptions.h; 869/869 quoted instructions re-verified (verify_oc.py), cl /Zs clean. Field meanings stay [I] (lighting-pass consumer not located), same standard as D9b
-- [x] L4v Voxel/TransitioningVoxel volumes, ShadowAtlasFrame, SkyAmbientSamples — clone kind/group/tag table 6ee; fields pending
-- [ ] L4w gamecomponents (GameplayMetadata, ServerGraphicsOverrideParameters, EditorHighlightConfiguration) — clone kind/group/tag table 6ee; fields pending | PROGRESS 2026-11-21 oc_U-EL4w.md (verify_oc 28/28): corrects ED9c Part C: after 0x666b3a6 r15 is the pass-vector cursor, so only description read is eh+0x08 (0x666b3be mov rax,[rbx+8], refcounted); producer stores +0x38/+0x40/+0x48/+0x60/+0x70 [V]; no store to +0x08 found (set before producer), so open | PROGRESS 2026-11-21 oc_U-ED9c.md rerun (verify_oc 92/92): EditorHighlightConfiguration producer 0x4c88900 has no direct callers, but orchestrator found it is vtable slot 0 of the .rdata vtable at 0xf20aa50 (virtual call); next: find who stores that vtable/calls slot 0 (sets desc+0x08)
-- [x] L4x Editor group descriptions (gizmos, block volumes, render plane, selection cursor) — clone kind/group/tag table 6ee; fields pending -- D10 pass: listing editor_visitor_66742f0_667e290; per-tag read-views for tags 1-7 with offsetof asserts, materials per case (UiEditorDescriptions.h). OPEN: producers reuse one stack object for four gizmo types (overlapping layouts), so no struct size is proven (extents 0xD8/0x128/0x1F0/0xE8 are [I]) and the padding between seen offsets (+0x80..+0xCF, object bodies behind 0x66a6060/0x66a6190) is not decoded. | TICKED (2026-11-16): per-tag read views with quoted instructions for all 8 editor tags: tags 1-7 annotated by units U-D10x1/x2/x3 (delegate.py check OK, offset coverage vs casewalk 100%) and tag 0 (tail jump to 0x66A1860) via rdis walk, all in oc_U-D10c.md / oc_U-D10x1-3.md (verify_oc clean). Struct size: producers share one stack object across gizmo types, so no per-type allocation size is visible (documented limit)
-- [x] L4y Descriptions.h: Nametag, MeshFallback head; BatchActor in FrameBuilder.h -- DONE D11 pass: Nametag (0x98) and MeshFallback (0x1D0) re-verified store by store against the ctor listings 0x668b6e0 / 0x668b850; BatchActor: producer listing 4e355a0, head + 7 spans + 7 raw begin pointers decoded, kMinSize corrected 0x100 -> 0x110 (FrameBuilder.h); span meanings [I], second producer 0x6ebb510 unread.
-- [x] L4z Group tag enums for all six groups added (FrameBuilder.h) — 6w; typed hooks pending -- DONE D12 pass: all six enums re-derived from the clone tag stores + visitor case counts (FrameBuilder.h): Effect 0 is FlameBillboard (UIGameface was wrong), added Effect FadeToBlack 5, UIImGui 4, Sky Stars 6, Light LightPoint 3 / ShadowAtlasFrame 4 / VoxelVolume 6 / TransitioningVoxelVolume 7; names FadeToBlack and BlockChanges (Item 9) rest on the variant order (no clone found).
-
-### L5. Extractors and the registry (description -> render objects)
-- [x] L5a Item visitor jump table with verified tag identities — 6w
-- [x] L5b Tag 0/4: entries (6ci); live field decode (6cv: transform, colours, pointer arrays); per-field names partial | 2026-11-16 oc_U-EL5b.md (8 rows OK): NO; tag 0 fully proven, tag 4 (ChunkOccluders) has no live capture (array mMesh+0x40 read at 0x6647e73 only); open: mTexture +0x08/+0x10 reader, mMatrix +0x18 pointer vs inline discrepancy | PROGRESS 2026-11-21 oc_U-EL5b.md rerun (verify_oc 13/13): tag-0 mTexture.mPtr (+0x08) loaded by no instruction in the visitor flow; only lea r15,[rdi+8] at 0x6648b3a passes its address to sub_BCABA00 (loads mCtrl +0x10); tail of sub_BCABA00 from 0xBCABC91 not inspected -> lead for next attempt | DONE 2026-11-21 oc_U-EL5b_r3.md [V 25/25] (hint worked): tag-0 mTexture +0x08 reader 0xBCABD34 and +0x10 reader 0xBCABC91 in the tail of sub_BCABA00; mMatrix +0x18 pointer-vs-inline discrepancy resolved on both paths; leftovers non-blocking: tag 4 (ChunkOccluders) has no live capture, mMatrix operative path [?]
-- [ ] L5c Tag 1/5 and 2/3/7/9: entries (6ci); tag 7 and 1 fields decoded from live dumps (6cv: model matrix pair, AABB, material node at +0x140) | 2026-11-16 oc_U-EL5c.md (11 rows OK): NO; tag 7 matrix +0x00..0x3F, material +0x140, tag 1 +0x58/+0x00/+0x39 [V]; prev matrix +0x40..0x7F, AABB +0x80..0x97, tag 1 pos +0x38..0x43 have no reader in the visitor (live-dump only)
-- [x] L5d Tag 6/8/10 forwarders: entries 0x6647320 / 0x66473e6 / 0x6647383 (6ci); GlowInkSign inside 8 | TICKED (2026-11-15 orchestrator, rdis re-run): all three forwarder stubs listed instruction-complete and their tail-call targets (6 -> 0x6698E30 ItemInHand, 10 -> 0x66D9AF0 BatchActor, 8 -> 0x66E75F0 BlockSelectionOverlay) in docs/functions/item_forwarders_6647320.md; the 'GlowInkSign inside 8' claim is corrected (string ref 0x66476d2 is in the visitor's shared hash chain, not the forwarder)
-- [x] L5e BatchActor extractor callee map — 6u (inner decode pending) | TICKED (2026-11-15 opencode U-E2, re-checked): docs/progress/oc_U-E2.md lists all 51 distinct direct callees of 0x66d9af0 (273 call sites) with first site, quoted call lines (16/16 verify_oc), 18 uniform/texture strings, 2 indirect call sites, 10 variant builders; callee meanings tagged [V]/[I]; the inner field decode is a separate item
-- [x] L5f Tag 7 = skinned items incl. entity models (live: ender_dragon.skinning, 6cn) + block-entity overlays (6cj); general skinned clone 0x6b84e60 not decoded | DONE 2026-11-21 oc_U-EL5f.md [V 31/31]: general skinned clone 0x6b84e60 decoded: complete store map of description offsets +0x0/+0x8/+0x10/+0x18/+0x28/+0x2C/+0x3C/+0x40 (address taken only)/+0x190/+0x1A0 across both build paths
-- [x] L5g Chunk geometry extractor 0x66ea3d0: see E4 (docs/functions/66ea3d0_bodies.md)
-- [x] L5h Component vocabulary: 12,836 entt type names + 94 render/anim/camera components (6dt, docs/data/entt_*)
-- [x] L5i entt storage layout (sparse pages 2048, packed pages 128, tombstones): EnttStorage.h + EntityContext, notes 6du
-- [x] L5j Actor identity route: bodyActor 0x66D0A00 S+0xC8, item records 0xC8, passLookup 0x5ABA5C0 — 6bg (implemented in RenderMarkHook)
-- [x] L5k draw-list builders per variant located — 6u | TICKED (2026-11-15, from U-E2 + docs/functions/66d9af0_builders.md): the ten variant draw-list builders called by the BatchActor extractor are located with family sizes and call sites (0x66BF290, 0x66C1920, 0x66C3840, 0x66C5760 = 0x12E6B family; 0x66CC7A0, 0x66CE8D0, 0x66C7680, 0x66C98E0 = 0x13F2B; 0x66BB7B0 = 0x114F; 0x66BD430 = 0x11F0), see docs/progress/oc_U-E2.md
-- [x] L5l Typed ExtractionObserver: ExtractionObserver.h (Group+tag registry, veto) wired into the Item/Sky/UI insert detours (6ef); header syntax-checked, DLL not rebuilt
-
-### L6. Frame-graph renderers and pass classes
-- [x] L6a VV pass names and implementation lambdas — 6p, 6v | PROGRESS 2026-11-16 oc_U-EF1a.md (check OK 106 rows): most VV pass names hash-proven; not closed: IBLSyncPoint, DebugBlitPhase (no imm64 site) and 8 names absent from render_hashes (RasterizedOpaque/AlphaTest/Transparent, ForceForwardPBROpaque, FullScreenOverlayTransparent, TransparentDegamma, WaterDepthBufferBlit, SSRColorBufferBlit, BlitUncompressed, LuminanceHistogram exact); lambdas not covered | PROGRESS 2026-11-21 oc_U-EL6a.md (verify_oc 12/12): immscan finds 0 hits in .text for hash imms of IBLSyncPoint, DebugBlitPhase, LuminanceHistogram-exact (0x2A446D92E190D311); no lambda hash-use sites in 0xbb30000..0xbcd0000; [V] by mov-imm64 pattern impossible, still open | PROGRESS 2026-11-21 oc_U-EF1a.md rerun (verify_oc 121/121): IBLSyncPoint (fnv1 0x463A4116E7586005) and DebugBlitPhase (0xBB07784B1B637368) still have no imm64 hash site; IBLSyncPoint IS proven by inline string pieces at 0x562be6c/0x562be7d (oc_U-EL11d.md); DebugBlitPhase, LuminanceHistogram-exact, 8 render_hashes-absent names and the lambdas remain open | DONE 2026-11-21 oc_U-EL6a.md rerun [V 8/8] (hint worked) + oc_U-EF1a.md [V 121/121] + oc_U-EL11d.md: DebugBlitPhase proven by inline string pieces + length + declare call (0x5633b30/0x5633b46/0x5633b57), LuminanceHistogram-exact by rdata string + length (0xbc8ed6b/0xbc8ed79), IBLSyncPoint by string pieces (0x562be6c/0x562be7d), the 8 render_hashes-absent names by builder imm64 rows (e.g. RasterizedOpaque 0x562e978); lambda bodies per 6v first-use RVAs and L6d 0xBC3 lambdas; names without hash imms have no lambda hash-use site by construction
-- [ ] L6b VV pass order from builder 0x55f1450 (6ar); in/out resources per pass pending | PROGRESS 2026-11-21 oc_U-EL6b.md (verify_oc 11/11): pass declaration fns (0x5698290, 0x5684660, 0x5667860, 0x5693680 ...) copy a 28-byte descriptor struct opaquely [V]; nothing in 0x55f1450 or callees separates input from output resources statically, so in/out stays open
-- [x] L6c Frame renderer entry 0x67c9c20 + Fancy function set — 6aa, 6ab
-- [x] L6d Fancy frame pass list (6da-6dc); Scene/HUD task body = bgfx per-view setup (view rect, 4 matrices, sort mode) 0x568CD90 (6dd); the 0xBC3.... lambdas pending [per-view matrices live-verified] | DONE 2026-11-21 oc_U-EL6d.md [V 12/12]: the 0xBC3.... lambdas (12 _Copy slots) proven; pair L6d/F2b ticked together; Scene[0..11]->pass-name map remains a separate lead (names exist only as hash imms)
-- [x] L6e No separate legacy frame renderer: Fancy shares 0x67c9c20; legacy = LegacyCubemap + legacy-UI draw helpers (6ds); GraphicsMode consumers 0x3a10d20 0x3a10e40 0x7ea7de0 0x88beee0
-- [x] L6f RTX pass names (0xbcc.. region) — 6p, 6v | DONE 2026-11-16 oc_U-EF4.md (verify_oc 51/51 rows): 50 RTX pass-name hash stores in fn 0xbcc4b90 decoded; orchestrator re-computed FNV-1 64 of 46 table names, all match the hash immediates
-- [x] L6g Pass name hash = FNV-1 64 verified, 752 hashes resolved — 6p, PassNames.h
-- [x] L6h Pass registry hash->name table — docs/data/render_hashes.txt, PassNames.h
-- [x] L6i Pass enable/disable/reorder hook: recipe on 0xe9002e0 task list (6dg, untested in game)
-
-### L7. Materials and shaders
-- [x] L7a File format: header, samplers, uniforms, passes, axes, shader records — 6ap, tools/lce/matparse.py
-- [x] L7b MaterialPtr = shared_ptr<void> (SDK); async loader 0xc26caa0 + 0xF0 material-set / 0x258 objects mapped (6dr); name->info lookup pending | DONE 2026-11-16 oc_U-EL7b.md verify_oc 17/17: name->info lookup sub_e8fe660 via thunk 0xc272190, 64-bit FNV chained table holder+0xA0/+0xB0/+0xC8, built by sub_24af560
-- [x] L7c Variant axes + (pass, flags) permutation keys (6ap); runtime selection code pending | DONE 2026-11-21 oc_U-EL7c.md [V 88/88]: runtime selection located: defines validated vs pass flag table 0xe87b920, merged with defaults/passFlags 0xe879eb0, first matching variant via predicate 0xe879c60, findVariant 0xbcc7ce0 (FNV-1a 64 map at pass+0x108, node+0x1C {u16 program, valid bit16}), consumer 0xbcc3b90 -> Encoder::submit 0xbc60740
-- [x] L7d Per-material uniform lists + extractor bind slots and names — 6ap, 6ca-6cc (RenderChunk fully resolved; ForwardPBR sampler tail variant needs matparse fix)
-- [ ] L7e Sampler flag decode + sampler cache (6ax); texture/atlas management pending | PROGRESS 2026-11-21 oc_U-EL7e.md (verify_oc 185/185): D3D12 backend texture-management chain decoded [V] (texture record table this+0xBDE178 stride 0xB8; createTexture 0xe8143c0, updateTexture 0xe814a70, readTexture 0xe8150f0, resizeTexture 0xe815840, override/get/destroy 0xe815c30..0xe815fbf, destructor 0xe80f290, blit 0xe818bc0 / blitSetup 0xe819750); Minecraft-side pack->GPU chain (texgroup_load 0x5421c90 -> texload 0x58a1310 -> texload_task 0x541bf00 -> undecoded 0x18718D0 at 0x54227af) and atlas stitchers still open (L8a/L8b)
-- [x] L7f Live texture census + record layout (Fancy) — 6z-2; VV/RTX RTs pending | DONE 2026-11-16 mirror of tick G4b
-- [x] L7g Pack reload path — docs/resourcepack-1.26.60-notes.md + memory (6bh; RVAs 1.26.51, stale)
-- [ ] L7h Material swap hook: control point = pass-name resolver 0x675e440 + item-visitor hash switches (6cj); not implemented | PROGRESS 2026-11-21 oc_U-EL7h.md (verify_oc 30/30): control point fully [V]: BST consts 0x6646dde/0x6646df1/0x6646e00/0x6647449/0x6647458, resolver call 0x6646eab with this=frameCtx+0x68 (0x6646e5c), resolver 0x675e440 body (mutex cache+0x98, FNV-1 basis 0xCBF29CE484222325); only the hook implementation itself remains (item still says not implemented)
-
-### L8. Textures, atlases and resources
-- [ ] L8a Texture group / ClientTexture / BedrockTexture / TexturePtr (headers exist in sdk) — pack->GPU path pending | 2026-11-21 oc_U-EL8a.md (109 rows OK): NO; texgroup_load 0x5421c90 / texload 0x58a1310 / texload_task 0x541bf00 / decode chain decoded (CPU object creation + group insert group+0x248/+0x250) but no createTexture/slot-26 call or GPU handle write found; registration ends at undecoded callee 0x18718D0 (call 0x54227af) - next step is that callee
-- [ ] L8b Atlases (terrain, items), mipmaps and compression pending | 2026-11-21 oc_U-EL8b.md (13 rows OK): NO; no item atlas string/code in the exe, BC1/BC3/BC7 strings unreferenced (no compression path found), mip generation not located (only material mip params + numMips +0xB1 [V]); terrain atlas only TerrainAtlasBlit task name [V]
-- [x] L8c Async upload, texture handle lifetime pending | DONE 2026-11-21 oc_U-EL8c.md verify_oc 62 rows: async upload slots 55/56/57 (0xe8165a0 ring this+0x57A100, 0xe817070 readback ring, 0xe816f40 destroy), static/dynamic records stride 0x78, tracking lists +0x1A000/+0x1A018; handle lifetime via bgfx::Context allocator ctx+0x1DFB48C/+0x1DFB48E
-- [ ] L8d Render targets and their formats pending
-- [x] L8e Dynamic-texture-handle mechanism of the fork — 6ei (reset flag 0x400000)
-- [x] L8f Pack reload path — docs/resourcepack-1.26.60-notes.md (6bh; version-stale RVAs)
-
-### L9. Geometry production: chunks, meshing, buffers
-- [x] L9a RenderChunkCoordinator anchor + task name — 6x | TICKED (audit): launcher 0x7923d50 (0xb6b) with task string 'renderchunk coordinator chunk visibility task' in BGFX_MAP 6x; scheduleChunkBuild 0x533c910 'Render Chunk Build'
-- [x] L9b visibility: launcher 0x7923d50, task body 0x792e630, compute 0x791f170 (+store 0x6b0c4c0), face matrix state+0x38..0x3d, listener 0x537dab0 (6bo-6br); phase 1 voxel occupancy read (6bs, Block+0xA3 opaque flag); flood 0x6b1ba90 read (6bt); BFS queue 0x6b0d380 (6bv), render-chunk record +0x254/0x258/0x25E (6bw); RenderChunk ctor 0x7926f20 layout (6bx); event processor 0x5334850 (6by) writes depth to draw record +0x63 via 0x533f580; draw-record handle lookup 0x533f580 (6bz, 6ca: ECS guess dropped); +0x63 reader pending | DONE 2026-11-21 oc_U-EL9b.md [V 11/11]: +0x63 reader = 0x53398ee cmp byte ptr [rax+0x63],0 on record from 0x533f580 (call 0x53398e3), skip via jne 0x53398f2; 0x533f580 sole caller 0x5334850
-- [x] L9c Occlusion: 0x660ecd0 is the bgfx caps JSON dump (6bl), not a query pool; ChunkOccluder/SimpleOccluder are materials (6bk); real occlusion-query user not found | DONE 2026-11-16 mirror of tick H2
-- [x] L9d Camera/projection/view: bgfx per-view record (0x1EAB090+viewId*0x140), CI+0x418 view, LevelRendererPlayer cameraPos/fovScale, CameraComponent FOV (6dd, 6dw)
-- [x] L9e Frustum/culling anchors (6bf, 6bi); 6bj: frustum_visibility is a light-scoring weight (fn 0x10f09f0), real cull fn still unfound | DONE 2026-11-21 oc_U-EL9e.md [V 4/4] + mirror of H3b (oc_U-EH3b.md 12/12): real cull = slot-9 section query 0x5343590 (LevelCuller::isSectionVisible) fed by cone-flood task body 0x53cc570; frustum_visibility (0x10f09f0) is a light-scoring weight
-- [x] L9f Per-frame constants: live ViewPositionAndTime (w = seconds), FogColor, MeshContext, GlobalRoughness read (6co); FogAndDistanceControl/sky/weather pending | PROGRESS 2026-11-16 oc_U-EH4.md (check OK 9 rows): FogAndDistanceControl vec4 = Weather desc+0x98 (0x6746335) written via 0x5679db0 (0x67463b4), name hash static 0x129F9FF0; sky FogColor desc+0x18 (0x665854f) via 0x66590dd, hash 0x129F9F30; not closed: other sky/weather per-frame uniforms not enumerated, unit claimed YES | DONE 2026-11-16 mirror of tick H4
-
-### L10. Level renderer, camera, culling and scene setup
-- [x] L10a LevelRenderer::takePicture (virtual) — 6x
-- [ ] L10b frustum_visibility (light-scoring field, not cull) — 6bj; real cull unfound | 2026-11-21 oc_U-EL10b.md (3 rows OK): NO; again no 6-plane frustum test and no CreateQueryHeap call exist in the exe; frustum_visibility = light-scoring weight in deserializer 0x10f09f0 (site 0x10f45d0); chunk culling is the voxel flood fill (0x791f170/0x792e630); closes with H3b/H1b once the flood fill/event processor is fully proven
-- [ ] L10c viewport and render-resolution selection, dynamic resolution pending | 2026-11-16 oc_U-Eratio.md (9 rows OK): NO; ctx+0x1F0 store 0x67c791f and TAAU read 0xbc8d34e proven, but source(r13)+0x1F0 writer and link to upscaling_percentage/targetResolution not found (endFrame 0x66232b0 has no direct callers)
-- [x] L10d FOV and screen-space transforms — read from per-view record V+0x50 projection (6dd, live FOV ~76.9 deg) | DONE 2026-11-16 oc_U-EL10d.md verify_oc 8/8 rows: projection stored at per-view V+0x50 (0x568CE32/0x568CE5A/0x568CE61/0x568CE6A), consumed per draw as u_proj/u_viewProj (0xE82A517..0xE82A525, 0xE82A783, 0xE82A5C2), FOV from m11 (live 76.9 deg)
-
-### L11. Lighting, shadows and environment
-- [x] L11a Shadow cascade anchors — 6x | TICKED (2026-11-15 audit): anchor RVAs, sizes and strings are in the verified table BGFX_MAP 6x (cascade setup 0x53fcac0/0x543c950, weather 0x6745440, particle 0x67417f0, TAAU 0xbc8cfd0 + upscale 0xbc8a380, FSR1 0xbcb64f0, DLSS callback 0xe83ec70) and the extractor dossiers
-- [x] L11b Light volumes: CPU point-light scoring (6bj) + shader inputs zLights 128B Light, zLightLookupArray, VoxelBuffer, cluster uniforms (6cd); pass code pending | DONE 2026-11-16 oc_U-EL11b.md verify_oc 36/36 rows: pass code proven: LightClustering sub_bc57460 (scoring loop 0xbc57ce0/0xbc57d33/0xbc57d83, scorer call 0xbc57f69, 0x80-stride zLights writes 0xbc57c63..0xbc57caa), ClusterLights sub_bc5bad0 uniform binds, VoxelBuffer declared 0x5635c14, TransitioningVoxelBuffer 0xbb403a8
-- [x] L11c ambient/sun/moon parameters, SSAO/SSR parameters, fog/volumetric parameters pending | DONE 2026-11-16 oc_U-EL11c.md verify_oc 24/24 rows: ambient (6 rows), SSR (12 rows) and fog/volumetric (6 rows) parameters proven; sun/moon strings in oc_U-EL13c.md; SSAO does not exist in this build (no SSAO/AmbientOcclusion strings, re-checked by orchestrator with xref.py); FogColor/FogAndDistanceControl in oc_U-EH4.md
-- [x] L11d probes/IBL, RT lighting pending | DONE 2026-11-21 oc_U-EL11d.md [V 28/28]: IBLSyncPoint built inline in 0x55f1450 (0x562be6c/0x562be7d, len 0xC), Convolve 0xbcdbcf4 + CubemapToOffscreen 0xbcd7d31 by FNV-1 imm; RT lighting pass list 0xbcc4b90 (ClearVertex/FaceIrradianceCache, ResolveLightMeasurement, AccumulateInscatter ... BlendCheckerboardFields via call 0x9D6D0)
-
-### L12. Actor rendering above the framebuilder
-- [x] L12a Actor renderer dispatch anchors (ActorRenderDispatcher::render, DataDrivenRendererV2::tryAddActor, bodyActor) — 6bg; internals pending | DONE 2026-11-21 oc_U-EL12a.md [V 123/123]: internals of ActorRenderDispatcher::render 0x594C5C0 (renderer lookup 0x5951530, builder 0x594CBE0, no-renderer string 0xF7CEDD3), DataDrivenRendererV2::tryAddActor 0x6EBB280 (FNV-1a registry lookup, mListA/mListB/mQueue pushes) and bodyActor 0x66D0A00 (sole caller 0x664b7bc, item build 0x6698060); origin register of *(+0xC8) actor pointer [I]
-- [x] L12b Bones/skeleton interface: Bones mat4[8] (0x200 B per draw), PrevBones mat4[8], PrevWorld mat4; actor extractors 0x66d9af0/0x66b2de0; skinned mesh builders (6ch); Molang CPU side not reversed (outside renderer)
-- [x] L12c Hands / held items — docs/first-person-hand-notes-1.26.60.md (6bh); 1.26.62 re-check pending | DONE 2026-11-21 oc_U-EL12c.md [V 45/45] (mirror of I2c): 1.26.62 re-check of every RVA in first-person-hand-notes-1.26.60.md; renderArm 0x530ab10, clone 0x531b180 tag 6 -> vslot 0x378, forwarder 0x6647320 -> extractor 0x6698e30, ItemInHandDescription ctor 0x668cb70 size 0x180
-- [x] L12d nametags (0x1127330/0x11276b0) — 6l, 6m (decoded); skin shadows blob pending | DONE 2026-11-16 oc_U-EL12d.md verify_oc 32/32 rows: blob decoded in producer 0x11276b0 (billboard mat4 [rbp+0x48..0x84] with distance fade, MeshFallback clone 0x4DEF480 inserted at 0x11288d5/0x1128945, memset 0x148); "skin shadow" label is [I]; arg rdx=[r13+0x10] at 0x11288ca [UNVERIFIED]
-
-### L13. Particles, weather, sky and clouds
-- [x] L13a Particle pass anchor + strings — 6x | TICKED (2026-11-15 audit): anchor RVAs, sizes and strings are in the verified table BGFX_MAP 6x (cascade setup 0x53fcac0/0x543c950, weather 0x6745440, particle 0x67417f0, TAAU 0xbc8cfd0 + upscale 0xbc8a380, FSR1 0xbcb64f0, DLSS callback 0xe83ec70) and the extractor dossiers
-- [x] L13b Weather pass strings — 6x | TICKED (2026-11-15 audit): anchor RVAs, sizes and strings are in the verified table BGFX_MAP 6x (cascade setup 0x53fcac0/0x543c950, weather 0x6745440, particle 0x67417f0, TAAU 0xbc8cfd0 + upscale 0xbc8a380, FSR1 0xbcb64f0, DLSS callback 0xe83ec70) and the extractor dossiers
-- [x] L13c Clouds pass strings — 6x; sky/stars/celestial pending | DONE 2026-11-16 oc_U-EL13c.md verify_oc 10/10 rows: sky (SkyColor, SkyTexture), stars (StarsForwardPBR, StarsColor, Stars), sun/moon (SunMoon, SunMoonForwardPBR, SunMoonColor, SunMoonTexture, SunMoonEmissiveMultiplier) strings located with lea refs in sub_66560f0 (Sky group dispatcher, jump table 0xF2BF39C)
-- [x] L13d end sky / cubemap — 6ed (clones found, fields pending) | DONE 2026-11-21 oc_U-EL13d.md verify_oc 18 rows: every EndSky (tag 3) and Cubemap (tag 2) field offset/size/read site proven; only two meaning glosses (mFlags semantics, uvTransform extent) are [I]
-
-### L14. UI rendering
-- [x] L14a UI render passes + context: 0x674a3a0 UI group extractor (UI/Text,Glint,Blit,Base,Sprite,Fill), 0x6664a00 UI+ImGui frame fn (6ce); ScreenRenderer internals pending | DONE 2026-11-16 mirror of tick I5d
-- [x] L14b Ore UI / cohtml: glue fn 0x52d26a0 + ui_textured_premultiplied_alpha (6cf); backend upload/draw pending | DONE 2026-11-21 oc_U-EL14b.md verify_oc 75 rows: backend upload = 0xA01BDD0 (glue call 0x52d3c26) builds the Cohtml texture upload record and wires two callbacks via 0xA01C030 idx 0x1EA/0x1EB; draw = 0x1F383F0 (glue call 0x52d3e29) encodes the draw command (tag byte, refcounted refs, hash tag 0xD2ACA77479857640, vcalls 0x187/0x185); per-field names and callback bodies not claimed
-- [ ] L14c Text/font: SDF glyph uniforms + FONT_TYPE permutation (6ce); glyph atlas pending | PROGRESS 2026-11-21 oc_U-EL14c.md (verify_oc 7/7): GlyphTexture uniform only bound at draw time (0x674dca3 in 0x674a3a0); no createTexture/updateTexture for a glyph atlas in font paths; fetch 0x4f78830 returns handle via CFG thunk call 0xEEC7570 at 0x4f78966 (target unresolvable statically) -> atlas creation still open (needs live trace) | PROGRESS 2026-11-21 oc_U-EI5c.md (verify_oc 9/9) + orchestrator check: the "unresolvable" 0x4f78966 call 0xEEC7570 is an import thunk (jmp [0xF9A9048]; live slot = 0x7FFBDDA45F00 in another module, read via livemem.py) called with rcx = C string ("textures/ui/Caution"/"textures/ui/ErrorGlyph" via lea at 0x4f78946/0x4f7894d) and rax tested as a length (test rax,rax / js) i.e. a strlen-style call, NOT a texture-handle fetch; glyph atlas creation/update still not located | PROGRESS 2026-11-21 oc_U-EI5c.md rerun (verify_oc 12/12): GlyphTexture is bound BY NAME (16-byte SSO string at object+0x38 of [rbp+0xE80] in 0x674a3a0 via 0x674aa91->0x5679DB0->memcpy 0xEEC6EC0), not a bgfx handle; atlas is likely a named pack texture, writer of the name and the glyph name pattern still to find
-- [x] L14d UI descriptions (Mesh, Gameface, HudIcon, UIText) — clone kind/group/tag table 6ee; fields pending | TICKED (2026-11-16, mirror of D8 + new units): UIMesh/HudIcon/Gameface arg maps in oc_U-D8d.md (159/159), UIText = UI tag 1 oc_U-UiTxt.md (31 offsets, check OK, coverage 100%), UI tags 2/3 oc_U-UiSm.md, UIImGui tag 4 oc_U-UiImg.md (check OK, coverage 100%); every read site quoted verbatim, meanings left '-' where no instruction shows them (names/true sizes stay under R10)
-
-### L15. Post-processing, upscaling, HDR
-- [x] L15a TAAU + upscale pass uniforms — 6x | TICKED (2026-11-15 audit): anchor RVAs, sizes and strings are in the verified table BGFX_MAP 6x (cascade setup 0x53fcac0/0x543c950, weather 0x6745440, particle 0x67417f0, TAAU 0xbc8cfd0 + upscale 0xbc8a380, FSR1 0xbcb64f0, DLSS callback 0xe83ec70) and the extractor dossiers
-- [x] L15b FSR1/DLSS anchors — 6x, 6bc, 6bh | TICKED (2026-11-15 audit): anchor RVAs, sizes and strings are in the verified table BGFX_MAP 6x (cascade setup 0x53fcac0/0x543c950, weather 0x6745440, particle 0x67417f0, TAAU 0xbc8cfd0 + upscale 0xbc8a380, FSR1 0xbcb64f0, DLSS callback 0xe83ec70) and the extractor dossiers
-- [x] L15c tonemap/SSR strings — 6x (bloom/SSAO inner pending) | DONE 2026-11-16 oc_U-EL15c.md verify_oc 11/11 rows: bloom inner strings referenced from builders 0xbc98310 (down) and 0xbc9ada0 (up), 10 distinct offsets / 14 lea sites; no SSAO/AmbientOcclusion string in the exe (orchestrator re-ran xref.py str for both: no hits), so no SSAO inner exists
-- [x] L15d DLSS wrapper vtable slots 60 optimal-settings / 64 evaluate — 6bc, 6al | PROGRESS 2026-11-16 oc_U-EL15d.md (check OK 115 rows): slots 60/64 proven except the slot-64 [rdx+0x30] field access (listed in docs/functions/e8403d0.md) not found in the disassembled ranges; middle of 0xe8403d0 (~0xe840c80..0xe84a200) not read | DONE 2026-11-21 oc_U-EL15d.md [V 4/4] + orchestrator full-range scan (9800 instructions 0xe8403d0..0xe84ae8b, no [rdx+0x30] access): slots 60/64 proven; the slot-64 [rdx+0x30] field access listed in docs/functions/e8403d0.md does not exist in the function (only lea rbp,[rdx+0x30] at 0xe84b26b, outside it) -> dossier line corrected, not a gap
-
-### L16. Ray tracing (RTX)
-- [x] L16a RTX pass names and resources — 6cg, 6p | CLOSED 2026-11-21 oc_U-EL16a.md [V 53/53]: RTX pass names from 0xbbe2d50, light uniforms, G-buffer/denoiser resources from 0xc28e330
-- [x] L16b TLAS/BLAS build and update — 6ei (call sites not located) | CLOSED 2026-11-21 mirror of B10c (oc_U-EB10c.md [V 33/33]): build call sites 0xe82ebaa BLAS, 0xe82f329 TLAS
-- [x] L16c RT shaders and denoiser — 6cg (lambda bodies undecoded) | DONE 2026-11-21 oc_U-EL16c.md [V 44/44]: 6 vtable installs in 0xbbe2d50; bodies PreBlasSkinDispatch 0xbc068f0, PrepareTLAS 0xbc07a70, RTX driver 0xbc080c0 (runs all 43 RTX passes), NothingTask-type 0x56aeeb0, closures 0xbc07890/0xbc084b0
-- [x] L16d RTX slots in the bgfx fork — 6al (slots 54/63/64) | DONE 2026-11-16 oc_U-EL16d.md verify_oc 86/86 rows: slot 54 0xe83d7d0 (queue push, 0x30-byte request), slot 63 loop body (queue walk, FNV-1 named lookup, mismatch/range strings, releases), slot 64 middle RT dispatch cluster (calls 0xe8542d0/0xe8546c0/0xed360d0)
-
-### L17. Platform glue and threading
-- [x] L17a swapchain/DXGI/present and resize (partly hooked) — 6av, 6ay, 6az, 6aw | DONE 2026-11-16 oc_U-EL17a.md verify_oc 42/42 rows: 6av closed by U-B6/U-EL2l, 6ay by U-EL17f, 6az by dossiers 0xe817880/0xe8176a0/0xe817c00, 6aw slot-60 reset/resize body decoded (kick+flush 0xe80ee80, surface rebuild 0xe81a0c0 over this+0x19F60/68 gated by this+0x19FDC, interval class this+0x19FD8, u16 width/height this+0xC9C6C4/0xC9C6C6)
-- [x] L17b GDK integration pending | DONE 2026-11-21 oc_U-EL17b.md [V 12/12]: GDK integration = XGameRuntime loader shim 0xe9389a4 (0x30c, sole caller helper 0xe9360fc at 0xe936122) + 82 thin wrappers in 0xe935740..0xe938604; none of the 955 frame-path functions reference GDK; 0xe8568f0 is DXGI adapter/vendor detection
-- [x] L17c GPU timers and memory budget — 6dh (submit stats/timers) | DONE 2026-11-16 oc_U-EL17c.md verify_oc 40/40 rows: inside submit slot 50 (0xe82e230..0xe832fc1): timer reads 0xEBDB740/0xEBDB760, stats globals 0x12BB4970/80/8C/90/98/A8, Frame tail +0xE60DF0..+0xE60E58 and +0xE746C8/D0, debug gate ctx+0x3C5640C, memory-budget prints 0xF842A6C/0xF83FB55 with ctx+0x180/0x188/0x190; IAT target of 0xF9A9110 and per-block heap identity [I]
-- [x] L17d device lost/TDR — 6ak (slot 7) | DONE 2026-11-16 oc_U-EL17d.md verify_oc 25/25 rows: slot 7 = device-lost/TDR handler 0xe8102b0 (size 0x1924; base vtable 0xF4ED2D0, RTX 0xF4EEE80, slot 7 at +0x38), failure strings, state->string jump table 0xF4EE60C, DRED strings, HRESULT name table, final Device Lost message via 0xBC5F110, ctx field reads 0xCC9268/0xC9C6D0/0x19F85/0x19F88/0x19F8C
-- [x] L17e exact thread model (game thread, dragon task threads, bgfx render thread) — 6as, 6ac
-- [x] L17f frame pacing/vsync — 6ay (SyncInterval), 6dn (slot 60 present interval) | DONE 2026-11-16 oc_U-EL17f.md verify_oc 13/13 rows: SyncInterval = bit 7 of ctx+0x19F80 passed as Present arg2 (0xe811fe6..0xe812041), Flags = (bit7*4) xor 4; slot 60 0xe81a610 sets [this+0x19FD8] = 0x10/1 from reset-flags bit 0x100 and byte [this+0x19FDC]; live foreground pacing poll still open (game was backgrounded), not part of the item wording
-- [x] L17g async init/shutdown ordering — 6di | DONE 2026-11-16 oc_U-EL17g.md verify_oc 11/11 rows: async init (Context::init 0xbc63690, state machine 0xbc634b0, initAsync 0xbc6d750, backend thread 0xbc6372b, slot 58 0xe807ff0 + RTX 0xe83e200), shutdown slot 59 0xe80dec0 (+RTX 0xe83e980), reset slot 60 0xe81a610 (+RTX 0xe83ec70); slot 0 dtor 0xe83c630/0xe84b280 is [I]
-- [ ] L17h graphics options plumbing (OptionSync) pending | 2026-11-16 oc_U-Eratio.md (9 rows OK): NO; ctx+0x1F0 store 0x67c791f and TAAU read 0xbc8d34e proven, but source(r13)+0x1F0 writer and link to upscaling_percentage/targetResolution not found (endFrame 0x66232b0 has no direct callers)
-
-### L18. Whole-frame replacement (Level 3 goal)
-- [ ] L18a Takeover design written against A-F: seams 1-6 with data and risks (6dy); consistent by static+live evidence, no patch exercised in game
-- [x] L18b Startup self-check: 9 unique sigs added to Sigs.json (6dj); content checks (mask immediate, offset refs) to code in SelfTest, not built | DONE 2026-11-16 mirror of tick J2
-- [x] L18c Optimisation hook seams listed (6bh) + docs/PLAN_OPTIMIZATION.md; validation pending | DONE 2026-11-21 oc_U-EL18c.md [V 14/14]: all 14 optimisation hook seams of 6bh confirmed present in 1.26.62.01 (first instruction at each RVA verbatim); PLAN_OPTIMIZATION.md cross-checked; version stability per row (bgfx core seams stable, executor/psoBuilder/endFrame/taskDispatch/viewSetupTask sensitive)
-
-### K-Priority. Version-Stable Priorities (do these first)
-
-A checklist of items that are version-stable and high-value, so they survive across patches. Mark each as `[ ]` since none are version-locked yet. Each item notes why it's version-stable:
-
-- [x] K-P1 Render stack architecture and layer boundaries (survives all versions) — BGFX_MAP 0, stack diagram
-- [x] K-P2 Pass name hash algorithm: FNV-1 64, offset basis, prime (survives all versions) — BGFX_MAP 6o/6p
-- [x] K-P3 entt component vocabulary and render component names (survive via __FUNCSIG__ strings) — BGFX_MAP RENDER_CATALOG
-- [x] K-P4 bgfx core concepts: Frame, View, RenderItem, Caps (Mojang fork changes slowly) — BGFX_MAP 6e, 6j; audit 6ek fixed Frame.h view structs (stride 0x140); header +0x38/+0x40 fields still unverified | DONE 2026-11-16 oc_U-EK-P4.md verify_oc: Frame header +0x38 m_uniformEnd (write 0xbc609b9, carry 0xbc60af7, executor bound 0xe82a155/0xe82a18b) and +0x40 m_startIndex (copy 0xbc60ae0, zero 0xbc60b92, executor 0xe82cd21)
-- [x] K-P5 D3D12 backend interface: 65 vtable slots, submit signature (stable across bgfx versions) — BGFX_MAP 6f, 6k
-- [x] K-P6 Function behavior/semantics (audit 6ek: 'submit takes Frame* in rdx' is [I] until the prologue is re-read): submit takes Frame* in rdx, endFrame takes BgfxFrameBuilder in rcx (version-stable) — BGFX_MAP 6e-2, 6n | DONE 2026-11-16 oc_U-EK-P6.md verify_oc 5/5: submit prologue stores rdx to [rbp+0x16A8] (0xe82e26c), all Frame accesses use saved rdx; endFrame rcx=BgfxFrameBuilder [V] in BGFX_MAP
-- [x] K-P7 RVA/slot database per version: OffsetProvider.h + Sigs.json (infrastructure for fast re-mapping) — existing | TICKED (2026-11-16): src/sdk/OffsetProvider.h and src/sdk/Sigs.json exist and are used for per-version re-mapping
-- [x] K-P8 String-based discovery via srcloc.py (__FUNCSIG__ substring, survives RVA moves) — existing tools
-- [x] K-P9 Startup validation: fail loudly if slot doesn't point into .text or sig missing — existing convention | 2026-11-21 oc_U-EK-P9.md (37 rows OK): convention verified (65/65 slots in .text, 22 hook sigs match once, layoutcheck 187/0) but firstSlotOutsideText is not wired into SelfTest::runWorldChecks (src/SelfTest.cpp) so no loud startup failure yet | DONE 2026-11-21: SelfTest::checkRendererVtables added (src/sdk/SelfTest.cpp) reads both static renderer vtables (base 0xF4ED2D0, RTX 0xF4EEE80, 65 slots) via firstSlotOutsideText vs the module .text and records a failure for any slot outside it; dead sigs already fail in the static phase; release build OK, not run in game
-
-
-## M. Full-RE method: function dossiers, acceptance tests, definition of done (added after the audit 6ek)
-
-Goal: reverse the renderer so that anything in it can be handled without being handed an RVA. RVAs and hooks are only the entry points. Text from other agents is a hypothesis list; the disassembly and live reads are the ground truth (audit: BGFX_MAP 6ek).
-
-### M1. Function inventory and dossiers (the unit of work)
-- Database: `docs/data/functions.tsv` (rva, layer, name, status D0 unseen / D1 named+described / D2 dossier with pseudocode / D3 verified live or in game). Seeded with 68 structural functions (D1); 0xe81b720 is D2.
-- Tool: `tools/sigs/dossier.py <rva> [--iface d3d12cl] --out docs/functions` writes the mechanical half (frame, per-argument field offsets, stack args, callees, vtable calls with real D3D12 method names, strings, loops with strides, jump tables, constants). The analyst half (purpose, real signature, pseudocode, structs, enums, version-stable anchors, verification) is filled by hand, every claim tagged [V]/[I]/[?].
-- [x] M1a Dossier tool written (tools/sigs/dossier.py) and used on 0xe81b720: docs/functions/e81b720.md is the first complete D2 dossier (pseudocode, signature, structs, verification gaps)
-- [ ] M1b Inventory per layer: list EVERY function of each region (L1 bgfx core ~290, L2 D3D12 ~1,900, L3 RenderDragon ~980, L4/L5 BgfxFrameBuilder ~2,300, L6 frame-graph renderers ~3,600) into functions.tsv as D0 with size, callers, strings; then classify (structural / helper / lambda / thunk) -- PROGRESS: inventories exist for L1 (323), L2 (1854), L3 (978), L4/L5 region 0x6600000-0x67e0000 (6391), L6 region 0x5500000-0x5700000 (5567, ~0xF0000 noise), see BGFX_MAP 6el. Remaining: annotate/classify (names, layer split by call graph), add rows to functions.tsv for the big render functions.
-- [ ] M1c Dossiers (D2) for every structural function of L1-L3 first: Context::init/frame, Encoder::submit family, Frame::sort, submit 0xe82e230, executor 0xe821120 + wrapper, PSO builder, endFrame 0xc270460, generate 0xc273420, GraphicsTasks Render/Execute, dispatch 0xe9002e0, the five task bodies -- PROGRESS: D2 dossiers done: submit (docs/functions/bc60740.md), draw flush (e81b720.md); also D2: executor, PSO builder, submit 0xe82e230, Frame::sort, endFrame (generate 0xc273420 is D1). Also D2: Context::frame 0xbc66de0, dispatch 0xe9002e0. Also D2: init 0xbc63690, handoff 0xbc65800, Execute 0xc25fc50 (Render lambda 0xc267200 D1). Also dossiered: renderFrame 0xbc63150 (D2), thread proc 0xbc65720 (D2); D2 after decode: shutdown sequence 0xbc660a0 + frame(capture) 0xbc65800 (6eq), task runner 0xc25fe20, 0xc280010 (insertion sort) + 0xc280ca0 (stable_sort); Command interpreter 0xbc68e40 + byte table done (6er). Argument layouts for bytes 2,3-8,12,13,27-34 done (6es). createTexture byte 14 decoded (6et). BgfxFrameBuilder::endFrame stage map done (6ev). 0xc25f960 and 0x6632bf0 dossiered (6ew). bytes 15,17,19 read (6fa: 17 = resizeTexture). Slots 10-34 named with evidence (6fb). Resource tables re-derived, index/vertex swap and framebuffer stride fixed (6fc). Next: re-read 6cs header fields, slots 39-45, the 6 drain blocks of 0xbc660a0, and the generate per-pass loop; then L4/L5 dossiers (endFrame 0x66232b0, extractors). FULLY REVERSED (instruction-complete source): Frame::sort, EncoderImpl::submit (6fd). Census: 838 functions on the direct-call frame path, 22 at D2 (docs/data/frame_path_functions.tsv, tools/sigs/closure.py). Also fully reversed (6fe): EncoderImpl::discard 0xbc60d10, RenderBind storage grow 0xbc7a7c0, side-table copy 0xbc60f10; bx::HashMurmur2A::add 0xbc76610 identified. Sibling submit forms reversed by diff (6ff, docs/functions/submit_variants.md): dispatch complete; custom item and frame-params item have open argument meanings. 6fg-6fh: executor item classes by key bits (compute / draw / custom) and the pass-task encode + render-thread body pair (0x568b9e0, 0x568bcd0) fully reversed; branch A/B of 6cs re-read as compute subtypes. 6fi: executor draw path head transcribed (occlusion visibility, scissor, state tracking); pass-class template confirmed across four bodies. 6fj: draw path second part transcribed (root signature, descriptor heaps, currentState, streams). 6fk: draw path third part (layouts, PSO call, batch-compatibility test, bind-state cache). 6fl: executor draw path transcribed end to end (descriptor tables, dynamic state, constants, indirect draws, batch append); holes: bind-cache miss, setPredefined, helper bodies. 6fm: setVertexBuffers 0xe81b4d0 fully reversed; constant commit 0xe81e1c0 structure reversed. 6fn: rendererUpdateUniforms 0xbc6a9d0 and updateUniform slot 46 fully reversed; uniform path of a draw complete. 6fo: predefined uniforms (14 types, program slots at +0x10) transcribed; remaining executor holes: bind-cache miss (descriptor build), PSO builder body. 6fp: bind-cache miss descriptor build structure (10 binding types, buffer and ranged cases); Binding struct typed in Encoder.h. 6fq: all ten binding types named; 0xA32178 table re-identified as shader buffers. 6fr: PSO key reversed (13-argument signature, full Murmur2A key); PSO desc build on a cache miss still open.
-- [ ] M1d Dossiers for every FrameBuilder clone and visitor handler (L4/L5) and every extractor (chunk, batch actor, item-in-hand, skinned, nametag, particle, sky) -- PROGRESS: ItemInHand extractor 0x6698e30 dossier started (D1+, docs/functions/6698e30.md); BatchActor extractor 0x66d9af0 dossier (D1+, layouts live-verified); others (chunk, skinned, nametag, particle, sky, clones, visitors) not yet 6fu: all 21 thin insert clones fully reversed (one template, docs/functions/insert_thin_clones.md); fat clones, visitors and the other extractors still open. 6fv: Nametag fat clone 0x1127330 and constructor 0x668b6e0 fully reversed. 6fw: PlayerVision fat clone 0x53e62b0 reversed. 6fx: Shadow clone 0x53e6c30 = blob shadows drawn through MeshFallback. 6fy: MeshFallback insert 0x4def480 main path. 6fz: MeshFallback constructor 0x668b850 fully reversed. 6ga: Crack clone 0x539fff0 phases reversed, description typed. 6gb: Clouds clone structure + constructor 0x668e940 fully reversed. 6gc: SkinnedMesh constructor 0x668d350 fully reversed. 6gd: EnvironmentalText and UIText constructors fully reversed. 6ge: BlockSelectionOverlay constructor 0x668d990 fully reversed. 6gf: Sky constructor 0x668c910 fully reversed; Stars description read inline. 6gg: Item visitor dispatch reversed (tag -> handler table). 6gh: all six group insert wrappers and visitors mapped (dispatch tables, case entries). 6gi: PlayerVision and UIText visitor cases read (queue into pass vector / direct UI text draw). 6gj: all 52 visitor cases mapped to their first handler. 6gk: Clouds extractor 0x67375a0 structure. 6gl: Particle extractor 0x67417f0 structure. 6gm: Weather extractor 0x6745440 head; 6gj Sky row corrected. 6gn: visitor case map re-scanned with per-case bounds (7 cases corrected). 6go: FlameBillboard and Gameface extractors structure. 6gp: Editor block-volume extractor structure; census 955 functions, 82 at D2. 6gq: shared helpers 0x4def080, 0x4dfb570, 0x5aba5c0 fully reversed (the last is a thread-local getter, not a pass lookup). 6gr: uniform writer 0x5679db0 fully reversed. 6gs: 0x675e440 = ResourceCache::get, fully reversed. 6gt: loader 0xbcbf730 + job body fully reversed; drain open. 6gu: material load 0xe86b730 fully reversed. 6gv: material repo, file load, instance ctor fully reversed. 6gw: material.bin header + encryption reversed. 6gx: material.bin body format + per-stage shader pick. 6gy: initFromMaterial phases, uniform types, bgfx shader/program creation. 6hg: material.bin crypto helpers resolved (SHA-256, AES-256-GCM). 6hh: loader per-frame tracked merge (0xc288990 from endFrame) and shutdown path found; job runner still open. 6hi: per-frame pending-job merge 0xc288880 -> 0x67591e0 (7 loaders); 6hj: job runner found (processPending 0x6622610 -> runJobs 0x12893d0): async load path closed.
-- [ ] M1e Pass lambdas (L6): the 35 VV/RTX lambdas + Fancy pass bodies, each with in/out resources -- PROGRESS (6gz): VV pass-group builder table (which builder declares which pass); ScreenDraw path fully mapped (declare 0xbbbd3d0, build 0xbc37320, shared execute body 0xbc04dc0, submit 0xbcc38e0); ColorPostProcess in/out read. Remaining: the non-ScreenDraw pass bodies (deferred, SSR, TAAU, RTX, voxel) and their resources. 6ha: execute-body table for every VV group (3 shapes), DirectionalLightingPass reversed, submit variant corrected. 6hb: SSR (ScreenDraw), voxel upload (0xbc0ac20) and RTX denoise (0xbc080c0 -> 0xbcc4b90) bodies found: every VV group now has its execute body. Remaining: full reads of each body and per-pass in/out. 6hr: submitPass inline path reversed (setTransform into the Frame matrix cache, Encoder::submit).
-- [ ] M1f Every D2 dossier gets a D3 pass: one live poll-only read or in-game check per claim that can be checked (never a debugger/breakpoint session: it crashed the game twice) -- UNBLOCKED 2026-11-14: bridge connected, user in a populated server (client DLL not injected). First two passes (6ij, 6il): frame pair spacing 0xE749C0, counters, backbuffer 1920x1137, 514 items, draw header fields (all sentinels), index buffer, vertex buffer and vertex layout records followed end-to-end for one draw. Remaining: every other D2 claim (see 6ij list; 6il buffers/layout, 6im texture records, 6in program/shader records done). PARTIAL = NOT DONE.
-
-### M2. Structures: every struct has a header with confirmed offsets
-- [x] M2a Frame/View/RenderDrawHeader/Encoder/Caps (Frame.h corrected by the audit; header +0x38/+0x40/+0x4C/+0x7A meanings still open; `Frame+0x8B4700` 0x540-byte RenderBind records, `Frame+0x14300` flag array, `Frame+0x14700` sort keys to add to Frame.h) -- 6fj: header +0x38 = uniformEnd, +0x40 = startIndex, +0x4C = numVertices, +0x7A = occlusionQuery are now decided; RenderDraw / RenderStream / RenderCompute are typed structs with static_asserts compiled in the client. 6hs: View struct offsets resolved statically (one layout, two bases 0x10 apart; asserted in View.h). DONE (6ht): the listed draw bytes were already typed except +0x65..+0x67 and +0x7C..+0x7F, which no reversed reader touches (padding).
-- [x] M2b D3D12: DrawBatcher (rdi of 0xe81b720: counts +0x10, arrays +0x18, signatures +0, caches +0x10C0/+0x1110/+0x1120/+0x1128, flag +0x1164, barrier table +0xF28..+0x1040) and its two draw record layouts (0x70 / 0x88) as headers; job context ([ctx+0x30] = command list) -- DONE (6ia): DrawBatcherOffsets + JobContextOffsets in D3D12Context.h, records typed, offsets in both assertion lists (168 pass).
-- [ ] M2c Every description type (62) as a struct with confirmed fields (Descriptions.h), starting with those whose extractor is decoded -- PROGRESS: RenderNametagDescription complete (every field written by its fully reversed constructor, 6fv). RenderPlayerVisionDescription (0x14) typed (6fw). RenderMeshFallbackDescription (0x1D0) complete (6fz). RenderCrackDescription typed (6ga). RenderCloudsDescription (0xA8) typed (6gb). RenderSkinnedMeshDescription (0x1D0) typed (6gc). RenderEnvironmentalTextDescription (0xE8) and RenderUITextDescription (0x60) typed (6gd). BlockSelectionOverlay description (0xB8) typed (6ge). RenderSkyDescription (0xB0) and RenderStarsDescription typed (6gf). RenderWeatherDescription (0x130) typed with every uniform named (6ib); method for naming extractor uniforms recorded. RenderParticleDescription (0xB0) typed (6ic). RenderFlameBillboardDescription (0xF8) and RenderGameFaceDescription (0x78) typed (6id); tools/sigs/descscan.py added. RenderCubemapDescription (0xC0) typed from its producer (6ie); tools/sigs/producerscan.py added. 6if: raw producer stores for all 18 thin clones in docs/data/producer_fields.txt (to cross-check with extractor reads before typing). RenderChunkOccludersDescription (0x50) confirmed producer + extractor (6ig). RenderAtmosphereDescription (0x138, field uniforms unresolved) and RenderBlockChangesDescription (0x18) typed (6ih); 27 of 62 typed (AimAssistHighlight min 0x68, EditorHighlight 0x58, LightAmbient 0x18, LightDirectional 0x28, Light tag 2 0x84, Light tag 4 0x50, Light tag 3 0x108, 6ih), 35 left (RenderBlitFlipbookDescription 0xA0 with 0x40-byte elements, 6ih; unread tails marked [?]). Atmosphere is repacked into a stack block by the visitor; corrected 6ih: it is queued into a Sky-pass vector (pass+0x548, 0x58-byte elements); uniform names are in the pass's reader of that vector (next target: readers of pass+0x548). Description layouts are guarded by static_asserts only: layout_asserts.json is keyed by Sigs.json function anchors and the visitors have none yet.
-- [x] M2d Batch instance / actor record / item payload (0xC8) full layouts -- PROGRESS (6hc): 0xC8 item = DrawItem index record, typed with static_asserts (DrawItem.h); batch Instance 0x48 typed from the 6d capture (FrameBuilder.h). 6hd: every pool element typed (DrawItem.h). 6he: the 0x300 record is a 0x2C0 RenderControllerMesh (typed). 6hk: transform variant alternatives typed. 6hl: render-state block fully named (blend, cull, depth, primitive, stencil). 6hp: the "material record" is the geometry reference (vertex streams, index buffer variant, start index, index count), typed. 6hq: vertex stream reference typed. DONE (6hr): all layouts typed with static_asserts; residual unknown-meaning fields marked [?] in the headers (geometry +0x50 has no reader in the bind/submit path). (6hm: stencil face typed; 6hn: geometry sub-object = MeshData with 12 streams and bounds, matches the live capture). 6ho: streams = mce::MeshData members, layout asserted in MeshData.h. Remaining: the material record's 24-byte tail. 6hf: material holder {MaterialInstance*, UniformBlock}, slot entries and the 4-way material reference variant.
-- [x] M2e Resource records: texture 0xB8, vertex 0x78, index 0x80, framebuffer 0x130, program 0xF8, shader 0xB8, uniform 0x68 (field by field) -- PROGRESS (6fc): table bases, strides and counts re-derived (index 0x93A178/0x78, vertex 0x9B2178/0x80, framebuffer 0xA32178/0x78, shader 0xAAA178/0xB8, program 0xB62178/0xF8, texture 0xBDE178/0xB8, uniform 0xC97698/0x68); the strides in this line title are partly wrong; field-by-field layouts not done 6fk: vertex buffer record +0x78 = layout handle; layout record = 0x54 bytes. 6fl: index/vertex buffer records: GPU address +0x58, size +0x60; program +0x00/+0x08 shaders, +0xF0 numPredefined; shader +0x08 constant buffer, +0xAE constant size; batch records typed (BatchDraw 0x70, BatchDrawIndexed 0x88). 6fo: program record predefined slots typed (PredefinedUniform, 28 x 8 bytes at +0x10). 6fq: the 0xA32178 table (0x78) is shader buffers, not framebuffers; framebuffer location open. 6fr: framebuffers = ctx+0xC97698 (0x68: colour handles +0, depth +0x10, window +0x18, count +0x32); vertex layouts = ctx+0xC96198, 64 x 0x54; texture overflow pages at ctx+0xC96178. 6hu: index and vertex buffer records typed field by field (BufferRecord, from BufferD3D12::create); RTX create overrides mapped. 6hv: shader record typed (ShaderRecordLayout). 6hw: program record complete (ProgramRecordLayout). 6hx: framebuffer record typed (window path) and vertex layout = bgfx::VertexLayout verbatim. 6hy: framebuffer record complete (slots 39/40/41). 6hz DONE: texture record typed (tail fields, overflow paging); every record type now has a layout struct with static_asserts; the texture view block +0x20..+0x97 was left opaque there, then resolved LIVE in 6im (D3D12_RESOURCE_DESC +0x08, SRV desc +0x40, UAV desc +0x68; header edited, pending the batch build).
-
-### M3. The six capabilities as acceptance tests (each is a written procedure + evidence, not just notes)
-- [ ] M3a Data structures: every struct of M2 compiles as a header and a startup self-check validates sizes/offsets that can be validated (static_asserts + SelfTest)
-- [ ] M3b Control flow: one frame traced from game logic to D3D12 submit with every function on the path having a D2 dossier (the pipeline diagram in section K/BGFX_MAP 0 becomes a call-graph table with arguments passed at each hop) -- PROGRESS: docs/FRAME_CALLGRAPH.md (thread A + thread B tables with args per hop; open: M1d groups, A5/A7/B3 D1, two [?] links)
-- [ ] M3c Frame graph: add/remove/reorder a pass safely (recipe 6dg/6dy, TaskDispatchHook + dragon/Tasks.h written but never built or run; needs the build + in-game test)
-- [x] M3d Actor to draw: identify which draw renders which actor (route 6bg + RenderMarkHook exists; re-validate on 1.26.62.01 against the new flush 0xe81b720 and the Encoder::submit seam) | TICKED 2026-11-21 oc_U-EM3d.md (verify_oc 67/67): actor read **(S+0xC8) 0x66d313d, pass/item push 0x5aba5e0, Encoder::submit seam and flush 0xe81b720 re-validated, record+0x80 startInstance = roster slot -> actor (0xe81b87a); 2-3 non-blocking [?] caveats in the file; RenderMarkHook exists but is not registered
-- [ ] M3e Edit draws at submit: read/modify every draw record before the GPU (flush 0xe81b720 records 6ej; needs the header-to-record mapping and an in-game test)
-- [ ] M3f Whole-frame replacement: drive a frame ourselves or feed a custom renderer (needs M1c-M3e) -- PROGRESS (6fg/6fh): the native seam is found: a custom item (Encoder::submitCustom(view, fn, user), key bit 53) makes the D3D12 executor call fn(user, ctx) on the render thread in view order with the command list; untested in game, ctx layout partly inferred
-
-### M4. Version resilience (do while reversing, not after)
-- [x] M4a For every D2/D3 function record the version-stable anchor (string / __FUNCSIG__ / unique sig) beside the RVA (Sigs.json + dossier "anchors" block); new sigs so far: Encoder{submit,reset,frameSort}, FrameGraph{endFrame,generate,taskDispatch,viewSetupTask}, D3D12Context{drawExecutor,psoBuilder,drawFlush} | TICKED 2026-11-21 oc_U-EM4a.md (verify_oc 11/11): all ten anchors in Sigs.json + dossier anchors blocks; orchestrator re-ran rdis find on every sig: 1 hit each
-- [x] M4b Behaviour notes written without RVAs (what the function does) so they survive a patch: one paragraph per structural function in its dossier -- PROGRESS: docs/BEHAVIOR_NOTES.md covers every function that has a D2 dossier (bgfx core, D3D12 backend, frame graph/GraphicsTasks); not yet for M1d/M1e items | TICKED 2026-11-21 oc_U-EM4b.md (verify_oc 9/9): docs/BEHAVIOR_NOTES.md now has one behaviour paragraph per structural function that has a D2 dossier incl. M1d/M1e items (RVAs only as bracket index tags, none in the prose); functions without a dossier yet get theirs when M1d/M1e dossiers land
-- [x] M4c Startup validation: slots point into .text, sigs found, content checks (mask immediates, offset refs); see L18b -- PROGRESS: content checks exist: docs/data/layout_asserts.json + tools/sigs/layoutcheck.py (55 assertions, pass on 62.01 and 60.05, report the moved values on 51.01) and RenderLayoutAsserts.h run from SelfTest world phase (Release build OK, not run in game). Every newly reversed function adds its constants to both lists. | TICKED 2026-11-21 mirror of N4b (slots/sigs/content checks, oc_U-EN4b.md) + O3b (layoutcheck 199/0, both lists identical, oc_U-EO3b.md)
-- [x] M4d Port check: re-run the dossier tool on the previous version's exe (BS_EXE) for every D2 function to measure what moved (RVA, offsets, slots) -- PROGRESS: sigs of the render functions audited on 50.04/51.01/60.05/62.01 (docs/data/port_check_render_sigs.tsv, BGFX_MAP 6ey); dossier tool not yet re-run on the older exes | TICKED 2026-11-21 oc_U-EO3c.md (verify_oc 130/130): dossier tool re-run on 50.04/51.01/60.05 for all 130 D2 functions (incl. the 10 missing from port_metrics_60.05), results in docs/data/port_check_dossier_results.json (field/offset movement) + port_check_*.tsv (RVA); DEAD/AMBIG entries are measured results; mirror pair M4d/O3c
-
-### M5. Standing rules while reversing
-- Static + plain-memory polling + offline snapshots only; no debugger attach or breakpoints (game crashed twice). No patches without an explicit go-ahead.
-- Every new fact gets [V]/[I]/[?]; every contradiction found goes into an audit section (6ek style) and into the dossier's Verification block. Re-derive other agents' claims before building on them.
-- Vtable slot guesses must use the interface's real slot table (dossier --iface); do not name an object's method from the offset alone.
-- Definition of "reversed" from 2026-11-12 on: a function counts as done only when its dossier has a "Reversed source" block in which every instruction maps to a source line (templates: docs/functions/bc61e20.md, bc60740.md), its structs are in an SDK header, and its layout constants are in layout_asserts.json and RenderLayoutAsserts.h. A stage map or callee profile is D1+, not D2.
-- Work order: largest-impact first from docs/data/frame_path_functions.tsv (frame path census), small functions before giants; add indirect targets (pass lambdas, task bodies, job classes) as roots in tools/sigs/closure.py when identified.
-
-## N. Integration & Threading
-
-Integration points between a replacement and the existing renderer, plus the threading contract. References point to BGFX_MAP sections 8-11.
-
-### N1. Submission and backend seams
-
-- [ ] N1a Submit takeover hook at 0xe82e230 (slot 50 stats/timers); replacement walks Frame+0xB4700 draw records (stride 0x80) — BGFX_MAP 8a, 10
-- [ ] N1b Per-draw veto/rewrite at draw executor 0xe821120 (flush 0xe81b720) — needs header-to-record mapping plus in-game test — BGFX_MAP 8a; M3e
-- [ ] N1c Custom item seam Encoder::submitCustom(view, fn, user) key bit 53; fn(user, ctx) on render thread in view order — untested in game, ctx layout partly inferred — BGFX_MAP 8a; M3f
-- [x] N1d PSO builder 0xe81dc60: replacement draws route through it or rebuild equivalent key — BGFX_MAP 8c; B4 | TICKED 2026-11-21 oc_U-EN1d.md (verify_oc 33/33): 62.01 builder entry is 0xE81E860 (0xe81dc60 was the stale 60.05 RVA); key = S&0x0707007FFFFFF0FF / state2&0xFFFFFF00FFFFFF00 Murmur2A over 13 inputs; called per draw by executor 0xE822D3F and blit 0xE818D2D; miss builds D3D12 PSO desc, CreateGraphicsPipelineState (vtable slot 10), cache insert 0xe83bdd0; replacement draws can route through 0xE81E860 or rebuild the key from these inputs
-- [x] N1e Per-view setup 0xe818490 and submit stage order preserved by replacement — BGFX_MAP 8c; 6t | TICKED WITH CORRECTION 2026-11-21 oc_U-EN1e.md (verify_oc 63/63): the item's premise was wrong. 0xe818490 is NOT per-view setup: it is RETIRE (fence wait via fence vtbl+0x48 SetEventOnCompletion + WaitForSingleObjectEx INFINITE, deferred-release drain, ring pop) called at the 3 submit sites e82e84d/e830bc6/e830d7d with rcx=this+0xCC9268, r8d=0xFFFFFFFF; BGFX_MAP 6t/8c per-view-setup label for it is refuted. The per-view bgfx setup is viewSetupTask 0x568cd90 (outside submit). Submit stage order (table 2) and the constraints a replacement must preserve are [V]-proven in the file
-- [ ] N1f Disk cache 0xe8feb10 consumed or invalidated consistently by replacement blobs — BGFX_MAP 8c; B4
-
-### N2. Vtable slots and lifecycle
-
-- [ ] N2a Slot 6 Present, slot 60 reset, slot 59 shutdown, slot 7 TDR handled by replacement without breaking device-lost — BGFX_MAP 10; 6f; B8a/B8b
-- [x] N2b Slot 50 submit stats/timers; slot 26 CreateTexture, slot 22 CreateShader, slot 24 CreateProgram, slots 14/16/17 vertex/index buffer, slot 35 CreateFrameBuffer, slots 36-38 uniform, slot 30 readTexture accounted for — BGFX_MAP 10; 6f; K-P5 | TICKED WITH CORRECTION 2026-11-21 oc_U-EN2b.md (verify_oc 116/116): every slot accounted for [V]: 50 submit stats/timers, 26 CreateTexture, 22 CreateShader 0xe8137b0, 24 CreateProgram, 14/16/17 vertex/index buffer (0xe812be0/0xe812ea0/0xe813110), 30 readTexture 0xe8150f0; CORRECTION to the item's names: slot 35 is a texture-table operation (0xe8146f0), NOT CreateFrameBuffer, and slots 36-38 are createFrameBuffer / replace / destroyFrameBuffer (0xe815fc0/0xe816380/0xe816580, framebuffer table), NOT uniform
-
-### N3. Threading
-
-- [x] N3a Replacement submit runs on bgfx render thread; game thread / dragon task threads / render thread model per 6as/6ac — L17e (done); BGFX_MAP 11d | TICKED 2026-11-21 oc_U-EN3a.md (verify_oc 54/54): submit (vtable slot 50) is dispatched from renderFrame 0xbc63150 on the bgfx render thread (thread proc 0xbc65720), so a replacement submit runs on the render thread; thread-model RVAs [V] (0xbc65800 frame, 0xc25fc50, 0xc267200, 0xc25b1a0, 0x66232b0), role names [I] per 6as/6ac; BGFX_MAP 11d holds the contract; mirror of L17e (done)
-- [x] N3b Frame double buffer 0xE749C0 apart; ctx+0x80 frame-ready and ctx+0x100 frame-consumed semaphores signaled in backend order — BGFX_MAP 8b/11d; A10 | TICKED 2026-11-21 oc_U-EN3b.md (verify_oc 31/31): Frame* slots ctx+0x1CFD0C0/0x1CFD0C8 spaced 0xE749C0; ctx+0x80 frame-ready: created 0xbc6b5c5/0xbc6b5d0, signaled by API frame() 0xbc65afe, waited by renderFrame 0xbc63226; ctx+0x100 frame-consumed: created 0xbc6b5da/0xbc6b5e5, signaled by endFrame 0xc270604, waited by frame() 0xbc658b8; order consumed->ready preserved. CORRECTION: BGFX_MAP 8b per-thread wording is inverted (render thread WAITS +0x80, posts apiSem [ctx+0], not +0x100)
-- [x] N3c Custom items invoked on render thread in view order — BGFX_MAP 11d [?] | TICKED 2026-11-21 oc_U-EN3c.md (verify_oc 14/14): submitCustom sets sort-key bit 53 (0xbc61697/0xbc616a1) and stores fn+user at encoder+0x100/+0x108; submit slot 50 is called from the render-thread frame step (0xbc633a8/0xbc633af); executor walks Frame+0x94700 in sorted-key order (0xe822414) with viewId<<54 as the top key field (0xbc61690) => custom items run on the render thread in view order
-
-### N4. Version anchoring and validation
-
-- [x] N4a OffsetProvider.h + Sigs.json per version; FNV-1 64 pass/material hashes (basis 0xcbf29ce484222325, prime 0x100000001b3); __FUNCSIG__ via srcloc.py — BGFX_MAP 8d; K-P2/K-P7/K-P8 | TICKED (2026-11-16): OffsetProvider.h + Sigs.json per version exist; FNV-1 64 basis 0xcbf29ce484222325 in dragon/PassNames.h and MaterialPassLayout.h; tools/sigs/srcloc.py exists
-- [x] N4b Startup validation: slots point into .text, sigs found, content checks (mask immediates, offset refs); fail loudly — BGFX_MAP 9b; K-P9; L18b | TICKED 2026-11-21 oc_U-EN4b.md (verify_oc 15/15): slotcheck 65/65 vtable slots in .text (vtable 0xf4ed2d0), every renderer sig in Sigs.json found exactly once, content checks (mask immediates, offset refs) pass against the anchor bodies, failures reported loudly by SelfTest (static + world phase); mirrors K-P9 / L18b (already done); the world-phase selftest is not yet observed in a running game (final batch build + launch)
-
-## O. DLL Infrastructure
-
-Module layout, build gating, and headers for the replacement DLL.
-
-### O1. Module layout
-
-- [x] O1a (CORRECTED 6ii: modules inside the existing client DLL, registered via R1; no new DLL) was: Single DLL exporting init (detour install + self-test), shutdown, seam entry points (submit replacement, pass toggles, draw veto) — BGFX_MAP 11a | TICKED 2026-11-21 oc_U-EO1a.md (verify_oc 6/6) + orchestrator source spot-check: CMakeLists.txt has exactly one add_library (BlueySenseV2 MODULE, exports nothing, LoadLibrary-injected), RewriteRegistry::init() runs after Detour::enableAll() in HookManager (every rewrite off unless BS_REWRITE names it), HookManager::shutdown() mirrors teardown, SelfTest::runStatic() at src/client/app/App.cpp:111; seam entry points are the R1 rewrite-registry entries (submit replacement etc.)
-- [ ] O1b Shutdown mirrors slot 59 ordering; reset entry is submit prologue plus slot 60; no breakage of slot 7 TDR/device-lost — BGFX_MAP 11a; A11
-
-### O2. Headers
-
-- [ ] O2a SDK headers compile-checked with MSVC /Zs (Context/Frame/RenderItem/View/Encoder/Handles, d3d12/*.h, dragon/*.h, one header per description, Descriptions.h, FrameBuilder.h); (built into the client now; Release OK, not run in game) — BGFX_MAP 11b; 6eg; B11
-- [x] O2b D3D12Context.h header: rvas, offsets, six resource tables, slots — B11 | TICKED 2026-11-21 oc_U-EO2b.md (verify_oc 94/94): src/sdk/mc/deps/bgfx/d3d12/D3D12Context.h (558 lines, 62 static_asserts) holds RVAs, offsets, the six resource-table bases/strides (textures 0xBDE178/0xB8, index 0x93A178/0x78, vertex 0x9B2178/0x80, shader buffers 0xA32178/0x78, shaders 0xAAA178/0xB8, programs 0xB62178/0xF8, framebuffers 0xC97698/0x68) and vtable slots, each with a [V] row; role names marked [I] in the header. OPEN DISCREPANCY (feeds L1q): 0xA32178 is stride 0x78 here and in BGFX_MAP 6fq (shader buffers) but stride 0x130 in 6z/L1q (framebuffer records, createFrameBuffer 0xe816380); BGFX_MAP 711 suspects two interleaved arrays; header not built into the DLL yet (final batch build)
-
-### O3. Build gating
-
-- [ ] O3a SelfTest validates sizes/offsets at startup (static_asserts + SelfTest); Release build OK, not run in game — BGFX_MAP 9b; M3a
-- [x] O3b layout_asserts.json + tools/sigs/layoutcheck.py and RenderLayoutAsserts.h constants; every newly reversed function adds constants to both lists — BGFX_MAP 9a; M4c | TICKED 2026-11-21 oc_U-EO3b.md (verify_oc 8/8) + orchestrator re-run: tools/sigs/layoutcheck.py = 199 assertions, 0 failed (exit 0); layout_asserts.json and RenderLayoutAsserts.h hold identical constants for every anchor function incl. RendererContextD3D12::submit; client build + in-game SelfTest run stay in the final batch
-- [x] O3c Port check: dossier tool re-run on previous exes (BS_EXE) for every D2 function to measure RVA/offset/slot movement — not yet done — M4d | TICKED 2026-11-21 oc_U-EO3c.md (verify_oc 130/130): dossier tool re-run on 50.04/51.01/60.05 for all 130 D2 functions (incl. the 10 missing from port_metrics_60.05), results in docs/data/port_check_dossier_results.json (field/offset movement) + port_check_*.tsv (RVA); DEAD/AMBIG entries are measured results; mirror pair M4d/O3c
-- [ ] O3d No debugger attach/breakpoints; no patches without explicit go-ahead — M5 standing rule
-
-### O4. Behavior notes
-
-- [x] O4a Behavior notes without RVAs for every structural function (docs/BEHAVIOR_NOTES.md) so they survive re-mapping; not yet written for M1d/M1e items — M4b | TICKED 2026-11-21 mirror of M4b (oc_U-EM4b.md 9/9) + oc_U-EO4a.md (verify_oc 20/20): one behaviour paragraph per M1d/M1e structural function that has a D2 dossier; extractors without a dossier yet (FlameBillboard/Gameface/Editor block-volume) get theirs with R14
-
-## P. Rewrite Capability
-
-What the rewrite must be able to do, as acceptance criteria against BGFX_MAP sections 8-11.
-
-### P1. Seam selection
-
-- [x] P1a Seam map written: choose between submit takeover (0xe82e230), per-draw veto at executor flush 0xe821120, and custom item (submitCustom, key bit 53); document used and unused seams — BGFX_MAP 8a | TICKED 2026-11-21 oc_U-EP1a.md (verify_oc 32/32): used/unused status of every 8a seam documented with [V]/[I]/[?]; DECISION recorded: primary = per-draw veto at flush 0xe81b720, secondary = submit takeover 0xe82e230 for whole-frame replacement, custom item (key bit 53) reserved for extra draws after M3f
-- [ ] P1b Pass control via TaskDispatchHook + dragon/Tasks.h — written, never built or run — M3c; BGFX_MAP 8a
-- [x] P1c Actor-to-draw via RenderMarkHook; re-validate against flush 0xe81b720 and Encoder::submit seam — M3d | TICKED 2026-11-21 mirror of M3d (oc_U-EM3d.md 67/67) + oc_U-EP1c.md (verify_oc 69/69): RenderMarkHook.{h,cpp} exist and implement the actor-to-draw mark chain; flush 0xe81b720 and Encoder::submit seam re-validated on 1.26.62.01 (record+0x80 startInstance = roster slot -> actor); hook is not registered yet (final batch / in-game)
-- [x] P1d FrameFilterHook drop-by-kind veto point (nametags ~35/frame, UI meshes ~25/frame) — 6i | TICKED (2026-11-16 orchestrator, file check): same veto point as P2b: drop(mask)/dropAdditional(mask) per FrameDesc kind, counters dropped[k]/seen[k] (FrameFilterHook.h:15-25)
-
-### P2. Existing hooks to reuse
-
-- [x] P2a RenderMarkHook exists; route 6bg — M3d | TICKED (2026-11-16 orchestrator, file check): src/client/features/hooks/hooks/render/RenderMarkHook.{h,cpp} exist (not registered in HookManager; used by ActorRenderDispatcherHook, FrameFilterHook, chams Renderer, TrackerHooks)
-- [x] P2b FrameFilterHook drops by kind — 6i | TICKED (2026-11-16 orchestrator, file check): FrameFilterHook.cpp drops by kind: sDrop mask (FrameFilterHook.h:15), per-kind dropped[]/seen[] counters, drop at FrameFilterHook.cpp:427
-- [ ] P2c TaskDispatchHook + dragon/Tasks.h written, not built/run — M3c
-
-### P3. Acceptance criteria
-
-- [x] P3a Startup self-check: 9 unique sigs added to Sigs.json; content checks (mask immediate, offset refs) in SelfTest code, not built — L18b; BGFX_MAP 9b | DONE 2026-11-16 mirror of tick J2
-- [ ] P3b Whole-frame takeover: drive the frame ourselves (L18 goal) — BGFX_MAP 8a
-- [ ] P3c Edit draws at submit: read/modify every draw record before the GPU — M3e
-- [ ] P3d Frame graph add/remove/reorder pass safely — M3c
-
-## Q. Rewrite Program (the actual goal; added in audit 6ii, see BGFX_MAP section 12)
-
-Audit result: N/O/P (opencode) listed seams and startup checks only. Q is the ordered path from the current understanding to rewritten, measurable, controllable rendering. Order: Q1 -> Q2 -> Q3 -> Q4/Q5 -> Q6 -> Q7. M (understanding) keeps running in parallel and feeds Q.
-
-### Q1. Infrastructure (blocks all rewrites)
-- [x] Q1a R1 rewrite registry: {name, sig-resolved rva, original trampoline, replacement, mode off/shadow/on/verify}, version gate, runtime toggle | TICKED 2026-11-21 oc_U-EQ1a.md (verify_oc 6/6) + orchestrator rdis find: RewriteRegistry entries {name, sig-resolved rva, original trampoline, replacement, mode Off/Shadow/On/Verify}, version gate (GameVersion::preflight fatal unless Ok on 1.26.62.01), runtime toggle (setMode + BS_REWRITE); the 3 sigs the unit appended to Sigs.json (setVec4Array 0x5679DB0, mat4Multiply 0xAA6580, ResourceCache::get 0x675E440) each re-checked: exactly 1 hit; new helper tools/sigs/sigscan.py; nothing enabled by default; not yet built (final batch)
-- [x] Q1b R2 shadow/verify harness: run original + replacement on copied inputs, compare outputs, abort loudly on first divergence | TICKED 2026-11-21 oc_U-EQ1b.md (verify_oc 6/6) + orchestrator source check: src/client/features/render/rewrite/RewriteVerify.h (52 lines) implements compare/compareValue; 19 RewriteVerify::compare call sites across RewriteEncoder/RewriteDiscard/... copy inputs, run original + replacement and compare outputs; Logger::fatal is [[noreturn]] (src/client/core/diagnostics/Log.h:42) so the first divergence aborts loudly; not yet built or run (final batch)
-- [ ] Q1c R3 frame probe: per-frame dump of typed descriptions, pass list, draw records + RenderDraw + material/program/PSO key, actor attribution; read-only
-- [ ] Q1d R4 profiler: CPU scope timers per registry function and frame stage; GPU timestamp pairs via custom item (bit 53)
-- [ ] Q1e R5 ownership/threading table per rewritten function in its dossier
-
-### Q2. First rewrites: pure, fully reversed leaves
-- [ ] Q2a 0x5679db0 uniform/component writer, shadow-verified over many calls, timed
-- [ ] Q2b 0x675e440 ResourceCache::get with a per-material cache (same MaterialInstance pointer and load state), timed
-- [ ] Q2c Frame::sort (0xc280010/0xc280ca0) replaced by a radix sort on the 64-bit key; order-identical (stable), timed
-- [ ] Q2d Encoder::submit 0xbc60740 + setTransform/matrix cache; verified by comparing the emitted Frame draw header/RenderDraw bytes
-- [ ] Q3d Light tag 5 deep copy of ~41 unordered_maps per frame (0x67b6300/0x67b7810/0x67e90d0, 6ih): skip when unchanged (optimization candidate)
-- [ ] Q2f 0xaa6580 mat4 multiply (pure SIMD leaf, 6ih): trivial first rewrite to validate the registry and shadow-verify harness (compare 16 floats)
-- [ ] Q2e Encoder::discard / RenderBind grow / side-table copy
-
-### Q3. Insert and extract layer
-- [ ] Q3a The 21 thin clones replaced by one table-driven inserter; verified by an identical InsertVariant stream
-- [ ] Q3b Extractors rewritten in cost order (BatchActor, chunk, nametag, particle, sky, clouds, weather); needs M1d reads + M2c; verified by comparing DrawItems/Frame records
-- [ ] Q3c Description allocation/free ownership understood so descriptions can be pooled
-
-### Q4. Executor and backend
-- [ ] Q4a Close executor holes: bind-cache miss descriptor build, PSO desc build on a miss, setPredefined, helper bodies; job/command-list model; RTX subclass overrides
-- [ ] Q4b Draw flush 0xe81b720 / executor 0xe821120 rewritten or wrapped: instancing/batch merge, state dedup, PSO key cache; verified by comparing the recorded D3D12 call stream
-- [ ] Q4c Descriptor/upload ring and root signature ownership understood; device-lost/TDR path (slot 7) verified
-- [ ] Q4d Per-draw veto/rewrite live in game and measured
-
-### Q5. Passes and frame graph
-- [ ] Q5a M1e finished: every pass body with in/out resources; custom-item ctx (0x18 bytes) confirmed
-- [ ] Q5b TaskDispatchHook + Tasks.h built and run in game: disable, reorder, insert a pass (M3c)
-- [ ] Q5c Own pass through submitCustom drawing with a native material/program, verified in game
-- [ ] Q5d Pass-level rewrites (own upscale, own post) behind the registry
-
-### Q6. Whole-frame control
-- [ ] Q6a Frame generate 0xc273420 understood well enough to build the same task list ourselves
-- [ ] Q6b Optimization module: culling/batching/LOD driven by probe + profiler data, each feature registry-toggled
-- [ ] Q6c Whole-frame takeover demo: our renderer consumes the same extractor output (M3f)
-
-### Q7. Control audit ("anything rendering-wise")
-Each demonstrated, evidence recorded in BGFX_MAP: read any typed description; follow any actor to its draws; add/remove/reorder/replace any pass; edit or veto any draw; replace any material/program; create/read any texture/buffer/framebuffer; run our own GPU work at any point of the frame; switch any rewritten function back to the original at runtime; survive a version change by sig + layoutcheck report. Excluded by decision: OS/driver calls, DXGI/present internals beyond slot handling, audio/network.
-
-## R. Partial-items ledger (added 2026-11-14 at the user's instruction: PARTIAL ITEMS DO NOT COUNT AS DONE)
-
-Every item below was typed, read or noted only in part. None of them may be ticked [x] until its gap is closed and its constants are in both assertion lists. Revisit in this order; strike a line only when the gap is closed with evidence.
-- [ ] R1 Atmosphere (Sky tag 0): per-field meaning, the producer (no thin clone) and the VV AtmosphericScattering pass body that drains the queue at pass+0x548 (BGFX_MAP 6ih, 6ik; the Sky statics belong to tags 5/6, not tag 0); struct is read-widths only | PROGRESS 2026-11-21 oc_U-ER1.md (verify_oc 46/46): per-field reads [V] for all 31 offsets of the 0x58-byte Atmosphere record; still open: pass body draining pass+0x548 (no [reg+0x548] reader found, AtmosphericScattering hash has 0 imm hits), tag-0 producer store not isolated, field meanings unnamed
-- [ ] R2 BlockChanges (Item tag 9): field meanings; the pass vector it feeds (pass+0x98/+0xA0) | 2026-11-21 oc_U-ER2.md (5 rows OK): NO; pass vector (pass+0x98 end cursor, +0xA0 capacity bound, 0x18 stride) proven, but desc+0x00 float4 / +0x10 qword meanings unproven, no tag-9 producer via builder slot 0x378, no consumer of the pass+0x98 vector located
-- [x] R3 BlitFlipbook (Effect tag 1): description +0x00..+0x0F, +0x20..+0x9F, element +0x34..+0x3F unread; true size | DONE 2026-11-21 oc_U-ER3.md verify_oc 13 rows: description true size 0x20 (not 0xA0), element 0x40 (+0x34 qword and +0x3C byte producer-copied, none read by consumer), desc +0x00..0x0F SharedRef built at insert
-- [x] R4 AimAssistHighlight (Effect tag 6): true size (min 0x68) and the +0x84 read of the shared tail | DONE 2026-11-21 oc_U-ER4.md verify_oc 4 rows: true size >= 0x120 (qword store +0x118 [V]; exact fit with producer frame [I]; header 0x88 is stale), +0x84 read at 0x666c96f attributed to the description (ctor sentinel -1 at 0x668e1c3)
-- [ ] R5 EditorHighlight (Effect tag 8): meanings of the 64-byte block and +0x50; the pass that consumes pass+0x80 | 2026-11-21 oc_U-ER5.md (8 rows OK): NO; queue (begin +0x78, end +0x80 advanced at 0x666b5c0, cap +0x88, stride 0x58) proven, but no decoded pass reads it, and the 64-byte block / +0x50 meanings have no [V] proof
-- [ ] R6 LightAmbient / LightDirectional / Light tag 2 / tag 3 / tag 4: value names, tag-name conflict (group_visitors vs LightGroupTag), pass consumers of +0x800 / +0x648 / +0x4A0 / +0x1D0 | PROGRESS 2026-11-21 oc_U-ER6.md (verify_oc 83/83): tag-name conflict resolved [V] (FrameBuilder.h: tag 2 = GameplayMetadata, tag 3 = LightPoint; group_visitors.md had them swapped); Light-visitor writers to pass+0x800/+0x648/+0x4A0/+0x1D0 [V]; no draining reader of those vectors found in the exe; description value names unknown
-- [x] R7 Light tag 5 (ServerGraphicsOverrideParameters): 0x40-byte parameter table element layout, key/value types; 0x67b6300, 0x67b7810, 0x67e90d0 dossiers | DONE 2026-11-21 oc_U-ER7.md [V 260/260]: 43 x 0x40-byte table elements (record 0xB00): u32 +0x00 max-load float bits, hash container +0x08 head/+0x10 size/+0x18..+0x28 buckets/+0x30 mask/+0x38 count; key = u16 at node+0x10 (FNV-1 over 2 bytes); value none (flavor A) or 3x float32 node+0x14/+0x18/+0x1C (flavor B); dossiers 0x67b6300 (0x2BD), 0x67b7810 (0x359), 0x67e90d0 (0x6DF); key/value meanings [?]
-- [x] R8 Light tags 6 and 7: payload behind the shared pair; VoxelVolume queue destination after 0x66421a9 | DONE 2026-11-21 oc_U-ER8.md [V 24/24]: shared pair payload = {object head 16 B copied via movups at 0x66418a2/0x664215b, strong-counted control block lock inc [rcx+8]}; VoxelVolume queue after 0x66421a9 = pass+0x138 vector of 0x40-byte VoxelRecords via call 0x67D5FF0 (0x664266c, tag 6 at 0x664248d); tag 6 byte queue pass+0x270..0x280, tag 7 TransitionRecord queue pass+0x168..0x178 (end += 0x20 at 0x66426ea); dynamic type beyond byte 16 [?]
-- [ ] R9 FadeToBlack (Effect tag 5): description payload (0x67d6d70 is only a keyed lookup); FullscreenEffect (tag 7): config object layout (+0x180/+0x181/+0x185/+0x1A8) | 2026-11-21 oc_U-ER9.md (6 rows OK): FullscreenEffect cfg +0x180/+0x181/+0x185/+0x1A8 proven [V]; FadeToBlack tag 5: visitor reads NO description payload (0x666b08e lea r8,[0x129FA108] static key, call 0x67d6d70 at 0x666b09c), no tag-5 clone/producer found, so payload layout undecodable until a producer is located
-- [ ] R10 UIMesh (UI tag 2): true size (>= 0x90), sub-objects at +0x18 and +0x88; Gameface, HudIcon, UIImGui untouched | 2026-11-21 oc_U-ER10.md (22 rows OK): UIMesh DONE part: true size 0xA8, +0x18 = inline mRefs[4] shared_ptr array, +0x88 = DescVariantRef storage (tag +0xA0); STILL OPEN: Gameface, HudIcon, UIImGui (listed as untouched in this item, not examined by the unit)
-- [x] R11 Sky: EndSky, LegacyCubemap, CelestialBody, VolumetricFog, SkyAmbientSamples, SkyStars bodies; Editor tags 0-7; Item tags not typed yet (ChunkGeometry, ItemInHand, BatchActor beyond the known fields, Nametag etc. already typed are fine) | DONE 2026-11-21 oc_U-ER11.md [V 16/16]: sky case-body range 0x66580f0..0x6658ffc verified (Stars tag6, Sky tag5, EndSky tag3, LegacyCubemap tag4); remaining sky bodies, Editor tags 0-7 and Item tags were already [V] in earlier accepted units; typed headers in framebuilder/SkyDescriptions.h, UiEditorDescriptions.h, ItemInHandDescription.h etc.; CelestialBody tag7 per sky_celestial listing
-- [x] R12 descscan: add "stop at first write to the description register" (reused r8/rsi misattribution) and a per-visitor register map option (done so far: --reg, --statics; new tools/sigs/ripscan.py, dispfun.py, disrange.py) | DONE 2026-11-21 oc_U-ER12.md [V 6/6]: tools/sigs/descscan2.py has --stop-on-write and --visitor (VISITORS map: item rdi 0x66469fd, light rsi 0x6640dd5, sky rdi 0x6656161, ui r9 0x6664a59, effect r15 0x666acf1); Sky reload rdi=[rbp+0x210] at 0x6656f30 verified as the stop point
-- [x] R13 layout_asserts.json / RenderLayoutAsserts.h have no entries for any description (visitors have no Sigs.json anchors): add anchors and the constants | DONE 2026-11-21 oc_U-ER13.md [V 11/11]: all 6 visitors have Sigs.json anchors (visitEditor 0x66742F0, visitEffect 0x666ACA0, visitUI 0x6664A00, visitSky 0x66560F0, visitItem 0x6646980, visitLight 0x6640D80); layout_asserts.json has entries for all 6 (visitEditor added: 0x64/0xD0/0x3C/0x122); layoutcheck 191 assertions 0 failed (re-run by orchestrator); visitEffect 0xa0 vs BlitFlipbook 0x20 discrepancy noted
-- [ ] R14 M1b classification, M1c/M1d/M1e dossier gaps, M3a-M3f, M4a-M4d, M1f (see their own lines)
+Goal and definition of done: `docs/RENDER_DONE_STATE.md`. How a function is lifted, what "done" means per item, file layout, ABI/STL/boundary rules: `docs/RENDER_NATIVE_SPEC.md`. Live verification: `docs/NATIVE_VERIFY_PROTOCOL.md`. This file replaces the reversal checklist (kept as `docs/RENDER_CHECKLIST_V1.md`; its dossiers, headers and data are the inputs here).
+
+Generated part (X1-X5): 1285 functions, 3.09 MB of machine code, from the direct-call closure of the render roots (`tools/native_checklist_gen.py`; the closure is NOT complete until X0a is done: indirect callees are added then, as X7 items). Order inside each milestone = callees first, and `docs/data/native_deps.tsv` makes `tools/nextitems.py` hand out an item only when every callee in the set is already [x].
+
+## How an item is closed (short; full rules in the spec)
+An item is [x] only when `python tools/sigs/liftcheck.py <rva>` prints `LIFTCHECK OK`: every instruction of the function lies in an address range cited by the source/dossier and every call is quoted verbatim (verify_oc mismatch=0), the C++ lives under `src/client/features/render/native/`, every call is to a lifted function or a listed boundary function, every struct offset used is asserted, and the registry entry (Shadow/Verify/On) exists. Items are statically complete when ticked ("L1"); live verification ("L2", zero divergence in the scenes) happens at the milestone gate Xnz and by the user. A stub, a subset, a [?] in the code, or a hook that stands in for the function is NOT [x].
+
+Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 bytes): plan the split at basic-block boundaries, lift each chunk, assemble. Items ending in `z` are gates owned by the orchestrator. XO items (optimization) are not started before X6z.
+
+## X0. Ground truth and infrastructure (before any bulk lifting)
+
+- [ ] X0a Complete the closure: find every function of the render path that the direct-call scan misses. Sources: vtable slot targets of every vtable the path uses (BgfxFrameBuilder 114 slots, both RendererContext vtables, pass classes, Declarator), `std::function`/lambda targets (pass bodies, task functors, GraphicsTasks lambdas), jump-table case targets of the six group visitors and the executor, tail-jump thunks, callbacks stored in task records. Deliver: `tools/sigs/closure2.py` (re-runnable), every newly found function appended with `python tools/native_checklist_gen.py --add <rva...>` evidence rows in `docs/data/native_roots.txt` (one line per root: `<rva hex> <name>`, each with a [V] proof of how it is reached), and `docs/data/native_unresolved_indirect.tsv` = indirect call sites whose target set is still unknown (site rva, register, why). CLOSES YES only if the unresolved file lists no site on the frame path that is not proven to target only boundary functions.
+- [ ] X0b1 Boundary classification, rows 1-100 of `docs/data/native_boundary_candidates.tsv` (callees of the lift set that are outside the render regions, by caller count). Fill the class column with one of `lift` (render-owned code, becomes a lift item), `stl` (MSVC STL internal: we compile the same STL, no lift), `crt`, `os` (kernel32/ntdll/threads), `d3d` (D3D12/DXGI/GDK COM call), `vendor` (DLSS/FSR/cohtml), `alloc`, `other-subsystem` (world/entity/network/audio; stays original), plus the function name and a [V] proof (what the body is: first 8 instructions and callees). Do not guess: a function whose class you cannot prove is `?` with the blocking fact. Rows only; append the `lift` ones to `docs/data/native_roots.txt`.
+- [x] X0b2 Boundary classification, rows 101-200 (same rules as X0b1). | DONE 2026-11-23 oc_U-EX0b2.md (verify_oc 91/91 match; class table in the output file, merged into native_boundary.tsv at X0b5)
+- [ ] X0b3 Boundary classification, rows 201-300 (same rules as X0b1).
+- [ ] X0b4 Boundary classification, rows 301-end (same rules as X0b1).
+- [ ] X0b5 Boundary decision review (orchestrator): every row classified; the `stl`/`crt`/`alloc` rows justified against the compiler and STL in use; the `other-subsystem` rows are the explicit external boundary written into `docs/data/native_boundary.tsv` (the only calls Native mode may leave original). Ticks X0b once the `lift` rows have been added as X7 items.
+- [x] X0c Spec: `docs/RENDER_NATIVE_SPEC.md` written (lift unit, files, ABI, STL/allocator policy, boundary wrappers, annotation format, closure criteria, verify design). 2026-11-23, decisions open to the user's review.
+- [x] X0d (orchestrator) Lift framework: `src/client/features/render/native/Lift.h` (+ `Boundary.h`): LIFT_FN registration (rva, sig, original trampoline, mode), boundary-call wrappers bound to Sigs.json symbols and logged against `native_boundary.tsv`, record/replay hooks for the differential harness, Native-mode install of entry detours only for functions with callers outside the set. Compiles in Release. Blocks every X1-X5 item except the pilot.
+- [ ] X0e Fix the 3 world-phase SelfTest failures: `FrameBuilder::visitEditor` layout drift (+0x64 and +0x3C offsets in `docs/data/layout_asserts.json` / `RenderLayoutAsserts.h`): re-derive each constant from the disassembly of the Editor group visitor (0x66742F0), correct both lists, `python tools/sigs/layoutcheck.py` clean. Also list every other assertion that has never been checked against live memory.
+- [ ] X0f Live scene list and capture recipes: write `docs/NATIVE_VERIFY_PROTOCOL.md` section "Scenes" with, per scene (first person world, third person with mob and nametag, rain/snow, particles, held item and block, water/lava, chest/sign, VV on and off, resource pack with custom material, inventory/menu, F1, dimension change, join/leave, resize, RTX if available), what must be on screen and which functions it exercises (from the frame-path table), so each lifted function can be assigned to at least one scene. Output: `docs/data/native_scene_coverage.tsv` (function id, scenes that execute it, [V]/[I]).
+- [x] X0g Mirror to the professional repo: `tools/mirror_sync.ps1` links new docs, the data/progress/functions junctions, and `src/client/features/render/native` into `C:\Users\Atomi\Desktop\tomdh-git\bedrock-renderer`. 2026-11-23.
+- [ ] X0h (orchestrator) Pilot: lift the first three X1 leaf items end to end through the opencode pipeline and `liftcheck`; review the briefs, the output files and the effort; fix the brief and tools; only then is the X1-X5 queue released (`docs/data/native_pilot.txt` lists the pilot ids; until X0h is [x] `tools/nextitems.py` hands out only those).
+- [x] X0i Pipeline wiring: `tools/nextitems.py` (dependency gating, pilot gating, gate/orchestrator items skipped), `tools/mkeasy.py` (LIFT brief), `tools/checklist_status.py` (native status), `tools/sigs/liftcheck.py`, `tools/native_activate.py`. 2026-11-23.
+- [ ] X0j (orchestrator) Differential harness v2 (spec section 8): footprint snapshot/restore around a call, boundary record/replay, post-state compare, so a function with side effects can be verified, not only pure leaves. Proven on Math::mat4Multiply (pure), one writer (uniform setVec4Array 0x5679db0) and one function that calls the allocator. Compiles in Release. Blocks the X1z gate.
+
+## X1. bgfx core, Frame, Encoder, handles, uniforms
+
+175 functions, 282 KB of machine code. Order = callees first. Source dir: `src/client/features/render/native/bgfx/`. Gate: X1z.
+
+- [ ] X1.bc2e890 LIFT sub_bc2e890 (0xbc2e890, 0x1de bytes, depth 1, D0, 0 callees in set)
+- [ ] X1.bc2f1d0 LIFT sub_bc2f1d0 (0xbc2f1d0, 0x1ec bytes, depth 1, D0, 0 callees in set)
+- [ ] X1.bc385e0 LIFT sub_bc385e0 (0xbc385e0, 0x34b bytes, depth 1, D0, 0 callees in set)
+- [ ] X1.bc3c6b0 LIFT sub_bc3c6b0 (0xbc3c6b0, 0xcb bytes, depth 3, D0, 0 callees in set)
+- [ ] X1.bc40a30 LIFT sub_bc40a30 (0xbc40a30, 0x146 bytes, depth 1, D0, 0 callees in set)
+- [ ] X1.bc40b80 LIFT sub_bc40b80 (0xbc40b80, 0x1b2 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc431b0 LIFT sub_bc431b0 (0xbc431b0, 0x129 bytes, depth 1, D0, 0 callees in set)
+- [ ] X1.bc44b40 LIFT sub_bc44b40 (0xbc44b40, 0x133 bytes, depth 1, D0, 0 callees in set)
+- [ ] X1.bc45130 LIFT sub_bc45130 (0xbc45130, 0x161 bytes, depth 4, D0, 0 callees in set)
+- [ ] X1.bc453a0 LIFT sub_bc453a0 (0xbc453a0, 0x3d9 bytes, depth 3, D0, 0 callees in set)
+- [ ] X1.bc45c40 LIFT sub_bc45c40 (0xbc45c40, 0x16b bytes, depth 4, D0, 0 callees in set)
+- [ ] X1.bc55ea0 LIFT sub_bc55ea0 (0xbc55ea0, 0x105 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc56190 LIFT sub_bc56190 (0xbc56190, 0x477 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc56990 LIFT sub_bc56990 (0xbc56990, 0x2a5 bytes, depth 1, D0, 0 callees in set)
+- [ ] X1.bc5b130 LIFT sub_bc5b130 (0xbc5b130, 0x472 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc5b720 LIFT sub_bc5b720 (0xbc5b720, 0x136 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc5e120 LIFT sub_bc5e120 (0xbc5e120, 0xc1 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc5e400 LIFT sub_bc5e400 (0xbc5e400, 0x2f1 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc5eb10 LIFT sub_bc5eb10 (0xbc5eb10, 0x162 bytes, depth 5, D0, 0 callees in set)
+- [ ] X1.bc5eca0 LIFT sub_bc5eca0 (0xbc5eca0, 0x1aa bytes, depth 5, D0, 0 callees in set)
+- [ ] X1.bc5f110 LIFT sub_bc5f110 (0xbc5f110, 0x121 bytes, depth 1, D0, 0 callees in set)
+- [ ] X1.bc5fce0 LIFT sub_bc5fce0 (0xbc5fce0, 0x41d bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc60100 LIFT sub_bc60100 (0xbc60100, 0x631 bytes, depth 1, D0, 0 callees in set)
+- [ ] X1.bc60d10 LIFT bgfx::EncoderImpl::discard (reset), fully reversed (0xbc60d10, 0x1fc bytes, depth 1, D2, 0 callees in set)
+- [ ] X1.bc60f10 LIFT Frame commitSideTable (per-draw ranged-bind table copy), fully reversed (0xbc60f10, 0x22a bytes, depth 1, D2, 0 callees in set)
+- [ ] X1.bc62040 LIFT sub_bc62040 (0xbc62040, 0xb72 bytes, depth 3, D0, 0 callees in set)
+- [ ] X1.bc66c50 LIFT sub_bc66c50 (0xbc66c50, 0x11e bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc68840 LIFT bgfx render-thread begin/init step (TLS magic) (0xbc68840, 0x5f7 bytes, depth 2, D2, 0 callees in set)
+- [ ] X1.bc6a9d0 LIFT bgfx rendererUpdateUniforms, fully reversed (0xbc6a9d0, 0x200 bytes, depth 2, D2, 0 callees in set)
+- [ ] X1.bc6af50 LIFT sub_bc6af50 (0xbc6af50, 0x1f3 bytes, depth 1, D0, 0 callees in set)
+- [ ] X1.bc6e1e0 LIFT sub_bc6e1e0 (0xbc6e1e0, 0x177 bytes, depth 4, D0, 0 callees in set)
+- [ ] X1.bc6e360 LIFT sub_bc6e360 (0xbc6e360, 0x1eb bytes, depth 4, D0, 0 callees in set)
+- [ ] X1.bc6e550 LIFT sub_bc6e550 (0xbc6e550, 0x216 bytes, depth 4, D0, 0 callees in set)
+- [ ] X1.bc6ee00 LIFT sub_bc6ee00 (0xbc6ee00, 0x122 bytes, depth 5, D0, 0 callees in set)
+- [ ] X1.bc6ef50 LIFT sub_bc6ef50 (0xbc6ef50, 0xf1 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc6f2a0 LIFT sub_bc6f2a0 (0xbc6f2a0, 0xbb bytes, depth 3, D0, 0 callees in set)
+- [ ] X1.bc6f800 LIFT sub_bc6f800 (0xbc6f800, 0xbb bytes, depth 3, D0, 0 callees in set)
+- [ ] X1.bc71da0 LIFT sub_bc71da0 (0xbc71da0, 0x167 bytes, depth 6, D0, 0 callees in set)
+- [ ] X1.bc75b20 LIFT sub_bc75b20 (0xbc75b20, 0xb9 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc75c30 LIFT sub_bc75c30 (0xbc75c30, 0x2a9 bytes, depth 3, D0, 0 callees in set)
+- [ ] X1.bc76330 LIFT sub_bc76330 (0xbc76330, 0x4a bytes, depth 7, D0, 0 callees in set)
+- [ ] X1.bc76380 LIFT sub_bc76380 (0xbc76380, 0x107 bytes, depth 5, D0, 0 callees in set)
+- [ ] X1.bc76610 LIFT bx::HashMurmur2A::add(data, len) (0xbc76610, 0x1dc bytes, depth 1, D1, 0 callees in set)
+- [ ] X1.bc769c0 LIFT sub_bc769c0 (0xbc769c0, 0x22c bytes, depth 1, D0, 0 callees in set)
+- [ ] X1.bc76e80 LIFT sub_bc76e80 (0xbc76e80, 0x36f bytes, depth 3, D0, 0 callees in set)
+- [ ] X1.bc771f0 LIFT sub_bc771f0 (0xbc771f0, 0x157 bytes, depth 3, D0, 0 callees in set)
+- [ ] X1.bc79a60 LIFT sub_bc79a60 (0xbc79a60, 0x46f bytes, depth 7, D0, 0 callees in set)
+- [ ] X1.bc7a3d0 LIFT sub_bc7a3d0 (0xbc7a3d0, 0x3cc bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc7a7c0 LIFT GuardedPagedArray<0x540>::ensure (RenderBind storage commit), fully reversed (0xbc7a7c0, 0x1dc bytes, depth 1, D2, 0 callees in set)
+- [ ] X1.bc7a9d0 LIFT sub_bc7a9d0 (0xbc7a9d0, 0x5e3 bytes, depth 5, D0, 0 callees in set)
+- [ ] X1.bc7b3a0 LIFT sub_bc7b3a0 (0xbc7b3a0, 0x425 bytes, depth 1, D0, 0 callees in set)
+- [ ] X1.bc7b7d0 LIFT sub_bc7b7d0 (0xbc7b7d0, 0x28b bytes, depth 1, D0, 0 callees in set)
+- [ ] X1.bc7c4e0 LIFT sub_bc7c4e0 (0xbc7c4e0, 0x95 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc7dc90 LIFT sub_bc7dc90 (0xbc7dc90, 0x13e bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc8c720 LIFT sub_bc8c720 (0xbc8c720, 0x167 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc8c890 LIFT sub_bc8c890 (0xbc8c890, 0x435 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc95db0 LIFT sub_bc95db0 (0xbc95db0, 0x391 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc962c0 LIFT sub_bc962c0 (0xbc962c0, 0x12f bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc964d0 LIFT sub_bc964d0 (0xbc964d0, 0x1e0 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bc97070 LIFT sub_bc97070 (0xbc97070, 0x135 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bca7c80 LIFT sub_bca7c80 (0xbca7c80, 0x391 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bca8190 LIFT sub_bca8190 (0xbca8190, 0x135 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bca92f0 LIFT sub_bca92f0 (0xbca92f0, 0x13b bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bcaa640 LIFT sub_bcaa640 (0xbcaa640, 0x135 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bcab880 LIFT sub_bcab880 (0xbcab880, 0x6a bytes, depth 3, D0, 0 callees in set)
+- [ ] X1.bcac8b0 LIFT sub_bcac8b0 (0xbcac8b0, 0x248 bytes, depth 3, D0, 0 callees in set)
+- [ ] X1.bcbe410 LIFT sub_bcbe410 (0xbcbe410, 0x11 bytes, depth 3, D0, 0 callees in set)
+- [ ] X1.bcbf110 LIFT sub_bcbf110 (0xbcbf110, 0x180 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bcbf3e0 LIFT sub_bcbf3e0 (0xbcbf3e0, 0x181 bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bcbf640 LIFT sub_bcbf640 (0xbcbf640, 0xef bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bcc0960 LIFT ResourceLoader::track (weak_ptr owner/per-thread) (0xbcc0960, 0x55d bytes, depth 2, D1, 0 callees in set)
+- [ ] X1.bcc1ae0 LIFT sub_bcc1ae0 (0xbcc1ae0, 0x10f bytes, depth 2, D0, 0 callees in set)
+- [ ] X1.bcc24f0 LIFT sub_bcc24f0 (0xbcc24f0, 0x1f1 bytes, depth 3, D0, 0 callees in set)
+- [ ] X1.bcc2820 LIFT resolve vertex stream reference (3-way variant, layout override map) (0xbcc2820, 0x2de bytes, depth 4, D2, 0 callees in set)
+- [ ] X1.bcc2eb0 LIFT bindIndexBuffer (geometry ref index variant +0x28, start +0x40, count +0x48 -> RenderDraw) (0xbcc2eb0, 0x287 bytes, depth 3, D1, 0 callees in set)
+- [ ] X1.bc34f70 LIFT sub_bc34f70 (0xbc34f70, 0x113 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc353b0 LIFT sub_bc353b0 (0xbc353b0, 0x3ee bytes, depth 3, D0, 1 callees in set)
+- [ ] X1.bc35890 LIFT sub_bc35890 (0xbc35890, 0x3a2 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc35ed0 LIFT sub_bc35ed0 (0xbc35ed0, 0x232 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc367f0 LIFT sub_bc367f0 (0xbc367f0, 0x2a0 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc45780 LIFT sub_bc45780 (0xbc45780, 0x1da bytes, depth 3, D0, 1 callees in set)
+- [ ] X1.bc55fb0 LIFT sub_bc55fb0 (0xbc55fb0, 0x1b8 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc56610 LIFT sub_bc56610 (0xbc56610, 0x18e bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc567c0 LIFT sub_bc567c0 (0xbc567c0, 0x193 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc5e9f0 LIFT sub_bc5e9f0 (0xbc5e9f0, 0x11c bytes, depth 4, D0, 3 callees in set)
+- [ ] X1.bc5f7b0 LIFT sub_bc5f7b0 (0xbc5f7b0, 0x11e bytes, depth 4, D0, 1 callees in set)
+- [ ] X1.bc60740 LIFT bgfx::Encoder::submit (0xbc60740, 0x5d0 bytes, depth 2, D2, 4 callees in set)
+- [ ] X1.bc61140 LIFT EncoderImpl::dispatch (compute), fully reversed (0xbc61140, 0x411 bytes, depth 0, D2, 4 callees in set)
+- [ ] X1.bc61560 LIFT custom item submit (key bit 53) (0xbc61560, 0x372 bytes, depth 0, D2, 4 callees in set)
+- [ ] X1.bc618e0 LIFT compute item + frame parameter blocks (0xbc618e0, 0x535 bytes, depth 0, D2, 4 callees in set)
+- [ ] X1.bc61e20 LIFT bgfx::Frame::sort (0xbc61e20, 0x215 bytes, depth 2, D2, 1 callees in set)
+- [ ] X1.bc6aeb0 LIFT sub_bc6aeb0 (0xbc6aeb0, 0x86 bytes, depth 4, D0, 1 callees in set)
+- [ ] X1.bc6e770 LIFT sub_bc6e770 (0xbc6e770, 0x22e bytes, depth 4, D0, 2 callees in set)
+- [ ] X1.bc735b0 LIFT sub_bc735b0 (0xbc735b0, 0x1b2 bytes, depth 6, D0, 1 callees in set)
+- [ ] X1.bc73770 LIFT sub_bc73770 (0xbc73770, 0x424 bytes, depth 6, D0, 3 callees in set)
+- [ ] X1.bc748b0 LIFT sub_bc748b0 (0xbc748b0, 0x176 bytes, depth 2, D0, 2 callees in set)
+- [ ] X1.bc79790 LIFT sub_bc79790 (0xbc79790, 0x2ce bytes, depth 2, D0, 1 callees in set)
+- [ ] X1.bc79ed0 LIFT sub_bc79ed0 (0xbc79ed0, 0x4fc bytes, depth 1, D0, 2 callees in set)
+- [ ] X1.bcaba00 LIFT sub_bcaba00 (0xbcaba00, 0x83f bytes, depth 1, D0, 4 callees in set)
+- [ ] X1.bcac590 LIFT sub_bcac590 (0xbcac590, 0x269 bytes, depth 2, D0, 1 callees in set)
+- [ ] X1.bcbdfa0 LIFT sub_bcbdfa0 (0xbcbdfa0, 0x151 bytes, depth 2, D0, 1 callees in set)
+- [ ] X1.bcbe100 LIFT sub_bcbe100 (0xbcbe100, 0x140 bytes, depth 6, D0, 1 callees in set)
+- [ ] X1.bcbf290 LIFT sub_bcbf290 (0xbcbf290, 0x111 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bcbf730 LIFT ResourceLoader::loadAsync (job to owner or per-thread queue), fully reversed (0xbcbf730, 0xc69 bytes, depth 1, D2, 2 callees in set)
+- [ ] X1.bcc1910 LIFT RenderStateDesc -> bgfx state bits (blend, cull, depth, primitive, write mask, stencil), fully reversed (0xbcc1910, 0x119 bytes, depth 2, D2, 1 callees in set)
+- [ ] X1.bcc2b00 LIFT bindVertexStreams (geometry ref +0x08..+0x20 -> RenderDraw streams, stream mask) (0xbcc2b00, 0x354 bytes, depth 3, D1, 1 callees in set)
+- [ ] X1.bc35130 LIFT sub_bc35130 (0xbc35130, 0x20f bytes, depth 2, D0, 2 callees in set)
+- [ ] X1.bc5ee70 LIFT sub_bc5ee70 (0xbc5ee70, 0x163 bytes, depth 3, D0, 1 callees in set)
+- [ ] X1.bc5f630 LIFT sub_bc5f630 (0xbc5f630, 0x178 bytes, depth 3, D0, 1 callees in set)
+- [ ] X1.bc6abd0 LIFT sub_bc6abd0 (0xbc6abd0, 0x2df bytes, depth 3, D0, 1 callees in set)
+- [ ] X1.bc732e0 LIFT sub_bc732e0 (0xbc732e0, 0x280 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc73bf0 LIFT sub_bc73bf0 (0xbc73bf0, 0x2de bytes, depth 5, D0, 2 callees in set)
+- [ ] X1.bc73ed0 LIFT sub_bc73ed0 (0xbc73ed0, 0x24d bytes, depth 5, D0, 2 callees in set)
+- [ ] X1.bc74120 LIFT sub_bc74120 (0xbc74120, 0x24e bytes, depth 5, D0, 2 callees in set)
+- [ ] X1.bc74a80 LIFT bgfx createDynamicTexture region (0xbc74a80, 0x5c5 bytes, depth 4, D1, 3 callees in set)
+- [ ] X1.bc752f0 LIFT sub_bc752f0 (0xbc752f0, 0xfe bytes, depth 3, D0, 1 callees in set)
+- [ ] X1.bcab8f0 LIFT sub_bcab8f0 (0xbcab8f0, 0x104 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bcac2b0 LIFT sub_bcac2b0 (0xbcac2b0, 0xdc bytes, depth 3, D0, 1 callees in set)
+- [ ] X1.bcac390 LIFT sub_bcac390 (0xbcac390, 0x1c6 bytes, depth 1, D0, 2 callees in set)
+- [ ] X1.bcc3190 LIFT sub_bcc3190 (0xbcc3190, 0x74a bytes, depth 3, D0, 6 callees in set)
+- [ ] X1.bcc3fa0 LIFT sub_bcc3fa0 (0xbcc3fa0, 0x1af bytes, depth 4, D0, 1 callees in set)
+- [ ] X1.bcc7ce0 LIFT material pass -> program handle (0xbcc7ce0, 0x17b bytes, depth 5, D0, 1 callees in set)
+- [ ] X1.bc34be0 LIFT sub_bc34be0 (0xbc34be0, 0x277 bytes, depth 1, D0, 2 callees in set)
+- [ ] X1.bc55100 LIFT sub_bc55100 (0xbc55100, 0x58e bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc5dfe0 LIFT sub_bc5dfe0 (0xbc5dfe0, 0x110 bytes, depth 2, D0, 1 callees in set)
+- [ ] X1.bc68e40.plan PLAN bgfx render-thread command buffer interpreter (40-way jump table): split 0xbc68e40..0xbc6a9c3 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc68e40.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X1.bc68e40.asm LIFT ASSEMBLE bgfx render-thread command buffer interpreter (40-way jump table) (waits for chunks)
+- [ ] X1.bcc4150 LIFT sub_bcc4150 (0xbcc4150, 0x6a6 bytes, depth 4, D0, 2 callees in set)
+- [ ] X1.bc347b0 LIFT sub_bc347b0 (0xbc347b0, 0x2c8 bytes, depth 2, D0, 5 callees in set)
+- [ ] X1.bc37ca0 LIFT registerPass (frame graph) (0xbc37ca0, 0x2d7 bytes, depth 4, D0, 2 callees in set)
+- [ ] X1.bc38340 LIFT sub_bc38340 (0xbc38340, 0x1f4 bytes, depth 1, D0, 3 callees in set)
+- [ ] X1.bc432e0 LIFT sub_bc432e0 (0xbc432e0, 0x22b bytes, depth 3, D0, 2 callees in set)
+- [ ] X1.bc5dc40 LIFT sub_bc5dc40 (0xbc5dc40, 0x16b bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc63150 LIFT bgfx::Context::renderFrame (0xbc63150, 0x35d bytes, depth 1, D2, 2 callees in set)
+- [ ] X1.bc88560 LIFT SSR declare (ScreenDraw std::function 0xF44B280) (0xbc88560, 0xf77 bytes, depth 2, D0, 6 callees in set)
+- [ ] X1.bc9d350 LIFT sub_bc9d350 (0xbc9d350, 0x2e8 bytes, depth 2, D0, 2 callees in set)
+- [ ] X1.bcacd90.plan PLAN sub_bcacd90: split 0xbcacd90..0xbcb1d0b at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bcacd90.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X1.bcacd90.asm LIFT ASSEMBLE sub_bcacd90 (waits for chunks)
+- [ ] X1.bcb3cf0.plan PLAN sub_bcb3cf0: split 0xbcb3cf0..0xbcb5e09 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bcb3cf0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X1.bcb3cf0.asm LIFT ASSEMBLE sub_bcb3cf0 (waits for chunks)
+- [ ] X1.bcc38e0 LIFT submitGeometry (variant: none / 64-byte items / mesh) (0xbcc38e0, 0xce bytes, depth 3, D2, 2 callees in set)
+- [ ] X1.bc301c0.plan PLAN sub_bc301c0: split 0xbc301c0..0xbc3203c at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc301c0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X1.bc301c0.asm LIFT ASSEMBLE sub_bc301c0 (waits for chunks)
+- [ ] X1.bc324a0.plan PLAN sub_bc324a0: split 0xbc324a0..0xbc3431c at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc324a0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X1.bc324a0.asm LIFT ASSEMBLE sub_bc324a0 (waits for chunks)
+- [ ] X1.bc37320 LIFT buildScreenPass (packet, std::function execute 0xF440710, registerPass) (0xbc37320, 0x784 bytes, depth 3, D1, 5 callees in set)
+- [ ] X1.bc5daf0 LIFT sub_bc5daf0 (0xbc5daf0, 0x120 bytes, depth 1, D0, 3 callees in set)
+- [ ] X1.bc5ddb0 LIFT sub_bc5ddb0 (0xbc5ddb0, 0xec bytes, depth 1, D0, 2 callees in set)
+- [ ] X1.bc5ded0 LIFT sub_bc5ded0 (0xbc5ded0, 0xd4 bytes, depth 2, D0, 2 callees in set)
+- [ ] X1.bc65720 LIFT bgfx render thread proc (0xbc65720, 0xdb bytes, depth 0, D2, 1 callees in set)
+- [ ] X1.bc66de0.plan PLAN bgfx::Context::frame (swap/handoff prep): split 0xbc66de0..0xbc687b7 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc66de0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X1.bc66de0.asm LIFT ASSEMBLE bgfx::Context::frame (swap/handoff prep) (waits for chunks)
+- [ ] X1.bc81a40 LIFT sub_bc81a40 (0xbc81a40, 0x794 bytes, depth 3, D0, 6 callees in set)
+- [ ] X1.bc9c990 LIFT sub_bc9c990 (0xbc9c990, 0x7c7 bytes, depth 1, D0, 5 callees in set)
+- [ ] X1.bcb64f0 LIFT sub_bcb64f0 (0xbcb64f0, 0xa90 bytes, depth 1, D0, 4 callees in set)
+- [ ] X1.bc65800 LIFT bgfx::Context::frame(capture) API side (0xbc65800, 0x37d bytes, depth 1, D2, 1 callees in set)
+- [ ] X1.bc81930 LIFT sub_bc81930 (0xbc81930, 0xd7 bytes, depth 2, D0, 1 callees in set)
+- [ ] X1.bc8a240 LIFT sub_bc8a240 (0xbc8a240, 0xee bytes, depth 2, D0, 1 callees in set)
+- [ ] X1.bcbade0 LIFT sub_bcbade0 (0xbcbade0, 0x272 bytes, depth 2, D0, 1 callees in set)
+- [ ] X1.bcc1a30 LIFT sub_bcc1a30 (0xbcc1a30, 0xa1 bytes, depth 1, D0, 3 callees in set)
+- [ ] X1.bc55740 LIFT sub_bc55740 (0xbc55740, 0x651 bytes, depth 1, D0, 3 callees in set)
+- [ ] X1.bc56c70 LIFT sub_bc56c70 (0xbc56c70, 0x6e4 bytes, depth 1, D0, 3 callees in set)
+- [ ] X1.bc660a0 LIFT bgfx::Context::shutdown sequence (writes cmdPre/cmdPost, 5x frame) (0xbc660a0, 0x9ab bytes, depth 0, D2, 4 callees in set)
+- [ ] X1.bc7ba60 LIFT sub_bc7ba60 (0xbc7ba60, 0x8fa bytes, depth 1, D0, 3 callees in set)
+- [ ] X1.bc7ee00 LIFT sub_bc7ee00 (0xbc7ee00, 0x54e bytes, depth 1, D0, 3 callees in set)
+- [ ] X1.bc7f3d0 LIFT sub_bc7f3d0 (0xbc7f3d0, 0x2c8 bytes, depth 1, D0, 2 callees in set)
+- [ ] X1.bcc06a0 LIFT ResourceLoader Job::run (callback, lock, load 0xe86b730) (0xbcc06a0, 0x1cf bytes, depth 3, D2, 2 callees in set)
+- [ ] X1.bcc0ee0 LIFT ResourceLoader::loadSync (job on stack, run now) (0xbcc0ee0, 0x703 bytes, depth 2, D1, 3 callees in set)
+- [ ] X1.bc57460.plan PLAN sub_bc57460: split 0xbc57460..0xbc5a28f at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc57460.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X1.bc57460.asm LIFT ASSEMBLE sub_bc57460 (waits for chunks)
+- [ ] X1.bc7c580 LIFT sub_bc7c580 (0xbc7c580, 0x121e bytes, depth 1, D0, 5 callees in set)
+- [ ] X1.bc7f6e0.plan PLAN sub_bc7f6e0: split 0xbc7f6e0..0xbc81162 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc7f6e0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X1.bc7f6e0.asm LIFT ASSEMBLE sub_bc7f6e0 (waits for chunks)
+- [ ] X1.bc82ad0.plan PLAN sub_bc82ad0: split 0xbc82ad0..0xbc864df at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc82ad0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X1.bc82ad0.asm LIFT ASSEMBLE sub_bc82ad0 (waits for chunks)
+- [ ] X1.bc8a380.plan PLAN sub_bc8a380: split 0xbc8a380..0xbc8be7c at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc8a380.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X1.bc8a380.asm LIFT ASSEMBLE sub_bc8a380 (waits for chunks)
+- [ ] X1.bc8eb90.plan PLAN sub_bc8eb90: split 0xbc8eb90..0xbc94737 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc8eb90.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X1.bc8eb90.asm LIFT ASSEMBLE sub_bc8eb90 (waits for chunks)
+- [ ] X1.bc98310.plan PLAN sub_bc98310: split 0xbc98310..0xbc99e3a at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc98310.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X1.bc98310.asm LIFT ASSEMBLE sub_bc98310 (waits for chunks)
+- [ ] X1.bc9ada0 LIFT sub_bc9ada0 (0xbc9ada0, 0x152c bytes, depth 1, D0, 5 callees in set)
+- [ ] X1.bc9d7a0.plan PLAN sub_bc9d7a0: split 0xbc9d7a0..0xbca3f7b at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc9d7a0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X1.bc9d7a0.asm LIFT ASSEMBLE sub_bc9d7a0 (waits for chunks)
+- [ ] X1.bcba340 LIFT sub_bcba340 (0xbcba340, 0x8d5 bytes, depth 1, D0, 5 callees in set)
+- [ ] X1.bcbb090 LIFT sub_bcbb090 (0xbcbb090, 0x6eb bytes, depth 1, D0, 5 callees in set)
+- [ ] X1.bcbb900 LIFT sub_bcbb900 (0xbcbb900, 0x8d7 bytes, depth 1, D0, 5 callees in set)
+- [ ] X1.bcbc3a0 LIFT sub_bcbc3a0 (0xbcbc3a0, 0x11da bytes, depth 1, D0, 6 callees in set)
+- [ ] X1z GATE (orchestrator): all X1 items [x]; build the DLL, fix compile errors, run the milestone verify scenes (docs/NATIVE_VERIFY_PROTOCOL.md), zero divergence; set functions.tsv rows to L2; push mirror
+
+## X2. D3D12 backend: executor, flush, PSO, descriptors, resources
+
+223 functions, 347 KB of machine code. Order = callees first. Source dir: `src/client/features/render/native/d3d12/`. Gate: X2z.
+
+- [ ] X2.e7fd020 LIFT sub_e7fd020 (0xe7fd020, 0x2ea bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e8041a0 LIFT sub_e8041a0 (0xe8041a0, 0x21c bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e805e50 LIFT sub_e805e50 (0xe805e50, 0x5b3 bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e806410 LIFT sub_e806410 (0xe806410, 0x127 bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e806560 LIFT sub_e806560 (0xe806560, 0x15f bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e8097e0 LIFT sub_e8097e0 (0xe8097e0, 0x195 bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e809980 LIFT sub_e809980 (0xe809980, 0x10e bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e809f40 LIFT sub_e809f40 (0xe809f40, 0x6a bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e80b240 LIFT sub_e80b240 (0xe80b240, 0xc5 bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e80b310 LIFT sub_e80b310 (0xe80b310, 0x464 bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e80bee0 LIFT sub_e80bee0 (0xe80bee0, 0xa5 bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e80ef60 LIFT sub_e80ef60 (0xe80ef60, 0x329 bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e80f290 LIFT sub_e80f290 (0xe80f290, 0x35e bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e811fb0 LIFT sub_e811fb0 (0xe811fb0, 0x504 bytes, depth 0, D0, 0 callees in set)
+- [ ] X2.e8141e0 LIFT sub_e8141e0 (0xe8141e0, 0xd8 bytes, depth 0, D0, 0 callees in set)
+- [ ] X2.e8142c0 LIFT createProgram (shader pointers, merged predefined uniforms), fully reversed (0xe8142c0, 0xd6 bytes, depth 0, D2, 0 callees in set)
+- [ ] X2.e817790 LIFT sub_e817790 (0xe817790, 0xe8 bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e817cf0 LIFT sub_e817cf0 (0xe817cf0, 0x15a bytes, depth 0, D0, 0 callees in set)
+- [ ] X2.e817e50 LIFT sub_e817e50 (0xe817e50, 0x1fe bytes, depth 0, D0, 0 callees in set)
+- [ ] X2.e8189c0 LIFT sub_e8189c0 (0xe8189c0, 0xa1 bytes, depth 0, D0, 0 callees in set)
+- [ ] X2.e818aa0 LIFT sub_e818aa0 (0xe818aa0, 0xcf bytes, depth 0, D0, 0 callees in set)
+- [ ] X2.e81a0c0 LIFT sub_e81a0c0 (0xe81a0c0, 0x54a bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e81b0f0 LIFT sub_e81b0f0 (0xe81b0f0, 0x14b bytes, depth 0, D0, 0 callees in set)
+- [ ] X2.e81b3b0 LIFT sub_e81b3b0 (0xe81b3b0, 0x118 bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e81b4d0 LIFT setVertexBuffers (per-draw vertex buffer views + transitions), fully reversed (0xe81b4d0, 0x24f bytes, depth 2, D2, 0 callees in set)
+- [ ] X2.e81d660 LIFT sub_e81d660 (0xe81d660, 0x1af bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e81d850 LIFT sub_e81d850 (0xe81d850, 0x1cd bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e81e1c0 LIFT commit(UniformBuffer) constant-buffer commit (0xe81e1c0, 0x69c bytes, depth 2, D2, 0 callees in set)
+- [ ] X2.e82dcc0 LIFT sub_e82dcc0 (0xe82dcc0, 0x1cf bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e834040 LIFT sub_e834040 (0xe834040, 0x1a3 bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e834330 LIFT sub_e834330 (0xe834330, 0x1ee bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e834520 LIFT sub_e834520 (0xe834520, 0x13d bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e834660 LIFT sub_e834660 (0xe834660, 0x15f bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e834b50 LIFT sub_e834b50 (0xe834b50, 0xf4 bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e834c50 LIFT sub_e834c50 (0xe834c50, 0x1d8 bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e835490 LIFT sub_e835490 (0xe835490, 0x677 bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e835b50 LIFT sub_e835b50 (0xe835b50, 0x1a5 bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e835f00 LIFT sub_e835f00 (0xe835f00, 0x1e6 bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e836640 LIFT sub_e836640 (0xe836640, 0x12d bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e836dc0 LIFT sub_e836dc0 (0xe836dc0, 0x131 bytes, depth 3, D0, 0 callees in set)
+- [ ] X2.e836f30 LIFT sub_e836f30 (0xe836f30, 0x91e bytes, depth 3, D0, 0 callees in set)
+- [ ] X2.e837b40 LIFT sub_e837b40 (0xe837b40, 0x12b bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e838560 LIFT sub_e838560 (0xe838560, 0x8fb bytes, depth 3, D0, 0 callees in set)
+- [ ] X2.e839020 LIFT sub_e839020 (0xe839020, 0x72f bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e83aaa0 LIFT sub_e83aaa0 (0xe83aaa0, 0x10d bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e83ace0 LIFT sub_e83ace0 (0xe83ace0, 0x1e8 bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e83b200 LIFT sub_e83b200 (0xe83b200, 0x1c5 bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e83b9f0 LIFT sub_e83b9f0 (0xe83b9f0, 0x1b2 bytes, depth 3, D0, 0 callees in set)
+- [ ] X2.e83bbf0 LIFT sub_e83bbf0 (0xe83bbf0, 0x1db bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e83bdd0 LIFT sub_e83bdd0 (0xe83bdd0, 0x5b3 bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e84b0d0 LIFT sub_e84b0d0 (0xe84b0d0, 0xfb bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e84c7d0 LIFT sub_e84c7d0 (0xe84c7d0, 0x62f bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e84d1b0 LIFT sub_e84d1b0 (0xe84d1b0, 0x23c bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e84d3f0 LIFT sub_e84d3f0 (0xe84d3f0, 0x12f bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e84d560 LIFT sub_e84d560 (0xe84d560, 0xfa bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e84d730 LIFT sub_e84d730 (0xe84d730, 0x148 bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e84d900 LIFT sub_e84d900 (0xe84d900, 0x369 bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e854800 LIFT sub_e854800 (0xe854800, 0x18b bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e854990 LIFT sub_e854990 (0xe854990, 0x178 bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e855080 LIFT sub_e855080 (0xe855080, 0xa6b bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e8692c0 LIFT sub_e8692c0 (0xe8692c0, 0x5cd bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e86b370 LIFT sub_e86b370 (0xe86b370, 0x293 bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e86d770 LIFT stencil face -> bgfx stencil word (ref, read mask, test, 3 ops), fully reversed (0xe86d770, 0x7d bytes, depth 3, D2, 0 callees in set)
+- [ ] X2.e870630 LIFT sub_e870630 (0xe870630, 0x7b bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e8706b0 LIFT sub_e8706b0 (0xe8706b0, 0x131 bytes, depth 5, D0, 0 callees in set)
+- [ ] X2.e8707f0 LIFT sub_e8707f0 (0xe8707f0, 0x7b bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e874d80 LIFT sub_e874d80 (0xe874d80, 0x95 bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e874e20 LIFT sub_e874e20 (0xe874e20, 0x7b bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e874ea0 LIFT sub_e874ea0 (0xe874ea0, 0x7b bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e874f20 LIFT sub_e874f20 (0xe874f20, 0x127 bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e875050 LIFT sub_e875050 (0xe875050, 0x73c bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e875790 LIFT sub_e875790 (0xe875790, 0x8e4 bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e8760c0 LIFT sub_e8760c0 (0xe8760c0, 0x1a4 bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e8762d0 LIFT sub_e8762d0 (0xe8762d0, 0x74 bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e876380 LIFT sub_e876380 (0xe876380, 0x92 bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e876420 LIFT sub_e876420 (0xe876420, 0xc5 bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e8764f0 LIFT sub_e8764f0 (0xe8764f0, 0x105 bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e877670 LIFT sub_e877670 (0xe877670, 0x194 bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e877960 LIFT sub_e877960 (0xe877960, 0x52c bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e878010 LIFT sub_e878010 (0xe878010, 0x4f2 bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e878550 LIFT sub_e878550 (0xe878550, 0x225 bytes, depth 7, D0, 0 callees in set)
+- [ ] X2.e878bc0 LIFT sub_e878bc0 (0xe878bc0, 0xba bytes, depth 7, D0, 0 callees in set)
+- [ ] X2.e878c80 LIFT sub_e878c80 (0xe878c80, 0x16d bytes, depth 7, D0, 0 callees in set)
+- [ ] X2.e878df0 LIFT sub_e878df0 (0xe878df0, 0x1e2 bytes, depth 7, D0, 0 callees in set)
+- [ ] X2.e879100 LIFT sub_e879100 (0xe879100, 0xa2a bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e879c60 LIFT sub_e879c60 (0xe879c60, 0x24b bytes, depth 7, D0, 0 callees in set)
+- [ ] X2.e87b920 LIFT sub_e87b920 (0xe87b920, 0x1e0 bytes, depth 7, D0, 0 callees in set)
+- [ ] X2.e87bb00 LIFT sub_e87bb00 (0xe87bb00, 0x1ac bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e87bd50 LIFT sub_e87bd50 (0xe87bd50, 0x2cc bytes, depth 7, D0, 0 callees in set)
+- [ ] X2.e8066c0 LIFT sub_e8066c0 (0xe8066c0, 0x11c bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e806810 LIFT sub_e806810 (0xe806810, 0x11c bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e806960 LIFT sub_e806960 (0xe806960, 0x11c bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e809cc0 LIFT sub_e809cc0 (0xe809cc0, 0xa1 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e809fb0 LIFT sub_e809fb0 (0xe809fb0, 0xa1 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80a090 LIFT sub_e80a090 (0xe80a090, 0xd96 bytes, depth 1, D0, 3 callees in set)
+- [ ] X2.e80afc0 LIFT sub_e80afc0 (0xe80afc0, 0x27d bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80da50 LIFT sub_e80da50 (0xe80da50, 0x2e7 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e80dd60 LIFT sub_e80dd60 (0xe80dd60, 0x151 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80f820 LIFT sub_e80f820 (0xe80f820, 0x889 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e8137b0 LIFT createShader (parse CSH/FSH/VSH binary, fill ShaderD3D12 record, MurmurHash2A) (0xe8137b0, 0xa22 bytes, depth 0, D1, 3 callees in set)
+- [ ] X2.e815590 LIFT sub_e815590 (0xe815590, 0x2af bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e816f40 LIFT sub_e816f40 (0xe816f40, 0x130 bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e818490 LIFT sub_e818490 (0xe818490, 0x4e6 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e81da20 LIFT sub_e81da20 (0xe81da20, 0x412 bytes, depth 1, D0, 3 callees in set)
+- [ ] X2.e820500 LIFT sub_e820500 (0xe820500, 0x409 bytes, depth 1, D0, 3 callees in set)
+- [ ] X2.e82de90 LIFT sub_e82de90 (0xe82de90, 0x399 bytes, depth 2, D0, 2 callees in set)
+- [ ] X2.e835d00 LIFT sub_e835d00 (0xe835d00, 0x1f1 bytes, depth 3, D0, 2 callees in set)
+- [ ] X2.e836770 LIFT sub_e836770 (0xe836770, 0x1b5 bytes, depth 2, D0, 1 callees in set)
+- [ ] X2.e837a10 LIFT sub_e837a10 (0xe837a10, 0x122 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e83abb0 LIFT sub_e83abb0 (0xe83abb0, 0x12f bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e83aed0 LIFT sub_e83aed0 (0xe83aed0, 0x201 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e83d2f0 LIFT sub_e83d2f0 (0xe83d2f0, 0x49 bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e83d7d0 LIFT sub_e83d7d0 (0xe83d7d0, 0x671 bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e84b980 LIFT sub_e84b980 (0xe84b980, 0xae bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e84ba30 LIFT sub_e84ba30 (0xe84ba30, 0xb27 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e84dc70 LIFT sub_e84dc70 (0xe84dc70, 0x28f bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e84df40 LIFT sub_e84df40 (0xe84df40, 0x28f bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e8546c0 LIFT sub_e8546c0 (0xe8546c0, 0x108 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e854ee0 LIFT sub_e854ee0 (0xe854ee0, 0x156 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e86c820 LIFT sub_e86c820 (0xe86c820, 0x687 bytes, depth 4, D0, 1 callees in set)
+- [ ] X2.e86f4f0 LIFT sub_e86f4f0 (0xe86f4f0, 0x203 bytes, depth 3, D0, 1 callees in set)
+- [ ] X2.e876600 LIFT sub_e876600 (0xe876600, 0x152 bytes, depth 6, D0, 1 callees in set)
+- [ ] X2.e876760 LIFT sub_e876760 (0xe876760, 0x943 bytes, depth 6, D0, 4 callees in set)
+- [ ] X2.e878800 LIFT sub_e878800 (0xe878800, 0x308 bytes, depth 6, D0, 2 callees in set)
+- [ ] X2.e879eb0 LIFT sub_e879eb0 (0xe879eb0, 0x568 bytes, depth 6, D0, 2 callees in set)
+- [ ] X2.e87ac30 LIFT sub_e87ac30 (0xe87ac30, 0xa4c bytes, depth 6, D0, 1 callees in set)
+- [ ] X2.e807a80 LIFT sub_e807a80 (0xe807a80, 0x5a bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e809c30 LIFT sub_e809c30 (0xe809c30, 0x69 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80bc90 LIFT sub_e80bc90 (0xe80bc90, 0x14b bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80bde0 LIFT sub_e80bde0 (0xe80bde0, 0xf2 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80bf90 LIFT sub_e80bf90 (0xe80bf90, 0x1ef bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80c180 LIFT sub_e80c180 (0xe80c180, 0x47a bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80da20 LIFT sub_e80da20 (0xe80da20, 0x2d bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80ecb0 LIFT sub_e80ecb0 (0xe80ecb0, 0x1c6 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e8102b0.plan PLAN device-lost / TDR handler (slot 7): split 0xe8102b0..0xe811bd4 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e8102b0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X2.e8102b0.asm LIFT ASSEMBLE device-lost / TDR handler (slot 7) (waits for chunks)
+- [ ] X2.e8146f0 LIFT sub_e8146f0 (0xe8146f0, 0x372 bytes, depth 0, D0, 3 callees in set)
+- [ ] X2.e815c30 LIFT sub_e815c30 (0xe815c30, 0x13c bytes, depth 0, D0, 3 callees in set)
+- [ ] X2.e815d70 LIFT sub_e815d70 (0xe815d70, 0x12b bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e815ea0 LIFT sub_e815ea0 (0xe815ea0, 0x11f bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e817070 LIFT sub_e817070 (0xe817070, 0x5e2 bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e818b70 LIFT sub_e818b70 (0xe818b70, 0x4c bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e819b50 LIFT framebuffer post-create (derive color/depth from attachments) (0xe819b50, 0x570 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e81ac80 LIFT sub_e81ac80 (0xe81ac80, 0x18c bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e81bf30 LIFT TextureD3D12::create (dimensions, type, formats, mips; resource and views) (0xe81bf30, 0x1727 bytes, depth 1, D1, 1 callees in set)
+- [ ] X2.e81e860.plan PLAN D3D12 graphics PSO builder: split 0xe81e860..0xe8204fa at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e81e860.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X2.e81e860.asm LIFT ASSEMBLE D3D12 graphics PSO builder (waits for chunks)
+- [ ] X2.e82d960 LIFT resource state transition helper (0xe82d960, 0x359 bytes, depth 1, D1, 3 callees in set)
+- [ ] X2.e834aa0 LIFT sub_e834aa0 (0xe834aa0, 0xad bytes, depth 2, D0, 1 callees in set)
+- [ ] X2.e836970 LIFT sub_e836970 (0xe836970, 0x334 bytes, depth 2, D0, 3 callees in set)
+- [ ] X2.e837ca0 LIFT sub_e837ca0 (0xe837ca0, 0x610 bytes, depth 2, D0, 2 callees in set)
+- [ ] X2.e83b0e0 LIFT sub_e83b0e0 (0xe83b0e0, 0x11c bytes, depth 1, D0, 4 callees in set)
+- [ ] X2.e84ce00 LIFT sub_e84ce00 (0xe84ce00, 0x3a3 bytes, depth 2, D0, 3 callees in set)
+- [ ] X2.e86ced0 LIFT sub_e86ced0 (0xe86ced0, 0x5be bytes, depth 2, D0, 2 callees in set)
+- [ ] X2.e86eef0 LIFT sub_e86eef0 (0xe86eef0, 0x5f8 bytes, depth 2, D0, 2 callees in set)
+- [ ] X2.e870870.plan PLAN Material::parseBody (buffers, uniforms, properties, passes, variants, shaders; per-stage platform pick): split 0xe870870..0xe8735ea at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e870870.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X2.e870870.asm LIFT ASSEMBLE Material::parseBody (buffers, uniforms, properties, passes, variants, shaders; per-stage platform pick) (waits for chunks)
+- [ ] X2.e800c10 LIFT sub_e800c10 (0xe800c10, 0x58 bytes, depth 2, D0, 1 callees in set)
+- [ ] X2.e807b00 LIFT sub_e807b00 (0xe807b00, 0x445 bytes, depth 1, D0, 4 callees in set)
+- [ ] X2.e809a90 LIFT sub_e809a90 (0xe809a90, 0x13d bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e809da0 LIFT sub_e809da0 (0xe809da0, 0x13d bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80b780 LIFT sub_e80b780 (0xe80b780, 0x505 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e80ee80 LIFT sub_e80ee80 (0xe80ee80, 0xd9 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e80f630 LIFT sub_e80f630 (0xe80f630, 0x45 bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e80f680 LIFT sub_e80f680 (0xe80f680, 0x196 bytes, depth 2, D0, 2 callees in set)
+- [ ] X2.e8143c0 LIFT createTexture base (handle -> record incl. overflow pages, TextureD3D12::create) (0xe8143c0, 0x2e1 bytes, depth 0, D1, 7 callees in set)
+- [ ] X2.e8150f0 LIFT sub_e8150f0 (0xe8150f0, 0x498 bytes, depth 0, D0, 6 callees in set)
+- [ ] X2.e815840 LIFT sub_e815840 (0xe815840, 0x3ae bytes, depth 0, D0, 5 callees in set)
+- [ ] X2.e8176a0 LIFT createFrameBuffer(handle, num, attachments) slot 40, fully reversed (0xe8176a0, 0xeb bytes, depth 0, D2, 4 callees in set)
+- [ ] X2.e817880 LIFT createFrameBuffer(window) slot 39 (swap chain, RTVs, window list) (0xe817880, 0x37b bytes, depth 0, D1, 5 callees in set)
+- [ ] X2.e817c00 LIFT destroyFrameBuffer slot 41 (release swap chain, window-list swap-remove), fully reversed (0xe817c00, 0xe5 bytes, depth 0, D2, 2 callees in set)
+- [ ] X2.e818050 LIFT sub_e818050 (0xe818050, 0x438 bytes, depth 0, D0, 4 callees in set)
+- [ ] X2.e833210 LIFT sub_e833210 (0xe833210, 0xde4 bytes, depth 2, D0, 6 callees in set)
+- [ ] X2.e8360f0 LIFT upload ring allocator (0xe8360f0, 0x3f6 bytes, depth 1, D1, 3 callees in set)
+- [ ] X2.e83b3d0 LIFT sub_e83b3d0 (0xe83b3d0, 0x3d0 bytes, depth 2, D0, 2 callees in set)
+- [ ] X2.e84c560 LIFT sub_e84c560 (0xe84c560, 0x229 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e8542d0 LIFT sub_e8542d0 (0xe8542d0, 0x3a6 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e86ea20 LIFT sub_e86ea20 (0xe86ea20, 0x48f bytes, depth 3, D0, 2 callees in set)
+- [ ] X2.e86f700 LIFT sub_e86f700 (0xe86f700, 0x44a bytes, depth 2, D0, 2 callees in set)
+- [ ] X2.e873fa0 LIFT material.bin decrypt-and-parse visitor (SMPL key hash, KYPR unwrap), fully reversed (0xe873fa0, 0x940 bytes, depth 5, D2, 2 callees in set)
+- [ ] X2.e80dec0 LIFT sub_e80dec0 (0xe80dec0, 0xdad bytes, depth 0, D0, 12 callees in set)
+- [ ] X2.e812740 LIFT BufferD3D12::create (record fields, SRV/UAV descs, persistent map) (0xe812740, 0x446 bytes, depth 1, D2, 2 callees in set)
+- [ ] X2.e813110 LIFT sub_e813110 (0xe813110, 0x1f7 bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e8135a0 LIFT sub_e8135a0 (0xe8135a0, 0x20a bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e814a70 LIFT sub_e814a70 (0xe814a70, 0x674 bytes, depth 0, D0, 4 callees in set)
+- [ ] X2.e816380 LIFT sub_e816380 (0xe816380, 0x1f8 bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e819750 LIFT sub_e819750 (0xe819750, 0x3f9 bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e81a610 LIFT reset handler (slot 60, base) (0xe81a610, 0x670 bytes, depth 0, D1, 5 callees in set)
+- [ ] X2.e81af20 LIFT sub_e81af20 (0xe81af20, 0x1c8 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e81b720 LIFT D3D12 draw batch flush (DrawInstanced / DrawIndexedInstanced / ExecuteIndirect) (0xe81b720, 0x803 bytes, depth 2, D2, 1 callees in set)
+- [ ] X2.e81de60 LIFT sub_e81de60 (0xe81de60, 0x352 bytes, depth 2, D0, 1 callees in set)
+- [ ] X2.e820910 LIFT sub_e820910 (0xe820910, 0x80c bytes, depth 1, D0, 4 callees in set)
+- [ ] X2.e83c630 LIFT sub_e83c630 (0xe83c630, 0x2d bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e83f1d0 LIFT RTX GPU skinning (slot 63) (0xe83f1d0, 0x107b bytes, depth 0, D1, 5 callees in set)
+- [ ] X2.e84b280 LIFT sub_e84b280 (0xe84b280, 0x39d bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e84e210.plan PLAN sub_e84e210: split 0xe84e210..0xe85428f at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e84e210.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X2.e84e210.asm LIFT ASSEMBLE sub_e84e210 (waits for chunks)
+- [ ] X2.e86e7d0 LIFT sub_e86e7d0 (0xe86e7d0, 0x24b bytes, depth 2, D0, 1 callees in set)
+- [ ] X2.e86fb90 LIFT sub_e86fb90 (0xe86fb90, 0x19f bytes, depth 2, D0, 1 callees in set)
+- [ ] X2.e86fd80 LIFT sub_e86fd80 (0xe86fd80, 0x14d bytes, depth 2, D0, 1 callees in set)
+- [ ] X2.e870350 LIFT Material::deserialize (header 0xA11DA1A, version 0x1A, NONE/SMPL/KYPR), fully reversed (0xe870350, 0x292 bytes, depth 4, D2, 3 callees in set)
+- [ ] X2.e80c600 LIFT sub_e80c600 (0xe80c600, 0x1286 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e8124c0 LIFT createIndexBuffer base (record create + used-handle bitset) (0xe8124c0, 0x23b bytes, depth 0, D1, 2 callees in set)
+- [ ] X2.e812be0 LIFT createVertexBuffer base (0xe812be0, 0x257 bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e812ea0 LIFT sub_e812ea0 (0xe812ea0, 0x22f bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e813310 LIFT sub_e813310 (0xe813310, 0x24f bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e815fc0 LIFT sub_e815fc0 (0xe815fc0, 0x337 bytes, depth 0, D0, 3 callees in set)
+- [ ] X2.e8165a0 LIFT sub_e8165a0 (0xe8165a0, 0x99c bytes, depth 0, D0, 3 callees in set)
+- [ ] X2.e818bc0 LIFT sub_e818bc0 (0xe818bc0, 0xb87 bytes, depth 0, D0, 7 callees in set)
+- [ ] X2.e81ae10 LIFT sub_e81ae10 (0xe81ae10, 0xdf bytes, depth 0, D0, 3 callees in set)
+- [ ] X2.e821120.plan PLAN D3D12 draw executor (per-job item loop): split 0xe821120..0xe82d4e3 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e821120.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X2.e821120.asm LIFT ASSEMBLE D3D12 draw executor (per-job item loop) (waits for chunks)
+- [ ] X2.e82e230.plan PLAN RendererContextD3D12::submit (slot 50, base): split 0xe82e230..0xe832fc1 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e82e230.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X2.e82e230.asm LIFT ASSEMBLE RendererContextD3D12::submit (slot 50, base) (waits for chunks)
+- [ ] X2.e83e980 LIFT sub_e83e980 (0xe83e980, 0x2e5 bytes, depth 0, D0, 4 callees in set)
+- [ ] X2.e83ec70 LIFT reset handler RTX override (DLSS mode select) (0xe83ec70, 0x55e bytes, depth 0, D1, 1 callees in set)
+- [ ] X2.e84b620 LIFT sub_e84b620 (0xe84b620, 0x351 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e86d7f0 LIFT sub_e86d7f0 (0xe86d7f0, 0xfd6 bytes, depth 1, D0, 7 callees in set)
+- [ ] X2.e807ff0 LIFT init (slot 58, "d3d12.dll") (0xe807ff0, 0x1734 bytes, depth 0, D1, 26 callees in set)
+- [ ] X2.e83c390 LIFT draw executor wrapper (job launch) (0xe83c390, 0xd0 bytes, depth 0, D1, 1 callees in set)
+- [ ] X2.e83d210 LIFT RTX createIndexBuffer override (track handle for RTX) (0xe83d210, 0x47 bytes, depth 0, D2, 1 callees in set)
+- [ ] X2.e83d260 LIFT RTX createVertexBuffer override (track handle, register geometry 0xe84b620) (0xe83d260, 0x85 bytes, depth 0, D2, 2 callees in set)
+- [ ] X2.e83d340 LIFT sub_e83d340 (0xe83d340, 0x47 bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e83d390 LIFT sub_e83d390 (0xe83d390, 0x6d bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e83d440 LIFT RendererContextD3D12 RTX submit override (slot 50) (0xe83d440, 0x381 bytes, depth 0, D1, 7 callees in set)
+- [ ] X2.e83df70 LIFT sub_e83df70 (0xe83df70, 0x28a bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e8403d0.plan PLAN RTX SuperSampling evaluate (slot 64): split 0xe8403d0..0xe84ae2b at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e8403d0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X2.e8403d0.asm LIFT ASSEMBLE RTX SuperSampling evaluate (slot 64) (waits for chunks)
+- [ ] X2.e83e200 LIFT sub_e83e200 (0xe83e200, 0x73c bytes, depth 0, D0, 5 callees in set)
+- [ ] X2.e86b730 LIFT MaterialLoader::load (<name>.material.bin, MaterialInstance 0x470, deps), fully reversed (0xe86b730, 0xe04 bytes, depth 4, D2, 4 callees in set)
+- [ ] X2z GATE (orchestrator): all X2 items [x]; build the DLL, fix compile errors, run the milestone verify scenes (docs/NATIVE_VERIFY_PROTOCOL.md), zero divergence; set functions.tsv rows to L2; push mirror
+
+## X3. RenderDragon: endFrame, generate, scheduler, task runner, Declarator
+
+137 functions, 214 KB of machine code. Order = callees first. Source dir: `src/client/features/render/native/dragon/`. Gate: X3z.
+
+- [ ] X3.c25f680 LIFT sub_c25f680 (0xc25f680, 0x77 bytes, depth 1, D0, 0 callees in set)
+- [ ] X3.c25fe20 LIFT GraphicsTasks task runner (0xc25fe20, 0x1e0 bytes, depth 1, D2, 0 callees in set)
+- [ ] X3.c260a60 LIFT sub_c260a60 (0xc260a60, 0x4f5 bytes, depth 1, D0, 0 callees in set)
+- [ ] X3.c260f60 LIFT sub_c260f60 (0xc260f60, 0x426 bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.c261680 LIFT sub_c261680 (0xc261680, 0x6d6 bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c2625e0 LIFT sub_c2625e0 (0xc2625e0, 0x130 bytes, depth 5, D0, 0 callees in set)
+- [ ] X3.c262b70 LIFT sub_c262b70 (0xc262b70, 0x434 bytes, depth 6, D0, 0 callees in set)
+- [ ] X3.c2635e0 LIFT sub_c2635e0 (0xc2635e0, 0x3d9 bytes, depth 4, D0, 0 callees in set)
+- [ ] X3.c2639c0 LIFT sub_c2639c0 (0xc2639c0, 0x266 bytes, depth 4, D0, 0 callees in set)
+- [ ] X3.c265b20 LIFT sub_c265b20 (0xc265b20, 0x6d6 bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.c2664a0 LIFT sub_c2664a0 (0xc2664a0, 0x426 bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.c266ba0 LIFT sub_c266ba0 (0xc266ba0, 0x434 bytes, depth 1, D0, 0 callees in set)
+- [ ] X3.c26c9c0 LIFT sub_c26c9c0 (0xc26c9c0, 0x98 bytes, depth 1, D0, 0 callees in set)
+- [ ] X3.c271290 LIFT sub_c271290 (0xc271290, 0x123 bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.c2713e0 LIFT sub_c2713e0 (0xc2713e0, 0x170 bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.c272e10 LIFT sub_c272e10 (0xc272e10, 0x17c bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.c273060 LIFT sub_c273060 (0xc273060, 0x2bd bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.c27ebd0 LIFT sub_c27ebd0 (0xc27ebd0, 0x8b bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c27ed70 LIFT sub_c27ed70 (0xc27ed70, 0x237 bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c27efb0 LIFT sub_c27efb0 (0xc27efb0, 0x848 bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c27f940 LIFT sub_c27f940 (0xc27f940, 0x377 bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c27fcc0 LIFT sub_c27fcc0 (0xc27fcc0, 0x34b bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c280a80 LIFT sub_c280a80 (0xc280a80, 0x10f bytes, depth 4, D0, 0 callees in set)
+- [ ] X3.c280b90 LIFT sub_c280b90 (0xc280b90, 0x10f bytes, depth 4, D0, 0 callees in set)
+- [ ] X3.c283810 LIFT sub_c283810 (0xc283810, 0x8b bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c283ce0 LIFT sub_c283ce0 (0xc283ce0, 0x6b bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c287400 LIFT sub_c287400 (0xc287400, 0x35d bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c288990.plan PLAN per-frame loader tracked-list merge (from endFrame): split 0xc288990..0xc28a912 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/c288990.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X3.c288990.asm LIFT ASSEMBLE per-frame loader tracked-list merge (from endFrame) (waits for chunks)
+- [ ] X3.c28a920 LIFT sub_c28a920 (0xc28a920, 0xeb bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c28b930 LIFT sub_c28b930 (0xc28b930, 0x2bd bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c28bc30 LIFT sub_c28bc30 (0xc28bc30, 0xbb bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c28bcf0 LIFT loader shutdown unload (tracked resources, drop pending) (0xc28bcf0, 0x186 bytes, depth 3, D2, 0 callees in set)
+- [ ] X3.c28d3e0 LIFT sub_c28d3e0 (0xc28d3e0, 0x128 bytes, depth 1, D0, 0 callees in set)
+- [ ] X3.c28d710 LIFT sub_c28d710 (0xc28d710, 0x144 bytes, depth 1, D0, 0 callees in set)
+- [ ] X3.c28e330 LIFT sub_c28e330 (0xc28e330, 0xcc6 bytes, depth 1, D0, 0 callees in set)
+- [ ] X3.c293af0 LIFT sub_c293af0 (0xc293af0, 0xd6 bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c293ed0 LIFT sub_c293ed0 (0xc293ed0, 0x651 bytes, depth 4, D0, 0 callees in set)
+- [ ] X3.c2968c0 LIFT sub_c2968c0 (0xc2968c0, 0x23c bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.c2981f0 LIFT sub_c2981f0 (0xc2981f0, 0x130 bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c298320.plan PLAN sub_c298320: split 0xc298320..0xc299ba1 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/c298320.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X3.c298320.asm LIFT ASSEMBLE sub_c298320 (waits for chunks)
+- [ ] X3.c29ae80.plan PLAN sub_c29ae80: split 0xc29ae80..0xc29c78b at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/c29ae80.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X3.c29ae80.asm LIFT ASSEMBLE sub_c29ae80 (waits for chunks)
+- [ ] X3.c29cbd0 LIFT sub_c29cbd0 (0xc29cbd0, 0x3d8 bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.c29d620 LIFT sub_c29d620 (0xc29d620, 0x258 bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.c29d8b0 LIFT sub_c29d8b0 (0xc29d8b0, 0x52e bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.c29e150 LIFT sub_c29e150 (0xc29e150, 0x3a8 bytes, depth 1, D0, 0 callees in set)
+- [ ] X3.c29f820 LIFT sub_c29f820 (0xc29f820, 0x6e8 bytes, depth 1, D0, 0 callees in set)
+- [ ] X3.e8fc640 LIFT sub_e8fc640 (0xe8fc640, 0x11f bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.e8fe1d0 LIFT sub_e8fe1d0 (0xe8fe1d0, 0x483 bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.e8feb10 LIFT PipelineDiskCache::tick (0xe8feb10, 0x2df bytes, depth 1, D1, 0 callees in set)
+- [ ] X3.e8ffc10 LIFT sub_e8ffc10 (0xe8ffc10, 0x689 bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.e904280 LIFT sub_e904280 (0xe904280, 0x224 bytes, depth 4, D0, 0 callees in set)
+- [ ] X3.e9045b0 LIFT sub_e9045b0 (0xe9045b0, 0x1fe bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.e9058a0 LIFT sub_e9058a0 (0xe9058a0, 0xbd bytes, depth 5, D0, 0 callees in set)
+- [ ] X3.e905ce0 LIFT sub_e905ce0 (0xe905ce0, 0x19 bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.e905d00 LIFT sub_e905d00 (0xe905d00, 0x1ec bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.e905ef0 LIFT sub_e905ef0 (0xe905ef0, 0x177 bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.e906230 LIFT sub_e906230 (0xe906230, 0x805 bytes, depth 6, D0, 0 callees in set)
+- [ ] X3.e906cd0 LIFT sub_e906cd0 (0xe906cd0, 0x260 bytes, depth 4, D0, 0 callees in set)
+- [ ] X3.c25ad50 LIFT sub_c25ad50 (0xc25ad50, 0x322 bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.c25c820 LIFT sub_c25c820 (0xc25c820, 0x241 bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.c262820 LIFT sub_c262820 (0xc262820, 0x220 bytes, depth 5, D0, 1 callees in set)
+- [ ] X3.c264090 LIFT sub_c264090 (0xc264090, 0x164a bytes, depth 1, D0, 1 callees in set)
+- [ ] X3.c267b90 LIFT sub_c267b90 (0xc267b90, 0x154d bytes, depth 1, D0, 1 callees in set)
+- [ ] X3.c26b060 LIFT sub_c26b060 (0xc26b060, 0xeda bytes, depth 1, D0, 2 callees in set)
+- [ ] X3.c27ec60 LIFT sub_c27ec60 (0xc27ec60, 0x10d bytes, depth 3, D0, 1 callees in set)
+- [ ] X3.c280010 LIFT std::_Insertion_sort_unchecked on 0x80-byte pass records keyed by +0x78 (0xc280010, 0x98d bytes, depth 3, D2, 3 callees in set)
+- [ ] X3.c281240 LIFT sub_c281240 (0xc281240, 0xc0d bytes, depth 4, D0, 4 callees in set)
+- [ ] X3.c281e50 LIFT sub_c281e50 (0xc281e50, 0x54e bytes, depth 5, D0, 2 callees in set)
+- [ ] X3.c2834c0 LIFT sub_c2834c0 (0xc2834c0, 0x25d bytes, depth 7, D0, 3 callees in set)
+- [ ] X3.c283720 LIFT sub_c283720 (0xc283720, 0xe6 bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.c2838a0 LIFT sub_c2838a0 (0xc2838a0, 0x438 bytes, depth 3, D0, 1 callees in set)
+- [ ] X3.c284020 LIFT sub_c284020 (0xc284020, 0x10b bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.c2878c0 LIFT sub_c2878c0 (0xc2878c0, 0x110 bytes, depth 3, D0, 1 callees in set)
+- [ ] X3.c2879f0 LIFT sub_c2879f0 (0xc2879f0, 0x120 bytes, depth 3, D0, 1 callees in set)
+- [ ] X3.c288880 LIFT per-frame pending merge driver (7 loaders, from endFrame) (0xc288880, 0x10d bytes, depth 1, D2, 1 callees in set)
+- [ ] X3.c28f220 LIFT sub_c28f220 (0xc28f220, 0xc2 bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.c2914b0 LIFT sub_c2914b0 (0xc2914b0, 0x18f bytes, depth 3, D0, 1 callees in set)
+- [ ] X3.c293850 LIFT sub_c293850 (0xc293850, 0x20d bytes, depth 1, D0, 1 callees in set)
+- [ ] X3.c29d090 LIFT sub_c29d090 (0xc29d090, 0x47c bytes, depth 1, D0, 3 callees in set)
+- [ ] X3.c29e5e0 LIFT sub_c29e5e0 (0xc29e5e0, 0xea6 bytes, depth 1, D0, 1 callees in set)
+- [ ] X3.e8fc760 LIFT sub_e8fc760 (0xe8fc760, 0x17e8 bytes, depth 1, D0, 2 callees in set)
+- [ ] X3.e903290 LIFT sub_e903290 (0xe903290, 0xc3 bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.e903360 LIFT sub_e903360 (0xe903360, 0xa9 bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.e903410 LIFT sub_e903410 (0xe903410, 0xa8b bytes, depth 3, D0, 1 callees in set)
+- [ ] X3.e9055a0 LIFT sub_e9055a0 (0xe9055a0, 0x2c2 bytes, depth 5, D0, 1 callees in set)
+- [ ] X3.e906be0 LIFT sub_e906be0 (0xe906be0, 0x81 bytes, depth 5, D0, 1 callees in set)
+- [ ] X3.c25a8d0 LIFT sub_c25a8d0 (0xc25a8d0, 0x3f1 bytes, depth 1, D0, 3 callees in set)
+- [ ] X3.c25b1a0 LIFT task scheduler (0xc25b1a0, 0x960 bytes, depth 0, D1, 1 callees in set)
+- [ ] X3.c25c5c0 LIFT sub_c25c5c0 (0xc25c5c0, 0x1b6 bytes, depth 1, D0, 2 callees in set)
+- [ ] X3.c2623a0 LIFT sub_c2623a0 (0xc2623a0, 0x1a5 bytes, depth 4, D0, 2 callees in set)
+- [ ] X3.c270330 LIFT sub_c270330 (0xc270330, 0x124 bytes, depth 1, D0, 5 callees in set)
+- [ ] X3.c280ca0 LIFT std::stable_sort driver (chunks of 0x20) over pass records (0xc280ca0, 0x599 bytes, depth 4, D2, 3 callees in set)
+- [ ] X3.c282db0 LIFT sub_c282db0 (0xc282db0, 0x70c bytes, depth 6, D0, 4 callees in set)
+- [ ] X3.c28b720 LIFT loader releaseAll (destroy MaterialInstances) (0xc28b720, 0x142 bytes, depth 3, D1, 1 callees in set)
+- [ ] X3.c28f380 LIFT sub_c28f380 (0xc28f380, 0xf5 bytes, depth 1, D0, 1 callees in set)
+- [ ] X3.c28f4b0 LIFT sub_c28f4b0 (0xc28f4b0, 0xfc bytes, depth 1, D0, 1 callees in set)
+- [ ] X3.c28f5e0 LIFT sub_c28f5e0 (0xc28f5e0, 0xfc bytes, depth 1, D0, 1 callees in set)
+- [ ] X3.c28f710 LIFT sub_c28f710 (0xc28f710, 0xf5 bytes, depth 1, D0, 1 callees in set)
+- [ ] X3.c290410 LIFT sub_c290410 (0xc290410, 0xd12 bytes, depth 4, D0, 2 callees in set)
+- [ ] X3.c295b80 LIFT sub_c295b80 (0xc295b80, 0x12f bytes, depth 1, D0, 1 callees in set)
+- [ ] X3.c2965e0 LIFT sub_c2965e0 (0xc2965e0, 0x235 bytes, depth 2, D0, 3 callees in set)
+- [ ] X3.e904c20 LIFT sub_e904c20 (0xe904c20, 0x75b bytes, depth 4, D0, 2 callees in set)
+- [ ] X3.c25a540 LIFT sub_c25a540 (0xc25a540, 0x2e9 bytes, depth 3, D0, 1 callees in set)
+- [ ] X3.c25c190 LIFT sub_c25c190 (0xc25c190, 0x3a8 bytes, depth 1, D0, 2 callees in set)
+- [ ] X3.c25cd00.plan PLAN sub_c25cd00: split 0xc25cd00..0xc25ea8b at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/c25cd00.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X3.c25cd00.asm LIFT ASSEMBLE sub_c25cd00 (waits for chunks)
+- [ ] X3.c2809a0 LIFT sub_c2809a0 (0xc2809a0, 0xd6 bytes, depth 3, D0, 2 callees in set)
+- [ ] X3.c282b80 LIFT sub_c282b80 (0xc282b80, 0x225 bytes, depth 5, D0, 2 callees in set)
+- [ ] X3.c283f10 LIFT sub_c283f10 (0xc283f10, 0xe5 bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.c28b100 LIFT loader destructor (0xc28b100, 0x529 bytes, depth 3, D1, 1 callees in set)
+- [ ] X3.c28f840 LIFT sub_c28f840 (0xc28f840, 0x112 bytes, depth 1, D0, 2 callees in set)
+- [ ] X3.c28f9c0 LIFT sub_c28f9c0 (0xc28f9c0, 0x707 bytes, depth 3, D0, 3 callees in set)
+- [ ] X3.c296b50 LIFT sub_c296b50 (0xc296b50, 0x461 bytes, depth 4, D0, 4 callees in set)
+- [ ] X3.c29a1d0 LIFT sub_c29a1d0 (0xc29a1d0, 0x82a bytes, depth 2, D0, 2 callees in set)
+- [ ] X3.e904a70 LIFT sub_e904a70 (0xe904a70, 0x126 bytes, depth 3, D0, 1 callees in set)
+- [ ] X3.e905990 LIFT sub_e905990 (0xe905990, 0x34a bytes, depth 3, D0, 1 callees in set)
+- [ ] X3.c25a260 LIFT sub_c25a260 (0xc25a260, 0x17c bytes, depth 3, D0, 3 callees in set)
+- [ ] X3.c25cb40 LIFT sub_c25cb40 (0xc25cb40, 0x12b bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.c283d50 LIFT sub_c283d50 (0xc283d50, 0x193 bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.c284720.plan PLAN sub_c284720: split 0xc284720..0xc286744 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/c284720.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X3.c284720.asm LIFT ASSEMBLE sub_c284720 (waits for chunks)
+- [ ] X3.e9002e0 LIFT task list dispatch (0xe9002e0, 0xc3a bytes, depth 2, D2, 3 callees in set)
+- [ ] X3.c25f700 LIFT sub_c25f700 (0xc25f700, 0x198 bytes, depth 2, D0, 4 callees in set)
+- [ ] X3.c287b30 LIFT loader owner teardown (0xc287b30, 0x991 bytes, depth 2, D1, 14 callees in set)
+- [ ] X3.c292a20 LIFT MaterialRepository::loadFile (per-platform path, source read, deserialize 0xe870350), fully reversed (0xc292a20, 0xb63 bytes, depth 3, D2, 4 callees in set)
+- [ ] X3.c26ab80 LIFT sub_c26ab80 (0xc26ab80, 0x496 bytes, depth 1, D0, 9 callees in set)
+- [ ] X3.c26caa0.plan PLAN .material.bin async loader (state machine): split 0xc26caa0..0xc26f21a at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/c26caa0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X3.c26caa0.asm LIFT ASSEMBLE .material.bin async loader (state machine) (waits for chunks)
+- [ ] X3.c2919d0 LIFT MaterialRepository::get (locked name cache, reload, fallback source), fully reversed (0xc2919d0, 0xe44 bytes, depth 2, D2, 2 callees in set)
+- [ ] X3.c25fc50 LIFT GraphicsTasks Execute (0xc25fc50, 0x14a bytes, depth 1, D2, 2 callees in set)
+- [ ] X3.c269790 LIFT sub_c269790 (0xc269790, 0xb48 bytes, depth 1, D0, 7 callees in set)
+- [ ] X3.c28d9a0 LIFT sub_c28d9a0 (0xc28d9a0, 0x825 bytes, depth 1, D0, 2 callees in set)
+- [ ] X3.c291640 LIFT sub_c291640 (0xc291640, 0x301 bytes, depth 1, D0, 1 callees in set)
+- [ ] X3.e9047b0 LIFT sub_e9047b0 (0xe9047b0, 0x222 bytes, depth 3, D0, 2 callees in set)
+- [ ] X3.c25f960 LIFT Wait for previous frame (0xc25f960, 0x256 bytes, depth 1, D2, 2 callees in set)
+- [ ] X3.c267200 LIFT GraphicsTasks Render lambda (0xc267200, 0x632 bytes, depth 0, D1, 2 callees in set)
+- [ ] X3.c273420.plan PLAN frame-graph generate/encode: split 0xc273420..0xc27be93 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/c273420.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X3.c273420.asm LIFT ASSEMBLE frame-graph generate/encode (waits for chunks)
+- [ ] X3.c260050 LIFT sub_c260050 (0xc260050, 0x6c6 bytes, depth 1, D0, 3 callees in set)
+- [ ] X3.c270460 LIFT dragon::platform::BgfxContext::endFrame (0xc270460, 0x2aa bytes, depth 1, D2, 4 callees in set)
+- [ ] X3.c2962f0 LIFT sub_c2962f0 (0xc2962f0, 0x142 bytes, depth 1, D0, 1 callees in set)
+- [ ] X3z GATE (orchestrator): all X3 items [x]; build the DLL, fix compile errors, run the milestone verify scenes (docs/NATIVE_VERIFY_PROTOCOL.md), zero divergence; set functions.tsv rows to L2; push mirror
+
+## X4. FrameBuilder: inserts, visitors, extractors, descriptions, materials
+
+511 functions, 1739 KB of machine code. Order = callees first. Source dir: `src/client/features/render/native/framebuilder/`. Gate: X4z.
+
+- [ ] X4.15a6880 LIFT insert<ChunkGeometry> thin clone (Item tag 3), fully reversed (0x15a6880, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.4c85d70 LIFT insert<Editor variant 1> thin clone (Editor tag 1), fully reversed (0x4c85d70, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.4c85f30 LIFT insert<Editor variant 2> thin clone (Editor tag 2), fully reversed (0x4c85f30, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.4c860f0 LIFT insert<Editor variant 3> thin clone (Editor tag 3), fully reversed (0x4c860f0, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.4c862b0 LIFT insert<Editor variant 4> thin clone (Editor tag 4), fully reversed (0x4c862b0, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.4c8a5b0 LIFT insert<EditorHighlight> thin clone (Effect tag 8), fully reversed (0x4c8a5b0, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.4c96140 LIFT insert<UIMesh> thin clone (UI tag 2), fully reversed (0x4c96140, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.4e39cb0 LIFT insert<BatchActor> thin clone (Item tag 10), fully reversed (0x4e39cb0, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.531b180 LIFT insert<ItemInHand> thin clone (Item tag 6), fully reversed (0x531b180, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.5369920 LIFT insert<ChunkOccluders> thin clone (Item tag 4), fully reversed (0x5369920, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.53707a0 LIFT insert<EndSky> thin clone (Sky tag 3), fully reversed (0x53707a0, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.5370960 LIFT insert<LightDirectional> thin clone (Light tag 1), fully reversed (0x5370960, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.5370b20 LIFT insert<CelestialBody> thin clone (Sky tag 7), fully reversed (0x5370b20, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.5370e80 LIFT insert<AimAssistHighlight> thin clone (Effect tag 6), fully reversed (0x5370e80, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.5371160 LIFT insert<Editor variant 5> thin clone (Editor tag 5), fully reversed (0x5371160, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.539fff0 LIFT insert<RenderCrackDescription> (Item tag 5) + crack mesh update (0x539fff0, 0x996 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.53e62b0 LIFT insert<RenderPlayerVisionDescription> fat clone (Effect tag 3) (0x53e62b0, 0x591 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.5acbe20 LIFT insert<BlitFlipbook> thin clone (Effect tag 1), fully reversed (0x5acbe20, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.5ad5800 LIFT insert<Weather> thin clone (Sky tag 9), fully reversed (0x5ad5800, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.5b8d520 LIFT insert<Particle> thin clone (Effect tag 2), fully reversed (0x5b8d520, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.6609f20 LIFT sub_6609f20 (0x6609f20, 0xecb bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.660b720 LIFT insert<Cubemap> thin clone (Sky tag 2), fully reversed (0x660b720, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.660ebe0 LIFT sub_660ebe0 (0x660ebe0, 0x8a bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6610ac0 LIFT sub_6610ac0 (0x6610ac0, 0x27c bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6611410 LIFT sub_6611410 (0x6611410, 0x1a5 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6619c20 LIFT sub_6619c20 (0x6619c20, 0x1f4 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6619e90 LIFT sub_6619e90 (0x6619e90, 0x1e1 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.661a0e0 LIFT sub_661a0e0 (0x661a0e0, 0xaa bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.661a1d0 LIFT sub_661a1d0 (0x661a1d0, 0x9b bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.661a2f0 LIFT sub_661a2f0 (0x661a2f0, 0xce bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6622590 LIFT sub_6622590 (0x6622590, 0x72 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6622840 LIFT sub_6622840 (0x6622840, 0x221 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6632bf0 LIFT deferred texture/buffer transactions flush (0x6632bf0, 0x34b bytes, depth 1, D2, 0 callees in set)
+- [ ] X4.6637a70 LIFT sub_6637a70 (0x6637a70, 0xf6 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6637c40 LIFT sub_6637c40 (0x6637c40, 0x255 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6637ea0 LIFT sub_6637ea0 (0x6637ea0, 0x178 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6638020 LIFT sub_6638020 (0x6638020, 0x4b7 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6638a50 LIFT sub_6638a50 (0x6638a50, 0x7f3 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66397e0 LIFT sub_66397e0 (0x66397e0, 0x6d bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6639850 LIFT sub_6639850 (0x6639850, 0x6d bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6639930 LIFT sub_6639930 (0x6639930, 0x72 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.66399b0 LIFT sub_66399b0 (0x66399b0, 0x34 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.66399f0 LIFT sub_66399f0 (0x66399f0, 0x64 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6639b70 LIFT sub_6639b70 (0x6639b70, 0x42 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6639bc0 LIFT sub_6639bc0 (0x6639bc0, 0x24 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6639bf0 LIFT sub_6639bf0 (0x6639bf0, 0x174 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6639df0 LIFT sub_6639df0 (0x6639df0, 0x88 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6639ec0 LIFT sub_6639ec0 (0x6639ec0, 0x88 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6639f90 LIFT sub_6639f90 (0x6639f90, 0x165 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.663a530 LIFT sub_663a530 (0x663a530, 0x485 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.663bdc0 LIFT sub_663bdc0 (0x663bdc0, 0x176 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.663d280 LIFT sub_663d280 (0x663d280, 0xf6 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.663d380 LIFT sub_663d380 (0x663d380, 0xc5d bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.663e500 LIFT sub_663e500 (0x663e500, 0xf69 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.663f9d0 LIFT sub_663f9d0 (0x663f9d0, 0x54 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6646a10.plan PLAN sub_6646a10: split 0x6646a10..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6646a10.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6646a10.asm LIFT ASSEMBLE sub_6646a10 (waits for chunks)
+- [ ] X4.6646a89.plan PLAN sub_6646a89: split 0x6646a89..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6646a89.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6646a89.asm LIFT ASSEMBLE sub_6646a89 (waits for chunks)
+- [ ] X4.6646bc6.plan PLAN sub_6646bc6: split 0x6646bc6..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6646bc6.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6646bc6.asm LIFT ASSEMBLE sub_6646bc6 (waits for chunks)
+- [ ] X4.6646c8d.plan PLAN sub_6646c8d: split 0x6646c8d..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6646c8d.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6646c8d.asm LIFT ASSEMBLE sub_6646c8d (waits for chunks)
+- [ ] X4.6646d5f.plan PLAN sub_6646d5f: split 0x6646d5f..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6646d5f.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6646d5f.asm LIFT ASSEMBLE sub_6646d5f (waits for chunks)
+- [ ] X4.6646dc2.plan PLAN sub_6646dc2: split 0x6646dc2..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6646dc2.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6646dc2.asm LIFT ASSEMBLE sub_6646dc2 (waits for chunks)
+- [ ] X4.6646f5b.plan PLAN sub_6646f5b: split 0x6646f5b..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6646f5b.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6646f5b.asm LIFT ASSEMBLE sub_6646f5b (waits for chunks)
+- [ ] X4.66471de.plan PLAN sub_66471de: split 0x66471de..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/66471de.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.66471de.asm LIFT ASSEMBLE sub_66471de (waits for chunks)
+- [ ] X4.6647320.plan PLAN sub_6647320: split 0x6647320..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6647320.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6647320.asm LIFT ASSEMBLE sub_6647320 (waits for chunks)
+- [ ] X4.6647383.plan PLAN sub_6647383: split 0x6647383..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6647383.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6647383.asm LIFT ASSEMBLE sub_6647383 (waits for chunks)
+- [ ] X4.66473e6.plan PLAN sub_66473e6: split 0x66473e6..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/66473e6.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.66473e6.asm LIFT ASSEMBLE sub_66473e6 (waits for chunks)
+- [ ] X4.664ef12 LIFT sub_664ef12 (0x664ef12, 0xe93 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6684e70 LIFT sub_6684e70 (0x6684e70, 0x333 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6685f60 LIFT sub_6685f60 (0x6685f60, 0x25 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6686030 LIFT sub_6686030 (0x6686030, 0x1a7 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.66861e0 LIFT sub_66861e0 (0x66861e0, 0x16d bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6686350 LIFT sub_6686350 (0x6686350, 0x2f bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.668b400 LIFT RenderEnvironmentalTextDescription constructor, fully reversed (0x668b400, 0x2db bytes, depth 1, D2, 0 callees in set)
+- [ ] X4.668b6e0 LIFT RenderNametagDescription constructor, fully reversed (0x668b6e0, 0x170 bytes, depth 1, D2, 0 callees in set)
+- [ ] X4.668b850 LIFT RenderMeshFallbackDescription constructor, fully reversed (0x668b850, 0x5f9 bytes, depth 1, D2, 0 callees in set)
+- [ ] X4.668c750 LIFT RenderUITextDescription constructor, fully reversed (0x668c750, 0x172 bytes, depth 1, D2, 0 callees in set)
+- [ ] X4.668c910 LIFT RenderSkyDescription constructor, fully reversed (0x668c910, 0x21a bytes, depth 1, D2, 0 callees in set)
+- [ ] X4.668d350 LIFT RenderSkinnedMeshDescription constructor, fully reversed (0x668d350, 0x5cf bytes, depth 1, D2, 0 callees in set)
+- [ ] X4.668d990 LIFT RenderBlockSelectionOverlayBlockEntityDescription constructor, fully reversed (0x668d990, 0x2f0 bytes, depth 1, D2, 0 callees in set)
+- [ ] X4.668e940 LIFT RenderCloudsDescription constructor, fully reversed (0x668e940, 0x1c3 bytes, depth 1, D2, 0 callees in set)
+- [ ] X4.668eb10 LIFT RenderCubemapDescription ctor (texture ref, mat4, u16, u8), fully reversed (0x668eb10, 0xce bytes, depth 2, D2, 0 callees in set)
+- [ ] X4.6691110 LIFT sub_6691110 (0x6691110, 0x1cd bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6692480 LIFT sub_6692480 (0x6692480, 0x797 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6692d10 LIFT sub_6692d10 (0x6692d10, 0x79 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6694560 LIFT sub_6694560 (0x6694560, 0xfe bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6698060 LIFT sub_6698060 (0x6698060, 0x240 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66982a0 LIFT sub_66982a0 (0x66982a0, 0x10b bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.6698b90 LIFT sub_6698b90 (0x6698b90, 0x29c bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66a02d0 LIFT FNV-1a 64 of a std::string (name key) (0x66a02d0, 0x450 bytes, depth 1, D2, 0 callees in set)
+- [ ] X4.66a0820 LIFT sub_66a0820 (0x66a0820, 0x84 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66a17c0 LIFT sub_66a17c0 (0x66a17c0, 0x51 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66a1820 LIFT sub_66a1820 (0x66a1820, 0x36 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66a6060 LIFT sub_66a6060 (0x66a6060, 0x122 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66a6470 LIFT sub_66a6470 (0x66a6470, 0x140 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66a65b0 LIFT sub_66a65b0 (0x66a65b0, 0x140 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66a66f0 LIFT sub_66a66f0 (0x66a66f0, 0x140 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66a9ad0 LIFT sub_66a9ad0 (0x66a9ad0, 0x140 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66a9c10 LIFT sub_66a9c10 (0x66a9c10, 0x140 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66ad430 LIFT sub_66ad430 (0x66ad430, 0x13c bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66ad570 LIFT sub_66ad570 (0x66ad570, 0xc5 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66ad730 LIFT sub_66ad730 (0x66ad730, 0xe8 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66ad820 LIFT sub_66ad820 (0x66ad820, 0x126 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66ad950 LIFT sub_66ad950 (0x66ad950, 0x147 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66adaa0 LIFT sub_66adaa0 (0x66adaa0, 0x263 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66b2310 LIFT sub_66b2310 (0x66b2310, 0x84 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.66b2b30 LIFT sub_66b2b30 (0x66b2b30, 0x2a8 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66bf150 LIFT sub_66bf150 (0x66bf150, 0x140 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66c11b0 LIFT sub_66c11b0 (0x66c11b0, 0x242 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66c1400 LIFT sub_66c1400 (0x66c1400, 0x350 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.66c17e0 LIFT sub_66c17e0 (0x66c17e0, 0x140 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66cc400 LIFT sub_66cc400 (0x66cc400, 0x25b bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66cc660 LIFT sub_66cc660 (0x66cc660, 0x140 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66d8f60 LIFT sub_66d8f60 (0x66d8f60, 0x37d bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66d9710 LIFT sub_66d9710 (0x66d9710, 0x343 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66e56a0 LIFT sub_66e56a0 (0x66e56a0, 0x137 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66e58b0 LIFT sub_66e58b0 (0x66e58b0, 0x138 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66e5b10 LIFT sub_66e5b10 (0x66e5b10, 0x137 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66e5eb0 LIFT sub_66e5eb0 (0x66e5eb0, 0xae bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66e6240 LIFT sub_66e6240 (0x66e6240, 0x13a bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66e74b0 LIFT sub_66e74b0 (0x66e74b0, 0x140 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66e9dc0 LIFT sub_66e9dc0 (0x66e9dc0, 0x224 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66ea020 LIFT sub_66ea020 (0x66ea020, 0x1bb bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66ea1e0 LIFT sub_66ea1e0 (0x66ea1e0, 0x1e9 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.670b260 LIFT sub_670b260 (0x670b260, 0x98 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.673cb40 LIFT sub_673cb40 (0x673cb40, 0x140 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.673cc80 LIFT sub_673cc80 (0x673cc80, 0x184 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.673cef0 LIFT sub_673cef0 (0x673cef0, 0xea bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.674a1d0 LIFT sub_674a1d0 (0x674a1d0, 0x1c1 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6751170 LIFT sub_6751170 (0x6751170, 0x5dc bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6751750 LIFT sub_6751750 (0x6751750, 0x12c4 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6752a20 LIFT sub_6752a20 (0x6752a20, 0x1eb bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6752c10 LIFT sub_6752c10 (0x6752c10, 0x1d5 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6752df0 LIFT sub_6752df0 (0x6752df0, 0x1d5 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6752fd0 LIFT sub_6752fd0 (0x6752fd0, 0x2b9 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6753290 LIFT sub_6753290 (0x6753290, 0x3c5 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6754750 LIFT sub_6754750 (0x6754750, 0x12f bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6754880 LIFT sub_6754880 (0x6754880, 0x115 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67549a0 LIFT sub_67549a0 (0x67549a0, 0x28c bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6754f80 LIFT sub_6754f80 (0x6754f80, 0x2f4 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6755280 LIFT sub_6755280 (0x6755280, 0x356 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67555e0 LIFT sub_67555e0 (0x67555e0, 0x238 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6755820 LIFT sub_6755820 (0x6755820, 0x1a9 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6755b50 LIFT sub_6755b50 (0x6755b50, 0xe2 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6755c40 LIFT sub_6755c40 (0x6755c40, 0x164 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6757320 LIFT sub_6757320 (0x6757320, 0x12e bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67576c0 LIFT sub_67576c0 (0x67576c0, 0xf8 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67577c0 LIFT sub_67577c0 (0x67577c0, 0x10f bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6757d70 LIFT sub_6757d70 (0x6757d70, 0x1b0 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6758b90 LIFT sub_6758b90 (0x6758b90, 0xdd bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6758fc0 LIFT sub_6758fc0 (0x6758fc0, 0xff bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67591e0 LIFT merge per-thread pending jobs into loader+0x18 (drops jobs of dead resources) (0x67591e0, 0x28d bytes, depth 1, D2, 0 callees in set)
+- [ ] X4.6759740 LIFT sub_6759740 (0x6759740, 0x755 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.675a5f0 LIFT sub_675a5f0 (0x675a5f0, 0x34e bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.675a9e0 LIFT sub_675a9e0 (0x675a9e0, 0x160 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.675b350 LIFT sub_675b350 (0x675b350, 0xfb bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.675b450 LIFT sub_675b450 (0x675b450, 0xc8 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.675b550 LIFT sub_675b550 (0x675b550, 0xc8 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.675b650 LIFT sub_675b650 (0x675b650, 0x249 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.675b8a0 LIFT sub_675b8a0 (0x675b8a0, 0x26b bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.675bb10 LIFT sub_675bb10 (0x675bb10, 0x25e bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.675c530 LIFT sub_675c530 (0x675c530, 0x49e bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.675d320 LIFT sub_675d320 (0x675d320, 0x10f bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.675d840 LIFT sub_675d840 (0x675d840, 0x181 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.675da10 LIFT sub_675da10 (0x675da10, 0xaf bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.675dac0 LIFT sub_675dac0 (0x675dac0, 0xaf bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.675dbe0 LIFT sub_675dbe0 (0x675dbe0, 0xdf bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.675df40 LIFT sub_675df40 (0x675df40, 0x160 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.675e290 LIFT sub_675e290 (0x675e290, 0xf4 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.675f3b0 LIFT DrawItem pool +0x780 push (0x58 material record) (0x675f3b0, 0x700 bytes, depth 1, D1, 0 callees in set)
+- [ ] X4.67602c0 LIFT sub_67602c0 (0x67602c0, 0xea bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6760560 LIFT sub_6760560 (0x6760560, 0x1a3 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6760710 LIFT sub_6760710 (0x6760710, 0x327 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6760a80 LIFT sub_6760a80 (0x6760a80, 0x3d2 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6760e60 LIFT sub_6760e60 (0x6760e60, 0x1ad bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6761590 LIFT sub_6761590 (0x6761590, 0x37a bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6762270 LIFT DrawItem pool +0x660 push (0x2C: optional box + 4 floats) (0x6762270, 0x4ec bytes, depth 2, D2, 0 callees in set)
+- [ ] X4.67627d0 LIFT sub_67627d0 (0x67627d0, 0x127 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6764400 LIFT sub_6764400 (0x6764400, 0x33d bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6764990 LIFT DrawItem pool +0x588 copy (0x30 small vector) (0x6764990, 0x4f4 bytes, depth 1, D1, 0 callees in set)
+- [ ] X4.6766510 LIFT sub_6766510 (0x6766510, 0x2a0 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.6767380 LIFT sub_6767380 (0x6767380, 0x249 bytes, depth 4, D0, 0 callees in set)
+- [ ] X4.67675d0 LIFT sub_67675d0 (0x67675d0, 0x1ef bytes, depth 4, D0, 0 callees in set)
+- [ ] X4.67677c0 LIFT sub_67677c0 (0x67677c0, 0x2bd bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.6767a80 LIFT sub_6767a80 (0x6767a80, 0x36d bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.67681d0 LIFT sub_67681d0 (0x67681d0, 0x547 bytes, depth 4, D0, 0 callees in set)
+- [ ] X4.67693f0 LIFT DrawItem pool +0x108 push (0x38: two shared_ptr, 16 bytes, u64) (0x67693f0, 0x4a3 bytes, depth 2, D2, 0 callees in set)
+- [ ] X4.6769910 LIFT sub_6769910 (0x6769910, 0x159 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.6769b00 LIFT sub_6769b00 (0x6769b00, 0x34f bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.6769ee0 LIFT sub_6769ee0 (0x6769ee0, 0x53a bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.676a480 LIFT sub_676a480 (0x676a480, 0x1c8 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.676a670 LIFT sub_676a670 (0x676a670, 0x4d9 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.676c540 LIFT sub_676c540 (0x676c540, 0x282 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.676ddf0 LIFT sub_676ddf0 (0x676ddf0, 0x140 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.676df30 LIFT sub_676df30 (0x676df30, 0x1c8 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.676fcb0 LIFT sub_676fcb0 (0x676fcb0, 0x2b0 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.67743c0 LIFT sub_67743c0 (0x67743c0, 0x282 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67747b0 LIFT sub_67747b0 (0x67747b0, 0x576 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6774ed0 LIFT sub_6774ed0 (0x6774ed0, 0x159 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67750c0 LIFT sub_67750c0 (0x67750c0, 0x2d4 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6775450 LIFT sub_6775450 (0x6775450, 0x178 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6775700 LIFT sub_6775700 (0x6775700, 0x1bb bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6776020 LIFT sub_6776020 (0x6776020, 0x28a bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.678d170 LIFT sub_678d170 (0x678d170, 0x163 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.678d3f0 LIFT sub_678d3f0 (0x678d3f0, 0x295 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.678dce0 LIFT sub_678dce0 (0x678dce0, 0x30c bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.678e020 LIFT sub_678e020 (0x678e020, 0x1af bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.678e1d0 LIFT sub_678e1d0 (0x678e1d0, 0x24b bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.678e420 LIFT sub_678e420 (0x678e420, 0x24c bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.678ef40 LIFT sub_678ef40 (0x678ef40, 0x2e5 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.678f260 LIFT sub_678f260 (0x678f260, 0x1af bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.678f410 LIFT sub_678f410 (0x678f410, 0x229 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.678f640 LIFT sub_678f640 (0x678f640, 0x22a bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6791420 LIFT sub_6791420 (0x6791420, 0x2d4 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6791730 LIFT sub_6791730 (0x6791730, 0x147 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6791880 LIFT sub_6791880 (0x6791880, 0x264 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6791af0 LIFT sub_6791af0 (0x6791af0, 0x2af bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6791dd0 LIFT sub_6791dd0 (0x6791dd0, 0x147 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6791f20 LIFT sub_6791f20 (0x6791f20, 0x23f bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6792400 LIFT sub_6792400 (0x6792400, 0x14e bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6792810 LIFT sub_6792810 (0x6792810, 0x14e bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6792c20 LIFT sub_6792c20 (0x6792c20, 0x14e bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67b5160 LIFT sub_67b5160 (0x67b5160, 0x1af bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67b7810 LIFT 0x40-byte parameter-table copy (u32 + unordered_map deep copy) (0x67b7810, 0x359 bytes, depth 3, D1, 0 callees in set)
+- [ ] X4.67b7c10 LIFT sub_67b7c10 (0x67b7c10, 0x379 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.67b8030.plan PLAN sub_67b8030: split 0x67b8030..0x67b9bb3 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/67b8030.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.67b8030.asm LIFT ASSEMBLE sub_67b8030 (waits for chunks)
+- [ ] X4.67ba750 LIFT sub_67ba750 (0x67ba750, 0x2d2 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.67bb680 LIFT sub_67bb680 (0x67bb680, 0x2a5 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.67bc2c0 LIFT sub_67bc2c0 (0x67bc2c0, 0x137 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.67c0300 LIFT sub_67c0300 (0x67c0300, 0x13f bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.67c04a0 LIFT sub_67c04a0 (0x67c04a0, 0x13d bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67c05e0 LIFT sub_67c05e0 (0x67c05e0, 0x1df bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67c07e0 LIFT sub_67c07e0 (0x67c07e0, 0xed bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67c4470 LIFT sub_67c4470 (0x67c4470, 0x1d2 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67c4650 LIFT sub_67c4650 (0x67c4650, 0xc1 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67c7020 LIFT sub_67c7020 (0x67c7020, 0x11f bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67cab00 LIFT sub_67cab00 (0x67cab00, 0xce bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67cace0 LIFT sub_67cace0 (0x67cace0, 0xf3 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67cc7e0 LIFT sub_67cc7e0 (0x67cc7e0, 0x3d2 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67ccf50 LIFT sub_67ccf50 (0x67ccf50, 0x105 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67ce5b0 LIFT sub_67ce5b0 (0x67ce5b0, 0x3d2 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.67cf1d0 LIFT sub_67cf1d0 (0x67cf1d0, 0x1ab bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.67d0420 LIFT sub_67d0420 (0x67d0420, 0x262 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67d0750 LIFT sub_67d0750 (0x67d0750, 0x3a2 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67d0b00 LIFT sub_67d0b00 (0x67d0b00, 0x4ee bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67d0ff0 LIFT sub_67d0ff0 (0x67d0ff0, 0x12e bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67d1120 LIFT sub_67d1120 (0x67d1120, 0x182 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67d5ce0 LIFT sub_67d5ce0 (0x67d5ce0, 0x30f bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67d7410 LIFT sub_67d7410 (0x67d7410, 0x610 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67d8950 LIFT sub_67d8950 (0x67d8950, 0x1c8 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67d8b40 LIFT sub_67d8b40 (0x67d8b40, 0x1c8 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67d8d30 LIFT sub_67d8d30 (0x67d8d30, 0x1c8 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67db350 LIFT sub_67db350 (0x67db350, 0x3e2 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67e1660 LIFT sub_67e1660 (0x67e1660, 0x147 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67e1840 LIFT sub_67e1840 (0x67e1840, 0x147 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67e23f0 LIFT sub_67e23f0 (0x67e23f0, 0x147 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67e40a0 LIFT sub_67e40a0 (0x67e40a0, 0x147 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67e5d10 LIFT sub_67e5d10 (0x67e5d10, 0x1c8 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67e90d0 LIFT Light tag 5 0xB00 record copy-construct into pass vector (+0x260) (0x67e90d0, 0x719 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67eb640 LIFT sub_67eb640 (0x67eb640, 0x103 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67eb810 LIFT sub_67eb810 (0x67eb810, 0x7f1 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6c956b0 LIFT insert<Editor variant 0> thin clone (Editor tag 0), fully reversed (0x6c956b0, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.6c961e0 LIFT insert<Editor variant 6> thin clone (Editor tag 6), fully reversed (0x6c961e0, 0x139 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.bb93c60 LIFT sub_bb93c60 (0xbb93c60, 0xee bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.bc04270 LIFT sub_bc04270 (0xbc04270, 0x95 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.bc04530 LIFT pass task render-thread body (class D, same template) (0xbc04530, 0xc4 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.e71330 LIFT insert<EnvironmentalText/UIText> (0xe71330, 0x1075 bytes, depth 0, D1, 2 callees in set)
+- [ ] X4.1127330 LIFT insert<RenderNametagDescription> fat clone, fully reversed (0x1127330, 0x2c6 bytes, depth 0, D2, 1 callees in set)
+- [ ] X4.4def480 LIFT insert<RenderMeshFallbackDescription> generic mesh insert (Item tag 2) (0x4def480, 0x714 bytes, depth 0, D2, 1 callees in set)
+- [ ] X4.4e39f20 LIFT insert<RenderSkinnedMeshDescription> second (0x4e39f20, 0x9af bytes, depth 0, D1, 1 callees in set)
+- [ ] X4.539b7c0.plan PLAN insert<BlockSelectionOverlayBlockEntity>: split 0x539b7c0..0x539d3c0 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/539b7c0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.539b7c0.asm LIFT ASSEMBLE insert<BlockSelectionOverlayBlockEntity> (waits for chunks)
+- [ ] X4.53e88a0 LIFT insert<RenderCloudsDescription> fat clone (Sky tag 1) (0x53e88a0, 0xd6c bytes, depth 0, D1, 1 callees in set)
+- [ ] X4.6606580 LIFT Cubemap description producer (0x6606580, 0xb18 bytes, depth 1, D0, 3 callees in set)
+- [ ] X4.6610ee0 LIFT sub_6610ee0 (0x6610ee0, 0x373 bytes, depth 0, D0, 3 callees in set)
+- [ ] X4.661a2b0 LIFT sub_661a2b0 (0x661a2b0, 0x33 bytes, depth 0, D0, 1 callees in set)
+- [ ] X4.6622610 LIFT ResourceLoader::processPending (merge, take pending, run, continuations), fully reversed (0x6622610, 0x1c8 bytes, depth 1, D2, 1 callees in set)
+- [ ] X4.6637830 LIFT sub_6637830 (0x6637830, 0x1ae bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.66385e0 LIFT sub_66385e0 (0x66385e0, 0x306 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.663a1a0 LIFT sub_663a1a0 (0x663a1a0, 0x1e8 bytes, depth 0, D0, 1 callees in set)
+- [ ] X4.663aa40 LIFT sub_663aa40 (0x663aa40, 0x715 bytes, depth 0, D0, 1 callees in set)
+- [ ] X4.663bbb0 LIFT sub_663bbb0 (0x663bbb0, 0x204 bytes, depth 0, D0, 2 callees in set)
+- [ ] X4.663c280 LIFT sub_663c280 (0x663c280, 0xcff bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.663fb30 LIFT sub_663fb30 (0x663fb30, 0x38b bytes, depth 0, D0, 1 callees in set)
+- [ ] X4.66400a0 LIFT sub_66400a0 (0x66400a0, 0x801 bytes, depth 0, D0, 1 callees in set)
+- [ ] X4.6686380 LIFT sub_6686380 (0x6686380, 0x144d bytes, depth 0, D0, 1 callees in set)
+- [ ] X4.6687c70.plan PLAN sub_6687c70: split 0x6687c70..0x6689920 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6687c70.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6687c70.asm LIFT ASSEMBLE sub_6687c70 (waits for chunks)
+- [ ] X4.6689f60 LIFT sub_6689f60 (0x6689f60, 0x19f bytes, depth 0, D0, 1 callees in set)
+- [ ] X4.668a140 LIFT sub_668a140 (0x668a140, 0x3f6 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.668aa80 LIFT sub_668aa80 (0x668aa80, 0x231 bytes, depth 0, D0, 1 callees in set)
+- [ ] X4.668ecb0 LIFT sub_668ecb0 (0x668ecb0, 0x1fd bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.6691440 LIFT sub_6691440 (0x6691440, 0x1c7 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.6691610 LIFT sub_6691610 (0x6691610, 0x195 bytes, depth 1, D0, 3 callees in set)
+- [ ] X4.6693160 LIFT sub_6693160 (0x6693160, 0x18f bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.6698610 LIFT sub_6698610 (0x6698610, 0x57b bytes, depth 1, D0, 4 callees in set)
+- [ ] X4.66a0760 LIFT sub_66a0760 (0x66a0760, 0x87 bytes, depth 3, D0, 1 callees in set)
+- [ ] X4.66a0ec0 LIFT sub_66a0ec0 (0x66a0ec0, 0x9f bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.66a0f60 LIFT sub_66a0f60 (0x66a0f60, 0x3ba bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.66a1420 LIFT sub_66a1420 (0x66a1420, 0x2bf bytes, depth 1, D0, 3 callees in set)
+- [ ] X4.66a6190 LIFT sub_66a6190 (0x66a6190, 0x21f bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.66b2730 LIFT sub_66b2730 (0x66b2730, 0x236 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.66c97b0 LIFT sub_66c97b0 (0x66c97b0, 0x121 bytes, depth 3, D0, 1 callees in set)
+- [ ] X4.66d93c0 LIFT sub_66d93c0 (0x66d93c0, 0x30d bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.66e5c50 LIFT sub_66e5c50 (0x66e5c50, 0x162 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.66e5dc0 LIFT sub_66e5dc0 (0x66e5dc0, 0xed bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.66e6da0 LIFT sub_66e6da0 (0x66e6da0, 0x11b bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.66e7170 LIFT sub_66e7170 (0x66e7170, 0x340 bytes, depth 1, D0, 2 callees in set)
+- [ ] X4.67559d0 LIFT sub_67559d0 (0x67559d0, 0x180 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.6755db0 LIFT sub_6755db0 (0x6755db0, 0xed bytes, depth 1, D0, 3 callees in set)
+- [ ] X4.67570b0 LIFT sub_67570b0 (0x67570b0, 0x20b bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.6757450 LIFT sub_6757450 (0x6757450, 0x20b bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.6758860 LIFT sub_6758860 (0x6758860, 0x1e0 bytes, depth 4, D0, 1 callees in set)
+- [ ] X4.67594c0 LIFT sub_67594c0 (0x67594c0, 0x23d bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.675a170 LIFT sub_675a170 (0x675a170, 0x479 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.675aec0 LIFT sub_675aec0 (0x675aec0, 0x386 bytes, depth 1, D0, 2 callees in set)
+- [ ] X4.675d430 LIFT sub_675d430 (0x675d430, 0x341 bytes, depth 3, D0, 1 callees in set)
+- [ ] X4.675dd80 LIFT sub_675dd80 (0x675dd80, 0xed bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.6760450 LIFT sub_6760450 (0x6760450, 0x110 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.6765870 LIFT sub_6765870 (0x6765870, 0x370 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.67667d0 LIFT sub_67667d0 (0x67667d0, 0xbab bytes, depth 3, D0, 2 callees in set)
+- [ ] X4.6767df0 LIFT sub_6767df0 (0x6767df0, 0x3d4 bytes, depth 3, D0, 2 callees in set)
+- [ ] X4.6768720 LIFT sub_6768720 (0x6768720, 0x2eb bytes, depth 4, D0, 3 callees in set)
+- [ ] X4.676b770 LIFT sub_676b770 (0x676b770, 0x2f8 bytes, depth 3, D0, 1 callees in set)
+- [ ] X4.676edb0 LIFT sub_676edb0 (0x676edb0, 0x328 bytes, depth 3, D0, 1 callees in set)
+- [ ] X4.6774650 LIFT sub_6774650 (0x6774650, 0x159 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.678cf10 LIFT sub_678cf10 (0x678cf10, 0x1e7 bytes, depth 1, D0, 3 callees in set)
+- [ ] X4.678d690 LIFT sub_678d690 (0x678d690, 0x5d5 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.6792160 LIFT sub_6792160 (0x6792160, 0x262 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.6792570 LIFT sub_6792570 (0x6792570, 0x262 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.6792980 LIFT sub_6792980 (0x6792980, 0x262 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.67a75d0 LIFT sub_67a75d0 (0x67a75d0, 0x1e7 bytes, depth 1, D0, 3 callees in set)
+- [ ] X4.67b6300 LIFT Light tag 5 description -> 0xB00 record conversion (41 unordered_map deep copies) (0x67b6300, 0x8bd bytes, depth 2, D1, 2 callees in set)
+- [ ] X4.67b9c90 LIFT sub_67b9c90 (0x67b9c90, 0x988 bytes, depth 3, D0, 3 callees in set)
+- [ ] X4.67bd4b0 LIFT sub_67bd4b0 (0x67bd4b0, 0x405 bytes, depth 3, D0, 3 callees in set)
+- [ ] X4.67bf5b0 LIFT sub_67bf5b0 (0x67bf5b0, 0x4a9 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.67c0090 LIFT sub_67c0090 (0x67c0090, 0x268 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.67ca960 LIFT sub_67ca960 (0x67ca960, 0x197 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.67cc3e0 LIFT sub_67cc3e0 (0x67cc3e0, 0x34e bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.67ce200 LIFT sub_67ce200 (0x67ce200, 0x2f8 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.67cf410 LIFT sub_67cf410 (0x67cf410, 0x73f bytes, depth 3, D0, 2 callees in set)
+- [ ] X4.67d5ff0 LIFT sub_67d5ff0 (0x67d5ff0, 0x475 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.67e06a0 LIFT sub_67e06a0 (0x67e06a0, 0xfe bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.67e2190 LIFT sub_67e2190 (0x67e2190, 0x1ea bytes, depth 2, D0, 3 callees in set)
+- [ ] X4.bbbcb20 LIFT VV ColorPostProcess group builder (uniform, texture, view, declare), fully reversed (0xbbbcb20, 0x711 bytes, depth 0, D2, 1 callees in set)
+- [ ] X4.5369b30.plan PLAN sub_5369b30: split 0x5369b30..0x536e6cc at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/5369b30.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.5369b30.asm LIFT ASSEMBLE sub_5369b30 (waits for chunks)
+- [ ] X4.53e6c30 LIFT blob shadow emitter (MeshFallback draws per shadow entry) (0x53e6c30, 0x897 bytes, depth 0, D2, 1 callees in set)
+- [ ] X4.66042b0 LIFT sub_66042b0 (0x66042b0, 0x873 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.660e670 LIFT sub_660e670 (0x660e670, 0x1da bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.6610a70 LIFT sub_6610a70 (0x6610a70, 0x48 bytes, depth 0, D0, 1 callees in set)
+- [ ] X4.6634db0.plan PLAN sub_6634db0: split 0x6634db0..0x6636d13 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6634db0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6634db0.asm LIFT ASSEMBLE sub_6634db0 (waits for chunks)
+- [ ] X4.6639590 LIFT sub_6639590 (0x6639590, 0x192 bytes, depth 0, D0, 1 callees in set)
+- [ ] X4.663b160 LIFT sub_663b160 (0x663b160, 0x74a bytes, depth 0, D0, 1 callees in set)
+- [ ] X4.663bf40 LIFT sub_663bf40 (0x663bf40, 0x2fe bytes, depth 0, D0, 1 callees in set)
+- [ ] X4.663fa30 LIFT sub_663fa30 (0x663fa30, 0xf1 bytes, depth 0, D0, 2 callees in set)
+- [ ] X4.66853c0 LIFT sub_66853c0 (0x66853c0, 0x4fa bytes, depth 0, D0, 2 callees in set)
+- [ ] X4.6685920 LIFT sub_6685920 (0x6685920, 0x518 bytes, depth 0, D0, 2 callees in set)
+- [ ] X4.668a700 LIFT sub_668a700 (0x668a700, 0x2a4 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.668acc0 LIFT sub_668acc0 (0x668acc0, 0xe5 bytes, depth 0, D0, 1 callees in set)
+- [ ] X4.668ef10 LIFT sub_668ef10 (0x668ef10, 0x164 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.66912e0 LIFT sub_66912e0 (0x66912e0, 0x158 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.6693320 LIFT sub_6693320 (0x6693320, 0x4ff bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.66a08b0 LIFT sub_66a08b0 (0x66a08b0, 0x531 bytes, depth 1, D0, 3 callees in set)
+- [ ] X4.66e6ec0 LIFT sub_66e6ec0 (0x66e6ec0, 0x20d bytes, depth 1, D0, 3 callees in set)
+- [ ] X4.6754c70 LIFT sub_6754c70 (0x6754c70, 0xf4 bytes, depth 1, D0, 3 callees in set)
+- [ ] X4.67580d0 LIFT sub_67580d0 (0x67580d0, 0x206 bytes, depth 1, D0, 6 callees in set)
+- [ ] X4.6758660 LIFT sub_6758660 (0x6758660, 0x1fb bytes, depth 3, D0, 2 callees in set)
+- [ ] X4.6759ea0 LIFT sub_6759ea0 (0x6759ea0, 0x240 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.675fb30 LIFT DrawItem pool +0x648 push (0x48 transform variant) (0x675fb30, 0x728 bytes, depth 1, D1, 2 callees in set)
+- [ ] X4.6762900 LIFT sub_6762900 (0x6762900, 0x1720 bytes, depth 2, D0, 4 callees in set)
+- [ ] X4.6765c00 LIFT sub_6765c00 (0x6765c00, 0x876 bytes, depth 2, D0, 5 callees in set)
+- [ ] X4.67bf2c0 LIFT sub_67bf2c0 (0x67bf2c0, 0x260 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.67cfd80 LIFT sub_67cfd80 (0x67cfd80, 0x4f0 bytes, depth 1, D0, 7 callees in set)
+- [ ] X4.67da040 LIFT sub_67da040 (0x67da040, 0x6ad bytes, depth 1, D0, 7 callees in set)
+- [ ] X4.6b84e60.plan PLAN insert<RenderSkinnedMeshDescription> general: split 0x6b84e60..0x6b86a50 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6b84e60.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6b84e60.asm LIFT ASSEMBLE insert<RenderSkinnedMeshDescription> general (waits for chunks)
+- [ ] X4.6618810 LIFT sub_6618810 (0x6618810, 0x1328 bytes, depth 1, D0, 10 callees in set)
+- [ ] X4.6632fd0 LIFT sub_6632fd0 (0x6632fd0, 0x1531 bytes, depth 1, D0, 5 callees in set)
+- [ ] X4.6639730 LIFT sub_6639730 (0x6639730, 0x77 bytes, depth 0, D0, 1 callees in set)
+- [ ] X4.6640d80.plan PLAN Light group visitor, dispatch reversed: split 0x6640d80..0x6644d9a at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6640d80.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6640d80.asm LIFT ASSEMBLE Light group visitor, dispatch reversed (waits for chunks)
+- [ ] X4.668f080.plan PLAN sub_668f080: split 0x668f080..0x6690cca at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/668f080.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.668f080.asm LIFT ASSEMBLE sub_668f080 (waits for chunks)
+- [ ] X4.6693850 LIFT sub_6693850 (0x6693850, 0xb87 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.6694660.plan PLAN sub_6694660: split 0x6694660..0x6697c05 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6694660.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6694660.asm LIFT ASSEMBLE sub_6694660 (waits for chunks)
+- [ ] X4.66bb7b0 LIFT sub_66bb7b0 (0x66bb7b0, 0x114f bytes, depth 1, D0, 10 callees in set)
+- [ ] X4.66bd430 LIFT sub_66bd430 (0x66bd430, 0x11f0 bytes, depth 1, D0, 11 callees in set)
+- [ ] X4.66bf290 LIFT sub_66bf290 (0x66bf290, 0x12e6 bytes, depth 1, D0, 11 callees in set)
+- [ ] X4.66c1920 LIFT sub_66c1920 (0x66c1920, 0x12e6 bytes, depth 1, D0, 11 callees in set)
+- [ ] X4.66c3840 LIFT sub_66c3840 (0x66c3840, 0x12e6 bytes, depth 1, D0, 11 callees in set)
+- [ ] X4.66c5760 LIFT sub_66c5760 (0x66c5760, 0x12e6 bytes, depth 1, D0, 11 callees in set)
+- [ ] X4.66c7680 LIFT sub_66c7680 (0x66c7680, 0x13f2 bytes, depth 1, D0, 11 callees in set)
+- [ ] X4.66c98e0 LIFT sub_66c98e0 (0x66c98e0, 0x13f2 bytes, depth 1, D0, 11 callees in set)
+- [ ] X4.66cba10 LIFT sub_66cba10 (0x66cba10, 0x62d bytes, depth 1, D0, 6 callees in set)
+- [ ] X4.66cc7a0 LIFT sub_66cc7a0 (0x66cc7a0, 0x13f2 bytes, depth 1, D0, 11 callees in set)
+- [ ] X4.66ce8d0 LIFT sub_66ce8d0 (0x66ce8d0, 0x13f2 bytes, depth 1, D0, 11 callees in set)
+- [ ] X4.66e6c20 LIFT sub_66e6c20 (0x66e6c20, 0x10a bytes, depth 1, D0, 2 callees in set)
+- [ ] X4.675e440 LIFT ResourceCache::get (keyed get-or-load, stale-key reload, retire list), fully reversed (0x675e440, 0x4ec bytes, depth 1, D2, 7 callees in set)
+- [ ] X4.675eae0 LIFT sub_675eae0 (0x675eae0, 0x56a bytes, depth 2, D0, 5 callees in set)
+- [ ] X4.67612a0 LIFT sub_67612a0 (0x67612a0, 0x1b3 bytes, depth 2, D0, 4 callees in set)
+- [ ] X4.6761970 LIFT sub_6761970 (0x6761970, 0x593 bytes, depth 2, D0, 6 callees in set)
+- [ ] X4.6765020 LIFT DrawItem writer A (pools + 0xC8 index record, kind +0x04) (0x6765020, 0x550 bytes, depth 2, D2, 7 callees in set)
+- [ ] X4.6768c70 LIFT DrawItem writer B (pools + 0xC8 index record, kind +0x0A) (0x6768c70, 0x4d5 bytes, depth 2, D1, 6 callees in set)
+- [ ] X4.676abe0 LIFT sub_676abe0 (0x676abe0, 0x70d bytes, depth 3, D0, 8 callees in set)
+- [ ] X4.676bab0 LIFT sub_676bab0 (0x676bab0, 0x667 bytes, depth 3, D0, 6 callees in set)
+- [ ] X4.676c7d0 LIFT sub_676c7d0 (0x676c7d0, 0x70d bytes, depth 3, D0, 8 callees in set)
+- [ ] X4.676d360 LIFT sub_676d360 (0x676d360, 0x667 bytes, depth 3, D0, 6 callees in set)
+- [ ] X4.676e120 LIFT sub_676e120 (0x676e120, 0x7ad bytes, depth 3, D0, 8 callees in set)
+- [ ] X4.676f120 LIFT sub_676f120 (0x676f120, 0x709 bytes, depth 3, D0, 6 callees in set)
+- [ ] X4.676ff60 LIFT sub_676ff60 (0x676ff60, 0x70d bytes, depth 3, D0, 8 callees in set)
+- [ ] X4.6770af0 LIFT sub_6770af0 (0x6770af0, 0x667 bytes, depth 3, D0, 6 callees in set)
+- [ ] X4.6771580 LIFT sub_6771580 (0x6771580, 0x70d bytes, depth 3, D0, 8 callees in set)
+- [ ] X4.6772110 LIFT sub_6772110 (0x6772110, 0x667 bytes, depth 3, D0, 6 callees in set)
+- [ ] X4.6772ba0 LIFT sub_6772ba0 (0x6772ba0, 0x7ad bytes, depth 3, D0, 8 callees in set)
+- [ ] X4.6773830 LIFT sub_6773830 (0x6773830, 0x709 bytes, depth 3, D0, 6 callees in set)
+- [ ] X4.67758c0 LIFT sub_67758c0 (0x67758c0, 0x4b9 bytes, depth 2, D0, 6 callees in set)
+- [ ] X4.678e670 LIFT sub_678e670 (0x678e670, 0x569 bytes, depth 1, D0, 5 callees in set)
+- [ ] X4.678f950 LIFT sub_678f950 (0x678f950, 0xfe0 bytes, depth 2, D0, 11 callees in set)
+- [ ] X4.67a7830 LIFT sub_67a7830 (0x67a7830, 0x4f4 bytes, depth 1, D0, 5 callees in set)
+- [ ] X4.67a8030 LIFT sub_67a8030 (0x67a8030, 0x44c bytes, depth 1, D0, 5 callees in set)
+- [ ] X4.67a8720 LIFT sub_67a8720 (0x67a8720, 0x452 bytes, depth 1, D0, 5 callees in set)
+- [ ] X4.67a8e20 LIFT sub_67a8e20 (0x67a8e20, 0xee5 bytes, depth 2, D0, 11 callees in set)
+- [ ] X4.67b1a70 LIFT sub_67b1a70 (0x67b1a70, 0x4ee bytes, depth 1, D0, 5 callees in set)
+- [ ] X4.67b2260 LIFT sub_67b2260 (0x67b2260, 0x4f4 bytes, depth 1, D0, 5 callees in set)
+- [ ] X4.67b2a60 LIFT sub_67b2a60 (0x67b2a60, 0x480 bytes, depth 1, D0, 6 callees in set)
+- [ ] X4.67b3180 LIFT sub_67b3180 (0x67b3180, 0x44c bytes, depth 1, D0, 5 callees in set)
+- [ ] X4.67b3870 LIFT sub_67b3870 (0x67b3870, 0x452 bytes, depth 1, D0, 5 callees in set)
+- [ ] X4.67b40d0 LIFT sub_67b40d0 (0x67b40d0, 0x456 bytes, depth 2, D0, 5 callees in set)
+- [ ] X4.67b47d0 LIFT sub_67b47d0 (0x67b47d0, 0x60f bytes, depth 2, D0, 5 callees in set)
+- [ ] X4.67baa90 LIFT sub_67baa90 (0x67baa90, 0x763 bytes, depth 3, D0, 5 callees in set)
+- [ ] X4.67bb9f0 LIFT sub_67bb9f0 (0x67bb9f0, 0x56b bytes, depth 3, D0, 5 callees in set)
+- [ ] X4.67bc400 LIFT sub_67bc400 (0x67bc400, 0x38e bytes, depth 3, D0, 5 callees in set)
+- [ ] X4.67bcc80 LIFT sub_67bcc80 (0x67bcc80, 0x525 bytes, depth 3, D0, 6 callees in set)
+- [ ] X4.67bdb70 LIFT sub_67bdb70 (0x67bdb70, 0x9cf bytes, depth 3, D0, 4 callees in set)
+- [ ] X4.67beb70 LIFT sub_67beb70 (0x67beb70, 0x4aa bytes, depth 3, D0, 5 callees in set)
+- [ ] X4.67bfe80 LIFT sub_67bfe80 (0x67bfe80, 0x1b5 bytes, depth 1, D0, 2 callees in set)
+- [ ] X4.67c1790.plan PLAN sub_67c1790: split 0x67c1790..0x67c388e at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/67c1790.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.67c1790.asm LIFT ASSEMBLE sub_67c1790 (waits for chunks)
+- [ ] X4.67d14e0 LIFT sub_67d14e0 (0x67d14e0, 0x109d bytes, depth 1, D0, 10 callees in set)
+- [ ] X4.67d2f80 LIFT sub_67d2f80 (0x67d2f80, 0x56a bytes, depth 2, D0, 5 callees in set)
+- [ ] X4.67d3850 LIFT sub_67d3850 (0x67d3850, 0x4d0 bytes, depth 2, D0, 5 callees in set)
+- [ ] X4.67d4020 LIFT sub_67d4020 (0x67d4020, 0x4d0 bytes, depth 2, D0, 5 callees in set)
+- [ ] X4.67d47f0 LIFT sub_67d47f0 (0x67d47f0, 0x56a bytes, depth 2, D0, 5 callees in set)
+- [ ] X4.67d50c0 LIFT sub_67d50c0 (0x67d50c0, 0x819 bytes, depth 3, D0, 4 callees in set)
+- [ ] X4.67d7e70 LIFT sub_67d7e70 (0x67d7e70, 0x717 bytes, depth 3, D0, 6 callees in set)
+- [ ] X4.67d9080 LIFT sub_67d9080 (0x67d9080, 0xa1b bytes, depth 2, D0, 7 callees in set)
+- [ ] X4.67daa20 LIFT sub_67daa20 (0x67daa20, 0x59a bytes, depth 2, D0, 4 callees in set)
+- [ ] X4.67db7a0 LIFT sub_67db7a0 (0x67db7a0, 0xab2 bytes, depth 2, D0, 5 callees in set)
+- [ ] X4.67dc7e0 LIFT sub_67dc7e0 (0x67dc7e0, 0x4f8 bytes, depth 1, D0, 5 callees in set)
+- [ ] X4.67dcfe0 LIFT sub_67dcfe0 (0x67dcfe0, 0x56b bytes, depth 1, D0, 5 callees in set)
+- [ ] X4.67dd8b0 LIFT sub_67dd8b0 (0x67dd8b0, 0x4f6 bytes, depth 1, D0, 5 callees in set)
+- [ ] X4.67de380 LIFT sub_67de380 (0x67de380, 0x161d bytes, depth 2, D0, 10 callees in set)
+- [ ] X4.67e07c0 LIFT sub_67e07c0 (0x67e07c0, 0x4f6 bytes, depth 2, D0, 5 callees in set)
+- [ ] X4.67e0fc0 LIFT sub_67e0fc0 (0x67e0fc0, 0x373 bytes, depth 2, D0, 4 callees in set)
+- [ ] X4.67e1990 LIFT sub_67e1990 (0x67e1990, 0x4f4 bytes, depth 1, D0, 5 callees in set)
+- [ ] X4.67e2540 LIFT sub_67e2540 (0x67e2540, 0xfe0 bytes, depth 2, D0, 11 callees in set)
+- [ ] X4.67e4280 LIFT sub_67e4280 (0x67e4280, 0xee5 bytes, depth 2, D0, 11 callees in set)
+- [ ] X4.67e6730 LIFT sub_67e6730 (0x67e6730, 0x214 bytes, depth 1, D0, 3 callees in set)
+- [ ] X4.67e6a70 LIFT sub_67e6a70 (0x67e6a70, 0x60f bytes, depth 1, D0, 5 callees in set)
+- [ ] X4.67e7400 LIFT sub_67e7400 (0x67e7400, 0x6a9 bytes, depth 1, D0, 5 callees in set)
+- [ ] X4.67ea0d0 LIFT sub_67ea0d0 (0x67ea0d0, 0x6ab bytes, depth 2, D0, 5 callees in set)
+- [ ] X4.67eab80 LIFT sub_67eab80 (0x67eab80, 0x564 bytes, depth 2, D0, 5 callees in set)
+- [ ] X4.661a770.plan PLAN sub_661a770: split 0x661a770..0x661dc99 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/661a770.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.661a770.asm LIFT ASSEMBLE sub_661a770 (waits for chunks)
+- [ ] X4.6640ae0 LIFT FrameBuilder insert wrapper (Light group, slot) (0x6640ae0, 0x214 bytes, depth 0, D2, 1 callees in set)
+- [ ] X4.66742f0.plan PLAN Editor group visitor, dispatch reversed: split 0x66742f0..0x667e281 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/66742f0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.66742f0.asm LIFT ASSEMBLE Editor group visitor, dispatch reversed (waits for chunks)
+- [ ] X4.6698e30.plan PLAN ItemInHand extractor: split 0x6698e30..0x669ede4 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6698e30.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6698e30.asm LIFT ASSEMBLE ItemInHand extractor (waits for chunks)
+- [ ] X4.66a6830.plan PLAN Shadow volume builder: split 0x66a6830..0x66a88c7 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/66a6830.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.66a6830.asm LIFT ASSEMBLE Shadow volume builder (waits for chunks)
+- [ ] X4.66a9d50.plan PLAN sub_66a9d50: split 0x66a9d50..0x66ab74d at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/66a9d50.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.66a9d50.asm LIFT ASSEMBLE sub_66a9d50 (waits for chunks)
+- [ ] X4.66b2de0.plan PLAN sub_66b2de0: split 0x66b2de0..0x66b759c at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/66b2de0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.66b2de0.asm LIFT ASSEMBLE sub_66b2de0 (waits for chunks)
+- [ ] X4.66d9af0.plan PLAN batch-actor extractor: split 0x66d9af0..0x66e26a7 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/66d9af0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.66d9af0.asm LIFT ASSEMBLE batch-actor extractor (waits for chunks)
+- [ ] X4.66e6380 LIFT sub_66e6380 (0x66e6380, 0x805 bytes, depth 1, D0, 3 callees in set)
+- [ ] X4.66e75f0.plan PLAN BlockSelectionOverlayBlockEntity extractor (Item tag 8 handler): split 0x66e75f0..0x66e92fc at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/66e75f0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.66e75f0.asm LIFT ASSEMBLE BlockSelectionOverlayBlockEntity extractor (Item tag 8 handler) (waits for chunks)
+- [ ] X4.678c4c0 LIFT sub_678c4c0 (0x678c4c0, 0x7e9 bytes, depth 1, D0, 3 callees in set)
+- [ ] X4.67bfc10 LIFT sub_67bfc10 (0x67bfc10, 0x20b bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.67c0c50 LIFT sub_67c0c50 (0x67c0c50, 0xa4b bytes, depth 1, D0, 8 callees in set)
+- [ ] X4.67c73d0 LIFT sub_67c73d0 (0x67c73d0, 0x6b8 bytes, depth 1, D0, 5 callees in set)
+- [ ] X4.661a400 LIFT sub_661a400 (0x661a400, 0x2e6 bytes, depth 0, D0, 2 callees in set)
+- [ ] X4.6674050 LIFT FrameBuilder insert wrapper (Editor group, slot) (0x6674050, 0x214 bytes, depth 0, D2, 1 callees in set)
+- [ ] X4.66d0a00.plan PLAN bodyActor pass: split 0x66d0a00..0x66d7d8b at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/66d0a00.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.66d0a00.asm LIFT ASSEMBLE bodyActor pass (waits for chunks)
+- [ ] X4.670b6e0.plan PLAN RenderChunkFogAlpha draw-builder: split 0x670b6e0..0x6713c64 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/670b6e0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.670b6e0.asm LIFT ASSEMBLE RenderChunkFogAlpha draw-builder (waits for chunks)
+- [ ] X4.6722cb0.plan PLAN RenderChunkFogAlpha draw-builder: split 0x6722cb0..0x672a464 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6722cb0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6722cb0.asm LIFT ASSEMBLE RenderChunkFogAlpha draw-builder (waits for chunks)
+- [ ] X4.6753b50 LIFT sub_6753b50 (0x6753b50, 0x9bc bytes, depth 1, D0, 2 callees in set)
+- [ ] X4.67762e0.plan PLAN RenderChunkFogAlpha draw-builder: split 0x67762e0..0x677e166 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/67762e0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.67762e0.asm LIFT ASSEMBLE RenderChunkFogAlpha draw-builder (waits for chunks)
+- [ ] X4.6792d90.plan PLAN RenderChunkFogAlpha draw-builder: split 0x6792d90..0x679a524 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6792d90.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6792d90.asm LIFT ASSEMBLE RenderChunkFogAlpha draw-builder (waits for chunks)
+- [ ] X4.67aa700.plan PLAN RenderChunkFogAlpha draw-builder: split 0x67aa700..0x67ad3ae at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/67aa700.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.67aa700.asm LIFT ASSEMBLE RenderChunkFogAlpha draw-builder (waits for chunks)
+- [ ] X4.67c0970 LIFT sub_67c0970 (0x67c0970, 0x106 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.67c0a80 LIFT sub_67c0a80 (0x67c0a80, 0x1af bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.67c7140 LIFT sub_67c7140 (0x67c7140, 0x16e bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.67c82f0 LIFT sub_67c82f0 (0x67c82f0, 0x1131 bytes, depth 1, D0, 2 callees in set)
+- [ ] X4.661f200.plan PLAN sub_661f200: split 0x661f200..0x6621df9 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/661f200.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.661f200.asm LIFT ASSEMBLE sub_661f200 (waits for chunks)
+- [ ] X4.66ea3d0.plan PLAN terrain/chunk draw builder: split 0x66ea3d0..0x66f9800 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/66ea3d0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.66ea3d0.asm LIFT ASSEMBLE terrain/chunk draw builder (waits for chunks)
+- [ ] X4.bb96320.plan PLAN sub_bb96320: split 0xbb96320..0xbbaf9ce at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bb96320.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.bb96320.asm LIFT ASSEMBLE sub_bb96320 (waits for chunks)
+- [ ] X4.bbbfc50.plan PLAN sub_bbbfc50: split 0xbbbfc50..0xbbc83eb at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bbbfc50.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.bbbfc50.asm LIFT ASSEMBLE sub_bbbfc50 (waits for chunks)
+- [ ] X4.66117f0.plan PLAN sub_66117f0: split 0x66117f0..0x66157b0 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/66117f0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.66117f0.asm LIFT ASSEMBLE sub_66117f0 (waits for chunks)
+- [ ] X4.661edd0 LIFT sub_661edd0 (0x661edd0, 0x3a5 bytes, depth 0, D0, 1 callees in set)
+- [ ] X4.66182d0 LIFT sub_66182d0 (0x66182d0, 0x4ef bytes, depth 0, D0, 8 callees in set)
+- [ ] X4.6622aa0 LIFT sub_6622aa0 (0x6622aa0, 0x6c5 bytes, depth 0, D0, 9 callees in set)
+- [ ] X4.67c9c20 LIFT Frame renderer - Frame (0x67c9c20, 0x966 bytes, depth 0, D2, 6 callees in set)
+- [ ] X4.67d6d70 LIFT sub_67d6d70 (0x67d6d70, 0x4f0 bytes, depth 1, D0, 7 callees in set)
+- [ ] X4.67ec9e0 LIFT sub_67ec9e0 (0x67ec9e0, 0xc02 bytes, depth 0, D0, 10 callees in set)
+- [ ] X4.66232b0.plan PLAN BgfxFrameBuilder::endFrame: split 0x66232b0..0x662e680 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/66232b0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.66232b0.asm LIFT ASSEMBLE BgfxFrameBuilder::endFrame (waits for chunks)
+- [ ] X4.6646980.plan PLAN Item group visitor (_insert slot 0x378), dispatch reversed: split 0x6646980..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6646980.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6646980.asm LIFT ASSEMBLE Item group visitor (_insert slot 0x378), dispatch reversed (waits for chunks)
+- [ ] X4.66560f0.plan PLAN Sky group visitor, dispatch reversed: split 0x66560f0..0x665e7ae at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/66560f0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.66560f0.asm LIFT ASSEMBLE Sky group visitor, dispatch reversed (waits for chunks)
+- [ ] X4.666aca0.plan PLAN Effect group visitor, dispatch reversed: split 0x666aca0..0x667191c at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/666aca0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.666aca0.asm LIFT ASSEMBLE Effect group visitor, dispatch reversed (waits for chunks)
+- [ ] X4.674a3a0.plan PLAN UI text renderer (UI/Text, UI/Glint), called by the UIText visitor case: split 0x674a3a0..0x674f006 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/674a3a0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.674a3a0.asm LIFT ASSEMBLE UI text renderer (UI/Text, UI/Glint), called by the UIText visitor case (waits for chunks)
+- [ ] X4.bb7efb0.plan PLAN sub_bb7efb0: split 0xbb7efb0..0xbb807dc at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bb7efb0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.bb7efb0.asm LIFT ASSEMBLE sub_bb7efb0 (waits for chunks)
+- [ ] X4.bb81880.plan PLAN sub_bb81880: split 0xbb81880..0xbb83ab1 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bb81880.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.bb81880.asm LIFT ASSEMBLE sub_bb81880 (waits for chunks)
+- [ ] X4.bb84ee0.plan PLAN sub_bb84ee0: split 0xbb84ee0..0xbb8aaa4 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bb84ee0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.bb84ee0.asm LIFT ASSEMBLE sub_bb84ee0 (waits for chunks)
+- [ ] X4.bb8ccb0 LIFT sub_bb8ccb0 (0xbb8ccb0, 0xc51 bytes, depth 0, D0, 3 callees in set)
+- [ ] X4.bb8eb70.plan PLAN sub_bb8eb70: split 0xbb8eb70..0xbb918d8 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bb8eb70.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.bb8eb70.asm LIFT ASSEMBLE sub_bb8eb70 (waits for chunks)
+- [ ] X4.bbc9db0.plan PLAN sub_bbc9db0: split 0xbbc9db0..0xbbcc72c at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bbc9db0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.bbc9db0.asm LIFT ASSEMBLE sub_bbc9db0 (waits for chunks)
+- [ ] X4.bcd77b0.plan PLAN sub_bcd77b0: split 0xbcd77b0..0xbcdab64 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bcd77b0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.bcd77b0.asm LIFT ASSEMBLE sub_bcd77b0 (waits for chunks)
+- [ ] X4.bcdba70 LIFT sub_bcdba70 (0xbcdba70, 0x1229 bytes, depth 0, D0, 7 callees in set)
+- [ ] X4.66466e0 LIFT FrameBuilder insert wrapper (Item group, slot) (0x66466e0, 0x218 bytes, depth 0, D2, 1 callees in set)
+- [ ] X4.6655de0 LIFT FrameBuilder insert wrapper (Sky group, slot) (0x6655de0, 0x28e bytes, depth 0, D2, 1 callees in set)
+- [ ] X4.6664a00.plan PLAN UI group visitor, dispatch reversed: split 0x6664a00..0x6668510 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6664a00.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6664a00.asm LIFT ASSEMBLE UI group visitor, dispatch reversed (waits for chunks)
+- [ ] X4.666aa00 LIFT FrameBuilder insert wrapper (Effect group, slot) (0x666aa00, 0x218 bytes, depth 0, D2, 1 callees in set)
+- [ ] X4.6664760 LIFT FrameBuilder insert wrapper (UI group, slot) (0x6664760, 0x218 bytes, depth 0, D2, 1 callees in set)
+- [ ] X4z GATE (orchestrator): all X4 items [x]; build the DLL, fix compile errors, run the milestone verify scenes (docs/NATIVE_VERIFY_PROTOCOL.md), zero divergence; set functions.tsv rows to L2; push mirror
+
+## X5. Frame-graph renderers and pass bodies (VV, Fancy, RTX, legacy)
+
+239 functions, 579 KB of machine code. Order = callees first. Source dir: `src/client/features/render/native/passes/`. Gate: X5z.
+
+- [ ] X5.5667860 LIFT sub_5667860 (0x5667860, 0x3e4 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.5667e70 LIFT sub_5667e70 (0x5667e70, 0xe6 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.5668ac0 LIFT sub_5668ac0 (0x5668ac0, 0x2c9 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.566a620 LIFT sub_566a620 (0x566a620, 0xf2 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.5679db0 LIFT UniformBlock::setUniform (vec4 array, dirty bit, running hash), fully reversed (0x5679db0, 0x165 bytes, depth 1, D2, 0 callees in set)
+- [ ] X5.567a5b0 LIFT sub_567a5b0 (0x567a5b0, 0x10e bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.567a6c0 LIFT sub_567a6c0 (0x567a6c0, 0xef bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.567a7b0 LIFT sub_567a7b0 (0x567a7b0, 0x138 bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.567acf0 LIFT sub_567acf0 (0x567acf0, 0xe9 bytes, depth 4, D0, 0 callees in set)
+- [ ] X5.567b890 LIFT sub_567b890 (0x567b890, 0x116 bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.567bfe0 LIFT sub_567bfe0 (0x567bfe0, 0xbd bytes, depth 3, D0, 0 callees in set)
+- [ ] X5.567c110 LIFT sub_567c110 (0x567c110, 0x2da bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.567c6e0 LIFT sub_567c6e0 (0x567c6e0, 0x1aa bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.567d690 LIFT sub_567d690 (0x567d690, 0x214 bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.567d8b0 LIFT sub_567d8b0 (0x567d8b0, 0x13f bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.567d9f0 LIFT sub_567d9f0 (0x567d9f0, 0x109 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.567db00 LIFT sub_567db00 (0x567db00, 0x63 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.567e060 LIFT sub_567e060 (0x567e060, 0x201 bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.567e2b0 LIFT sub_567e2b0 (0x567e2b0, 0x141 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.567e430 LIFT sub_567e430 (0x567e430, 0xdd bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.5689f00 LIFT sub_5689f00 (0x5689f00, 0x402 bytes, depth 3, D0, 0 callees in set)
+- [ ] X5.568b4f0 LIFT sub_568b4f0 (0x568b4f0, 0x3ed bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.568b9e0 LIFT common pass task encode (queues the custom item) (0x568b9e0, 0x95 bytes, depth 0, D2, 0 callees in set)
+- [ ] X5.568bcd0 LIFT common pass task render-thread body (static, called by the executor for a custom item), fully reversed (0x568bcd0, 0xc4 bytes, depth 0, D2, 0 callees in set)
+- [ ] X5.568bdc0 LIFT sub_568bdc0 (0x568bdc0, 0x3d4 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.568cbe0 LIFT sub_568cbe0 (0x568cbe0, 0x17f bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.568cd70 LIFT sub_568cd70 (0x568cd70, 0x-11 bytes, depth 0, D0, 0 callees in set)
+- [ ] X5.568db90 LIFT sub_568db90 (0x568db90, 0x80 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.5699980 LIFT sub_5699980 (0x5699980, 0x1e2 bytes, depth 3, D0, 0 callees in set)
+- [ ] X5.5699be0 LIFT sub_5699be0 (0x5699be0, 0x95 bytes, depth 0, D0, 0 callees in set)
+- [ ] X5.5699e30 LIFT pass task render-thread body (class B, same template as 0x568bcd0) (0x5699e30, 0xc4 bytes, depth 0, D2, 0 callees in set)
+- [ ] X5.5699f20 LIFT sub_5699f20 (0x5699f20, 0x1c9 bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.56adbb0 LIFT sub_56adbb0 (0x56adbb0, 0x172 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.56add30 LIFT sub_56add30 (0x56add30, 0x1de bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.56ae910 LIFT sub_56ae910 (0x56ae910, 0x79 bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.56aea80 LIFT sub_56aea80 (0x56aea80, 0x113 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.56b66f0 LIFT sub_56b66f0 (0x56b66f0, 0xfc bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.56b67f0 LIFT sub_56b67f0 (0x56b67f0, 0xc8 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.56b7980 LIFT sub_56b7980 (0x56b7980, 0xfc bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.56b8180 LIFT sub_56b8180 (0x56b8180, 0xfc bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.56b8280 LIFT sub_56b8280 (0x56b8280, 0x21b bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.56b84e0 LIFT sub_56b84e0 (0x56b84e0, 0x116 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.56b8630 LIFT sub_56b8630 (0x56b8630, 0x176 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.56b8a20 LIFT sub_56b8a20 (0x56b8a20, 0x23d bytes, depth 3, D0, 0 callees in set)
+- [ ] X5.56bba40 LIFT sub_56bba40 (0x56bba40, 0x119 bytes, depth 4, D0, 0 callees in set)
+- [ ] X5.56bbb60 LIFT sub_56bbb60 (0x56bbb60, 0x11d bytes, depth 4, D0, 0 callees in set)
+- [ ] X5.56bc800 LIFT sub_56bc800 (0x56bc800, 0x1c4 bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.56bdb50 LIFT sub_56bdb50 (0x56bdb50, 0x3d2 bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.56be290 LIFT sub_56be290 (0x56be290, 0xc6 bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.56c24e0 LIFT sub_56c24e0 (0x56c24e0, 0x429 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.56c2910 LIFT sub_56c2910 (0x56c2910, 0x20f bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.56c82d0 LIFT sub_56c82d0 (0x56c82d0, 0x282 bytes, depth 3, D0, 0 callees in set)
+- [ ] X5.56c85c0 LIFT sub_56c85c0 (0x56c85c0, 0x95 bytes, depth 0, D0, 0 callees in set)
+- [ ] X5.56c8810 LIFT pass task render-thread body (class C, same template) (0x56c8810, 0xc4 bytes, depth 0, D2, 0 callees in set)
+- [ ] X5.56c8900 LIFT sub_56c8900 (0x56c8900, 0x269 bytes, depth 3, D0, 0 callees in set)
+- [ ] X5.56c9740 LIFT sub_56c9740 (0x56c9740, 0x1e7 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.56c9fc0 LIFT sub_56c9fc0 (0x56c9fc0, 0x255 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.56cc4f0 LIFT sub_56cc4f0 (0x56cc4f0, 0xef bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.56cca60 LIFT sub_56cca60 (0x56cca60, 0x181 bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.56d0180 LIFT sub_56d0180 (0x56d0180, 0x216 bytes, depth 5, D0, 0 callees in set)
+- [ ] X5.56d03a0 LIFT sub_56d03a0 (0x56d03a0, 0x12a bytes, depth 5, D0, 0 callees in set)
+- [ ] X5.56d09d0 LIFT sub_56d09d0 (0x56d09d0, 0x270 bytes, depth 6, D0, 0 callees in set)
+- [ ] X5.56d1040 LIFT sub_56d1040 (0x56d1040, 0x257 bytes, depth 6, D0, 0 callees in set)
+- [ ] X5.56d2cc0 LIFT sub_56d2cc0 (0x56d2cc0, 0x147 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.56d4dc0 LIFT sub_56d4dc0 (0x56d4dc0, 0x35c bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.56d5140 LIFT sub_56d5140 (0x56d5140, 0x32f bytes, depth 4, D0, 0 callees in set)
+- [ ] X5.56d56a0 LIFT sub_56d56a0 (0x56d56a0, 0x165 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.56d58b0 LIFT sub_56d58b0 (0x56d58b0, 0x166 bytes, depth 2, D0, 0 callees in set)
+- [ ] X5.56d5a20 LIFT sub_56d5a20 (0x56d5a20, 0x147 bytes, depth 1, D0, 0 callees in set)
+- [ ] X5.5667c80 LIFT sub_5667c80 (0x5667c80, 0x1b5 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.5669ae0 LIFT sub_5669ae0 (0x5669ae0, 0x129 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.566a450 LIFT sub_566a450 (0x566a450, 0x19f bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.566b010 LIFT sub_566b010 (0x566b010, 0x498 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.567a0e0 LIFT sub_567a0e0 (0x567a0e0, 0x43c bytes, depth 2, D0, 2 callees in set)
+- [ ] X5.567bce0 LIFT sub_567bce0 (0x567bce0, 0x292 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.567cf50 LIFT sub_567cf50 (0x567cf50, 0x100 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.567d280 LIFT sub_567d280 (0x567d280, 0x367 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.567dbb0 LIFT sub_567dbb0 (0x567dbb0, 0x42d bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.5689c00 LIFT sub_5689c00 (0x5689c00, 0x2f1 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.568ad40 LIFT sub_568ad40 (0x568ad40, 0xc2 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.568c640 LIFT sub_568c640 (0x568c640, 0x4ea bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.568da90 LIFT sub_568da90 (0x568da90, 0xf7 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.56aeff0 LIFT sub_56aeff0 (0x56aeff0, 0xff bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.56b7710 LIFT sub_56b7710 (0x56b7710, 0x17f bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56b7a80 LIFT sub_56b7a80 (0x56b7a80, 0x24e bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.56b7f40 LIFT sub_56b7f40 (0x56b7f40, 0x143 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56b87d0 LIFT sub_56b87d0 (0x56b87d0, 0x204 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56bb7d0 LIFT sub_56bb7d0 (0x56bb7d0, 0x26a bytes, depth 3, D0, 2 callees in set)
+- [ ] X5.56bc0e0 LIFT sub_56bc0e0 (0x56bc0e0, 0x6d7 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.56c04d0 LIFT sub_56c04d0 (0x56c04d0, 0x1bc bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56c9080 LIFT sub_56c9080 (0x56c9080, 0x3f5 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.56c9570 LIFT sub_56c9570 (0x56c9570, 0x111 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.56c9d50 LIFT sub_56c9d50 (0x56c9d50, 0x1de bytes, depth 3, D0, 1 callees in set)
+- [ ] X5.56ca5e0 LIFT sub_56ca5e0 (0x56ca5e0, 0x1c5 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.56cfd40 LIFT sub_56cfd40 (0x56cfd40, 0x384 bytes, depth 4, D0, 1 callees in set)
+- [ ] X5.56d55e0 LIFT sub_56d55e0 (0x56d55e0, 0xbb bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.56d5810 LIFT sub_56d5810 (0x56d5810, 0x98 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.566d350 LIFT sub_566d350 (0x566d350, 0x337 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.566d690 LIFT sub_566d690 (0x566d690, 0x120 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.5679f20 LIFT sub_5679f20 (0x5679f20, 0x117 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.567a930 LIFT sub_567a930 (0x567a930, 0x117 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.567d050 LIFT sub_567d050 (0x567d050, 0x1a5 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56894c0 LIFT sub_56894c0 (0x56894c0, 0x33b bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.5689800 LIFT sub_5689800 (0x5689800, 0x3fc bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.568c4e0 LIFT sub_568c4e0 (0x568c4e0, 0x158 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.5698290 LIFT sub_5698290 (0x5698290, 0x123 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.56b68c0 LIFT sub_56b68c0 (0x56b68c0, 0x2e2 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.56b7280 LIFT sub_56b7280 (0x56b7280, 0x2d0 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.56ba620 LIFT sub_56ba620 (0x56ba620, 0x13b bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.56c0280 LIFT sub_56c0280 (0x56c0280, 0x14d bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.5667fe0 LIFT sub_5667fe0 (0x5667fe0, 0x515 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.5688ff0 LIFT sub_5688ff0 (0x5688ff0, 0x440 bytes, depth 2, D0, 2 callees in set)
+- [ ] X5.568a310 LIFT sub_568a310 (0x568a310, 0x444 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.568a7f0 LIFT sub_568a7f0 (0x568a7f0, 0x4b6 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.568c420 LIFT sub_568c420 (0x568c420, 0x99 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.568cb30 LIFT sub_568cb30 (0x568cb30, 0x90 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.568dc40 LIFT sub_568dc40 (0x568dc40, 0x440 bytes, depth 2, D0, 2 callees in set)
+- [ ] X5.568e110 LIFT sub_568e110 (0x568e110, 0x444 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.568e5f0 LIFT sub_568e5f0 (0x568e5f0, 0x4b6 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.568eb90 LIFT sub_568eb90 (0x568eb90, 0x40e bytes, depth 2, D0, 2 callees in set)
+- [ ] X5.568f030 LIFT sub_568f030 (0x568f030, 0x414 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.568f4e0 LIFT sub_568f4e0 (0x568f4e0, 0x497 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.568fa60 LIFT sub_568fa60 (0x568fa60, 0x41f bytes, depth 2, D0, 2 callees in set)
+- [ ] X5.568ff10 LIFT sub_568ff10 (0x568ff10, 0x421 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56903d0 LIFT sub_56903d0 (0x56903d0, 0x4a4 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.5690960 LIFT sub_5690960 (0x5690960, 0x41f bytes, depth 2, D0, 2 callees in set)
+- [ ] X5.5690e10 LIFT sub_5690e10 (0x5690e10, 0x421 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56912d0 LIFT sub_56912d0 (0x56912d0, 0x4a4 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.5691860 LIFT sub_5691860 (0x5691860, 0x40e bytes, depth 2, D0, 2 callees in set)
+- [ ] X5.5691d00 LIFT sub_5691d00 (0x5691d00, 0x414 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56921b0 LIFT sub_56921b0 (0x56921b0, 0x497 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.5692730 LIFT sub_5692730 (0x5692730, 0x440 bytes, depth 2, D0, 2 callees in set)
+- [ ] X5.5692c00 LIFT sub_5692c00 (0x5692c00, 0x444 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56930e0 LIFT sub_56930e0 (0x56930e0, 0x4b6 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56939c0 LIFT sub_56939c0 (0x56939c0, 0x91 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.5693a80 LIFT sub_5693a80 (0x5693a80, 0xa1 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.5693ba0 LIFT sub_5693ba0 (0x5693ba0, 0x41f bytes, depth 2, D0, 2 callees in set)
+- [ ] X5.5694050 LIFT sub_5694050 (0x5694050, 0x421 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.5694510 LIFT sub_5694510 (0x5694510, 0x4a4 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.5694fb0 LIFT sub_5694fb0 (0x5694fb0, 0x440 bytes, depth 2, D0, 2 callees in set)
+- [ ] X5.5695480 LIFT sub_5695480 (0x5695480, 0x444 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.5695960 LIFT sub_5695960 (0x5695960, 0x4b6 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.5695f00 LIFT sub_5695f00 (0x5695f00, 0x4b6 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.5696540 LIFT sub_5696540 (0x5696540, 0x4a7 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.5696ad0 LIFT sub_5696ad0 (0x5696ad0, 0x4a7 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.56970b0 LIFT sub_56970b0 (0x56970b0, 0x4b6 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.5697650 LIFT sub_5697650 (0x5697650, 0x4b6 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.569a4e0 LIFT sub_569a4e0 (0x569a4e0, 0x440 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.569ad50 LIFT sub_569ad50 (0x569ad50, 0x440 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.569b220 LIFT sub_569b220 (0x569b220, 0x444 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.569b700 LIFT sub_569b700 (0x569b700, 0x4b6 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.569bca0 LIFT sub_569bca0 (0x569bca0, 0x440 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.569c170 LIFT sub_569c170 (0x569c170, 0x444 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.569c650 LIFT sub_569c650 (0x569c650, 0x4b6 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.569cbf0 LIFT sub_569cbf0 (0x569cbf0, 0x4b6 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.56b3a10 LIFT sub_56b3a10 (0x56b3a10, 0x40e bytes, depth 2, D0, 2 callees in set)
+- [ ] X5.56b3eb0 LIFT sub_56b3eb0 (0x56b3eb0, 0x414 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56b4360 LIFT sub_56b4360 (0x56b4360, 0x497 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56b48e0 LIFT sub_56b48e0 (0x56b48e0, 0x40e bytes, depth 2, D0, 2 callees in set)
+- [ ] X5.56b4d80 LIFT sub_56b4d80 (0x56b4d80, 0x414 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56b5230 LIFT sub_56b5230 (0x56b5230, 0x497 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56b57b0 LIFT sub_56b57b0 (0x56b57b0, 0x40e bytes, depth 2, D0, 2 callees in set)
+- [ ] X5.56b5c50 LIFT sub_56b5c50 (0x56b5c50, 0x414 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56b6100 LIFT sub_56b6100 (0x56b6100, 0x497 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56b7030 LIFT sub_56b7030 (0x56b7030, 0x14d bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.56b7cd0 LIFT sub_56b7cd0 (0x56b7cd0, 0x16b bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56bbc80 LIFT sub_56bbc80 (0x56bbc80, 0x3c8 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.56bd2a0 LIFT sub_56bd2a0 (0x56bd2a0, 0x3c9 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.56c2080 LIFT sub_56c2080 (0x56c2080, 0x3c9 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.56c2b60 LIFT sub_56c2b60 (0x56c2b60, 0x3c9 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.56c47d0 LIFT sub_56c47d0 (0x56c47d0, 0x440 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.56c4f80 LIFT sub_56c4f80 (0x56c4f80, 0x440 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.56c5470 LIFT sub_56c5470 (0x56c5470, 0x421 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.56c5950 LIFT sub_56c5950 (0x56c5950, 0x421 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.56c5e60 LIFT sub_56c5e60 (0x56c5e60, 0x440 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.56c63c0 LIFT sub_56c63c0 (0x56c63c0, 0x421 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.56c6880 LIFT sub_56c6880 (0x56c6880, 0x424 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56c6d40 LIFT sub_56c6d40 (0x56c6d40, 0x4a7 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56cb540 LIFT sub_56cb540 (0x56cb540, 0x3c9 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.56cc5e0 LIFT sub_56cc5e0 (0x56cc5e0, 0x3e6 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.566cb20 LIFT sub_566cb20 (0x566cb20, 0x69b bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.567b570 LIFT sub_567b570 (0x567b570, 0x2d6 bytes, depth 1, D0, 3 callees in set)
+- [ ] X5.567c3f0 LIFT sub_567c3f0 (0x567c3f0, 0x2a8 bytes, depth 1, D0, 3 callees in set)
+- [ ] X5.568b0d0 LIFT sub_568b0d0 (0x568b0d0, 0x2d7 bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.5693680 LIFT sub_5693680 (0x5693680, 0x294 bytes, depth 1, D0, 5 callees in set)
+- [ ] X5.5694e30 LIFT sub_5694e30 (0x5694e30, 0x121 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.5699580 LIFT sub_5699580 (0x5699580, 0x2ba bytes, depth 2, D0, 3 callees in set)
+- [ ] X5.569a9b0 LIFT sub_569a9b0 (0x569a9b0, 0x2a5 bytes, depth 1, D0, 5 callees in set)
+- [ ] X5.56a01f0 LIFT sub_56a01f0 (0x56a01f0, 0x2c6 bytes, depth 2, D0, 3 callees in set)
+- [ ] X5.56a8bb0 LIFT sub_56a8bb0 (0x56a8bb0, 0xd64 bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.56acba0 LIFT sub_56acba0 (0x56acba0, 0x2ba bytes, depth 2, D0, 3 callees in set)
+- [ ] X5.56c4ca0 LIFT sub_56c4ca0 (0x56c4ca0, 0x21a bytes, depth 1, D0, 3 callees in set)
+- [ ] X5.56c7eb0 LIFT sub_56c7eb0 (0x56c7eb0, 0x2d7 bytes, depth 2, D0, 3 callees in set)
+- [ ] X5.56c9930 LIFT sub_56c9930 (0x56c9930, 0x2d7 bytes, depth 2, D0, 4 callees in set)
+- [ ] X5.56cb180 LIFT sub_56cb180 (0x56cb180, 0x2a5 bytes, depth 1, D0, 5 callees in set)
+- [ ] X5.56cba60 LIFT sub_56cba60 (0x56cba60, 0x2cb bytes, depth 2, D0, 4 callees in set)
+- [ ] X5.56d05a0 LIFT sub_56d05a0 (0x56d05a0, 0x2e8 bytes, depth 5, D0, 5 callees in set)
+- [ ] X5.56d1e30 LIFT sub_56d1e30 (0x56d1e30, 0x2d7 bytes, depth 5, D0, 4 callees in set)
+- [ ] X5.56d2310 LIFT sub_56d2310 (0x56d2310, 0x2d7 bytes, depth 5, D0, 4 callees in set)
+- [ ] X5.56d27f0 LIFT sub_56d27f0 (0x56d27f0, 0x2c6 bytes, depth 5, D0, 3 callees in set)
+- [ ] X5.56685c0 LIFT sub_56685c0 (0x56685c0, 0x466 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.5668d90 LIFT sub_5668d90 (0x5668d90, 0x7c7 bytes, depth 1, D0, 8 callees in set)
+- [ ] X5.5669cf0 LIFT sub_5669cf0 (0x5669cf0, 0x5d5 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.566a880 LIFT sub_566a880 (0x566a880, 0x47b bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.566b500 LIFT sub_566b500 (0x566b500, 0x1270 bytes, depth 1, D0, 3 callees in set)
+- [ ] X5.567e510 LIFT sub_567e510 (0x567e510, 0x14e5 bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.567fd70 LIFT sub_567fd70 (0x567fd70, 0x14e5 bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.56815d0 LIFT sub_56815d0 (0x56815d0, 0x14d5 bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.5682e20 LIFT sub_5682e20 (0x5682e20, 0x14c5 bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.5684660 LIFT sub_5684660 (0x5684660, 0x14c5 bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.5685ea0 LIFT sub_5685ea0 (0x5685ea0, 0x14d5 bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.56876f0 LIFT sub_56876f0 (0x56876f0, 0x14e5 bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.568d750 LIFT sub_568d750 (0x568d750, 0x339 bytes, depth 2, D0, 6 callees in set)
+- [ ] X5.5694a50 LIFT sub_5694a50 (0x5694a50, 0x299 bytes, depth 1, D0, 6 callees in set)
+- [ ] X5.5697cc0 LIFT sub_5697cc0 (0x5697cc0, 0x476 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.569d160 LIFT sub_569d160 (0x569d160, 0x14b5 bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.569e990 LIFT sub_569e990 (0x569e990, 0x14b5 bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.56a8550 LIFT sub_56a8550 (0x56a8550, 0x582 bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.56a9b00 LIFT sub_56a9b00 (0x56a9b00, 0x14c5 bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.56ab340 LIFT sub_56ab340 (0x56ab340, 0x14e5 bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.56af0f0 LIFT sub_56af0f0 (0x56af0f0, 0x14d5 bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.56b0940 LIFT sub_56b0940 (0x56b0940, 0x14d5 bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.56b2190 LIFT sub_56b2190 (0x56b2190, 0x14d5 bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.56be030 LIFT sub_56be030 (0x56be030, 0x224 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.56c2fc0 LIFT sub_56c2fc0 (0x56c2fc0, 0x1495 bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.56c73f0 LIFT sub_56c73f0 (0x56c73f0, 0x74c bytes, depth 1, D0, 2 callees in set)
+- [ ] X5.56cdb70 LIFT sub_56cdb70 (0x56cdb70, 0x6ed bytes, depth 4, D0, 3 callees in set)
+- [ ] X5.56ce420 LIFT sub_56ce420 (0x56ce420, 0x6a3 bytes, depth 4, D0, 3 callees in set)
+- [ ] X5.56cec80 LIFT sub_56cec80 (0x56cec80, 0x6d0 bytes, depth 4, D0, 3 callees in set)
+- [ ] X5.56cf500 LIFT sub_56cf500 (0x56cf500, 0x685 bytes, depth 4, D0, 3 callees in set)
+- [ ] X5.568d480 LIFT sub_568d480 (0x568d480, 0x2c1 bytes, depth 1, D0, 1 callees in set)
+- [ ] X5.56bd700 LIFT sub_56bd700 (0x56bd700, 0x36a bytes, depth 1, D0, 3 callees in set)
+- [ ] X5.56cccc0 LIFT sub_56cccc0 (0x56cccc0, 0xbd2 bytes, depth 3, D0, 6 callees in set)
+- [ ] X5.568cd90 LIFT Scene/HUD view-setup task body (0x568cd90, 0x615 bytes, depth 0, D2, 6 callees in set)
+- [ ] X5.56cc330 LIFT sub_56cc330 (0x56cc330, 0x1b5 bytes, depth 2, D0, 1 callees in set)
+- [ ] X5.566adb0 LIFT sub_566adb0 (0x566adb0, 0x1dc bytes, depth 1, D0, 4 callees in set)
+- [ ] X5.567c8b0 LIFT ResourceCache::get twin (sync loader) (0x567c8b0, 0x4ec bytes, depth 1, D1, 7 callees in set)
+- [ ] X5.56a06a0.plan PLAN SkyProbeDeferredShading / DoDeferredShading pass body: split 0x56a06a0..0x56a5234 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/56a06a0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X5.56a06a0.asm LIFT ASSEMBLE SkyProbeDeferredShading / DoDeferredShading pass body (waits for chunks)
+- [ ] X5.55f1450.plan PLAN VV frame-graph builder (giant): split 0x55f1450..0x563f594 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/55f1450.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X5.55f1450.asm LIFT ASSEMBLE VV frame-graph builder (giant) (waits for chunks)
+- [ ] X5z GATE (orchestrator): all X5 items [x]; build the DLL, fix compile errors, run the milestone verify scenes (docs/NATIVE_VERIFY_PROTOCOL.md), zero divergence; set functions.tsv rows to L2; push mirror
+
+
+## X6. Closure and Native mode (the done state)
+
+- [ ] X6a Native roots: design and write the root installer: with `BS_NATIVE=on` the entry detours are installed only at the roots and at functions that have callers outside the lift set or indirect callers (vtable/functor tables the game built); everything below runs as direct calls between lifted functions. List of those entry points derived by tool into `docs/data/native_entries.tsv` with a [V] reason per row.
+- [ ] X6b Boundary audit: `tools/sigs/liftcheck.py --boundary` proves every call out of a lifted function goes to a lifted function or to a `native_boundary.tsv` row (nothing hidden behind a raw function pointer or an RVA constant).
+- [ ] X6c Closure audit: every function in the set has `LIFTCHECK OK`; every direct callee of every lifted function is in the set or in the boundary; every indirect call site of the frame path is resolved to a lifted target set or a boundary; zero rows in `native_unresolved_indirect.tsv`.
+- [ ] X6d Game-built tables: every vtable, `std::function`, task record and callback table that the game constructs and that points into lifted code is listed with how the entry detour (or a table patch) reaches our source; verified against the live objects.
+- [ ] X6e Native-mode run recipe and BIGBANG section: exact steps for the user's in-game test (modes, scenes, logs, what zero divergence means, what to send back).
+- [ ] X6z GATE (orchestrator + user): `BS_NATIVE=on` runs the whole render path on our code through every scene without divergence or crash; the lifted tree is the renderer. Push mirror and tag.
+
+## XO. Optimization from the lifted source (not started before X6z)
+
+Method: the lifted tree is the baseline. Each change is a source change to a lifted function (or a fusion of several), verified against the baseline for identical output on the scene recordings, and measured. Hot paths come from a profile of the native build, not from guesses.
+
+- [ ] XO1 Profile the native build per frame stage and per lifted function (RewriteTimed/Profiler rows, GPU timestamps via custom item), on the scene list; ranked table `docs/data/native_profile.tsv`.
+- [ ] XO2 Candidate list: for the top 40 functions by cost, the specific waste (redundant work, allocation per frame, std container churn, repeated hashing, sort, unnecessary copies, serial where parallel is possible), with the invariant that must hold for the change to be safe.
+- [ ] XO3 Hot-path rewrites in cost order, one item per function or fusion, each with before/after output equality and a measured gain.
+- [ ] XO4 Allocation and memory layout: per-frame arena for transient data, pooled descriptions, cache-friendly records, only where the game's observable memory contract is kept.
+- [ ] XO5 Threading and pipelining changes the lifted structure now allows (encode parallelism, extractor parallelism), with the thread-model proof of the original first.
+- [ ] XO6 New renderer pieces behind the lifted interfaces (own terrain submission, own culling, own post), only after XO1-XO3 show where the time goes.

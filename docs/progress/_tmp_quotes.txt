@@ -1,0 +1,78 @@
+0xbca8190  push rsi
+0xbca8191  push rdi
+0xbca8192  sub rsp,0x28
+0xbca8196  mov rsi,rcx
+0xbca8199  mov rax,[rcx+0x98]                            ; R a0+0x98
+0xbca81a0  cmp rax,0x10
+0xbca81a4  jb short 0xBCA81DE                            ; -> loc_bca81de
+0xbca81a6  mov rcx,[rsi+0x80]                            ; R a0+0x80
+0xbca81ad  lea rdx,[rax+1]                               ; R *(a0+0x98)+0x1
+0xbca81b1  cmp rdx,0x1000
+0xbca81b8  jb short 0xBCA81D9                            ; -> loc_bca81d9
+0xbca81ba  mov r8,[rcx-8]                                ; R *(a0+0x80)-0x8
+0xbca81be  add rcx,0xFFFFFFFFFFFFFFF8
+0xbca81c2  sub rcx,r8
+0xbca81c5  cmp rcx,0x20
+0xbca81c9  jae 0xBCA82AB                                 ; -> loc_bca82ab
+0xbca81cf  add rax,0x28
+0xbca81d3  mov rdx,rax
+0xbca81d6  mov rcx,r8
+0xbca81d9  call 0xE935700                                ; -> sub_e935700
+0xbca81de  mov qword ptr [rsi+0x90],0                    ; W a0+0x90
+0xbca81e9  mov qword ptr [rsi+0x98],0xF                  ; W a0+0x98
+0xbca81f4  mov byte ptr [rsi+0x80],0                     ; W a0+0x80
+0xbca81fb  mov rcx,[rsi+0x70]                            ; R a0+0x70
+0xbca81ff  test rcx,rcx
+0xbca8202  je short 0xBCA8223                            ; -> loc_bca8223
+0xbca8204  lea rax,[rsi+0x38]                            ; R a0+0x38
+0xbca8208  cmp rcx,rax
+0xbca820b  setne dl
+0xbca820e  mov rax,[rcx]                                 ; R *(a0+0x70)+0x0
+0xbca8211  mov rax,[rax+0x20]                            ; R *(*(a0+0x70)+0x0)+0x20
+0xbca8215  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+0xbca821b  mov qword ptr [rsi+0x70],0                    ; W a0+0x70
+0xbca8223  mov rdi,[rsi+0x28]                            ; R a0+0x28
+0xbca8227  test rdi,rdi
+0xbca822a  je short 0xBCA8257                            ; -> loc_bca8257
+0xbca822c  lock dec dword ptr [rdi+8]                    ; W *(a0+0x28)+0x8
+0xbca8230  jne short 0xBCA8257                           ; -> loc_bca8257
+0xbca8232  mov rax,[rdi]                                 ; R *(a0+0x28)+0x0
+0xbca8235  mov rax,[rax]                                 ; R *(*(a0+0x28)+0x0)+0x0
+0xbca8238  mov rcx,rdi
+0xbca823b  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+0xbca8241  lock dec dword ptr [rdi+0xC]                  ; W *(a0+0x28)+0xC
+0xbca8245  jne short 0xBCA8257                           ; -> loc_bca8257
+0xbca8247  mov rax,[rdi]                                 ; R *(a0+0x28)+0x0
+0xbca824a  mov rax,[rax+8]                               ; R *(*(a0+0x28)+0x0)+0x8
+0xbca824e  mov rcx,rdi
+0xbca8251  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+0xbca8257  mov rax,[rsi+0x18]                            ; R a0+0x18
+0xbca825b  cmp rax,0x10
+0xbca825f  jb short 0xBCA8291                            ; -> loc_bca8291
+0xbca8261  mov rcx,[rsi]                                 ; R a0+0x0
+0xbca8264  lea rdx,[rax+1]                               ; R *(a0+0x18)+0x1
+0xbca8268  cmp rdx,0x1000
+0xbca826f  jb short 0xBCA828C                            ; -> loc_bca828c
+0xbca8271  mov r8,[rcx-8]                                ; R *(a0+0x0)-0x8
+0xbca8275  add rcx,0xFFFFFFFFFFFFFFF8
+0xbca8279  sub rcx,r8
+0xbca827c  cmp rcx,0x20
+0xbca8280  jae short 0xBCA82AB                           ; -> loc_bca82ab
+0xbca8282  add rax,0x28
+0xbca8286  mov rdx,rax
+0xbca8289  mov rcx,r8
+0xbca828c  call 0xE935700                                ; -> sub_e935700
+0xbca8291  mov qword ptr [rsi+0x10],0                    ; W a0+0x10
+0xbca8299  mov qword ptr [rsi+0x18],0xF                  ; W a0+0x18
+0xbca82a1  mov byte ptr [rsi],0                          ; W a0+0x0
+0xbca82a4  add rsp,0x28
+0xbca82a8  pop rdi
+0xbca82a9  pop rsi
+0xbca82aa  ret
+0xbca82ab  mov qword ptr [rsp+0x20],0
+0xbca82b4  xor ecx,ecx
+0xbca82b6  xor edx,edx
+0xbca82b8  xor r8d,r8d
+0xbca82bb  xor r9d,r9d
+0xbca82be  call qword ptr [0xF9A8C78]                    ; [data_f9a8c78]
+0xbca82c4  int3

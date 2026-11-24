@@ -85,7 +85,7 @@
    {"value": "0x298", "backs": "DragonFrameResources task vector begin"},
    {"value": "0x2a0", "backs": "DragonFrameResources task vector end"},
    {"value": "0x18", "backs": "task kind virtual (slot 3) / TaskList state byte"},
-   {"value": "0xffffff80", "backs": "task entry stride 0x80 (sub r12,-0x80 at 0xE900412)"}
+   {"value": "0xffffff80", "backs": "task entry stride 0x80 (imm8 49 83 EC 80 = sub r12,-0x80)"}
   ]},
   {"symbol": "D3D12Context::drawExecutor", "asserts": [
    {"value": "0x94700", "backs": "FrameOffsets::kSortedItems"},
@@ -237,10 +237,10 @@
    {"value": "0x90", "backs": "UIMesh description size lower bound (R10, >= 0x90)"}
   ]},
   {"symbol": "FrameBuilder::visitEditor", "asserts": [
-    {"value": "0x64", "backs": "Editor description +0x64 16-byte block read (movups)"},
-    {"value": "0xd0", "backs": "Editor description +0xD0 u16 field read (word)"},
-    {"value": "0x3c", "backs": "Editor description +0x3C byte field compared to 1"},
-    {"value": "0x122", "backs": "Editor description +0x122 byte field compared to 1"}
+    {"value": "0x64", "backs": "Editor description +0x64 16-byte movups block read (disp8 0F 10 77 64)"},
+    {"value": "0xd0", "backs": "Editor description +0xD0 u16 word read (disp32)"},
+    {"value": "0x3c", "backs": "Editor description +0x3C byte cmp to 1 (disp8 80 7F 3C 01)"},
+    {"value": "0x122", "backs": "Editor description +0x122 byte cmp to 1 (disp32 80 BF 22 01 00 00 01)"}
   ]},
   {"symbol": "RendererContextD3D12::submit", "asserts": [
    {"value": "0x1778", "backs": "submit stack frame size (stack probe)"},

@@ -1,0 +1,1085 @@
+<!-- NATIVE -->
+# Native render checklist: every render function lifted to our own verified source, then run as our own code
+
+<!-- STATUS:BEGIN -->
+## STATUS (auto-updated by tools/checklist_status.py after every tick; last update 2026-11-23)
+**Items: 246 done / 1634 open.** Lifted code (L1, statically complete, liftcheck OK): **86 of 3934 KB (2%)**. The done state is Native mode over the whole path (X6z); until then this number is the honest progress, and nothing is live-verified (L2) before the gates.
+**Last change:** 
+
+| Section | done | open | lifted bytes |
+|---|---|---|---|
+| X0 | 13 | 1 |  |
+| X1 | 139 | 108 | 51 / 322 KB (15%) |
+| X2 | 94 | 217 | 35 / 645 KB (5%) |
+| X3 | 0 | 146 | 0 / 214 KB (0%) |
+| X4 | 0 | 547 | 0 / 1523 KB (0%) |
+| X5 | 0 | 245 | 0 / 580 KB (0%) |
+| X6 | 0 | 6 |  |
+| X7 | 0 | 358 | 0 / 647 KB (0%) |
+| XO | 0 | 6 |  |
+<!-- STATUS:END -->
+
+Goal and definition of done: `docs/RENDER_DONE_STATE.md`. How a function is lifted, what "done" means per item, file layout, ABI/STL/boundary rules: `docs/RENDER_NATIVE_SPEC.md`. Live verification: `docs/NATIVE_VERIFY_PROTOCOL.md`. This file replaces the reversal checklist (kept as `docs/RENDER_CHECKLIST_V1.md`; its dossiers, headers and data are the inputs here).
+
+Generated part (X1-X5): 1649 functions, 3.84 MB of machine code, from the direct-call closure of the render roots (`tools/native_checklist_gen.py`; the closure is NOT complete until X0a is done: indirect callees are added then, as X7 items). Order inside each milestone = callees first, and `docs/data/native_deps.tsv` makes `tools/nextitems.py` hand out an item only when every callee in the set is already [x].
+
+## How an item is closed (short; full rules in the spec)
+An item is [x] only when `python tools/sigs/liftcheck.py <rva>` prints `LIFTCHECK OK`: every instruction of the function lies in an address range cited by the source/dossier and every call is quoted verbatim (verify_oc mismatch=0), the C++ lives under `src/client/features/render/native/`, every call is to a lifted function or a listed boundary function, every struct offset used is asserted, and the registry entry (Shadow/Verify/On) exists. Items are statically complete when ticked ("L1"); live verification ("L2", zero divergence in the scenes) happens at the milestone gate Xnz and by the user. A stub, a subset, a [?] in the code, or a hook that stands in for the function is NOT [x].
+
+Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 bytes): plan the split at basic-block boundaries, lift each chunk, assemble. Items ending in `z` are gates owned by the orchestrator. XO items (optimization) are not started before X6z.
+
+## X0. Ground truth and infrastructure (before any bulk lifting)
+
+- [x] X0a Complete the closure: find every function of the render path that the direct-call scan misses. Sources: vtable slot targets of every vtable the path uses (BgfxFrameBuilder 114 slots, both RendererContext vtables, pass classes, Declarator), `std::function`/lambda targets (pass bodies, task functors, GraphicsTasks lambdas), jump-table case targets of the six group visitors and the executor, tail-jump thunks, callbacks stored in task records. Deliver: `tools/sigs/closure2.py` (re-runnable), every newly found function appended with `python tools/native_checklist_gen.py --add <rva...>` evidence rows in `docs/data/native_roots.txt` (one line per root: `<rva hex> <name>`, each with a [V] proof of how it is reached), and `docs/data/native_unresolved_indirect.tsv` = indirect call sites whose target set is still unknown (site rva, register, why). CLOSES YES only if the unresolved file lists no site on the frame path that is not proven to target only boundary functions.
+- [x] X0b1 Boundary classification, rows 1-100 of `docs/data/native_boundary_candidates.tsv` (callees of the lift set that are outside the render regions, by caller count). Fill the class column with one of `lift` (render-owned code, becomes a lift item), `stl` (MSVC STL internal: we compile the same STL, no lift), `crt`, `os` (kernel32/ntdll/threads), `d3d` (D3D12/DXGI/GDK COM call), `vendor` (DLSS/FSR/cohtml), `alloc`, `other-subsystem` (world/entity/network/audio; stays original), plus the function name and a [V] proof (what the body is: first 8 instructions and callees). Do not guess: a function whose class you cannot prove is `?` with the blocking fact. Rows only; append the `lift` ones to `docs/data/native_roots.txt`.
+- [x] X0b2 Boundary classification, rows 101-200 (same rules as X0b1).
+- [x] X0b3 Boundary classification, rows 201-300 (same rules as X0b1).
+- [x] X0b4 Boundary classification, rows 301-end (same rules as X0b1).
+- [x] X0b5 Boundary decision review (orchestrator): every row classified; the `stl`/`crt`/`alloc` rows justified against the compiler and STL in use; the `other-subsystem` rows are the explicit external boundary written into `docs/data/native_boundary.tsv` (the only calls Native mode may leave original). Ticks X0b once the `lift` rows have been added as X7 items.
+- [x] X0c Spec: `docs/RENDER_NATIVE_SPEC.md` written (lift unit, files, ABI, STL/allocator policy, boundary wrappers, annotation format, closure criteria, verify design). 2026-11-23, decisions open to the user's review.
+- [x] X0d (orchestrator) Lift framework: `src/client/features/render/native/Lift.h` (+ `Boundary.h`): LIFT_FN registration (rva, sig, original trampoline, mode), boundary-call wrappers bound to Sigs.json symbols and logged against `native_boundary.tsv`, record/replay hooks for the differential harness, Native-mode install of entry detours only for functions with callers outside the set. Compiles in Release. Blocks every X1-X5 item except the pilot.
+- [x] X0e Fix the 3 world-phase SelfTest failures: `FrameBuilder::visitEditor` layout drift (+0x64 and +0x3C offsets in `docs/data/layout_asserts.json` / `RenderLayoutAsserts.h`): re-derive each constant from the disassembly of the Editor group visitor (0x66742F0), correct both lists, `python tools/sigs/layoutcheck.py` clean. Also list every other assertion that has never been checked against live memory.
+- [x] X0f Live scene list and capture recipes: write `docs/NATIVE_VERIFY_PROTOCOL.md` section "Scenes" with, per scene (first person world, third person with mob and nametag, rain/snow, particles, held item and block, water/lava, chest/sign, VV on and off, resource pack with custom material, inventory/menu, F1, dimension change, join/leave, resize, RTX if available), what must be on screen and which functions it exercises (from the frame-path table), so each lifted function can be assigned to at least one scene. Output: `docs/data/native_scene_coverage.tsv` (function id, scenes that execute it, [V]/[I]).
+- [x] X0g Mirror to the professional repo: `tools/mirror_sync.ps1` links new docs, the data/progress/functions junctions, and `src/client/features/render/native` into `C:\Users\Atomi\Desktop\tomdh-git\bedrock-renderer`. 2026-11-23.
+- [x] X0h (orchestrator) Pilot: lift the first three X1 leaf items end to end through the opencode pipeline and `liftcheck`; review the briefs, the output files and the effort; fix the brief and tools; only then is the X1-X5 queue released (`docs/data/native_pilot.txt` lists the pilot ids; until X0h is [x] `tools/nextitems.py` hands out only those).
+- [x] X0i Pipeline wiring: `tools/nextitems.py` (dependency gating, pilot gating, gate/orchestrator items skipped), `tools/mkeasy.py` (LIFT brief), `tools/checklist_status.py` (native status), `tools/sigs/liftcheck.py`, `tools/native_activate.py`. 2026-11-23.
+- [ ] X0j (orchestrator) Differential harness v2 (spec section 8): footprint snapshot/restore around a call, boundary record/replay, post-state compare, so a function with side effects can be verified, not only pure leaves. Proven on Math::mat4Multiply (pure), one writer (uniform setVec4Array 0x5679db0) and one function that calls the allocator. Compiles in Release. Blocks the X1z gate.
+
+## X1. bgfx core, Frame, Encoder, handles, uniforms
+
+191 functions, 322 KB of machine code. Order = callees first. Source dir: `src/client/features/render/native/bgfx/`. Gate: X1z.
+
+- [x] X1.bc2bca0 LIFT sub_bc2bca0 (0xbc2bca0, 0x172 bytes, depth 0, D0, 0 callees in set)
+- [x] X1.bc2be20 LIFT sub_bc2be20 (0xbc2be20, 0x1ec bytes, depth 1, D0, 0 callees in set)
+- [x] X1.bc2e890 LIFT sub_bc2e890 (0xbc2e890, 0x1de bytes, depth 1, D0, 0 callees in set)
+- [x] X1.bc2f1d0 LIFT sub_bc2f1d0 (0xbc2f1d0, 0x1ec bytes, depth 1, D0, 0 callees in set)
+- [x] X1.bc385e0 LIFT sub_bc385e0 (0xbc385e0, 0x34b bytes, depth 1, D0, 0 callees in set)
+- [x] X1.bc3c6b0 LIFT sub_bc3c6b0 (0xbc3c6b0, 0xcb bytes, depth 3, D0, 0 callees in set)
+- [x] X1.bc40a30 LIFT sub_bc40a30 (0xbc40a30, 0x146 bytes, depth 1, D0, 0 callees in set)
+- [x] X1.bc431b0 LIFT sub_bc431b0 (0xbc431b0, 0x129 bytes, depth 1, D0, 0 callees in set)
+- [x] X1.bc44b40 LIFT sub_bc44b40 (0xbc44b40, 0x133 bytes, depth 1, D0, 0 callees in set)
+- [x] X1.bc45130 LIFT sub_bc45130 (0xbc45130, 0x161 bytes, depth 4, D0, 0 callees in set)
+- [x] X1.bc45c40 LIFT sub_bc45c40 (0xbc45c40, 0x16b bytes, depth 4, D0, 0 callees in set)
+- [x] X1.bc55ea0 LIFT sub_bc55ea0 (0xbc55ea0, 0x105 bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bc56190 LIFT sub_bc56190 (0xbc56190, 0x477 bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bc5b130 LIFT sub_bc5b130 (0xbc5b130, 0x472 bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bc5b720 LIFT sub_bc5b720 (0xbc5b720, 0x136 bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bc5e120 LIFT sub_bc5e120 (0xbc5e120, 0xc1 bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bc5e400 LIFT sub_bc5e400 (0xbc5e400, 0x2f1 bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bc5fce0 LIFT sub_bc5fce0 (0xbc5fce0, 0x41d bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bc60100 LIFT sub_bc60100 (0xbc60100, 0x631 bytes, depth 1, D0, 0 callees in set)
+- [x] X1.bc60d10 LIFT bgfx::EncoderImpl::discard (reset), fully reversed (0xbc60d10, 0x1fc bytes, depth 1, D2, 0 callees in set)
+- [x] X1.bc60f10 LIFT Frame commitSideTable (per-draw ranged-bind table copy), fully reversed (0xbc60f10, 0x22a bytes, depth 1, D2, 0 callees in set)
+- [x] X1.bc62040 LIFT sub_bc62040 (0xbc62040, 0xb72 bytes, depth 3, D0, 0 callees in set)
+- [x] X1.bc66c50 LIFT sub_bc66c50 (0xbc66c50, 0x11e bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bc68840 LIFT bgfx render-thread begin/init step (TLS magic) (0xbc68840, 0x5f7 bytes, depth 2, D2, 0 callees in set)
+- [x] X1.bc6a9d0 LIFT bgfx rendererUpdateUniforms, fully reversed (0xbc6a9d0, 0x200 bytes, depth 2, D2, 0 callees in set)
+- [x] X1.bc6af50 LIFT sub_bc6af50 (0xbc6af50, 0x1f3 bytes, depth 1, D0, 0 callees in set)
+- [x] X1.bc6e1e0 LIFT sub_bc6e1e0 (0xbc6e1e0, 0x177 bytes, depth 4, D0, 0 callees in set)
+- [x] X1.bc6e360 LIFT sub_bc6e360 (0xbc6e360, 0x1eb bytes, depth 4, D0, 0 callees in set)
+- [x] X1.bc6e550 LIFT sub_bc6e550 (0xbc6e550, 0x216 bytes, depth 4, D0, 0 callees in set)
+- [x] X1.bc6ee00 LIFT sub_bc6ee00 (0xbc6ee00, 0x122 bytes, depth 5, D0, 0 callees in set)
+- [x] X1.bc6f2a0 LIFT sub_bc6f2a0 (0xbc6f2a0, 0xbb bytes, depth 3, D0, 0 callees in set)
+- [x] X1.bc6f800 LIFT sub_bc6f800 (0xbc6f800, 0xbb bytes, depth 3, D0, 0 callees in set)
+- [x] X1.bc70ca0 LIFT sub_bc70ca0 (0xbc70ca0, 0x1b0 bytes, depth 1, D0, 0 callees in set)
+- [x] X1.bc70ff0 LIFT sub_bc70ff0 (0xbc70ff0, 0xf1 bytes, depth 1, D0, 0 callees in set)
+- [x] X1.bc71da0 LIFT sub_bc71da0 (0xbc71da0, 0x167 bytes, depth 6, D0, 0 callees in set)
+- [x] X1.bc75c30 LIFT sub_bc75c30 (0xbc75c30, 0x2a9 bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bc76330 LIFT sub_bc76330 (0xbc76330, 0x4a bytes, depth 7, D0, 0 callees in set)
+- [x] X1.bc76610 LIFT bx::HashMurmur2A::add(data, len) (0xbc76610, 0x1dc bytes, depth 1, D1, 0 callees in set)
+- [x] X1.bc769c0 LIFT sub_bc769c0 (0xbc769c0, 0x22c bytes, depth 1, D0, 0 callees in set)
+- [x] X1.bc76e80 LIFT sub_bc76e80 (0xbc76e80, 0x36f bytes, depth 3, D0, 0 callees in set)
+- [x] X1.bc771f0 LIFT sub_bc771f0 (0xbc771f0, 0x157 bytes, depth 3, D0, 0 callees in set)
+- [x] X1.bc79a60 LIFT sub_bc79a60 (0xbc79a60, 0x46f bytes, depth 7, D0, 0 callees in set)
+- [x] X1.bc7a3d0 LIFT sub_bc7a3d0 (0xbc7a3d0, 0x3cc bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bc7a7c0 LIFT GuardedPagedArray<0x540>::ensure (RenderBind storage commit), fully reversed (0xbc7a7c0, 0x1dc bytes, depth 1, D2, 0 callees in set)
+- [x] X1.bc7a9d0 LIFT sub_bc7a9d0 (0xbc7a9d0, 0x5e3 bytes, depth 5, D0, 0 callees in set)
+- [x] X1.bc7b3a0 LIFT sub_bc7b3a0 (0xbc7b3a0, 0x425 bytes, depth 1, D0, 0 callees in set)
+- [x] X1.bc7b7d0 LIFT sub_bc7b7d0 (0xbc7b7d0, 0x28b bytes, depth 0, D0, 0 callees in set)
+- [x] X1.bc7c4e0 LIFT sub_bc7c4e0 (0xbc7c4e0, 0x95 bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bc7dc90 LIFT sub_bc7dc90 (0xbc7dc90, 0x13e bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bc8c720 LIFT sub_bc8c720 (0xbc8c720, 0x167 bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bc8c890 LIFT sub_bc8c890 (0xbc8c890, 0x435 bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bc95db0 LIFT sub_bc95db0 (0xbc95db0, 0x391 bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bc962c0 LIFT sub_bc962c0 (0xbc962c0, 0x12f bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bc964d0 LIFT sub_bc964d0 (0xbc964d0, 0x1e0 bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bc97070 LIFT sub_bc97070 (0xbc97070, 0x135 bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bca7c80 LIFT sub_bca7c80 (0xbca7c80, 0x391 bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bca8190 LIFT sub_bca8190 (0xbca8190, 0x135 bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bca92f0 LIFT sub_bca92f0 (0xbca92f0, 0x13b bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bcaa640 LIFT sub_bcaa640 (0xbcaa640, 0x135 bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bcab880 LIFT sub_bcab880 (0xbcab880, 0x6a bytes, depth 3, D0, 0 callees in set)
+- [x] X1.bcac8b0 LIFT sub_bcac8b0 (0xbcac8b0, 0x248 bytes, depth 3, D0, 0 callees in set)
+- [x] X1.bcbe410 LIFT sub_bcbe410 (0xbcbe410, 0x11 bytes, depth 3, D0, 0 callees in set)
+- [x] X1.bcbf110 LIFT sub_bcbf110 (0xbcbf110, 0x180 bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bcbf3e0 LIFT sub_bcbf3e0 (0xbcbf3e0, 0x181 bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bcbf640 LIFT sub_bcbf640 (0xbcbf640, 0xef bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bcc1ae0 LIFT sub_bcc1ae0 (0xbcc1ae0, 0x10f bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bcc24f0 LIFT sub_bcc24f0 (0xbcc24f0, 0x1f1 bytes, depth 3, D0, 0 callees in set)
+- [x] X1.bcc7570 LIFT sub_bcc7570 (0xbcc7570, 0x54e bytes, depth 2, D0, 0 callees in set)
+- [x] X1.bc2c040 LIFT sub_bc2c040 (0xbc2c040, 0x1c5 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc34f70 LIFT sub_bc34f70 (0xbc34f70, 0x113 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc453a0 LIFT sub_bc453a0 (0xbc453a0, 0x3d9 bytes, depth 3, D0, 2 callees in set)
+- [ ] X1.bc45780 LIFT sub_bc45780 (0xbc45780, 0x1da bytes, depth 3, D0, 2 callees in set)
+- [x] X1.bc55fb0 LIFT sub_bc55fb0 (0xbc55fb0, 0x1b8 bytes, depth 1, D0, 1 callees in set)
+- [x] X1.bc56610 LIFT sub_bc56610 (0xbc56610, 0x18e bytes, depth 1, D0, 1 callees in set)
+- [x] X1.bc567c0 LIFT sub_bc567c0 (0xbc567c0, 0x193 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc56990 LIFT sub_bc56990 (0xbc56990, 0x2a5 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc5f110 LIFT sub_bc5f110 (0xbc5f110, 0x121 bytes, depth 1, D0, 1 callees in set)
+- [x] X1.bc60740 LIFT bgfx::Encoder::submit (0xbc60740, 0x5d0 bytes, depth 2, D2, 4 callees in set)
+- [x] X1.bc61140 LIFT EncoderImpl::dispatch (compute), fully reversed (0xbc61140, 0x411 bytes, depth 0, D2, 4 callees in set)
+- [x] X1.bc61560 LIFT custom item submit (key bit 53) (0xbc61560, 0x372 bytes, depth 0, D2, 4 callees in set)
+- [x] X1.bc618e0 LIFT compute item + frame parameter blocks (0xbc618e0, 0x535 bytes, depth 0, D2, 4 callees in set)
+- [x] X1.bc61e20 LIFT bgfx::Frame::sort (0xbc61e20, 0x215 bytes, depth 2, D2, 1 callees in set)
+- [x] X1.bc6aeb0 LIFT sub_bc6aeb0 (0xbc6aeb0, 0x86 bytes, depth 4, D0, 1 callees in set)
+- [ ] X1.bc6ef50 LIFT sub_bc6ef50 (0xbc6ef50, 0xf1 bytes, depth 2, D0, 1 callees in set)
+- [x] X1.bc70ea0 LIFT sub_bc70ea0 (0xbc70ea0, 0xf2 bytes, depth 1, D0, 2 callees in set)
+- [ ] X1.bc71140 LIFT sub_bc71140 (0xbc71140, 0x235 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc729e0 LIFT bgfx::setName(ShaderHandle, name, len) [I] (0xbc729e0, 0x23f bytes, depth 2, D0, 1 callees in set)
+- [x] X1.bc735b0 LIFT sub_bc735b0 (0xbc735b0, 0x1b2 bytes, depth 6, D0, 1 callees in set)
+- [ ] X1.bc75440 LIFT sub_bc75440 (0xbc75440, 0x67a bytes, depth 2, D0, 3 callees in set)
+- [ ] X1.bc75b20 LIFT sub_bc75b20 (0xbc75b20, 0xb9 bytes, depth 2, D0, 1 callees in set)
+- [x] X1.bc76380 LIFT sub_bc76380 (0xbc76380, 0x107 bytes, depth 5, D0, 1 callees in set)
+- [x] X1.bc79790 LIFT sub_bc79790 (0xbc79790, 0x2ce bytes, depth 2, D0, 1 callees in set)
+- [ ] X1.bcac590 LIFT sub_bcac590 (0xbcac590, 0x269 bytes, depth 2, D0, 2 callees in set)
+- [x] X1.bcbdfa0 LIFT sub_bcbdfa0 (0xbcbdfa0, 0x151 bytes, depth 2, D0, 1 callees in set)
+- [x] X1.bcbe100 LIFT sub_bcbe100 (0xbcbe100, 0x140 bytes, depth 6, D0, 1 callees in set)
+- [ ] X1.bcbf290 LIFT sub_bcbf290 (0xbcbf290, 0x111 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bcc1910 LIFT RenderStateDesc -> bgfx state bits (blend, cull, depth, primitive, write mask, stencil), fully reversed (0xbcc1910, 0x119 bytes, depth 2, D2, 1 callees in set)
+- [ ] X1.bc35890 LIFT sub_bc35890 (0xbc35890, 0x3a2 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc35ed0 LIFT sub_bc35ed0 (0xbc35ed0, 0x232 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc367f0 LIFT sub_bc367f0 (0xbc367f0, 0x2a0 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc40b80 LIFT sub_bc40b80 (0xbc40b80, 0x1b2 bytes, depth 2, D0, 1 callees in set)
+- [x] X1.bc5f7b0 LIFT sub_bc5f7b0 (0xbc5f7b0, 0x11e bytes, depth 4, D0, 1 callees in set)
+- [x] X1.bc6abd0 LIFT sub_bc6abd0 (0xbc6abd0, 0x2df bytes, depth 3, D0, 1 callees in set)
+- [ ] X1.bc6e770 LIFT sub_bc6e770 (0xbc6e770, 0x22e bytes, depth 4, D0, 2 callees in set)
+- [ ] X1.bc71f60 LIFT bgfx::createShader(const Memory*) [I] (0xbc71f60, 0xa05 bytes, depth 2, D0, 2 callees in set)
+- [x] X1.bc72c80 LIFT bgfx::createProgram(vsh, fsh, destroy) [I] (0xbc72c80, 0x321 bytes, depth 2, D0, 1 callees in set)
+- [x] X1.bc73000 LIFT bgfx::createProgram(ShaderHandle, destroy) [I] (0xbc73000, 0x285 bytes, depth 2, D0, 1 callees in set)
+- [x] X1.bc732e0 LIFT sub_bc732e0 (0xbc732e0, 0x280 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc73770 LIFT sub_bc73770 (0xbc73770, 0x424 bytes, depth 6, D0, 5 callees in set)
+- [ ] X1.bc748b0 LIFT sub_bc748b0 (0xbc748b0, 0x176 bytes, depth 2, D0, 2 callees in set)
+- [ ] X1.bc79ed0 LIFT sub_bc79ed0 (0xbc79ed0, 0x4fc bytes, depth 1, D0, 2 callees in set)
+- [ ] X1.bcac390 LIFT sub_bcac390 (0xbcac390, 0x1c6 bytes, depth 1, D0, 2 callees in set)
+- [x] X1.bcc3fa0 LIFT sub_bcc3fa0 (0xbcc3fa0, 0x1af bytes, depth 4, D0, 1 callees in set)
+- [ ] X1.bc55100 LIFT sub_bc55100 (0xbc55100, 0x58e bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc5eb10 LIFT sub_bc5eb10 (0xbc5eb10, 0x162 bytes, depth 3, D0, 1 callees in set)
+- [ ] X1.bc5eca0 LIFT sub_bc5eca0 (0xbc5eca0, 0x1aa bytes, depth 3, D0, 1 callees in set)
+- [ ] X1.bc5f630 LIFT sub_bc5f630 (0xbc5f630, 0x178 bytes, depth 3, D0, 2 callees in set)
+- [x] X1.bc68e40.plan PLAN bgfx render-thread command buffer interpreter (40-way jump table): split 0xbc68e40..0xbc6a9c3 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc68e40.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [x] X1.bc68e40.c00 LIFT CHUNK bgfx render-thread command buffer interpreter (40-way jump table) part 1/2 range 0xbc68e40..0xbc6a600
+- [x] X1.bc68e40.c01 LIFT CHUNK bgfx render-thread command buffer interpreter (40-way jump table) part 2/2 range 0xbc6a600..0xbc6a9c3 | DONE 2026-11-23 oc_U-EX1.bc68e40.c01.md liftcheck --range OK
+- [ ] X1.bc68e40.asm LIFT ASSEMBLE bgfx render-thread command buffer interpreter (40-way jump table): join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [ ] X1.bc73bf0 LIFT sub_bc73bf0 (0xbc73bf0, 0x2de bytes, depth 5, D0, 2 callees in set)
+- [ ] X1.bc73ed0 LIFT sub_bc73ed0 (0xbc73ed0, 0x24d bytes, depth 5, D0, 2 callees in set)
+- [ ] X1.bc74120 LIFT sub_bc74120 (0xbc74120, 0x24e bytes, depth 5, D0, 2 callees in set)
+- [ ] X1.bc74a80 LIFT bgfx createDynamicTexture region (0xbc74a80, 0x5c5 bytes, depth 4, D1, 3 callees in set)
+- [ ] X1.bc752f0 LIFT sub_bc752f0 (0xbc752f0, 0xfe bytes, depth 3, D0, 1 callees in set)
+- [ ] X1.bcc0960 LIFT ResourceLoader::track (weak_ptr owner/per-thread) (0xbcc0960, 0x55d bytes, depth 2, D1, 2 callees in set)
+- [ ] X1.bcc3190 LIFT sub_bcc3190 (0xbcc3190, 0x74a bytes, depth 3, D0, 6 callees in set)
+- [ ] X1.bcc7ce0 LIFT material pass -> program handle (0xbcc7ce0, 0x17b bytes, depth 2, D0, 1 callees in set)
+- [ ] X1.bc347b0 LIFT sub_bc347b0 (0xbc347b0, 0x2c8 bytes, depth 2, D0, 5 callees in set)
+- [ ] X1.bc353b0 LIFT sub_bc353b0 (0xbc353b0, 0x3ee bytes, depth 3, D0, 3 callees in set)
+- [ ] X1.bc37ca0 LIFT registerPass (frame graph) (0xbc37ca0, 0x2d7 bytes, depth 2, D0, 4 callees in set)
+- [ ] X1.bc38340 LIFT sub_bc38340 (0xbc38340, 0x1f4 bytes, depth 1, D0, 4 callees in set)
+- [ ] X1.bc5e9f0 LIFT sub_bc5e9f0 (0xbc5e9f0, 0x11c bytes, depth 2, D0, 3 callees in set)
+- [ ] X1.bc63150 LIFT bgfx::Context::renderFrame (0xbc63150, 0x35d bytes, depth 1, D2, 2 callees in set)
+- [ ] X1.bc9d350 LIFT sub_bc9d350 (0xbc9d350, 0x2e8 bytes, depth 2, D0, 4 callees in set)
+- [ ] X1.bcaba00 LIFT sub_bcaba00 (0xbcaba00, 0x83f bytes, depth 1, D0, 5 callees in set)
+- [x] X1.bcb3cf0.plan PLAN sub_bcb3cf0: split 0xbcb3cf0..0xbcb5e09 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bcb3cf0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [x] X1.bcb3cf0.c00 LIFT CHUNK sub_bcb3cf0 part 1/2 range 0xbcb3cf0..0xbcb54d0
+- [x] X1.bcb3cf0.c01 LIFT CHUNK sub_bcb3cf0 part 2/2 range 0xbcb54d0..0xbcb5e09
+- [ ] X1.bcb3cf0.asm LIFT ASSEMBLE sub_bcb3cf0: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [ ] X1.bcc2820 LIFT resolve vertex stream reference (3-way variant, layout override map) (0xbcc2820, 0x2de bytes, depth 4, D2, 1 callees in set)
+- [ ] X1.bcc2eb0 LIFT bindIndexBuffer (geometry ref index variant +0x28, start +0x40, count +0x48 -> RenderDraw) (0xbcc2eb0, 0x287 bytes, depth 3, D1, 1 callees in set)
+- [ ] X1.bcc4150 LIFT sub_bcc4150 (0xbcc4150, 0x6a6 bytes, depth 4, D0, 3 callees in set)
+- [x] X1.bc301c0.plan PLAN sub_bc301c0: split 0xbc301c0..0xbc3203c at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc301c0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [x] X1.bc301c0.c00 LIFT CHUNK sub_bc301c0 part 1/2 range 0xbc301c0..0xbc31997
+- [x] X1.bc301c0.c01 LIFT CHUNK sub_bc301c0 part 2/2 range 0xbc31997..0xbc3203c
+- [ ] X1.bc301c0.asm LIFT ASSEMBLE sub_bc301c0: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [x] X1.bc324a0.plan PLAN sub_bc324a0: split 0xbc324a0..0xbc3431c at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc324a0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [x] X1.bc324a0.c00 LIFT CHUNK sub_bc324a0 part 1/2 range 0xbc324a0..0xbc332ae
+- [x] X1.bc324a0.c01 LIFT CHUNK sub_bc324a0 part 2/2 range 0xbc332ae..0xbc3431c | DONE 2026-11-23 oc_U-EX1.bc324a0.c01.md liftcheck --range OK
+- [ ] X1.bc324a0.asm LIFT ASSEMBLE sub_bc324a0: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [ ] X1.bc35130 LIFT sub_bc35130 (0xbc35130, 0x20f bytes, depth 2, D0, 2 callees in set)
+- [ ] X1.bc432e0 LIFT sub_bc432e0 (0xbc432e0, 0x22b bytes, depth 3, D0, 2 callees in set)
+- [ ] X1.bc5e700 LIFT sub_bc5e700 (0xbc5e700, 0x244 bytes, depth 2, D0, 3 callees in set)
+- [ ] X1.bc5ee70 LIFT sub_bc5ee70 (0xbc5ee70, 0x163 bytes, depth 3, D0, 2 callees in set)
+- [ ] X1.bc65720 LIFT bgfx render thread proc (0xbc65720, 0xdb bytes, depth 0, D2, 1 callees in set)
+- [x] X1.bc66de0.plan PLAN bgfx::Context::frame (swap/handoff prep): split 0xbc66de0..0xbc687b7 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc66de0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [x] X1.bc66de0.c00 LIFT CHUNK bgfx::Context::frame (swap/handoff prep) part 1/2 range 0xbc66de0..0xbc685af
+- [x] X1.bc66de0.c01 LIFT CHUNK bgfx::Context::frame (swap/handoff prep) part 2/2 range 0xbc685af..0xbc687b7 | DONE 2026-11-23 oc_U-EX1.bc66de0.c01.md liftcheck --range OK
+- [ ] X1.bc66de0.asm LIFT ASSEMBLE bgfx::Context::frame (swap/handoff prep): join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [ ] X1.bcab8f0 LIFT sub_bcab8f0 (0xbcab8f0, 0x104 bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bcac2b0 LIFT sub_bcac2b0 (0xbcac2b0, 0xdc bytes, depth 3, D0, 1 callees in set)
+- [ ] X1.bcb64f0 LIFT sub_bcb64f0 (0xbcb64f0, 0xa90 bytes, depth 1, D0, 4 callees in set)
+- [ ] X1.bcbf730 LIFT ResourceLoader::loadAsync (job to owner or per-thread queue), fully reversed (0xbcbf730, 0xc69 bytes, depth 1, D2, 5 callees in set)
+- [ ] X1.bcc2b00 LIFT bindVertexStreams (geometry ref +0x08..+0x20 -> RenderDraw streams, stream mask) (0xbcc2b00, 0x354 bytes, depth 3, D1, 1 callees in set)
+- [ ] X1.bcc38e0 LIFT submitGeometry (variant: none / 64-byte items / mesh) (0xbcc38e0, 0xce bytes, depth 3, D2, 2 callees in set)
+- [ ] X1.bc34be0 LIFT sub_bc34be0 (0xbc34be0, 0x277 bytes, depth 1, D0, 2 callees in set)
+- [ ] X1.bc37320 LIFT buildScreenPass (packet, std::function execute 0xF440710, registerPass) (0xbc37320, 0x784 bytes, depth 1, D1, 9 callees in set)
+- [ ] X1.bc5dfe0 LIFT sub_bc5dfe0 (0xbc5dfe0, 0x110 bytes, depth 2, D0, 1 callees in set)
+- [ ] X1.bc65800 LIFT bgfx::Context::frame(capture) API side (0xbc65800, 0x37d bytes, depth 1, D2, 1 callees in set)
+- [ ] X1.bc81a40 LIFT sub_bc81a40 (0xbc81a40, 0x794 bytes, depth 3, D0, 9 callees in set)
+- [ ] X1.bc88560 LIFT SSR declare (ScreenDraw std::function 0xF44B280) (0xbc88560, 0xf77 bytes, depth 2, D0, 11 callees in set)
+- [ ] X1.bc9c990 LIFT sub_bc9c990 (0xbc9c990, 0x7c7 bytes, depth 1, D0, 9 callees in set)
+- [x] X1.bcacd90.plan PLAN sub_bcacd90: split 0xbcacd90..0xbcb1d0b at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bcacd90.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [x] X1.bcacd90.c00 LIFT CHUNK sub_bcacd90 part 1/4 range 0xbcacd90..0xbcae56d | DONE 2026-11-23 oc_U-EX1.bcacd90.c00.md liftcheck --range OK
+- [ ] X1.bcacd90.c01 LIFT CHUNK sub_bcacd90 part 2/4 range 0xbcae56d..0xbcafd5f
+- [x] X1.bcacd90.c02 LIFT CHUNK sub_bcacd90 part 3/4 range 0xbcafd5f..0xbcb153c | DONE 2026-11-23 oc_U-EX1.bcacd90.c02.md liftcheck --range OK
+- [x] X1.bcacd90.c03 LIFT CHUNK sub_bcacd90 part 4/4 range 0xbcb153c..0xbcb1d0b | DONE 2026-11-23 oc_U-EX1.bcacd90.c03.md liftcheck --range OK
+- [ ] X1.bcacd90.asm LIFT ASSEMBLE sub_bcacd90: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [x] X1.bcc7f20.plan PLAN MaterialInstance::initFromMaterial (uniform defaults, flags, bgfx shaders/programs): split 0xbcc7f20..0xbccf341 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bcc7f20.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [x] X1.bcc7f20.c00 LIFT CHUNK MaterialInstance::initFromMaterial (uniform defaults, flags, bgfx shaders/programs) part 1/5 range 0xbcc7f20..0xbcc9718 | DONE 2026-11-23 oc_U-EX1.bcc7f20.c00.md liftcheck --range OK
+- [x] X1.bcc7f20.c01 LIFT CHUNK MaterialInstance::initFromMaterial (uniform defaults, flags, bgfx shaders/programs) part 2/5 range 0xbcc9718..0xbccaf16
+- [x] X1.bcc7f20.c02 LIFT CHUNK MaterialInstance::initFromMaterial (uniform defaults, flags, bgfx shaders/programs) part 3/5 range 0xbccaf16..0xbccc713
+- [x] X1.bcc7f20.c03 LIFT CHUNK MaterialInstance::initFromMaterial (uniform defaults, flags, bgfx shaders/programs) part 4/5 range 0xbccc713..0xbccdf04 | DONE 2026-11-23 oc_U-EX1.bcc7f20.c03.md liftcheck --range OK
+- [x] X1.bcc7f20.c04 LIFT CHUNK MaterialInstance::initFromMaterial (uniform defaults, flags, bgfx shaders/programs) part 5/5 range 0xbccdf04..0xbccf341
+- [ ] X1.bcc7f20.asm LIFT ASSEMBLE MaterialInstance::initFromMaterial (uniform defaults, flags, bgfx shaders/programs): join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [ ] X1.bc5dc40 LIFT sub_bc5dc40 (0xbc5dc40, 0x16b bytes, depth 1, D0, 1 callees in set)
+- [ ] X1.bc5e1f0 LIFT sub_bc5e1f0 (0xbc5e1f0, 0x130 bytes, depth 1, D0, 3 callees in set)
+- [ ] X1.bc660a0 LIFT bgfx::Context::shutdown sequence (writes cmdPre/cmdPost, 5x frame) (0xbc660a0, 0x9ab bytes, depth 0, D2, 4 callees in set)
+- [ ] X1.bc81930 LIFT sub_bc81930 (0xbc81930, 0xd7 bytes, depth 2, D0, 1 callees in set)
+- [ ] X1.bc8a240 LIFT sub_bc8a240 (0xbc8a240, 0xee bytes, depth 2, D0, 1 callees in set)
+- [ ] X1.bcbade0 LIFT sub_bcbade0 (0xbcbade0, 0x272 bytes, depth 2, D0, 1 callees in set)
+- [ ] X1.bc55740 LIFT sub_bc55740 (0xbc55740, 0x651 bytes, depth 1, D0, 4 callees in set)
+- [ ] X1.bc56c70 LIFT sub_bc56c70 (0xbc56c70, 0x6e4 bytes, depth 1, D0, 3 callees in set)
+- [ ] X1.bc5daf0 LIFT sub_bc5daf0 (0xbc5daf0, 0x120 bytes, depth 1, D0, 3 callees in set)
+- [ ] X1.bc5ddb0 LIFT sub_bc5ddb0 (0xbc5ddb0, 0xec bytes, depth 1, D0, 2 callees in set)
+- [ ] X1.bc5ded0 LIFT sub_bc5ded0 (0xbc5ded0, 0xd4 bytes, depth 2, D0, 2 callees in set)
+- [ ] X1.bc7ba60 LIFT sub_bc7ba60 (0xbc7ba60, 0x8fa bytes, depth 1, D0, 3 callees in set)
+- [ ] X1.bc7ee00 LIFT sub_bc7ee00 (0xbc7ee00, 0x54e bytes, depth 1, D0, 3 callees in set)
+- [ ] X1.bc7f3d0 LIFT sub_bc7f3d0 (0xbc7f3d0, 0x2c8 bytes, depth 1, D0, 2 callees in set)
+- [ ] X1.bcc1a30 LIFT sub_bcc1a30 (0xbcc1a30, 0xa1 bytes, depth 1, D0, 3 callees in set)
+- [ ] X1.bcc06a0 LIFT ResourceLoader Job::run (callback, lock, load 0xe86b730) (0xbcc06a0, 0x1cf bytes, depth 3, D2, 2 callees in set)
+- [ ] X1.bcc0ee0 LIFT ResourceLoader::loadSync (job on stack, run now) (0xbcc0ee0, 0x703 bytes, depth 2, D1, 3 callees in set)
+- [x] X1.bc57460.plan PLAN sub_bc57460: split 0xbc57460..0xbc5a28f at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc57460.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [x] X1.bc57460.c00 LIFT CHUNK sub_bc57460 part 1/3 range 0xbc57460..0xbc58a85
+- [ ] X1.bc57460.c01 LIFT CHUNK sub_bc57460 part 2/3 range 0xbc58a85..0xbc5a261
+- [x] X1.bc57460.c02 LIFT CHUNK sub_bc57460 part 3/3 range 0xbc5a261..0xbc5a28f
+- [ ] X1.bc57460.asm LIFT ASSEMBLE sub_bc57460: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [ ] X1.bc7c580 LIFT sub_bc7c580 (0xbc7c580, 0x121e bytes, depth 1, D0, 6 callees in set)
+- [x] X1.bc7f6e0.plan PLAN sub_bc7f6e0: split 0xbc7f6e0..0xbc81162 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc7f6e0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X1.bc7f6e0.c00 LIFT CHUNK sub_bc7f6e0 part 1/2 range 0xbc7f6e0..0xbc80ed3
+- [x] X1.bc7f6e0.c01 LIFT CHUNK sub_bc7f6e0 part 2/2 range 0xbc80ed3..0xbc81162
+- [ ] X1.bc7f6e0.asm LIFT ASSEMBLE sub_bc7f6e0: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [x] X1.bc82ad0.plan PLAN sub_bc82ad0: split 0xbc82ad0..0xbc864df at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc82ad0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [x] X1.bc82ad0.c00 LIFT CHUNK sub_bc82ad0 part 1/4 range 0xbc82ad0..0xbc842c9
+- [x] X1.bc82ad0.c01 LIFT CHUNK sub_bc82ad0 part 2/4 range 0xbc842c9..0xbc85abd
+- [x] X1.bc82ad0.c02 LIFT CHUNK sub_bc82ad0 part 3/4 range 0xbc85abd..0xbc864bb
+- [x] X1.bc82ad0.c03 LIFT CHUNK sub_bc82ad0 part 4/4 range 0xbc864bb..0xbc864df
+- [ ] X1.bc82ad0.asm LIFT ASSEMBLE sub_bc82ad0: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [x] X1.bc8a380.plan PLAN sub_bc8a380: split 0xbc8a380..0xbc8be7c at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc8a380.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [x] X1.bc8a380.c00 LIFT CHUNK sub_bc8a380 part 1/2 range 0xbc8a380..0xbc8bb76
+- [x] X1.bc8a380.c01 LIFT CHUNK sub_bc8a380 part 2/2 range 0xbc8bb76..0xbc8be7c | DONE 2026-11-23 oc_U-EX1.bc8a380.c01.md liftcheck --range OK
+- [ ] X1.bc8a380.asm LIFT ASSEMBLE sub_bc8a380: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [x] X1.bc8eb90.plan PLAN sub_bc8eb90: split 0xbc8eb90..0xbc94737 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc8eb90.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X1.bc8eb90.c00 LIFT CHUNK sub_bc8eb90 part 1/4 range 0xbc8eb90..0xbc9037e
+- [x] X1.bc8eb90.c01 LIFT CHUNK sub_bc8eb90 part 2/4 range 0xbc9037e..0xbc91b7c | DONE 2026-11-23 oc_U-EX1.bc8eb90.c01.md liftcheck --range OK
+- [ ] X1.bc8eb90.c02 LIFT CHUNK sub_bc8eb90 part 3/4 range 0xbc91b7c..0xbc93379
+- [x] X1.bc8eb90.c03 LIFT CHUNK sub_bc8eb90 part 4/4 range 0xbc93379..0xbc94737 | DONE 2026-11-23 oc_U-EX1.bc8eb90.c03.md liftcheck --range OK
+- [ ] X1.bc8eb90.asm LIFT ASSEMBLE sub_bc8eb90: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [x] X1.bc98310.plan PLAN sub_bc98310: split 0xbc98310..0xbc99e3a at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc98310.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X1.bc98310.c00 LIFT CHUNK sub_bc98310 part 1/2 range 0xbc98310..0xbc99adb
+- [x] X1.bc98310.c01 LIFT CHUNK sub_bc98310 part 2/2 range 0xbc99adb..0xbc99e3a
+- [ ] X1.bc98310.asm LIFT ASSEMBLE sub_bc98310: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [ ] X1.bc9ada0 LIFT sub_bc9ada0 (0xbc9ada0, 0x152c bytes, depth 1, D0, 6 callees in set)
+- [x] X1.bc9d7a0.plan PLAN sub_bc9d7a0: split 0xbc9d7a0..0xbca3f7b at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bc9d7a0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [x] X1.bc9d7a0.c00 LIFT CHUNK sub_bc9d7a0 part 1/5 range 0xbc9d7a0..0xbc9e11a | DONE 2026-11-23 oc_U-EX1.bc9d7a0.c00.md liftcheck --range OK
+- [x] X1.bc9d7a0.c01 LIFT CHUNK sub_bc9d7a0 part 2/5 range 0xbc9e11a..0xbc9f890
+- [x] X1.bc9d7a0.c02 LIFT CHUNK sub_bc9d7a0 part 3/5 range 0xbc9f890..0xbca1080
+- [x] X1.bc9d7a0.c03 LIFT CHUNK sub_bc9d7a0 part 4/5 range 0xbca1080..0xbca2785 | DONE 2026-11-23 oc_U-EX1.bc9d7a0.c03.md liftcheck --range OK
+- [x] X1.bc9d7a0.c04 LIFT CHUNK sub_bc9d7a0 part 5/5 range 0xbca2785..0xbca3f7b | DONE 2026-11-23 oc_U-EX1.bc9d7a0.c04.md liftcheck --range OK
+- [ ] X1.bc9d7a0.asm LIFT ASSEMBLE sub_bc9d7a0: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [ ] X1.bcba340 LIFT sub_bcba340 (0xbcba340, 0x8d5 bytes, depth 1, D0, 5 callees in set)
+- [ ] X1.bcbb090 LIFT sub_bcbb090 (0xbcbb090, 0x6eb bytes, depth 1, D0, 5 callees in set)
+- [ ] X1.bcbb900 LIFT sub_bcbb900 (0xbcbb900, 0x8d7 bytes, depth 1, D0, 5 callees in set)
+- [ ] X1.bcbc3a0 LIFT sub_bcbc3a0 (0xbcbc3a0, 0x11da bytes, depth 1, D0, 6 callees in set)
+- [ ] X1z GATE (orchestrator): all X1 items [x]; build the DLL, fix compile errors, run the milestone verify scenes (docs/NATIVE_VERIFY_PROTOCOL.md), zero divergence; set functions.tsv rows to L2; push mirror
+
+## X2. D3D12 backend: executor, flush, PSO, descriptors, resources
+
+241 functions, 645 KB of machine code. Order = callees first. Source dir: `src/client/features/render/native/d3d12/`. Gate: X2z.
+
+- [ ] X2.e7fd020 LIFT sub_e7fd020 (0xe7fd020, 0x2ea bytes, depth 2, D0, 0 callees in set)
+- [x] X2.e8041a0 LIFT sub_e8041a0 (0xe8041a0, 0x21c bytes, depth 2, D0, 0 callees in set)
+- [x] X2.e805e50 LIFT sub_e805e50 (0xe805e50, 0x5b3 bytes, depth 2, D0, 0 callees in set)
+- [x] X2.e806410 LIFT sub_e806410 (0xe806410, 0x127 bytes, depth 2, D0, 0 callees in set)
+- [x] X2.e806560 LIFT sub_e806560 (0xe806560, 0x15f bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e8097e0 LIFT sub_e8097e0 (0xe8097e0, 0x195 bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e809980 LIFT sub_e809980 (0xe809980, 0x10e bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e809f40 LIFT sub_e809f40 (0xe809f40, 0x6a bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e80b240 LIFT sub_e80b240 (0xe80b240, 0xc5 bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e80bee0 LIFT sub_e80bee0 (0xe80bee0, 0xa5 bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e8141e0 LIFT sub_e8141e0 (0xe8141e0, 0xd8 bytes, depth 0, D0, 0 callees in set)
+- [x] X2.e8142c0 LIFT createProgram (shader pointers, merged predefined uniforms), fully reversed (0xe8142c0, 0xd6 bytes, depth 0, D2, 0 callees in set)
+- [x] X2.e817790 LIFT sub_e817790 (0xe817790, 0xe8 bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e817cf0 LIFT sub_e817cf0 (0xe817cf0, 0x15a bytes, depth 0, D0, 0 callees in set)
+- [x] X2.e817e50 LIFT sub_e817e50 (0xe817e50, 0x1fe bytes, depth 0, D0, 0 callees in set)
+- [x] X2.e818aa0 LIFT sub_e818aa0 (0xe818aa0, 0xcf bytes, depth 0, D0, 0 callees in set)
+- [x] X2.e81a0c0 LIFT sub_e81a0c0 (0xe81a0c0, 0x54a bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e81b0f0 LIFT sub_e81b0f0 (0xe81b0f0, 0x14b bytes, depth 0, D0, 0 callees in set)
+- [x] X2.e81b3b0 LIFT sub_e81b3b0 (0xe81b3b0, 0x118 bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e81b4d0 LIFT setVertexBuffers (per-draw vertex buffer views + transitions), fully reversed (0xe81b4d0, 0x24f bytes, depth 2, D2, 0 callees in set)
+- [x] X2.e81d660 LIFT sub_e81d660 (0xe81d660, 0x1af bytes, depth 2, D0, 0 callees in set)
+- [x] X2.e81d850 LIFT sub_e81d850 (0xe81d850, 0x1cd bytes, depth 2, D0, 0 callees in set)
+- [x] X2.e81e1c0 LIFT commit(UniformBuffer) constant-buffer commit (0xe81e1c0, 0x69c bytes, depth 2, D2, 0 callees in set)
+- [x] X2.e8230c8.plan PLAN sub_e8230c8: split 0xe8230c8..0xe82d4e3 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e8230c8.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [x] X2.e8230c8.c00 LIFT CHUNK sub_e8230c8 part 1/7 range 0xe8230c8..0xe8248aa
+- [ ] X2.e8230c8.c01 LIFT CHUNK sub_e8230c8 part 2/7 range 0xe8248aa..0xe82609e
+- [x] X2.e8230c8.c02 LIFT CHUNK sub_e8230c8 part 3/7 range 0xe82609e..0xe8277f5
+- [x] X2.e8230c8.c03 LIFT CHUNK sub_e8230c8 part 4/7 range 0xe8277f5..0xe828fe9 | DONE 2026-11-23 oc_U-EX2.e8230c8.c03.md liftcheck --range OK
+- [x] X2.e8230c8.c04 LIFT CHUNK sub_e8230c8 part 5/7 range 0xe828fe9..0xe82a7d6 | DONE 2026-11-23 oc_U-EX2.e8230c8.c04.md liftcheck --range OK
+- [x] X2.e8230c8.c05 LIFT CHUNK sub_e8230c8 part 6/7 range 0xe82a7d6..0xe82bfb0 | DONE 2026-11-23 oc_U-EX2.e8230c8.c05.md liftcheck --range OK
+- [x] X2.e8230c8.c06 LIFT CHUNK sub_e8230c8 part 7/7 range 0xe82bfb0..0xe82d4e3 | DONE 2026-11-23 oc_U-EX2.e8230c8.c06.md liftcheck --range OK
+- [ ] X2.e8230c8.asm LIFT ASSEMBLE sub_e8230c8: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [x] X2.e82326d.plan PLAN sub_e82326d: split 0xe82326d..0xe82d4e3 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e82326d.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X2.e82326d.c00 LIFT CHUNK sub_e82326d part 1/8 range 0xe82326d..0xe824a6a
+- [ ] X2.e82326d.c01 LIFT CHUNK sub_e82326d part 2/8 range 0xe824a6a..0xe826261
+- [x] X2.e82326d.c02 LIFT CHUNK sub_e82326d part 3/8 range 0xe826261..0xe827a40
+- [x] X2.e82326d.c03 LIFT CHUNK sub_e82326d part 4/8 range 0xe827a40..0xe829235
+- [ ] X2.e82326d.c04 LIFT CHUNK sub_e82326d part 5/8 range 0xe829235..0xe82a912
+- [ ] X2.e82326d.c05 LIFT CHUNK sub_e82326d part 6/8 range 0xe82a912..0xe82c101
+- [x] X2.e82326d.c06 LIFT CHUNK sub_e82326d part 7/8 range 0xe82c101..0xe82d4be | DONE 2026-11-23 oc_U-EX2.e82326d.c06.md liftcheck --range OK
+- [x] X2.e82326d.c07 LIFT CHUNK sub_e82326d part 8/8 range 0xe82d4be..0xe82d4e3
+- [ ] X2.e82326d.asm LIFT ASSEMBLE sub_e82326d: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [x] X2.e824991.plan PLAN sub_e824991: split 0xe824991..0xe82d4e3 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e824991.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X2.e824991.c00 LIFT CHUNK sub_e824991 part 1/7 range 0xe824991..0xe826168
+- [x] X2.e824991.c01 LIFT CHUNK sub_e824991 part 2/7 range 0xe826168..0xe827960
+- [ ] X2.e824991.c02 LIFT CHUNK sub_e824991 part 3/7 range 0xe827960..0xe829147
+- [ ] X2.e824991.c03 LIFT CHUNK sub_e824991 part 4/7 range 0xe829147..0xe82a912
+- [ ] X2.e824991.c04 LIFT CHUNK sub_e824991 part 5/7 range 0xe82a912..0xe82c101
+- [ ] X2.e824991.c05 LIFT CHUNK sub_e824991 part 6/7 range 0xe82c101..0xe82d4dd
+- [x] X2.e824991.c06 LIFT CHUNK sub_e824991 part 7/7 range 0xe82d4dd..0xe82d4e3
+- [ ] X2.e824991.asm LIFT ASSEMBLE sub_e824991: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [x] X2.e824a42.plan PLAN sub_e824a42: split 0xe824a42..0xe82d4e3 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e824a42.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X2.e824a42.c00 LIFT CHUNK sub_e824a42 part 1/6 range 0xe824a42..0xe826230
+- [x] X2.e824a42.c01 LIFT CHUNK sub_e824a42 part 2/6 range 0xe826230..0xe827a1a
+- [ ] X2.e824a42.c02 LIFT CHUNK sub_e824a42 part 3/6 range 0xe827a1a..0xe829207
+- [ ] X2.e824a42.c03 LIFT CHUNK sub_e824a42 part 4/6 range 0xe829207..0xe82a912
+- [ ] X2.e824a42.c04 LIFT CHUNK sub_e824a42 part 5/6 range 0xe82a912..0xe82c101
+- [x] X2.e824a42.c05 LIFT CHUNK sub_e824a42 part 6/6 range 0xe82c101..0xe82d4e3
+- [ ] X2.e824a42.asm LIFT ASSEMBLE sub_e824a42: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [x] X2.e824a4f.plan PLAN sub_e824a4f: split 0xe824a4f..0xe82d4e3 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e824a4f.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [x] X2.e824a4f.c00 LIFT CHUNK sub_e824a4f part 1/6 range 0xe824a4f..0xe826240
+- [x] X2.e824a4f.c01 LIFT CHUNK sub_e824a4f part 2/6 range 0xe826240..0xe827a40
+- [x] X2.e824a4f.c02 LIFT CHUNK sub_e824a4f part 3/6 range 0xe827a40..0xe829235
+- [ ] X2.e824a4f.c03 LIFT CHUNK sub_e824a4f part 4/6 range 0xe829235..0xe82a912
+- [ ] X2.e824a4f.c04 LIFT CHUNK sub_e824a4f part 5/6 range 0xe82a912..0xe82c101
+- [x] X2.e824a4f.c05 LIFT CHUNK sub_e824a4f part 6/6 range 0xe82c101..0xe82d4e3
+- [ ] X2.e824a4f.asm LIFT ASSEMBLE sub_e824a4f: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [x] X2.e824ab7.plan PLAN sub_e824ab7: split 0xe824ab7..0xe82d4e3 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e824ab7.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [x] X2.e824ab7.c00 LIFT CHUNK sub_e824ab7 part 1/6 range 0xe824ab7..0xe8262b7
+- [x] X2.e824ab7.c01 LIFT CHUNK sub_e824ab7 part 2/6 range 0xe8262b7..0xe827ab7
+- [x] X2.e824ab7.c02 LIFT CHUNK sub_e824ab7 part 3/6 range 0xe827ab7..0xe8292b7
+- [ ] X2.e824ab7.c03 LIFT CHUNK sub_e824ab7 part 4/6 range 0xe8292b7..0xe82aaab
+- [x] X2.e824ab7.c04 LIFT CHUNK sub_e824ab7 part 5/6 range 0xe82aaab..0xe82c2ab
+- [x] X2.e824ab7.c05 LIFT CHUNK sub_e824ab7 part 6/6 range 0xe82c2ab..0xe82d4e3
+- [ ] X2.e824ab7.asm LIFT ASSEMBLE sub_e824ab7: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [x] X2.e824af1.plan PLAN sub_e824af1: split 0xe824af1..0xe82d4e3 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e824af1.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [x] X2.e824af1.c00 LIFT CHUNK sub_e824af1 part 1/7 range 0xe824af1..0xe826261
+- [x] X2.e824af1.c01 LIFT CHUNK sub_e824af1 part 2/7 range 0xe826261..0xe827a40
+- [x] X2.e824af1.c02 LIFT CHUNK sub_e824af1 part 3/7 range 0xe827a40..0xe829235
+- [ ] X2.e824af1.c03 LIFT CHUNK sub_e824af1 part 4/7 range 0xe829235..0xe82a912
+- [ ] X2.e824af1.c04 LIFT CHUNK sub_e824af1 part 5/7 range 0xe82a912..0xe82c101
+- [ ] X2.e824af1.c05 LIFT CHUNK sub_e824af1 part 6/7 range 0xe82c101..0xe82d4be
+- [x] X2.e824af1.c06 LIFT CHUNK sub_e824af1 part 7/7 range 0xe82d4be..0xe82d4e3
+- [ ] X2.e824af1.asm LIFT ASSEMBLE sub_e824af1: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [x] X2.e824fbe.plan PLAN sub_e824fbe: split 0xe824fbe..0xe82d4e3 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e824fbe.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X2.e824fbe.c00 LIFT CHUNK sub_e824fbe part 1/7 range 0xe824fbe..0xe8267b7
+- [ ] X2.e824fbe.c01 LIFT CHUNK sub_e824fbe part 2/7 range 0xe8267b7..0xe827fa3
+- [ ] X2.e824fbe.c02 LIFT CHUNK sub_e824fbe part 3/7 range 0xe827fa3..0xe8297a2
+- [ ] X2.e824fbe.c03 LIFT CHUNK sub_e824fbe part 4/7 range 0xe8297a2..0xe82af92
+- [ ] X2.e824fbe.c04 LIFT CHUNK sub_e824fbe part 5/7 range 0xe82af92..0xe82c765
+- [ ] X2.e824fbe.c05 LIFT CHUNK sub_e824fbe part 6/7 range 0xe82c765..0xe82d4c4
+- [x] X2.e824fbe.c06 LIFT CHUNK sub_e824fbe part 7/7 range 0xe82d4c4..0xe82d4e3
+- [ ] X2.e824fbe.asm LIFT ASSEMBLE sub_e824fbe: join the chunk sources into one function with the real prologue/epilogue and locals, one dossier, whole-function liftcheck
+- [x] X2.e82dcc0 LIFT sub_e82dcc0 (0xe82dcc0, 0x1cf bytes, depth 2, D0, 0 callees in set)
+- [x] X2.e834040 LIFT sub_e834040 (0xe834040, 0x1a3 bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e834330 LIFT sub_e834330 (0xe834330, 0x1ee bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e834520 LIFT sub_e834520 (0xe834520, 0x13d bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e834660 LIFT sub_e834660 (0xe834660, 0x15f bytes, depth 2, D0, 0 callees in set)
+- [x] X2.e834b50 LIFT sub_e834b50 (0xe834b50, 0xf4 bytes, depth 2, D0, 0 callees in set)
+- [x] X2.e834c50 LIFT sub_e834c50 (0xe834c50, 0x1d8 bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e835b50 LIFT sub_e835b50 (0xe835b50, 0x1a5 bytes, depth 2, D0, 0 callees in set)
+- [x] X2.e835f00 LIFT sub_e835f00 (0xe835f00, 0x1e6 bytes, depth 2, D0, 0 callees in set)
+- [x] X2.e836640 LIFT sub_e836640 (0xe836640, 0x12d bytes, depth 2, D0, 0 callees in set)
+- [x] X2.e836dc0 LIFT sub_e836dc0 (0xe836dc0, 0x131 bytes, depth 3, D0, 0 callees in set)
+- [x] X2.e836f30 LIFT sub_e836f30 (0xe836f30, 0x91e bytes, depth 3, D0, 0 callees in set)
+- [x] X2.e838560 LIFT sub_e838560 (0xe838560, 0x8fb bytes, depth 3, D0, 0 callees in set)
+- [x] X2.e839020 LIFT sub_e839020 (0xe839020, 0x72f bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e83aaa0 LIFT sub_e83aaa0 (0xe83aaa0, 0x10d bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e83ace0 LIFT sub_e83ace0 (0xe83ace0, 0x1e8 bytes, depth 2, D0, 0 callees in set)
+- [x] X2.e83b200 LIFT sub_e83b200 (0xe83b200, 0x1c5 bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e83b8c0 LIFT sub_e83b8c0 (0xe83b8c0, 0x121 bytes, depth 0, D0, 0 callees in set)
+- [ ] X2.e83b9f0 LIFT sub_e83b9f0 (0xe83b9f0, 0x1b2 bytes, depth 3, D0, 0 callees in set)
+- [x] X2.e83bbf0 LIFT sub_e83bbf0 (0xe83bbf0, 0x1db bytes, depth 2, D0, 0 callees in set)
+- [x] X2.e83bdd0 LIFT sub_e83bdd0 (0xe83bdd0, 0x5b3 bytes, depth 2, D0, 0 callees in set)
+- [x] X2.e84b0d0 LIFT sub_e84b0d0 (0xe84b0d0, 0xfb bytes, depth 1, D0, 0 callees in set)
+- [ ] X2.e84c7d0 LIFT sub_e84c7d0 (0xe84c7d0, 0x62f bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e84d1b0 LIFT sub_e84d1b0 (0xe84d1b0, 0x23c bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e84d560 LIFT sub_e84d560 (0xe84d560, 0xfa bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e84d900 LIFT sub_e84d900 (0xe84d900, 0x369 bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e854800 LIFT sub_e854800 (0xe854800, 0x18b bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e855080 LIFT sub_e855080 (0xe855080, 0xa6b bytes, depth 1, D0, 0 callees in set)
+- [x] X2.e8692c0 LIFT sub_e8692c0 (0xe8692c0, 0x5cd bytes, depth 2, D0, 0 callees in set)
+- [x] X2.e8698f0 LIFT sub_e8698f0 (0xe8698f0, 0x39a bytes, depth 2, D0, 0 callees in set)
+- [x] X2.e869cb0 LIFT sub_e869cb0 (0xe869cb0, 0x2f4 bytes, depth 3, D0, 0 callees in set)
+- [x] X2.e869ff0 LIFT sub_e869ff0 (0xe869ff0, 0xd1 bytes, depth 0, D0, 0 callees in set)
+- [x] X2.e86d770 LIFT stencil face -> bgfx stencil word (ref, read mask, test, 3 ops), fully reversed (0xe86d770, 0x7d bytes, depth 3, D2, 0 callees in set)
+- [x] X2.e870630 LIFT sub_e870630 (0xe870630, 0x7b bytes, depth 6, D0, 0 callees in set)
+- [x] X2.e8707f0 LIFT sub_e8707f0 (0xe8707f0, 0x7b bytes, depth 6, D0, 0 callees in set)
+- [x] X2.e874d80 LIFT sub_e874d80 (0xe874d80, 0x95 bytes, depth 6, D0, 0 callees in set)
+- [x] X2.e874e20 LIFT sub_e874e20 (0xe874e20, 0x7b bytes, depth 6, D0, 0 callees in set)
+- [x] X2.e874ea0 LIFT sub_e874ea0 (0xe874ea0, 0x7b bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e874f20 LIFT sub_e874f20 (0xe874f20, 0x127 bytes, depth 6, D0, 0 callees in set)
+- [x] X2.e875790 LIFT sub_e875790 (0xe875790, 0x8e4 bytes, depth 6, D0, 0 callees in set) | DONE 2026-11-23 oc_U-EX2.e875790.md liftcheck OK
+- [ ] X2.e8762d0 LIFT sub_e8762d0 (0xe8762d0, 0x74 bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e876380 LIFT sub_e876380 (0xe876380, 0x92 bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e876420 LIFT sub_e876420 (0xe876420, 0xc5 bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e8764f0 LIFT sub_e8764f0 (0xe8764f0, 0x105 bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e878010 LIFT sub_e878010 (0xe878010, 0x4f2 bytes, depth 6, D0, 0 callees in set)
+- [ ] X2.e878550 LIFT sub_e878550 (0xe878550, 0x225 bytes, depth 7, D0, 0 callees in set)
+- [ ] X2.e878bc0 LIFT sub_e878bc0 (0xe878bc0, 0xba bytes, depth 7, D0, 0 callees in set)
+- [ ] X2.e878df0 LIFT sub_e878df0 (0xe878df0, 0x1e2 bytes, depth 7, D0, 0 callees in set)
+- [ ] X2.e879c60 LIFT sub_e879c60 (0xe879c60, 0x24b bytes, depth 4, D0, 0 callees in set)
+- [ ] X2.e87b920 LIFT sub_e87b920 (0xe87b920, 0x1e0 bytes, depth 4, D0, 0 callees in set)
+- [ ] X2.e87bb00 LIFT sub_e87bb00 (0xe87bb00, 0x1ac bytes, depth 2, D0, 0 callees in set)
+- [ ] X2.e804590 LIFT sub_e804590 (0xe804590, 0x2a6 bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e8066c0 LIFT sub_e8066c0 (0xe8066c0, 0x11c bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e806810 LIFT sub_e806810 (0xe806810, 0x11c bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e806960 LIFT sub_e806960 (0xe806960, 0x11c bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e809cc0 LIFT sub_e809cc0 (0xe809cc0, 0xa1 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e809fb0 LIFT sub_e809fb0 (0xe809fb0, 0xa1 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80a090 LIFT sub_e80a090 (0xe80a090, 0xd96 bytes, depth 1, D0, 3 callees in set)
+- [ ] X2.e80afc0 LIFT sub_e80afc0 (0xe80afc0, 0x27d bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80b310 LIFT sub_e80b310 (0xe80b310, 0x464 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80da50 LIFT sub_e80da50 (0xe80da50, 0x2e7 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e80dd60 LIFT sub_e80dd60 (0xe80dd60, 0x151 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80ef60 LIFT sub_e80ef60 (0xe80ef60, 0x329 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80f290 LIFT sub_e80f290 (0xe80f290, 0x35e bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e811fb0 LIFT sub_e811fb0 (0xe811fb0, 0x504 bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e815590 LIFT sub_e815590 (0xe815590, 0x2af bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e818490 LIFT sub_e818490 (0xe818490, 0x4e6 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e8189c0 LIFT sub_e8189c0 (0xe8189c0, 0xa1 bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e820500 LIFT sub_e820500 (0xe820500, 0x409 bytes, depth 1, D0, 3 callees in set)
+- [ ] X2.e82de90 LIFT sub_e82de90 (0xe82de90, 0x399 bytes, depth 2, D0, 2 callees in set)
+- [ ] X2.e835490 LIFT sub_e835490 (0xe835490, 0x677 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e836770 LIFT sub_e836770 (0xe836770, 0x1b5 bytes, depth 2, D0, 1 callees in set)
+- [ ] X2.e837b40 LIFT sub_e837b40 (0xe837b40, 0x12b bytes, depth 2, D0, 1 callees in set)
+- [ ] X2.e83abb0 LIFT sub_e83abb0 (0xe83abb0, 0x12f bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e84d3f0 LIFT sub_e84d3f0 (0xe84d3f0, 0x12f bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e84d730 LIFT sub_e84d730 (0xe84d730, 0x148 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e84dc70 LIFT sub_e84dc70 (0xe84dc70, 0x28f bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e84df40 LIFT sub_e84df40 (0xe84df40, 0x28f bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e854990 LIFT sub_e854990 (0xe854990, 0x178 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e86f4f0 LIFT sub_e86f4f0 (0xe86f4f0, 0x203 bytes, depth 3, D0, 1 callees in set)
+- [ ] X2.e8706b0 LIFT sub_e8706b0 (0xe8706b0, 0x131 bytes, depth 5, D0, 1 callees in set)
+- [ ] X2.e8760c0 LIFT sub_e8760c0 (0xe8760c0, 0x1a4 bytes, depth 6, D0, 1 callees in set)
+- [ ] X2.e876600 LIFT sub_e876600 (0xe876600, 0x152 bytes, depth 6, D0, 1 callees in set)
+- [ ] X2.e877670 LIFT sub_e877670 (0xe877670, 0x194 bytes, depth 6, D0, 1 callees in set)
+- [ ] X2.e878c80 LIFT sub_e878c80 (0xe878c80, 0x16d bytes, depth 7, D0, 1 callees in set)
+- [ ] X2.e879100 LIFT sub_e879100 (0xe879100, 0xa2a bytes, depth 6, D0, 1 callees in set)
+- [ ] X2.e87c6d0 LIFT sub_e87c6d0 (0xe87c6d0, 0x9d bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80bc90 LIFT sub_e80bc90 (0xe80bc90, 0x14b bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80bde0 LIFT sub_e80bde0 (0xe80bde0, 0xf2 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80ecb0 LIFT sub_e80ecb0 (0xe80ecb0, 0x1c6 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e80f820 LIFT sub_e80f820 (0xe80f820, 0x889 bytes, depth 1, D0, 4 callees in set)
+- [ ] X2.e8137b0 LIFT createShader (parse CSH/FSH/VSH binary, fill ShaderD3D12 record, MurmurHash2A) (0xe8137b0, 0xa22 bytes, depth 0, D1, 3 callees in set)
+- [ ] X2.e8146f0 LIFT sub_e8146f0 (0xe8146f0, 0x372 bytes, depth 0, D0, 3 callees in set)
+- [ ] X2.e815c30 LIFT sub_e815c30 (0xe815c30, 0x13c bytes, depth 0, D0, 3 callees in set)
+- [ ] X2.e815d70 LIFT sub_e815d70 (0xe815d70, 0x12b bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e815ea0 LIFT sub_e815ea0 (0xe815ea0, 0x11f bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e816f40 LIFT sub_e816f40 (0xe816f40, 0x130 bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e817070 LIFT sub_e817070 (0xe817070, 0x5e2 bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e818b70 LIFT sub_e818b70 (0xe818b70, 0x4c bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e819b50 LIFT framebuffer post-create (derive color/depth from attachments) (0xe819b50, 0x570 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e81ac80 LIFT sub_e81ac80 (0xe81ac80, 0x18c bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e81bf30 LIFT TextureD3D12::create (dimensions, type, formats, mips; resource and views) (0xe81bf30, 0x1727 bytes, depth 1, D1, 3 callees in set)
+- [ ] X2.e81da20 LIFT sub_e81da20 (0xe81da20, 0x412 bytes, depth 1, D0, 3 callees in set)
+- [ ] X2.e81e860.plan PLAN D3D12 graphics PSO builder: split 0xe81e860..0xe8204fa at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e81e860.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X2.e81e860.asm LIFT ASSEMBLE D3D12 graphics PSO builder (waits for chunks)
+- [ ] X2.e835d00 LIFT sub_e835d00 (0xe835d00, 0x1f1 bytes, depth 3, D0, 2 callees in set)
+- [ ] X2.e836970 LIFT sub_e836970 (0xe836970, 0x334 bytes, depth 2, D0, 3 callees in set)
+- [ ] X2.e837a10 LIFT sub_e837a10 (0xe837a10, 0x122 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e837ca0 LIFT sub_e837ca0 (0xe837ca0, 0x610 bytes, depth 2, D0, 2 callees in set)
+- [ ] X2.e83aed0 LIFT sub_e83aed0 (0xe83aed0, 0x201 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e83d2f0 LIFT sub_e83d2f0 (0xe83d2f0, 0x49 bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e83d7d0 LIFT sub_e83d7d0 (0xe83d7d0, 0x671 bytes, depth 0, D0, 3 callees in set)
+- [ ] X2.e84b980 LIFT sub_e84b980 (0xe84b980, 0xae bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e84ba30 LIFT sub_e84ba30 (0xe84ba30, 0xb27 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e8546c0 LIFT sub_e8546c0 (0xe8546c0, 0x108 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e854ee0 LIFT sub_e854ee0 (0xe854ee0, 0x156 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e86eef0 LIFT sub_e86eef0 (0xe86eef0, 0x5f8 bytes, depth 2, D0, 2 callees in set)
+- [ ] X2.e877960 LIFT sub_e877960 (0xe877960, 0x52c bytes, depth 6, D0, 1 callees in set)
+- [ ] X2.e878800 LIFT sub_e878800 (0xe878800, 0x308 bytes, depth 6, D0, 2 callees in set)
+- [ ] X2.e879eb0 LIFT sub_e879eb0 (0xe879eb0, 0x568 bytes, depth 3, D0, 4 callees in set)
+- [ ] X2.e87c210 LIFT sub_e87c210 (0xe87c210, 0x436 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e807a80 LIFT sub_e807a80 (0xe807a80, 0x5a bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e809a90 LIFT sub_e809a90 (0xe809a90, 0x13d bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e809c30 LIFT sub_e809c30 (0xe809c30, 0x69 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e809da0 LIFT sub_e809da0 (0xe809da0, 0x13d bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80b780 LIFT sub_e80b780 (0xe80b780, 0x505 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e80bf90 LIFT sub_e80bf90 (0xe80bf90, 0x1ef bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80c180 LIFT sub_e80c180 (0xe80c180, 0x47a bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80da20 LIFT sub_e80da20 (0xe80da20, 0x2d bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80ee80 LIFT sub_e80ee80 (0xe80ee80, 0xd9 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e80f630 LIFT sub_e80f630 (0xe80f630, 0x45 bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e8102b0.plan PLAN device-lost / TDR handler (slot 7): split 0xe8102b0..0xe811bd4 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e8102b0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X2.e8102b0.asm LIFT ASSEMBLE device-lost / TDR handler (slot 7) (waits for chunks)
+- [ ] X2.e815840 LIFT sub_e815840 (0xe815840, 0x3ae bytes, depth 0, D0, 6 callees in set)
+- [ ] X2.e817c00 LIFT destroyFrameBuffer slot 41 (release swap chain, window-list swap-remove), fully reversed (0xe817c00, 0xe5 bytes, depth 0, D2, 2 callees in set)
+- [ ] X2.e818050 LIFT sub_e818050 (0xe818050, 0x438 bytes, depth 0, D0, 6 callees in set)
+- [ ] X2.e82d960 LIFT resource state transition helper (0xe82d960, 0x359 bytes, depth 1, D1, 3 callees in set)
+- [ ] X2.e834aa0 LIFT sub_e834aa0 (0xe834aa0, 0xad bytes, depth 2, D0, 1 callees in set)
+- [ ] X2.e8360f0 LIFT upload ring allocator (0xe8360f0, 0x3f6 bytes, depth 1, D1, 3 callees in set)
+- [ ] X2.e83b0e0 LIFT sub_e83b0e0 (0xe83b0e0, 0x11c bytes, depth 1, D0, 4 callees in set)
+- [ ] X2.e83b3d0 LIFT sub_e83b3d0 (0xe83b3d0, 0x3d0 bytes, depth 2, D0, 2 callees in set)
+- [ ] X2.e84ce00 LIFT sub_e84ce00 (0xe84ce00, 0x3a3 bytes, depth 2, D0, 4 callees in set)
+- [ ] X2.e86b370 LIFT sub_e86b370 (0xe86b370, 0x293 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e86c820 LIFT sub_e86c820 (0xe86c820, 0x687 bytes, depth 4, D0, 8 callees in set)
+- [ ] X2.e86ced0 LIFT sub_e86ced0 (0xe86ced0, 0x5be bytes, depth 2, D0, 5 callees in set)
+- [ ] X2.e86ea20 LIFT sub_e86ea20 (0xe86ea20, 0x48f bytes, depth 3, D0, 2 callees in set)
+- [ ] X2.e86f700 LIFT sub_e86f700 (0xe86f700, 0x44a bytes, depth 2, D0, 2 callees in set)
+- [ ] X2.e875050 LIFT sub_e875050 (0xe875050, 0x73c bytes, depth 6, D0, 2 callees in set)
+- [ ] X2.e800c10 LIFT sub_e800c10 (0xe800c10, 0x58 bytes, depth 2, D0, 1 callees in set)
+- [ ] X2.e807b00 LIFT sub_e807b00 (0xe807b00, 0x445 bytes, depth 1, D0, 6 callees in set)
+- [ ] X2.e80dec0 LIFT sub_e80dec0 (0xe80dec0, 0xdad bytes, depth 0, D0, 15 callees in set)
+- [ ] X2.e80f680 LIFT sub_e80f680 (0xe80f680, 0x196 bytes, depth 2, D0, 2 callees in set)
+- [ ] X2.e812740 LIFT BufferD3D12::create (record fields, SRV/UAV descs, persistent map) (0xe812740, 0x446 bytes, depth 1, D2, 2 callees in set)
+- [ ] X2.e813110 LIFT sub_e813110 (0xe813110, 0x1f7 bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e8135a0 LIFT sub_e8135a0 (0xe8135a0, 0x20a bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e8143c0 LIFT createTexture base (handle -> record incl. overflow pages, TextureD3D12::create) (0xe8143c0, 0x2e1 bytes, depth 0, D1, 8 callees in set)
+- [ ] X2.e814a70 LIFT sub_e814a70 (0xe814a70, 0x674 bytes, depth 0, D0, 4 callees in set)
+- [ ] X2.e8150f0 LIFT sub_e8150f0 (0xe8150f0, 0x498 bytes, depth 0, D0, 7 callees in set)
+- [ ] X2.e816380 LIFT sub_e816380 (0xe816380, 0x1f8 bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e8176a0 LIFT createFrameBuffer(handle, num, attachments) slot 40, fully reversed (0xe8176a0, 0xeb bytes, depth 0, D2, 4 callees in set)
+- [ ] X2.e817880 LIFT createFrameBuffer(window) slot 39 (swap chain, RTVs, window list) (0xe817880, 0x37b bytes, depth 0, D1, 6 callees in set)
+- [ ] X2.e819750 LIFT sub_e819750 (0xe819750, 0x3f9 bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e81a610 LIFT reset handler (slot 60, base) (0xe81a610, 0x670 bytes, depth 0, D1, 5 callees in set)
+- [ ] X2.e81b720 LIFT D3D12 draw batch flush (DrawInstanced / DrawIndexedInstanced / ExecuteIndirect) (0xe81b720, 0x803 bytes, depth 2, D2, 1 callees in set)
+- [ ] X2.e833210 LIFT sub_e833210 (0xe833210, 0xde4 bytes, depth 2, D0, 8 callees in set)
+- [ ] X2.e83f1d0 LIFT RTX GPU skinning (slot 63) (0xe83f1d0, 0x107b bytes, depth 0, D1, 5 callees in set)
+- [ ] X2.e84c560 LIFT sub_e84c560 (0xe84c560, 0x229 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e8542d0 LIFT sub_e8542d0 (0xe8542d0, 0x3a6 bytes, depth 1, D0, 3 callees in set)
+- [ ] X2.e86a1b0 LIFT material uniform block create (instance+0x170) (0xe86a1b0, 0xf0d bytes, depth 2, D0, 3 callees in set)
+- [ ] X2.e86e7d0 LIFT sub_e86e7d0 (0xe86e7d0, 0x24b bytes, depth 2, D0, 1 callees in set)
+- [ ] X2.e86fb90 LIFT sub_e86fb90 (0xe86fb90, 0x19f bytes, depth 2, D0, 2 callees in set)
+- [ ] X2.e86fd80 LIFT sub_e86fd80 (0xe86fd80, 0x14d bytes, depth 2, D0, 2 callees in set)
+- [ ] X2.e876760 LIFT sub_e876760 (0xe876760, 0x943 bytes, depth 6, D0, 8 callees in set)
+- [ ] X2.e87a470 LIFT sub_e87a470 (0xe87a470, 0x645 bytes, depth 3, D0, 6 callees in set)
+- [ ] X2.e87bd50 LIFT sub_e87bd50 (0xe87bd50, 0x2cc bytes, depth 7, D0, 2 callees in set)
+- [ ] X2.e80c600 LIFT sub_e80c600 (0xe80c600, 0x1286 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e8124c0 LIFT createIndexBuffer base (record create + used-handle bitset) (0xe8124c0, 0x23b bytes, depth 0, D1, 2 callees in set)
+- [ ] X2.e812be0 LIFT createVertexBuffer base (0xe812be0, 0x257 bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e812ea0 LIFT sub_e812ea0 (0xe812ea0, 0x22f bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e813310 LIFT sub_e813310 (0xe813310, 0x24f bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e815fc0 LIFT sub_e815fc0 (0xe815fc0, 0x337 bytes, depth 0, D0, 3 callees in set)
+- [ ] X2.e8165a0 LIFT sub_e8165a0 (0xe8165a0, 0x99c bytes, depth 0, D0, 3 callees in set)
+- [ ] X2.e81af20 LIFT sub_e81af20 (0xe81af20, 0x1c8 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e81de60 LIFT sub_e81de60 (0xe81de60, 0x352 bytes, depth 2, D0, 1 callees in set)
+- [ ] X2.e820910 LIFT sub_e820910 (0xe820910, 0x80c bytes, depth 1, D0, 4 callees in set)
+- [ ] X2.e83c630 LIFT sub_e83c630 (0xe83c630, 0x2d bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e83e980 LIFT sub_e83e980 (0xe83e980, 0x2e5 bytes, depth 0, D0, 4 callees in set)
+- [ ] X2.e83ec70 LIFT reset handler RTX override (DLSS mode select) (0xe83ec70, 0x55e bytes, depth 0, D1, 3 callees in set)
+- [ ] X2.e84b280 LIFT sub_e84b280 (0xe84b280, 0x39d bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e84b620 LIFT sub_e84b620 (0xe84b620, 0x351 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e84e210.plan PLAN sub_e84e210: split 0xe84e210..0xe85428f at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e84e210.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X2.e84e210.asm LIFT ASSEMBLE sub_e84e210 (waits for chunks)
+- [ ] X2.e86d7f0 LIFT sub_e86d7f0 (0xe86d7f0, 0xfd6 bytes, depth 1, D0, 8 callees in set)
+- [ ] X2.e86ff10 LIFT material setFlag (define -> flag table) (0xe86ff10, 0x39a bytes, depth 2, D0, 5 callees in set)
+- [ ] X2.e87ac30 LIFT sub_e87ac30 (0xe87ac30, 0xa4c bytes, depth 6, D0, 5 callees in set)
+- [ ] X2.e807ff0 LIFT init (slot 58, "d3d12.dll") (0xe807ff0, 0x1734 bytes, depth 0, D1, 30 callees in set)
+- [ ] X2.e818bc0 LIFT sub_e818bc0 (0xe818bc0, 0xb87 bytes, depth 0, D0, 7 callees in set)
+- [ ] X2.e81ae10 LIFT sub_e81ae10 (0xe81ae10, 0xdf bytes, depth 0, D0, 3 callees in set)
+- [ ] X2.e821120.plan PLAN D3D12 draw executor (per-job item loop): split 0xe821120..0xe82d4e3 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e821120.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X2.e821120.asm LIFT ASSEMBLE D3D12 draw executor (per-job item loop) (waits for chunks)
+- [ ] X2.e82e230.plan PLAN RendererContextD3D12::submit (slot 50, base): split 0xe82e230..0xe832fc1 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e82e230.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X2.e82e230.asm LIFT ASSEMBLE RendererContextD3D12::submit (slot 50, base) (waits for chunks)
+- [ ] X2.e83d210 LIFT RTX createIndexBuffer override (track handle for RTX) (0xe83d210, 0x47 bytes, depth 0, D2, 1 callees in set)
+- [ ] X2.e83d260 LIFT RTX createVertexBuffer override (track handle, register geometry 0xe84b620) (0xe83d260, 0x85 bytes, depth 0, D2, 2 callees in set)
+- [ ] X2.e83d340 LIFT sub_e83d340 (0xe83d340, 0x47 bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e83d390 LIFT sub_e83d390 (0xe83d390, 0x6d bytes, depth 0, D0, 2 callees in set)
+- [ ] X2.e83df70 LIFT sub_e83df70 (0xe83df70, 0x28a bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e8403d0.plan PLAN RTX SuperSampling evaluate (slot 64): split 0xe8403d0..0xe84ae2b at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e8403d0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X2.e8403d0.asm LIFT ASSEMBLE RTX SuperSampling evaluate (slot 64) (waits for chunks)
+- [ ] X2.e870870.plan PLAN Material::parseBody (buffers, uniforms, properties, passes, variants, shaders; per-stage platform pick): split 0xe870870..0xe8735ea at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e870870.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X2.e870870.asm LIFT ASSEMBLE Material::parseBody (buffers, uniforms, properties, passes, variants, shaders; per-stage platform pick) (waits for chunks)
+- [ ] X2.e83c390 LIFT draw executor wrapper (job launch) (0xe83c390, 0xd0 bytes, depth 0, D1, 1 callees in set)
+- [ ] X2.e83d440 LIFT RendererContextD3D12 RTX submit override (slot 50) (0xe83d440, 0x381 bytes, depth 0, D1, 7 callees in set)
+- [ ] X2.e83e200 LIFT sub_e83e200 (0xe83e200, 0x73c bytes, depth 0, D0, 5 callees in set)
+- [ ] X2.e873fa0 LIFT material.bin decrypt-and-parse visitor (SMPL key hash, KYPR unwrap), fully reversed (0xe873fa0, 0x940 bytes, depth 5, D2, 4 callees in set)
+- [ ] X2.e870350 LIFT Material::deserialize (header 0xA11DA1A, version 0x1A, NONE/SMPL/KYPR), fully reversed (0xe870350, 0x292 bytes, depth 4, D2, 3 callees in set)
+- [ ] X2.e86b730 LIFT MaterialLoader::load (<name>.material.bin, MaterialInstance 0x470, deps), fully reversed (0xe86b730, 0xe04 bytes, depth 4, D2, 8 callees in set)
+- [ ] X2z GATE (orchestrator): all X2 items [x]; build the DLL, fix compile errors, run the milestone verify scenes (docs/NATIVE_VERIFY_PROTOCOL.md), zero divergence; set functions.tsv rows to L2; push mirror
+
+## X3. RenderDragon: endFrame, generate, scheduler, task runner, Declarator
+
+138 functions, 214 KB of machine code. Order = callees first. Source dir: `src/client/features/render/native/dragon/`. Gate: X3z.
+
+- [ ] X3.c25f680 LIFT sub_c25f680 (0xc25f680, 0x77 bytes, depth 1, D0, 0 callees in set)
+- [ ] X3.c260a60 LIFT sub_c260a60 (0xc260a60, 0x4f5 bytes, depth 1, D0, 0 callees in set)
+- [ ] X3.c2625e0 LIFT sub_c2625e0 (0xc2625e0, 0x130 bytes, depth 4, D0, 0 callees in set)
+- [ ] X3.c2713e0 LIFT sub_c2713e0 (0xc2713e0, 0x170 bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.c272e10 LIFT sub_c272e10 (0xc272e10, 0x17c bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.c27ebd0 LIFT sub_c27ebd0 (0xc27ebd0, 0x8b bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c27ed70 LIFT sub_c27ed70 (0xc27ed70, 0x237 bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c27efb0 LIFT sub_c27efb0 (0xc27efb0, 0x848 bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c27f940 LIFT sub_c27f940 (0xc27f940, 0x377 bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c27fcc0 LIFT sub_c27fcc0 (0xc27fcc0, 0x34b bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c280a80 LIFT sub_c280a80 (0xc280a80, 0x10f bytes, depth 4, D0, 0 callees in set)
+- [ ] X3.c280b90 LIFT sub_c280b90 (0xc280b90, 0x10f bytes, depth 4, D0, 0 callees in set)
+- [ ] X3.c283810 LIFT sub_c283810 (0xc283810, 0x8b bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c283ce0 LIFT sub_c283ce0 (0xc283ce0, 0x6b bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c288990.plan PLAN per-frame loader tracked-list merge (from endFrame): split 0xc288990..0xc28a912 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/c288990.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X3.c288990.asm LIFT ASSEMBLE per-frame loader tracked-list merge (from endFrame) (waits for chunks)
+- [ ] X3.c28a920 LIFT sub_c28a920 (0xc28a920, 0xeb bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c28d3e0 LIFT sub_c28d3e0 (0xc28d3e0, 0x128 bytes, depth 1, D0, 0 callees in set)
+- [ ] X3.c28d710 LIFT sub_c28d710 (0xc28d710, 0x144 bytes, depth 1, D0, 0 callees in set)
+- [ ] X3.c28e330 LIFT sub_c28e330 (0xc28e330, 0xcc6 bytes, depth 1, D0, 0 callees in set)
+- [ ] X3.c293af0 LIFT sub_c293af0 (0xc293af0, 0xd6 bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.c2981f0 LIFT sub_c2981f0 (0xc2981f0, 0x130 bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.e8fe1d0 LIFT sub_e8fe1d0 (0xe8fe1d0, 0x483 bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.e8ffc10 LIFT sub_e8ffc10 (0xe8ffc10, 0x689 bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.e9045b0 LIFT sub_e9045b0 (0xe9045b0, 0x1fe bytes, depth 2, D0, 0 callees in set)
+- [ ] X3.e9058a0 LIFT sub_e9058a0 (0xe9058a0, 0xbd bytes, depth 5, D0, 0 callees in set)
+- [ ] X3.e905ce0 LIFT sub_e905ce0 (0xe905ce0, 0x19 bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.e905d00 LIFT sub_e905d00 (0xe905d00, 0x1ec bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.e905ef0 LIFT sub_e905ef0 (0xe905ef0, 0x177 bytes, depth 3, D0, 0 callees in set)
+- [ ] X3.e906cd0 LIFT sub_e906cd0 (0xe906cd0, 0x260 bytes, depth 4, D0, 0 callees in set)
+- [ ] X3.c25fe20 LIFT GraphicsTasks task runner (0xc25fe20, 0x1e0 bytes, depth 1, D2, 2 callees in set)
+- [ ] X3.c2635e0 LIFT sub_c2635e0 (0xc2635e0, 0x3d9 bytes, depth 1, D0, 2 callees in set)
+- [ ] X3.c2639c0 LIFT sub_c2639c0 (0xc2639c0, 0x266 bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.c271290 LIFT sub_c271290 (0xc271290, 0x123 bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.c27ec60 LIFT sub_c27ec60 (0xc27ec60, 0x10d bytes, depth 3, D0, 1 callees in set)
+- [ ] X3.c280010 LIFT std::_Insertion_sort_unchecked on 0x80-byte pass records keyed by +0x78 (0xc280010, 0x98d bytes, depth 3, D2, 3 callees in set)
+- [ ] X3.c281240 LIFT sub_c281240 (0xc281240, 0xc0d bytes, depth 4, D0, 4 callees in set)
+- [ ] X3.c281e50 LIFT sub_c281e50 (0xc281e50, 0x54e bytes, depth 5, D0, 2 callees in set)
+- [ ] X3.c2834c0 LIFT sub_c2834c0 (0xc2834c0, 0x25d bytes, depth 7, D0, 3 callees in set)
+- [ ] X3.c283720 LIFT sub_c283720 (0xc283720, 0xe6 bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.c2838a0 LIFT sub_c2838a0 (0xc2838a0, 0x438 bytes, depth 3, D0, 1 callees in set)
+- [ ] X3.c287400 LIFT sub_c287400 (0xc287400, 0x35d bytes, depth 3, D0, 1 callees in set)
+- [ ] X3.c2878c0 LIFT sub_c2878c0 (0xc2878c0, 0x110 bytes, depth 3, D0, 1 callees in set)
+- [ ] X3.c2879f0 LIFT sub_c2879f0 (0xc2879f0, 0x120 bytes, depth 3, D0, 1 callees in set)
+- [ ] X3.c28bc30 LIFT sub_c28bc30 (0xc28bc30, 0xbb bytes, depth 3, D0, 1 callees in set)
+- [ ] X3.c28bcf0 LIFT loader shutdown unload (tracked resources, drop pending) (0xc28bcf0, 0x186 bytes, depth 3, D2, 1 callees in set)
+- [ ] X3.c2914b0 LIFT sub_c2914b0 (0xc2914b0, 0x18f bytes, depth 3, D0, 2 callees in set)
+- [ ] X3.c293850 LIFT sub_c293850 (0xc293850, 0x20d bytes, depth 1, D0, 2 callees in set)
+- [ ] X3.c293ed0 LIFT sub_c293ed0 (0xc293ed0, 0x651 bytes, depth 4, D0, 1 callees in set)
+- [ ] X3.c29d620 LIFT sub_c29d620 (0xc29d620, 0x258 bytes, depth 2, D0, 2 callees in set)
+- [ ] X3.e8fc640 LIFT sub_e8fc640 (0xe8fc640, 0x11f bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.e8feb10 LIFT PipelineDiskCache::tick (0xe8feb10, 0x2df bytes, depth 1, D1, 2 callees in set)
+- [ ] X3.e903290 LIFT sub_e903290 (0xe903290, 0xc3 bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.e903360 LIFT sub_e903360 (0xe903360, 0xa9 bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.e9055a0 LIFT sub_e9055a0 (0xe9055a0, 0x2c2 bytes, depth 5, D0, 1 callees in set)
+- [ ] X3.c25f650 LIFT sub_c25f650 (0xc25f650, 0x2c bytes, depth 1, D0, 1 callees in set)
+- [ ] X3.c260f60 LIFT sub_c260f60 (0xc260f60, 0x426 bytes, depth 2, D0, 4 callees in set)
+- [ ] X3.c261680 LIFT sub_c261680 (0xc261680, 0x6d6 bytes, depth 3, D0, 3 callees in set)
+- [ ] X3.c262b70 LIFT sub_c262b70 (0xc262b70, 0x434 bytes, depth 5, D0, 2 callees in set)
+- [ ] X3.c265b20 LIFT sub_c265b20 (0xc265b20, 0x6d6 bytes, depth 2, D0, 3 callees in set)
+- [ ] X3.c2664a0 LIFT sub_c2664a0 (0xc2664a0, 0x426 bytes, depth 2, D0, 4 callees in set)
+- [ ] X3.c266ba0 LIFT sub_c266ba0 (0xc266ba0, 0x434 bytes, depth 1, D0, 2 callees in set)
+- [ ] X3.c267b90 LIFT sub_c267b90 (0xc267b90, 0x154d bytes, depth 1, D0, 6 callees in set)
+- [ ] X3.c26b060 LIFT sub_c26b060 (0xc26b060, 0xeda bytes, depth 1, D0, 5 callees in set)
+- [ ] X3.c26c9c0 LIFT sub_c26c9c0 (0xc26c9c0, 0x98 bytes, depth 1, D0, 2 callees in set)
+- [ ] X3.c270330 LIFT sub_c270330 (0xc270330, 0x124 bytes, depth 1, D0, 5 callees in set)
+- [ ] X3.c273060 LIFT sub_c273060 (0xc273060, 0x2bd bytes, depth 2, D0, 5 callees in set)
+- [ ] X3.c280ca0 LIFT std::stable_sort driver (chunks of 0x20) over pass records (0xc280ca0, 0x599 bytes, depth 4, D2, 3 callees in set)
+- [ ] X3.c282db0 LIFT sub_c282db0 (0xc282db0, 0x70c bytes, depth 6, D0, 4 callees in set)
+- [ ] X3.c284020 LIFT sub_c284020 (0xc284020, 0x10b bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.c288880 LIFT per-frame pending merge driver (7 loaders, from endFrame) (0xc288880, 0x10d bytes, depth 1, D2, 1 callees in set)
+- [ ] X3.c28b930 LIFT sub_c28b930 (0xc28b930, 0x2bd bytes, depth 3, D0, 5 callees in set)
+- [ ] X3.c2965e0 LIFT sub_c2965e0 (0xc2965e0, 0x235 bytes, depth 2, D0, 5 callees in set)
+- [ ] X3.c2968c0 LIFT sub_c2968c0 (0xc2968c0, 0x23c bytes, depth 2, D0, 2 callees in set)
+- [ ] X3.c298320.plan PLAN sub_c298320: split 0xc298320..0xc299ba1 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/c298320.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X3.c298320.asm LIFT ASSEMBLE sub_c298320 (waits for chunks)
+- [ ] X3.c29ae80.plan PLAN sub_c29ae80: split 0xc29ae80..0xc29c78b at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/c29ae80.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X3.c29ae80.asm LIFT ASSEMBLE sub_c29ae80 (waits for chunks)
+- [ ] X3.c29cbd0 LIFT sub_c29cbd0 (0xc29cbd0, 0x3d8 bytes, depth 2, D0, 2 callees in set)
+- [ ] X3.c29d8b0 LIFT sub_c29d8b0 (0xc29d8b0, 0x52e bytes, depth 2, D0, 2 callees in set)
+- [ ] X3.c29e150 LIFT sub_c29e150 (0xc29e150, 0x3a8 bytes, depth 1, D0, 2 callees in set)
+- [ ] X3.c29f820 LIFT sub_c29f820 (0xc29f820, 0x6e8 bytes, depth 1, D0, 3 callees in set)
+- [ ] X3.e8fc760 LIFT sub_e8fc760 (0xe8fc760, 0x17e8 bytes, depth 1, D0, 9 callees in set)
+- [ ] X3.e904c20 LIFT sub_e904c20 (0xe904c20, 0x75b bytes, depth 4, D0, 3 callees in set)
+- [ ] X3.e906230 LIFT sub_e906230 (0xe906230, 0x805 bytes, depth 6, D0, 3 callees in set)
+- [ ] X3.c25ad50 LIFT sub_c25ad50 (0xc25ad50, 0x322 bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.c25c820 LIFT sub_c25c820 (0xc25c820, 0x241 bytes, depth 2, D0, 3 callees in set)
+- [ ] X3.c262820 LIFT sub_c262820 (0xc262820, 0x220 bytes, depth 4, D0, 3 callees in set)
+- [ ] X3.c264090 LIFT sub_c264090 (0xc264090, 0x164a bytes, depth 1, D0, 5 callees in set)
+- [ ] X3.c2809a0 LIFT sub_c2809a0 (0xc2809a0, 0xd6 bytes, depth 3, D0, 2 callees in set)
+- [ ] X3.c282b80 LIFT sub_c282b80 (0xc282b80, 0x225 bytes, depth 5, D0, 2 callees in set)
+- [ ] X3.c28f220 LIFT sub_c28f220 (0xc28f220, 0xc2 bytes, depth 2, D0, 4 callees in set)
+- [ ] X3.c295b80 LIFT sub_c295b80 (0xc295b80, 0x12f bytes, depth 1, D0, 2 callees in set)
+- [ ] X3.c29d090 LIFT sub_c29d090 (0xc29d090, 0x47c bytes, depth 1, D0, 5 callees in set)
+- [ ] X3.c29e5e0 LIFT sub_c29e5e0 (0xc29e5e0, 0xea6 bytes, depth 1, D0, 5 callees in set)
+- [ ] X3.e904280 LIFT sub_e904280 (0xe904280, 0x224 bytes, depth 4, D0, 1 callees in set)
+- [ ] X3.e904a70 LIFT sub_e904a70 (0xe904a70, 0x126 bytes, depth 3, D0, 2 callees in set)
+- [ ] X3.e906be0 LIFT sub_e906be0 (0xe906be0, 0x81 bytes, depth 5, D0, 1 callees in set)
+- [ ] X3.c25a8d0 LIFT sub_c25a8d0 (0xc25a8d0, 0x3f1 bytes, depth 1, D0, 4 callees in set)
+- [ ] X3.c25b1a0 LIFT task scheduler (0xc25b1a0, 0x960 bytes, depth 0, D1, 3 callees in set)
+- [ ] X3.c25c5c0 LIFT sub_c25c5c0 (0xc25c5c0, 0x1b6 bytes, depth 1, D0, 2 callees in set)
+- [ ] X3.c2623a0 LIFT sub_c2623a0 (0xc2623a0, 0x1a5 bytes, depth 3, D0, 2 callees in set)
+- [ ] X3.c283d50 LIFT sub_c283d50 (0xc283d50, 0x193 bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.c283f10 LIFT sub_c283f10 (0xc283f10, 0xe5 bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.c28b720 LIFT loader releaseAll (destroy MaterialInstances) (0xc28b720, 0x142 bytes, depth 3, D1, 2 callees in set)
+- [ ] X3.c28f380 LIFT sub_c28f380 (0xc28f380, 0xf5 bytes, depth 1, D0, 1 callees in set)
+- [ ] X3.c28f4b0 LIFT sub_c28f4b0 (0xc28f4b0, 0xfc bytes, depth 1, D0, 1 callees in set)
+- [ ] X3.c28f5e0 LIFT sub_c28f5e0 (0xc28f5e0, 0xfc bytes, depth 1, D0, 1 callees in set)
+- [ ] X3.c28f710 LIFT sub_c28f710 (0xc28f710, 0xf5 bytes, depth 1, D0, 1 callees in set)
+- [ ] X3.c290410 LIFT sub_c290410 (0xc290410, 0xd12 bytes, depth 4, D0, 4 callees in set)
+- [ ] X3.c296b50 LIFT sub_c296b50 (0xc296b50, 0x461 bytes, depth 4, D0, 5 callees in set)
+- [ ] X3.e903410 LIFT sub_e903410 (0xe903410, 0xa8b bytes, depth 3, D0, 3 callees in set)
+- [ ] X3.e905990 LIFT sub_e905990 (0xe905990, 0x34a bytes, depth 3, D0, 1 callees in set)
+- [ ] X3.c25a540 LIFT sub_c25a540 (0xc25a540, 0x2e9 bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.c25c190 LIFT sub_c25c190 (0xc25c190, 0x3a8 bytes, depth 1, D0, 3 callees in set)
+- [ ] X3.c25cd00.plan PLAN sub_c25cd00: split 0xc25cd00..0xc25ea8b at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/c25cd00.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X3.c25cd00.asm LIFT ASSEMBLE sub_c25cd00 (waits for chunks)
+- [ ] X3.c28b100 LIFT loader destructor (0xc28b100, 0x529 bytes, depth 3, D1, 3 callees in set)
+- [ ] X3.c28f840 LIFT sub_c28f840 (0xc28f840, 0x112 bytes, depth 1, D0, 2 callees in set)
+- [ ] X3.c28f9c0 LIFT sub_c28f9c0 (0xc28f9c0, 0x707 bytes, depth 3, D0, 4 callees in set)
+- [ ] X3.c25a260 LIFT sub_c25a260 (0xc25a260, 0x17c bytes, depth 1, D0, 3 callees in set)
+- [ ] X3.c25cb40 LIFT sub_c25cb40 (0xc25cb40, 0x12b bytes, depth 2, D0, 1 callees in set)
+- [ ] X3.c284720.plan PLAN sub_c284720: split 0xc284720..0xc286744 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/c284720.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X3.c284720.asm LIFT ASSEMBLE sub_c284720 (waits for chunks)
+- [ ] X3.c287b30 LIFT loader owner teardown (0xc287b30, 0x991 bytes, depth 2, D1, 18 callees in set)
+- [ ] X3.c29a1d0 LIFT sub_c29a1d0 (0xc29a1d0, 0x82a bytes, depth 2, D0, 3 callees in set)
+- [ ] X3.e9002e0 LIFT task list dispatch (0xe9002e0, 0xc3a bytes, depth 2, D2, 4 callees in set)
+- [ ] X3.c25f700 LIFT sub_c25f700 (0xc25f700, 0x198 bytes, depth 2, D0, 4 callees in set)
+- [ ] X3.c25fc50 LIFT GraphicsTasks Execute (0xc25fc50, 0x14a bytes, depth 1, D2, 5 callees in set)
+- [ ] X3.c26ab80 LIFT sub_c26ab80 (0xc26ab80, 0x496 bytes, depth 1, D0, 11 callees in set)
+- [ ] X3.c26caa0.plan PLAN .material.bin async loader (state machine): split 0xc26caa0..0xc26f21a at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/c26caa0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X3.c26caa0.asm LIFT ASSEMBLE .material.bin async loader (state machine) (waits for chunks)
+- [ ] X3.c25f960 LIFT Wait for previous frame (0xc25f960, 0x256 bytes, depth 1, D2, 5 callees in set)
+- [ ] X3.c267200 LIFT GraphicsTasks Render lambda (0xc267200, 0x632 bytes, depth 0, D1, 7 callees in set)
+- [ ] X3.c269790 LIFT sub_c269790 (0xc269790, 0xb48 bytes, depth 1, D0, 8 callees in set)
+- [ ] X3.c28d9a0 LIFT sub_c28d9a0 (0xc28d9a0, 0x825 bytes, depth 1, D0, 2 callees in set)
+- [ ] X3.e9047b0 LIFT sub_e9047b0 (0xe9047b0, 0x222 bytes, depth 3, D0, 3 callees in set)
+- [ ] X3.c260050 LIFT sub_c260050 (0xc260050, 0x6c6 bytes, depth 1, D0, 5 callees in set)
+- [ ] X3.c273420.plan PLAN frame-graph generate/encode: split 0xc273420..0xc27be93 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/c273420.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X3.c273420.asm LIFT ASSEMBLE frame-graph generate/encode (waits for chunks)
+- [ ] X3.c292a20 LIFT MaterialRepository::loadFile (per-platform path, source read, deserialize 0xe870350), fully reversed (0xc292a20, 0xb63 bytes, depth 3, D2, 8 callees in set)
+- [ ] X3.c270460 LIFT dragon::platform::BgfxContext::endFrame (0xc270460, 0x2aa bytes, depth 1, D2, 7 callees in set)
+- [ ] X3.c2919d0 LIFT MaterialRepository::get (locked name cache, reload, fallback source), fully reversed (0xc2919d0, 0xe44 bytes, depth 2, D2, 2 callees in set)
+- [ ] X3.c2962f0 LIFT sub_c2962f0 (0xc2962f0, 0x142 bytes, depth 1, D0, 2 callees in set)
+- [ ] X3.c291640 LIFT sub_c291640 (0xc291640, 0x301 bytes, depth 1, D0, 1 callees in set)
+- [ ] X3z GATE (orchestrator): all X3 items [x]; build the DLL, fix compile errors, run the milestone verify scenes (docs/NATIVE_VERIFY_PROTOCOL.md), zero divergence; set functions.tsv rows to L2; push mirror
+
+## X4. FrameBuilder: inserts, visitors, extractors, descriptions, materials
+
+502 functions, 1523 KB of machine code. Order = callees first. Source dir: `src/client/features/render/native/framebuilder/`. Gate: X4z.
+
+- [ ] X4.6611410 LIFT sub_6611410 (0x6611410, 0x1a5 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6619e90 LIFT sub_6619e90 (0x6619e90, 0x1e1 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.661a2f0 LIFT sub_661a2f0 (0x661a2f0, 0xce bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6622590 LIFT sub_6622590 (0x6622590, 0x72 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6622840 LIFT sub_6622840 (0x6622840, 0x221 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6637a70 LIFT sub_6637a70 (0x6637a70, 0xf6 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6637c40 LIFT sub_6637c40 (0x6637c40, 0x255 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6637ea0 LIFT sub_6637ea0 (0x6637ea0, 0x178 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6638a50 LIFT sub_6638a50 (0x6638a50, 0x7f3 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66397e0 LIFT sub_66397e0 (0x66397e0, 0x6d bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6639850 LIFT sub_6639850 (0x6639850, 0x6d bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6639930 LIFT sub_6639930 (0x6639930, 0x72 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.66399b0 LIFT sub_66399b0 (0x66399b0, 0x34 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.66399f0 LIFT sub_66399f0 (0x66399f0, 0x64 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6639b70 LIFT sub_6639b70 (0x6639b70, 0x42 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6639bc0 LIFT sub_6639bc0 (0x6639bc0, 0x24 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.663a530 LIFT sub_663a530 (0x663a530, 0x485 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.663bdc0 LIFT sub_663bdc0 (0x663bdc0, 0x176 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.663d280 LIFT sub_663d280 (0x663d280, 0xf6 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.663f9d0 LIFT sub_663f9d0 (0x663f9d0, 0x54 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6646a10.plan PLAN sub_6646a10: split 0x6646a10..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6646a10.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6646a10.asm LIFT ASSEMBLE sub_6646a10 (waits for chunks)
+- [ ] X4.6646a89.plan PLAN sub_6646a89: split 0x6646a89..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6646a89.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6646a89.asm LIFT ASSEMBLE sub_6646a89 (waits for chunks)
+- [ ] X4.6646bc6.plan PLAN sub_6646bc6: split 0x6646bc6..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6646bc6.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6646bc6.asm LIFT ASSEMBLE sub_6646bc6 (waits for chunks)
+- [ ] X4.6646c8d.plan PLAN sub_6646c8d: split 0x6646c8d..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6646c8d.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6646c8d.asm LIFT ASSEMBLE sub_6646c8d (waits for chunks)
+- [ ] X4.6646d5f.plan PLAN sub_6646d5f: split 0x6646d5f..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6646d5f.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6646d5f.asm LIFT ASSEMBLE sub_6646d5f (waits for chunks)
+- [ ] X4.6646dc2.plan PLAN sub_6646dc2: split 0x6646dc2..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6646dc2.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6646dc2.asm LIFT ASSEMBLE sub_6646dc2 (waits for chunks)
+- [ ] X4.6646f5b.plan PLAN sub_6646f5b: split 0x6646f5b..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6646f5b.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6646f5b.asm LIFT ASSEMBLE sub_6646f5b (waits for chunks)
+- [ ] X4.66471de.plan PLAN sub_66471de: split 0x66471de..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/66471de.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.66471de.asm LIFT ASSEMBLE sub_66471de (waits for chunks)
+- [ ] X4.6647320.plan PLAN sub_6647320: split 0x6647320..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6647320.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6647320.asm LIFT ASSEMBLE sub_6647320 (waits for chunks)
+- [ ] X4.6647383.plan PLAN sub_6647383: split 0x6647383..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6647383.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6647383.asm LIFT ASSEMBLE sub_6647383 (waits for chunks)
+- [ ] X4.66473e6.plan PLAN sub_66473e6: split 0x66473e6..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/66473e6.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.66473e6.asm LIFT ASSEMBLE sub_66473e6 (waits for chunks)
+- [ ] X4.664ef12 LIFT sub_664ef12 (0x664ef12, 0xe93 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6685f60 LIFT sub_6685f60 (0x6685f60, 0x25 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.6686030 LIFT sub_6686030 (0x6686030, 0x1a7 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.66861e0 LIFT sub_66861e0 (0x66861e0, 0x16d bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.668b6e0 LIFT RenderNametagDescription constructor, fully reversed (0x668b6e0, 0x170 bytes, depth 1, D2, 0 callees in set)
+- [ ] X4.668d350 LIFT RenderSkinnedMeshDescription constructor, fully reversed (0x668d350, 0x5cf bytes, depth 1, D2, 0 callees in set)
+- [ ] X4.668e940 LIFT RenderCloudsDescription constructor, fully reversed (0x668e940, 0x1c3 bytes, depth 1, D2, 0 callees in set)
+- [ ] X4.6691110 LIFT sub_6691110 (0x6691110, 0x1cd bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6692480 LIFT sub_6692480 (0x6692480, 0x797 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6692d10 LIFT sub_6692d10 (0x6692d10, 0x79 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6694560 LIFT sub_6694560 (0x6694560, 0xfe bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6698060 LIFT sub_6698060 (0x6698060, 0x240 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66982a0 LIFT sub_66982a0 (0x66982a0, 0x10b bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.66a0820 LIFT sub_66a0820 (0x66a0820, 0x84 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66a17c0 LIFT sub_66a17c0 (0x66a17c0, 0x51 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66a1820 LIFT sub_66a1820 (0x66a1820, 0x36 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66a6060 LIFT sub_66a6060 (0x66a6060, 0x122 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66a6470 LIFT sub_66a6470 (0x66a6470, 0x140 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66a65b0 LIFT sub_66a65b0 (0x66a65b0, 0x140 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66a66f0 LIFT sub_66a66f0 (0x66a66f0, 0x140 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66a9ad0 LIFT sub_66a9ad0 (0x66a9ad0, 0x140 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66a9c10 LIFT sub_66a9c10 (0x66a9c10, 0x140 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66ad430 LIFT sub_66ad430 (0x66ad430, 0x13c bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66ad570 LIFT sub_66ad570 (0x66ad570, 0xc5 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66ad730 LIFT sub_66ad730 (0x66ad730, 0xe8 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66ad820 LIFT sub_66ad820 (0x66ad820, 0x126 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66ad950 LIFT sub_66ad950 (0x66ad950, 0x147 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66adaa0 LIFT sub_66adaa0 (0x66adaa0, 0x263 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66b2b30 LIFT sub_66b2b30 (0x66b2b30, 0x2a8 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66bf150 LIFT sub_66bf150 (0x66bf150, 0x140 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66c11b0 LIFT sub_66c11b0 (0x66c11b0, 0x242 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66c1400 LIFT sub_66c1400 (0x66c1400, 0x350 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.66c17e0 LIFT sub_66c17e0 (0x66c17e0, 0x140 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66cc400 LIFT sub_66cc400 (0x66cc400, 0x25b bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66cc660 LIFT sub_66cc660 (0x66cc660, 0x140 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66d8f60 LIFT sub_66d8f60 (0x66d8f60, 0x37d bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66d9710 LIFT sub_66d9710 (0x66d9710, 0x343 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66e56a0 LIFT sub_66e56a0 (0x66e56a0, 0x137 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66e5b10 LIFT sub_66e5b10 (0x66e5b10, 0x137 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66e5eb0 LIFT sub_66e5eb0 (0x66e5eb0, 0xae bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66e6240 LIFT sub_66e6240 (0x66e6240, 0x13a bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.66e74b0 LIFT sub_66e74b0 (0x66e74b0, 0x140 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66e9dc0 LIFT sub_66e9dc0 (0x66e9dc0, 0x224 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66ea020 LIFT sub_66ea020 (0x66ea020, 0x1bb bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.66ea1e0 LIFT sub_66ea1e0 (0x66ea1e0, 0x1e9 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.670b260 LIFT sub_670b260 (0x670b260, 0x98 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.673cb40 LIFT sub_673cb40 (0x673cb40, 0x140 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.673cc80 LIFT sub_673cc80 (0x673cc80, 0x184 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.673cef0 LIFT sub_673cef0 (0x673cef0, 0xea bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.674a1d0 LIFT sub_674a1d0 (0x674a1d0, 0x1c1 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6751170 LIFT sub_6751170 (0x6751170, 0x5dc bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6751750 LIFT sub_6751750 (0x6751750, 0x12c4 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6752a20 LIFT sub_6752a20 (0x6752a20, 0x1eb bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6752c10 LIFT sub_6752c10 (0x6752c10, 0x1d5 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6752df0 LIFT sub_6752df0 (0x6752df0, 0x1d5 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6752fd0 LIFT sub_6752fd0 (0x6752fd0, 0x2b9 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6753290 LIFT sub_6753290 (0x6753290, 0x3c5 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6753660 LIFT sub_6753660 (0x6753660, 0x4e4 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6754750 LIFT sub_6754750 (0x6754750, 0x12f bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6754880 LIFT sub_6754880 (0x6754880, 0x115 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67549a0 LIFT sub_67549a0 (0x67549a0, 0x28c bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6754f80 LIFT sub_6754f80 (0x6754f80, 0x2f4 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6755280 LIFT sub_6755280 (0x6755280, 0x356 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67555e0 LIFT sub_67555e0 (0x67555e0, 0x238 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6755820 LIFT sub_6755820 (0x6755820, 0x1a9 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6755b50 LIFT sub_6755b50 (0x6755b50, 0xe2 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6755c40 LIFT sub_6755c40 (0x6755c40, 0x164 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67577c0 LIFT sub_67577c0 (0x67577c0, 0x10f bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6757d70 LIFT sub_6757d70 (0x6757d70, 0x1b0 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6758fc0 LIFT sub_6758fc0 (0x6758fc0, 0xff bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6759740 LIFT sub_6759740 (0x6759740, 0x755 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.675a5f0 LIFT sub_675a5f0 (0x675a5f0, 0x34e bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.675a9e0 LIFT sub_675a9e0 (0x675a9e0, 0x160 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.675b350 LIFT sub_675b350 (0x675b350, 0xfb bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.675b450 LIFT sub_675b450 (0x675b450, 0xc8 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.675b550 LIFT sub_675b550 (0x675b550, 0xc8 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.675b650 LIFT sub_675b650 (0x675b650, 0x249 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.675b8a0 LIFT sub_675b8a0 (0x675b8a0, 0x26b bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.675bb10 LIFT sub_675bb10 (0x675bb10, 0x25e bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.675c530 LIFT sub_675c530 (0x675c530, 0x49e bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.675d320 LIFT sub_675d320 (0x675d320, 0x10f bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.675d840 LIFT sub_675d840 (0x675d840, 0x181 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.675df40 LIFT sub_675df40 (0x675df40, 0x160 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.675e290 LIFT sub_675e290 (0x675e290, 0xf4 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.675f3b0 LIFT DrawItem pool +0x780 push (0x58 material record) (0x675f3b0, 0x700 bytes, depth 1, D1, 0 callees in set)
+- [ ] X4.67602c0 LIFT sub_67602c0 (0x67602c0, 0xea bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6760560 LIFT sub_6760560 (0x6760560, 0x1a3 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6760710 LIFT sub_6760710 (0x6760710, 0x327 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6760a80 LIFT sub_6760a80 (0x6760a80, 0x3d2 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6760e60 LIFT sub_6760e60 (0x6760e60, 0x1ad bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6761590 LIFT sub_6761590 (0x6761590, 0x37a bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6762270 LIFT DrawItem pool +0x660 push (0x2C: optional box + 4 floats) (0x6762270, 0x4ec bytes, depth 2, D2, 0 callees in set)
+- [ ] X4.67627d0 LIFT sub_67627d0 (0x67627d0, 0x127 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6764400 LIFT sub_6764400 (0x6764400, 0x33d bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6764990 LIFT DrawItem pool +0x588 copy (0x30 small vector) (0x6764990, 0x4f4 bytes, depth 1, D1, 0 callees in set)
+- [ ] X4.6767380 LIFT sub_6767380 (0x6767380, 0x249 bytes, depth 4, D0, 0 callees in set)
+- [ ] X4.67675d0 LIFT sub_67675d0 (0x67675d0, 0x1ef bytes, depth 4, D0, 0 callees in set)
+- [ ] X4.67677c0 LIFT sub_67677c0 (0x67677c0, 0x2bd bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.6767a80 LIFT sub_6767a80 (0x6767a80, 0x36d bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.67681d0 LIFT sub_67681d0 (0x67681d0, 0x547 bytes, depth 4, D0, 0 callees in set)
+- [ ] X4.67693f0 LIFT DrawItem pool +0x108 push (0x38: two shared_ptr, 16 bytes, u64) (0x67693f0, 0x4a3 bytes, depth 2, D2, 0 callees in set)
+- [ ] X4.6769910 LIFT sub_6769910 (0x6769910, 0x159 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.6769b00 LIFT sub_6769b00 (0x6769b00, 0x34f bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.6769ee0 LIFT sub_6769ee0 (0x6769ee0, 0x53a bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.676a480 LIFT sub_676a480 (0x676a480, 0x1c8 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.676a670 LIFT sub_676a670 (0x676a670, 0x4d9 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.676c540 LIFT sub_676c540 (0x676c540, 0x282 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.676ddf0 LIFT sub_676ddf0 (0x676ddf0, 0x140 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.676df30 LIFT sub_676df30 (0x676df30, 0x1c8 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.676fcb0 LIFT sub_676fcb0 (0x676fcb0, 0x2b0 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.67743c0 LIFT sub_67743c0 (0x67743c0, 0x282 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6774ed0 LIFT sub_6774ed0 (0x6774ed0, 0x159 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67750c0 LIFT sub_67750c0 (0x67750c0, 0x2d4 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6775450 LIFT sub_6775450 (0x6775450, 0x178 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6775700 LIFT sub_6775700 (0x6775700, 0x1bb bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6776020 LIFT sub_6776020 (0x6776020, 0x28a bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.678d170 LIFT sub_678d170 (0x678d170, 0x163 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.678d3f0 LIFT sub_678d3f0 (0x678d3f0, 0x295 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.678dce0 LIFT sub_678dce0 (0x678dce0, 0x30c bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.678e020 LIFT sub_678e020 (0x678e020, 0x1af bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.678e1d0 LIFT sub_678e1d0 (0x678e1d0, 0x24b bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.678e420 LIFT sub_678e420 (0x678e420, 0x24c bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.678ef40 LIFT sub_678ef40 (0x678ef40, 0x2e5 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.678f260 LIFT sub_678f260 (0x678f260, 0x1af bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.678f410 LIFT sub_678f410 (0x678f410, 0x229 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.678f640 LIFT sub_678f640 (0x678f640, 0x22a bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.6791420 LIFT sub_6791420 (0x6791420, 0x2d4 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6791730 LIFT sub_6791730 (0x6791730, 0x147 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6791880 LIFT sub_6791880 (0x6791880, 0x264 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6791af0 LIFT sub_6791af0 (0x6791af0, 0x2af bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6791dd0 LIFT sub_6791dd0 (0x6791dd0, 0x147 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6791f20 LIFT sub_6791f20 (0x6791f20, 0x23f bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6792400 LIFT sub_6792400 (0x6792400, 0x14e bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6792810 LIFT sub_6792810 (0x6792810, 0x14e bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.6792c20 LIFT sub_6792c20 (0x6792c20, 0x14e bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67b5160 LIFT sub_67b5160 (0x67b5160, 0x1af bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67b8030.plan PLAN sub_67b8030: split 0x67b8030..0x67b9bb3 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/67b8030.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.67b8030.asm LIFT ASSEMBLE sub_67b8030 (waits for chunks)
+- [ ] X4.67ba750 LIFT sub_67ba750 (0x67ba750, 0x2d2 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.67bb680 LIFT sub_67bb680 (0x67bb680, 0x2a5 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.67bc2c0 LIFT sub_67bc2c0 (0x67bc2c0, 0x137 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.67c0300 LIFT sub_67c0300 (0x67c0300, 0x13f bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.67c04a0 LIFT sub_67c04a0 (0x67c04a0, 0x13d bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67c05e0 LIFT sub_67c05e0 (0x67c05e0, 0x1df bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67c07e0 LIFT sub_67c07e0 (0x67c07e0, 0xed bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67c4470 LIFT sub_67c4470 (0x67c4470, 0x1d2 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67c4650 LIFT sub_67c4650 (0x67c4650, 0xc1 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67c7020 LIFT sub_67c7020 (0x67c7020, 0x11f bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67cace0 LIFT sub_67cace0 (0x67cace0, 0xf3 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67cc7e0 LIFT sub_67cc7e0 (0x67cc7e0, 0x3d2 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67ccf50 LIFT sub_67ccf50 (0x67ccf50, 0x105 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67ce5b0 LIFT sub_67ce5b0 (0x67ce5b0, 0x3d2 bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.67cf1d0 LIFT sub_67cf1d0 (0x67cf1d0, 0x1ab bytes, depth 3, D0, 0 callees in set)
+- [ ] X4.67d0750 LIFT sub_67d0750 (0x67d0750, 0x3a2 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67d0b00 LIFT sub_67d0b00 (0x67d0b00, 0x4ee bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67d0ff0 LIFT sub_67d0ff0 (0x67d0ff0, 0x12e bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67d1120 LIFT sub_67d1120 (0x67d1120, 0x182 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67d5ce0 LIFT sub_67d5ce0 (0x67d5ce0, 0x30f bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67d7410 LIFT sub_67d7410 (0x67d7410, 0x610 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67d8950 LIFT sub_67d8950 (0x67d8950, 0x1c8 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67d8b40 LIFT sub_67d8b40 (0x67d8b40, 0x1c8 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67d8d30 LIFT sub_67d8d30 (0x67d8d30, 0x1c8 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67db350 LIFT sub_67db350 (0x67db350, 0x3e2 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67e1660 LIFT sub_67e1660 (0x67e1660, 0x147 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67e1840 LIFT sub_67e1840 (0x67e1840, 0x147 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67e23f0 LIFT sub_67e23f0 (0x67e23f0, 0x147 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67e40a0 LIFT sub_67e40a0 (0x67e40a0, 0x147 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67e5d10 LIFT sub_67e5d10 (0x67e5d10, 0x1c8 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67e90d0 LIFT Light tag 5 0xB00 record copy-construct into pass vector (+0x260) (0x67e90d0, 0x719 bytes, depth 2, D0, 0 callees in set)
+- [ ] X4.67eb640 LIFT sub_67eb640 (0x67eb640, 0x103 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.67edd40 LIFT sub_67edd40 (0x67edd40, 0x159 bytes, depth 1, D0, 0 callees in set)
+- [ ] X4.bc04270 LIFT sub_bc04270 (0xbc04270, 0x95 bytes, depth 0, D0, 0 callees in set)
+- [ ] X4.bc04530 LIFT pass task render-thread body (class D, same template) (0xbc04530, 0xc4 bytes, depth 0, D2, 0 callees in set)
+- [ ] X4.1127330 LIFT insert<RenderNametagDescription> fat clone, fully reversed (0x1127330, 0x2c6 bytes, depth 0, D2, 5 callees in set)
+- [ ] X4.15a6880 LIFT insert<ChunkGeometry> thin clone (Item tag 3), fully reversed (0x15a6880, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.4c85d70 LIFT insert<Editor variant 1> thin clone (Editor tag 1), fully reversed (0x4c85d70, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.4c85f30 LIFT insert<Editor variant 2> thin clone (Editor tag 2), fully reversed (0x4c85f30, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.4c860f0 LIFT insert<Editor variant 3> thin clone (Editor tag 3), fully reversed (0x4c860f0, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.4c862b0 LIFT insert<Editor variant 4> thin clone (Editor tag 4), fully reversed (0x4c862b0, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.4c8a5b0 LIFT insert<EditorHighlight> thin clone (Effect tag 8), fully reversed (0x4c8a5b0, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.4c96140 LIFT insert<UIMesh> thin clone (UI tag 2), fully reversed (0x4c96140, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.4e39cb0 LIFT insert<BatchActor> thin clone (Item tag 10), fully reversed (0x4e39cb0, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.531b180 LIFT insert<ItemInHand> thin clone (Item tag 6), fully reversed (0x531b180, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.5369920 LIFT insert<ChunkOccluders> thin clone (Item tag 4), fully reversed (0x5369920, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.53707a0 LIFT insert<EndSky> thin clone (Sky tag 3), fully reversed (0x53707a0, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.5370960 LIFT insert<LightDirectional> thin clone (Light tag 1), fully reversed (0x5370960, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.5370b20 LIFT insert<CelestialBody> thin clone (Sky tag 7), fully reversed (0x5370b20, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.5370e80 LIFT insert<AimAssistHighlight> thin clone (Effect tag 6), fully reversed (0x5370e80, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.5371160 LIFT insert<Editor variant 5> thin clone (Editor tag 5), fully reversed (0x5371160, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.53e88a0 LIFT insert<RenderCloudsDescription> fat clone (Sky tag 1) (0x53e88a0, 0xd6c bytes, depth 0, D1, 8 callees in set)
+- [ ] X4.5acbe20 LIFT insert<BlitFlipbook> thin clone (Effect tag 1), fully reversed (0x5acbe20, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.5ad5800 LIFT insert<Weather> thin clone (Sky tag 9), fully reversed (0x5ad5800, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.5b8d520 LIFT insert<Particle> thin clone (Effect tag 2), fully reversed (0x5b8d520, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.660b720 LIFT insert<Cubemap> thin clone (Sky tag 2), fully reversed (0x660b720, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.6610ac0 LIFT sub_6610ac0 (0x6610ac0, 0x27c bytes, depth 0, D0, 1 callees in set)
+- [ ] X4.6610ee0 LIFT sub_6610ee0 (0x6610ee0, 0x373 bytes, depth 0, D0, 4 callees in set)
+- [ ] X4.6632bf0 LIFT deferred texture/buffer transactions flush (0x6632bf0, 0x34b bytes, depth 1, D2, 1 callees in set)
+- [ ] X4.6638020 LIFT sub_6638020 (0x6638020, 0x4b7 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.66385e0 LIFT sub_66385e0 (0x66385e0, 0x306 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.6684e70 LIFT sub_6684e70 (0x6684e70, 0x333 bytes, depth 0, D0, 1 callees in set)
+- [ ] X4.6689f60 LIFT sub_6689f60 (0x6689f60, 0x19f bytes, depth 0, D0, 1 callees in set)
+- [ ] X4.668b400 LIFT RenderEnvironmentalTextDescription constructor, fully reversed (0x668b400, 0x2db bytes, depth 1, D2, 1 callees in set)
+- [ ] X4.668b850 LIFT RenderMeshFallbackDescription constructor, fully reversed (0x668b850, 0x5f9 bytes, depth 1, D2, 1 callees in set)
+- [ ] X4.668c750 LIFT RenderUITextDescription constructor, fully reversed (0x668c750, 0x172 bytes, depth 1, D2, 1 callees in set)
+- [ ] X4.668c910 LIFT RenderSkyDescription constructor, fully reversed (0x668c910, 0x21a bytes, depth 1, D2, 1 callees in set)
+- [ ] X4.668d990 LIFT RenderBlockSelectionOverlayBlockEntityDescription constructor, fully reversed (0x668d990, 0x2f0 bytes, depth 1, D2, 1 callees in set)
+- [ ] X4.668eb10 LIFT RenderCubemapDescription ctor (texture ref, mat4, u16, u8), fully reversed (0x668eb10, 0xce bytes, depth 2, D2, 1 callees in set)
+- [ ] X4.6691440 LIFT sub_6691440 (0x6691440, 0x1c7 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.6691610 LIFT sub_6691610 (0x6691610, 0x195 bytes, depth 1, D0, 3 callees in set)
+- [ ] X4.6693160 LIFT sub_6693160 (0x6693160, 0x18f bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.6698b90 LIFT sub_6698b90 (0x6698b90, 0x29c bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.66a1420 LIFT sub_66a1420 (0x66a1420, 0x2bf bytes, depth 1, D0, 3 callees in set)
+- [ ] X4.66b2310 LIFT sub_66b2310 (0x66b2310, 0x84 bytes, depth 3, D0, 1 callees in set)
+- [ ] X4.66c97b0 LIFT sub_66c97b0 (0x66c97b0, 0x121 bytes, depth 3, D0, 1 callees in set)
+- [ ] X4.66e58b0 LIFT sub_66e58b0 (0x66e58b0, 0x138 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.66e5c50 LIFT sub_66e5c50 (0x66e5c50, 0x162 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.66e5dc0 LIFT sub_66e5dc0 (0x66e5dc0, 0xed bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.66e6da0 LIFT sub_66e6da0 (0x66e6da0, 0x11b bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.66e7170 LIFT sub_66e7170 (0x66e7170, 0x340 bytes, depth 1, D0, 2 callees in set)
+- [ ] X4.67559d0 LIFT sub_67559d0 (0x67559d0, 0x180 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.6755db0 LIFT sub_6755db0 (0x6755db0, 0xed bytes, depth 1, D0, 3 callees in set)
+- [ ] X4.6757320 LIFT sub_6757320 (0x6757320, 0x12e bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.67576c0 LIFT sub_67576c0 (0x67576c0, 0xf8 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.6758860 LIFT sub_6758860 (0x6758860, 0x1e0 bytes, depth 4, D0, 1 callees in set)
+- [ ] X4.6758b90 LIFT sub_6758b90 (0x6758b90, 0xdd bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.67591e0 LIFT merge per-thread pending jobs into loader+0x18 (drops jobs of dead resources) (0x67591e0, 0x28d bytes, depth 1, D2, 1 callees in set)
+- [ ] X4.67594c0 LIFT sub_67594c0 (0x67594c0, 0x23d bytes, depth 1, D0, 2 callees in set)
+- [ ] X4.675a170 LIFT sub_675a170 (0x675a170, 0x479 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.675aec0 LIFT sub_675aec0 (0x675aec0, 0x386 bytes, depth 1, D0, 2 callees in set)
+- [ ] X4.675da10 LIFT sub_675da10 (0x675da10, 0xaf bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.675dac0 LIFT sub_675dac0 (0x675dac0, 0xaf bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.675dbe0 LIFT sub_675dbe0 (0x675dbe0, 0xdf bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.6760450 LIFT sub_6760450 (0x6760450, 0x110 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.6765870 LIFT sub_6765870 (0x6765870, 0x370 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.6766510 LIFT sub_6766510 (0x6766510, 0x2a0 bytes, depth 3, D0, 1 callees in set)
+- [ ] X4.67667d0 LIFT sub_67667d0 (0x67667d0, 0xbab bytes, depth 3, D0, 2 callees in set)
+- [ ] X4.6767df0 LIFT sub_6767df0 (0x6767df0, 0x3d4 bytes, depth 3, D0, 2 callees in set)
+- [ ] X4.6768720 LIFT sub_6768720 (0x6768720, 0x2eb bytes, depth 4, D0, 3 callees in set)
+- [ ] X4.676b770 LIFT sub_676b770 (0x676b770, 0x2f8 bytes, depth 3, D0, 1 callees in set)
+- [ ] X4.676edb0 LIFT sub_676edb0 (0x676edb0, 0x328 bytes, depth 3, D0, 1 callees in set)
+- [ ] X4.6774650 LIFT sub_6774650 (0x6774650, 0x159 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.67747b0 LIFT sub_67747b0 (0x67747b0, 0x576 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.678d690 LIFT sub_678d690 (0x678d690, 0x5d5 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.6792160 LIFT sub_6792160 (0x6792160, 0x262 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.6792570 LIFT sub_6792570 (0x6792570, 0x262 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.6792980 LIFT sub_6792980 (0x6792980, 0x262 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.67b7810 LIFT 0x40-byte parameter-table copy (u32 + unordered_map deep copy) (0x67b7810, 0x359 bytes, depth 3, D1, 1 callees in set)
+- [ ] X4.67b7c10 LIFT sub_67b7c10 (0x67b7c10, 0x379 bytes, depth 3, D0, 1 callees in set)
+- [ ] X4.67b9c90 LIFT sub_67b9c90 (0x67b9c90, 0x988 bytes, depth 3, D0, 3 callees in set)
+- [ ] X4.67bd4b0 LIFT sub_67bd4b0 (0x67bd4b0, 0x405 bytes, depth 3, D0, 3 callees in set)
+- [ ] X4.67bf5b0 LIFT sub_67bf5b0 (0x67bf5b0, 0x4a9 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.67c0090 LIFT sub_67c0090 (0x67c0090, 0x268 bytes, depth 2, D0, 2 callees in set)
+- [ ] X4.67ca960 LIFT sub_67ca960 (0x67ca960, 0x197 bytes, depth 1, D0, 2 callees in set)
+- [ ] X4.67cab00 LIFT sub_67cab00 (0x67cab00, 0xce bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.67cf410 LIFT sub_67cf410 (0x67cf410, 0x73f bytes, depth 3, D0, 3 callees in set)
+- [ ] X4.67d0420 LIFT sub_67d0420 (0x67d0420, 0x262 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.67d5ff0 LIFT sub_67d5ff0 (0x67d5ff0, 0x475 bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.67e06a0 LIFT sub_67e06a0 (0x67e06a0, 0xfe bytes, depth 2, D0, 1 callees in set)
+- [ ] X4.6c956b0 LIFT insert<Editor variant 0> thin clone (Editor tag 0), fully reversed (0x6c956b0, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.6c961e0 LIFT insert<Editor variant 6> thin clone (Editor tag 6), fully reversed (0x6c961e0, 0x139 bytes, depth 0, D2, 3 callees in set)
+- [ ] X4.4def480 LIFT insert<RenderMeshFallbackDescription> generic mesh insert (Item tag 2) (0x4def480, 0x714 bytes, depth 0, D2, 9 callees in set)
+- [ ] X4.53e62b0 LIFT insert<RenderPlayerVisionDescription> fat clone (Effect tag 3) (0x53e62b0, 0x591 bytes, depth 0, D2, 7 callees in set)
+- [ ] X4.66042b0 LIFT sub_66042b0 (0x66042b0, 0x873 bytes, depth 1, D0, 1 callees in set)
+- [ ] X4.660e670 LIFT sub_660e670 (0x660e670, 0x1da bytes, depth 1, D0, 2 callees in set)
+- [ ] X4.660ebe0 LIFT sub_660ebe0 (0x660ebe0, 0x8a bytes, depth 0, D0, 2 callees in set)
+- [ ] X4.6619c20 LIFT sub_6619c20 (0x6619c20, 0x1f4 bytes, depth 0, D0, 2 callees in set)
+- [ ] X4.661a0e0 LIFT sub_661a0e0 (0x661a0e0, 0xaa bytes, depth 0, D0, 2 callees in set)
+- [ ] X4.661a1d0 LIFT sub_661a1d0 (0x661a1d0, 0x9b bytes, depth 0, D0, 2 callees in set)
+- [ ] X4.6622610 LIFT ResourceLoader::processPending (merge, take pending, run, continuations), fully reversed (0x6622610, 0x1c8 bytes, depth 1, D2, 2 callees in set)
+- [ ] X4.6634db0.plan PLAN sub_6634db0: split 0x6634db0..0x6636d13 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6634db0.tsv (start end role), then the checklist generator --expand adds the chunk items
+- [ ] X4.6634db0.asm LIFT ASSEMBLE sub_6634db0 (waits for chunks)
+- [ ] X4.6639bf0 LIFT sub_6639bf0 (0x6639bf0, 0x174 bytes, depth 0, D0, 2 callees in set)
+- [

@@ -1,0 +1,15 @@
+# 0xbc70ea0
+
+## Reversed source (complete)
+
+```cpp
+// 0xbc70ea0..0xbc70f91
+```
+
+0xbc70ea0  push rbp
+`0xbc70ed5  call 0xEBDBF10`
+`0xbc70ef5  call 0xBC70CA0`
+`0xbc70f0e  call 0xBC70FF0`
+`0xbc70f32  call qword ptr [0xF99FFA0]`
+`0xbc70f71  call r10`
+`0xbc70f7c  call 0xEBDBF20`

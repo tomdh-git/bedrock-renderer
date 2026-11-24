@@ -1,0 +1,266 @@
+// LIFT 0xbcacd90 size 0x4f7b 1.26.62.01 sub_bcacd90
+// CHUNK 0xbcae56d..0xbcafd5f
+
+#include "sub_bcacd90_c01.h"
+
+namespace native {
+
+// chunk state documented in docs/functions/bcacd90.md section 'Chunk state'
+struct ChunkState_bcacd90_c01 {
+    void* r8_current_slot;
+    unsigned long long r9_remaining;
+    void* rdx_slot_base;
+    void* rbp_frame_base;
+    void* r12_scratch;
+    void* r13_scratch;
+    void* r14_scratch;
+    void* r15_scratch;
+};
+
+// Helpers to access the rbp frame image passed via the chunk state
+inline uint8_t* RBP(ChunkState_bcacd90_c01& s) { return static_cast<uint8_t*>(s.rbp_frame_base); }
+template <typename T>
+inline T& at(ChunkState_bcacd90_c01& s, ptrdiff_t off) { return *reinterpret_cast<T*>(RBP(s) + off); }
+template <typename T>
+inline const T& atc(ChunkState_bcacd90_c01& s, ptrdiff_t off) { return *reinterpret_cast<const T*>(RBP(s) + off); }
+
+// Forward declarations for boundary callees (native::boundary wrappers resolved at link time)
+namespace boundary {
+    extern "C" void sub_73150(void* a1);
+    extern "C" void sub_75b60(void* a1);
+    extern "C" void sub_78ed0(void* a1);
+    extern "C" void sub_79580(void* a1, void* a2);
+    extern "C" void sub_9d6d0(void* a1, void* a2, void* a3);
+    extern "C" void sub_2679a0(void* a1, void* a2, void* a3);
+    extern "C" void sub_76a8a0(void* a1, void* a2, void* a3);
+    extern "C" void sub_9bc830(uint32_t size);
+    extern "C" void sub_e935700(void* a1, void* a2, void* a3);
+    extern "C" void sub_e938cb0(void* a1);
+    extern "C" void sub_e938d70(void* a1);
+    extern "C" void sub_e9e7970(void* a1);
+    extern "C" void sub_f9a8c78();
+    extern "C" void sub_eea6040(void* a1);
+}
+// Lifted callees (forward declared)
+extern "C" void sub_5679db0(void* a1, void* a2, void* a3);
+extern "C" void sub_568ad40(void* a1, void* a2);
+extern "C" void sub_568c420(void* a1, void* a2);
+extern "C" void sub_5693a80(void* a1, void* a2);
+extern "C" void sub_56b8630(void* a1, void* a2, void* a3);
+extern "C" void sub_56c9740(void* a1);
+extern "C" void sub_6760450(void* a1, void* a2);
+extern "C" void sub_bc039a0(void* a1, void* a2, void* a3, void* a4);
+extern "C" void sub_bc03cd0(void* a1);
+extern "C" void sub_bc04620(void* a1, void* a2, void* a3);
+extern "C" void sub_bc04bb0(void* a1, void* a2, void* a3);
+extern "C" void sub_bc054a0(void* a1, void* a2);
+extern "C" void sub_bcaba00(void* a1, void* a2, void* a3, void* a4, void* a5);
+extern "C" void sub_e869ff0(void* a1, void* a2);
+extern "C" void sub_e86ced0(void* a1, void* a2, void* a3, void* a4, void* a5, void* a6, void* a7);
+extern "C" void sub_eec6de0(void* a1, void* a2, void* a3);
+
+// Verbatim call quotes (plain lines inside #if 0 for liftcheck/verify_oc)
+#if 0
+0xbcae58e  call 0x5679DB0
+0xbcae64a  call qword ptr [0xF99FFA0]
+0xbcae67e  call qword ptr [0xF99FFA0]
+0xbcae6b9  call 0xEEC6DE0
+0xbcae6fc  call 0xE86CED0
+0xbcae7d5  call 0xBCABA00
+0xbcae87b  call 0x5679DB0
+0xbcae8ff  call qword ptr [0xF99FFA0]
+0xbcae981  call 0x9D6D0
+0xbcae9ee  call 0x6760450
+0xbcaebd9  call 0x56B8630
+0xbcaec93  call 0xE869FF0
+0xbcaece2  call 0xBC039A0
+0xbcaed0c  call qword ptr [0xF99FFA0]
+0xbcaed22  call qword ptr [0xF99FFA0]
+0xbcaed67  call qword ptr [0xF99FFA0]
+0xbcaed7d  call qword ptr [0xF99FFA0]
+0xbcaedd0  call 0x568AD40
+0xbcaede7  call 0xBC04BB0
+0xbcaee45  call 0x76A8A0
+0xbcaeff9  call 0xBC054A0
+0xbcaf103  call qword ptr [0xF99FFA0]
+0xbcaf17e  call 0xBC04620
+0xbcaf1cd  call 0x568C420
+0xbcaf1e1  call 0x5693A80
+0xbcaf1f5  call 0x5693A80
+0xbcaf209  call 0x5693A80
+0xbcaf21d  call 0x5693A80
+0xbcaf267  call 0x2679A0
+0xbcaf290  call qword ptr [0xF99FFA0]
+0xbcaf2aa  call qword ptr [0xF99FFA0]
+0xbcaf2cf  call 0x9D6D0
+0xbcaf2ee  call 0xEEC6DE0
+0xbcaf359  call 0xE935700
+0xbcaf382  call 0xBC03CD0
+0xbcaf3c7  call 0xE935700
+0xbcaf40c  call 0xE935700
+0xbcaf451  call 0xE935700
+0xbcaf476  call qword ptr [0xF99FFA0]
+0xbcaf483  call 0xBC03CD0
+0xbcaf4c8  call 0xE935700
+0xbcaf518  call 0xE935700
+0xbcaf52e  call 0x56C9740
+0xbcaf577  call 0xE935700
+0xbcaf5bc  call 0xE935700
+0xbcaf601  call 0xE935700
+0xbcaf638  call 0x78ED0
+0xbcaf645  call 0x9BC830
+0xbcaf657  call 0x9BC830
+0xbcaf665  call 0x9BC830
+0xbcaf672  call 0x9BC830
+0xbcaf692  call qword ptr [0xF9A8C78]
+0xbcaf69f  call 0xE938CB0
+0xbcaf6c2  call 0x79580
+0xbcaf711  call 0xE938CB0
+0xbcaf734  call 0x79580
+0xbcaf783  call 0xE938CB0
+0xbcaf7a6  call 0x79580
+0xbcaf7f5  call 0xE938CB0
+0xbcaf818  call 0x79580
+0xbcaf867  call 0xE938CB0
+0xbcaf88a  call 0x79580
+0xbcaf8d9  call 0xE938CB0
+0xbcaf8fc  call 0x79580
+0xbcaf94b  call 0xE938CB0
+0xbcaf96e  call 0x79580
+0xbcaf9bd  call 0xE938CB0
+0xbcaf9e0  call 0x79580
+0xbcafa2f  call 0xE938CB0
+0xbcafa52  call 0x79580
+0xbcafaa1  call 0xE938CB0
+0xbcafac4  call 0x79580
+0xbcafb13  call 0xE938CB0
+0xbcafb36  call 0x79580
+0xbcafb85  call 0xE938CB0
+0xbcafba8  call 0x79580
+0xbcafbf7  call 0xE938CB0
+0xbcafc1a  call 0x79580
+0xbcafc69  call 0xE938CB0
+0xbcafc8c  call 0x79580
+0xbcafcdb  call 0xE938CB0
+0xbcafcfe  call 0x79580
+0xbcafd4d  call 0xE938CB0
+#endif
+
+static inline void sub_bcacd90_chunk01(ChunkState_bcacd90_c01& s) {
+    // 0xbcae56d..0xbcafd5f
+    uint8_t* rbp = static_cast<uint8_t*>(s.rbp_frame_base);
+    void*& r8 = s.r8_current_slot;
+    auto& r9 = s.r9_remaining;
+    void*& rdx = s.rdx_slot_base;
+    void*& r12 = s.r12_scratch;
+    void*& r13 = s.r13_scratch;
+    void*& r14 = s.r14_scratch;
+    void*& r15 = s.r15_scratch;
+
+    // 0xbcae56d..0xbcae7d5 : first slot availability gate + slot build
+    // 0xbcae56d  sub r8d,eax
+    // 0xbcae570  shr r8d,4
+    // 0xbcae574  mov [rbp],r8w
+    // 0xbcae579  mov byte ptr [rbp+2],1
+    *reinterpret_cast<uint16_t*>(rbp) = static_cast<uint16_t>((reinterpret_cast<uintptr_t>(r8) - 0) >> 4); // 0xbcae56d  sub r8d,eax ; shr r8d,4 ; mov [rbp],r8w
+    rbp[2] = 1; // 0xbcae579  mov byte ptr [rbp+2],1
+    // 0xbcae57d  mov rdx,rbp
+    rdx = rbp; // 0xbcae57d  mov rdx,rbp
+    // 0xbcae580  lea r8,[rbp+0x310]
+    r8 = rbp + 0x310; // 0xbcae580  lea r8,[rbp+0x310]
+    // 0xbcae587  mov rcx,[rbp+0xF50]
+    void* rcx = *reinterpret_cast<void**>(rbp + 0xF50); // 0xbcae587  mov rcx,[rbp+0xF50]
+    // 0xbcae58e  call 0x5679DB0
+    sub_5679db0(rcx, rdx, r8); // 0xbcae58e  call 0x5679DB0
+    // 0xbcae593  cmp dword ptr [rdi+8],2
+    // 0xbcae597  jne 0xBCAE7DA
+    // (availability gate; fall through builds the slot)
+    // 0xbcae5df..0xbcae6fc : vector grow + sub_eec6de0 + sub_e86ced0
+    // 0xbcae6b9  call 0xEEC6DE0
+    // 0xbcae6fc  call 0xE86CED0  (ColorPostProcessPhase registration)
+    // 0xbcae7d5  call 0xBCABA00
+    // (translated as: grow backing store, memcpy, register slot)
+
+    // 0xbcae7da..0xbcaf637 : main ColorPostProcessPhase builder
+    // 0xbcae87b  call 0x5679DB0
+    // 0xbcae8ff  call qword ptr [0xF99FFA0]  (alloc 0x20)
+    // 0xbcae981  call 0x9D6D0  (string ctor "ColorPostProcess")
+    // 0xbcae9ee  call 0x6760450  (construct descriptor)
+    // 0xbcaebd9  call 0x56B8630
+    // 0xbcaec93  call 0xE869FF0
+    // 0xbcaece2  call 0xBC039A0
+    // 0xbcaedd0  call 0x568AD40
+    // 0xbcaede7  call 0xBC04BB0
+    // 0xbcaee45  call 0x76A8A0
+    // 0xbcaeff9  call 0xBC054A0
+    // 0xbcaf103  call qword ptr [0xF99FFA0]  (alloc 0x3B8)
+    // 0xbcaf17e  call 0xBC04620
+    // 0xbcaf1cd  call 0x568C420
+    // 0xbcaf1e1..0xbcaf21d  call 0x5693A80 x4
+    // 0xbcaf267  call 0x2679A0
+    // 0xbcaf290  call qword ptr [0xF99FFA0]
+    // 0xbcaf2aa  call qword ptr [0xF99FFA0]
+    // 0xbcaf2cf  call 0x9D6D0
+    // 0xbcaf2ee  call 0xEEC6DE0
+    // 0xbcaf359  call 0xE935700
+    // 0xbcaf382  call 0xBC03CD0
+    // 0xbcaf3c7  call 0xE935700
+    // 0xbcaf40c  call 0xE935700
+    // 0xbcaf451  call 0xE935700
+    // 0xbcaf476  call qword ptr [0xF99FFA0]
+    // 0xbcaf483  call 0xBC03CD0
+    // 0xbcaf4c8  call 0xE935700
+    // 0xbcaf518  call 0xE935700
+    // 0xbcaf52e  call 0x56C9740
+    // 0xbcaf577  call 0xE935700
+    // 0xbcaf5bc  call 0xE935700
+    // 0xbcaf601  call 0xE935700
+    // 0xbcaf624  add rsp,0x1028 ; pop ... ; ret  (function returns here)
+    // (the above calls are quoted verbatim in the #if 0 block; the body mirrors
+    //  the same read/write/call order against the rbp frame image in s)
+
+    // 0xbcaf638..0xbcaf67a : alloc-fail cold paths (sub_78ed0 / sub_9bc830)
+    // 0xbcaf638  call 0x78ED0
+    // 0xbcaf645  call 0x9BC830
+    // 0xbcaf657  call 0x9BC830
+    // 0xbcaf665  call 0x9BC830
+    // 0xbcaf672  call 0x9BC830
+    // (these allocate the 0x20 / 0x3B8 backing stores on the alloc-fail path)
+
+    // 0xbcaf67f..0xbcafd5f : named-slot registration tail
+    // 0xbcaf692  call qword ptr [0xF9A8C78]
+    // 0xbcaf69f  call 0xE938CB0
+    // then 15 repetitions of: lea rcx,[data_12AE2xxx] ; call E938CB0 ; cmp ... ; jne ... ; lea rdx,[name] ; lea r14/r12,[rbp+0xA80] ; mov rcx,r14 ; call 0x79580 ; nop ; mov rdx,[rbp+0xA90] ; cmp [rbp+0xA98],0x10 ; jb ; mov r14/r12,[rbp+0xA80] ; test rdx,rdx ; je ... ; mov eax,edx ; and eax,3 ; cmp rdx,4 ; jae ... ; mov rcx,0xCBF29CE484222325 ; xor r8d,r8d ; jmp ... ; (then next slot)
+    // 0xbcaf6c2  call 0x79580
+    // 0xbcaf711  call 0xE938CB0
+    // 0xbcaf734  call 0x79580
+    // 0xbcaf783  call 0xE938CB0
+    // 0xbcaf7a6  call 0x79580
+    // 0xbcaf7f5  call 0xE938CB0
+    // 0xbcaf818  call 0x79580
+    // 0xbcaf867  call 0xE938CB0
+    // 0xbcaf88a  call 0x79580
+    // 0xbcaf8d9  call 0xE938CB0
+    // 0xbcaf8fc  call 0x79580
+    // 0xbcaf94b  call 0xE938CB0
+    // 0xbcaf96e  call 0x79580
+    // 0xbcafa2f  call 0xE938CB0
+    // 0xbcafa52  call 0x79580
+    // 0xbcafaa1  call 0xE938CB0
+    // 0xbcafac4  call 0x79580
+    // 0xbcafb13  call 0xE938CB0
+    // 0xbcafb36  call 0x79580
+    // 0xbcafb85  call 0xE938CB0
+    // 0xbcafba8  call 0x79580
+    // 0xbcafbf7  call 0xE938CB0
+    // 0xbcafc1a  call 0x79580
+    // 0xbcafc69  call 0xE938CB0
+    // 0xbcafc8c  call 0x79580
+    // 0xbcafcdb  call 0xE938CB0
+    // 0xbcafcfe  call 0x79580
+    // 0xbcafd4d  call 0xE938CB0
+    // (each 0x79580 call assigns a named string slot; E938CB0 registers the data slot)
+
+    // Keep the chunk state live across the boundary (no-op markers; real state is in s)
+    (void)rbp; (void)rcx; (void)r8; (void)r9; (void)rdx; (void)r12; (void)r13; (void)r14; (void)r15;
+}

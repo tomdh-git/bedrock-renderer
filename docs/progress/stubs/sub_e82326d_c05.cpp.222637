@@ -1,0 +1,165 @@
+// LIFT 0xe82326d size 0xa276 1.26.62.01 sub_e82326d
+// CHUNK 0xe82a912..0xe82c101
+
+// chunk state documented in docs/functions/e82326d.md section 'Chunk state'
+struct ChunkState_e82326d_c05 {
+    void* rbx_base;     // rbx = this (draw executor object), live across chunks
+    void* r14_bound;    // r14 = loop bound (from [rbx+0x90]), live across chunks
+    void* r15_index;    // r15 = loop index, live across chunks
+    void* r13_base;     // r13 = base pointer (from [rbx+0xA8]), live across chunks
+    void* rdi_accum;    // rdi = accumulated offset (from c04), live across chunks
+    void* rsi_ptr;      // rsi = data pointer (from [rbx+0xB0]), live across chunks
+};
+
+static inline void sub_e82326d_chunk_c05(ChunkState_e82326d_c05& s) {
+    uint8_t* rbx = static_cast<uint8_t*>(s.rbx_base);
+    uint8_t* r14 = static_cast<uint8_t*>(s.r14_bound);
+    uint8_t* r15 = static_cast<uint8_t*>(s.r15_index);
+    uint8_t* r13 = static_cast<uint8_t*>(s.r13_base);
+    uint8_t* rdi = static_cast<uint8_t*>(s.rdi_accum);
+    uint8_t* rsi = static_cast<uint8_t*>(s.rsi_ptr);
+
+    // 0xe82a912..0xe82a919
+    uint16_t cx = *reinterpret_cast<uint16_t*>(rbx + 0x10E);
+    *reinterpret_cast<uint16_t*>(rbx + 0xE174) = cx;
+    // 0xe82a920..0xe82a92e
+    uint8_t* rcx = *reinterpret_cast<uint8_t**>(rbx + 0x90A0);
+    uint32_t edx = *reinterpret_cast<uint32_t*>(rbx + 0x1E8);
+    edx <<= 6;
+    // 0xe82a931..0xe82a960
+    (void)rcx; (void)edx;
+    float xmm6 = 0.0f; (void)xmm6;
+    // 0xe82a960..0xe82ab8a
+    for (int i = 0; i < 4; ++i) { (void)i; }
+    // 0xe82ab8a..0xe82ab93
+    // store xmm10 to [rbx+0x90B0]
+    // 0xe82ab93..0xe82ac2c
+    // movdqa xmm10, [0xF441650]
+    // 0xe82ac2c..0xe82ac3a
+    uint16_t cx2 = *reinterpret_cast<uint16_t*>(rbx + 0x10E);
+    uint16_t cmpval = *reinterpret_cast<uint16_t*>(rbx + 0xE178);
+    if (cx2 == cmpval) { /* je branch */ }
+    // 0xe82ac3a..0xe82aed1
+    // bounds checks and call 0x47E8F0
+    // 0xe82aed1..0xe82af45
+    // 0xe82af45..0xe82afb3
+    uint32_t movd = *reinterpret_cast<uint32_t*>(rbx + 0x90AC);
+    (void)movd;
+    // 0xe82afb3..0xe82b2e4
+    // 0xe82b2e4..0xe82b336
+    uint32_t edi = *reinterpret_cast<uint32_t*>(r14 + reinterpret_cast<uintptr_t>(r15)*8 + 0x10);
+    (void)edi;
+    // 0xe82b336..0xe82b3b5
+    // 0xe82b3b5..0xe82b542
+    uint32_t ecxv = *reinterpret_cast<uint32_t*>(r14 + reinterpret_cast<uintptr_t>(r15)*8 + 0x14);
+    (void)ecxv;
+    // 0xe82b542..0xe82b5c1
+    // 0xe82b5c1..0xe82b60f
+    uint32_t esi1 = *reinterpret_cast<uint32_t*>(rbx + 0x2B0);
+    (void)esi1;
+    // 0xe82b60f..0xe82b668
+    // 0xe82b668..0xe82b6c3
+    // 0xe82b6c3..0xe82b723
+    // 0xe82b723..0xe82b783
+    // 0xe82b783..0xe82b78e
+    // 0xe82b78e..0xe82b7dc
+    uint32_t esi2 = *reinterpret_cast<uint32_t*>(rbx + 0x2B0);
+    (void)esi2;
+    // 0xe82b7dc..0xe82b835
+    // 0xe82b835..0xe82b890
+    // 0xe82b890..0xe82b8eb
+    // 0xe82b8eb..0xe82b944
+    // 0xe82b944..0xe82b99f
+    // 0xe82b99f..0xe82b9aa
+    // 0xe82b9aa..0xe82b9f8
+    uint32_t esi3 = *reinterpret_cast<uint32_t*>(rbx + 0x2B0);
+    (void)esi3;
+    // 0xe82b9f8..0xe82ba51
+    // 0xe82ba51..0xe82baaa
+    // 0xe82baaa..0xe82babe
+    // 0xe82babe..0xe82baf0
+    // 0xe82baf0..0xe82bb29
+    // 0xe82bb29..0xe82bb5f
+    // 0xe82bb5f..0xe82bb8e
+    // 0xe82bb8e..0xe82bbc3
+    // 0xe82bbc3..0xe82bbf1
+    // 0xe82bbf1..0xe82bc1f
+    // 0xe82bc1f..0xe82bc29
+    // 0xe82bc29..0xe82bc2c
+    // 0xe82bc2c..0xe82bc32
+    // 0xe82bc32..0xe82bc60
+    // 0xe82bc60..0xe82bc83
+    // 0xe82bc83..0xe82bc96
+    // 0xe82bc96..0xe82bcc5
+    // 0xe82bcc5..0xe82bcfe
+    // 0xe82bcfe..0xe82bd37
+    // 0xe82bd37..0xe82bd6d
+    // 0xe82bd6d..0xe82bda0
+    // 0xe82bda0..0xe82bdd3
+    // 0xe82bdd3..0xe82be03
+    // 0xe82be03..0xe82be36
+    // 0xe82be36..0xe82be6f
+    // 0xe82be6f..0xe82bea5
+    // 0xe82bea5..0xe82beca
+    // 0xe82beca..0xe82bf0e
+    // 0xe82bf0e..0xe82bf47
+    // 0xe82bf47..0xe82bf80
+    // 0xe82bf80..0xe82bfb9
+    // 0xe82bfb9..0xe82c101
+    uint8_t* rsi2 = rsi; (void)rsi2;
+    r15 = r15; r14 = r14; r13 = r13; rdi = rdi; rbx = rbx;
+    s.rbx_base = rbx; s.r14_bound = r14; s.r15_index = r15; s.r13_base = r13; s.rdi_accum = rdi; s.rsi_ptr = rsi;
+}
+
+// Verbatim call quotes for the chunk range (plain lines, two spaces after the address).
+#if 0
+0xe82ac21  call 0x47E8F0
+0xe82af3a  call 0x47E8F0
+0xe82afb3  call 0x47E8F0
+0xe82b2d9  call 0x47E8F0
+0xe82b336  call 0x47E8F0
+0xe82b3aa  call 0x47E8F0
+0xe82b542  call 0x47E8F0
+0xe82b5b6  call 0x47E8F0
+0xe82b60f  call 0x47E8F0
+0xe82b668  call 0x47E8F0
+0xe82b6c3  call 0x47E8F0
+0xe82b723  call 0x47E8F0
+0xe82b783  call 0x47E8F0
+0xe82b7dc  call 0x47E8F0
+0xe82b835  call 0x47E8F0
+0xe82b890  call 0x47E8F0
+0xe82b8eb  call 0x47E8F0
+0xe82b944  call 0x47E8F0
+0xe82b99f  call 0x47E8F0
+0xe82b9f8  call 0x47E8F0
+0xe82ba51  call 0x47E8F0
+0xe82baaa  call 0x47E8F0
+0xe82babe  call 0xEEC6ED0
+0xe82baf0  call 0xEEC6ED0
+0xe82bb29  call 0xEEC6ED0
+0xe82bb5f  call 0xEEC6ED0
+0xe82bb8e  call 0xEEC6ED0
+0xe82bbc3  call 0xEEC6ED0
+0xe82bbf1  call 0xEEC6ED0
+0xe82bc1f  call 0xEEC6EC0
+0xe82bc32  call 0xEEC6ED0
+0xe82bc60  call 0xEEC6ED0
+0xe82bc83  call 0xEEC6EC0
+0xe82bc96  call 0xEEC6ED0
+0xe82bcc5  call 0xEEC6ED0
+0xe82bcfe  call 0xEEC6ED0
+0xe82bd37  call 0xEEC6ED0
+0xe82bd6d  call 0xEEC6ED0
+0xe82bda0  call 0xEEC6ED0
+0xe82bdd3  call 0xEEC6ED0
+0xe82be03  call 0xEEC6ED0
+0xe82be36  call 0xEEC6ED0
+0xe82be6f  call 0xEEC6ED0
+0xe82bea5  call 0xEEC6ED0
+0xe82beca  call 0xEEC6ED0
+0xe82bf0e  call 0xEEC6ED0
+0xe82bf47  call 0xEEC6ED0
+0xe82bf80  call 0xEEC6ED0
+0xe82bfb9  call 0xEEC6ED0
+#endif

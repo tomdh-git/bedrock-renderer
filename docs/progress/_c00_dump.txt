@@ -1,0 +1,46 @@
+sub_e8230c8  [0xe8230c8..0xe8250c8)  size 0x2000  0 xrefs in
+  e8230c8  movzx ecx,byte ptr [r9+0xC96190]              ; R a3+0xC96190
+  e8230d0  movzx r13d,di                                 
+  e8230d4  cmp r13d,0x1000                               
+  e8230db  setae dl                                      
+  e8230de  mov al,1                                      
+  e8230e0  test dl,cl                                    
+  e8230e2  jne 0xE823236                                 ; -> loc_e823236
+  e8230e8  mov rax,[r9+0xC96180]                         ; R a3+0xC96180
+  e8230ef  shr rax,3                                     
+  e8230f3  mov rdx,0x1642C8590B21642D                    
+  e8230fd  mul rdx                                       
+  e823100  shr rdx,1                                     
+  e823103  mov eax,ecx                                   
+  e823105  cmp rdx,rdi                                   
+  e823108  ja 0xE823236                                  ; -> loc_e823236
+  e82310e  mov r15d,edi                                  
+  e823111  and r15d,0xF000                               
+  e823118  add r15,0x1000                                
+  e82311f  mov rcx,[rbx+0x1F8]                           
+  e823126  mov rdx,r15                                   
+  e823129  call 0xE83ACE0                                ; -> sub_e83ace0
+  e82312e  nop                                           
+  e82312f  mov rax,[rbx+0xB0]                            
+  e823136  mov rax,[rax+0xC96180]                        
+  e82313d  shr rax,3                                     
+  e823141  mov rcx,0x1642C8590B21642D                    
+  e82314b  mul rcx                                       
+  e82314e  mov r12,rdx                                   
+  e823151  shr r12,1                                     
+  e823154  cmp r12,r15                                   
+  e823157  jae 0xE823219                                 ; -> loc_e823219
+  e82315d  nop [rax]                                     
+
+loc_e823160:  ; from e823213
+  e823160  imul r14,r12,0xB8                             
+  e823167  cmp r12,0xFFF                                 
+  e82316e  ja short 0xE823180                            ; -> loc_e823180
+  e823170  add r14,[rbx+0x1F8]                           
+  e823177  jmp short 0xE8231CA                           ; -> loc_e8231ca
+  e823179  nop [rax]                                     
+
+loc_e823180:  ; from e82316e
+  e823180  add r14,0xFFFFFFFFFFF48000                    
+  e823187  mov rax,[rbx+0xB0]                            
+  ... (--max 40)

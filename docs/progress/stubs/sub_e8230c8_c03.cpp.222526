@@ -1,0 +1,91 @@
+// LIFT 0xe8230c8 size 0xa41b 1.26.62.01 sub_e8230c8
+// CHUNK 0xe8277f5..0xe828fe9
+
+// chunk state documented in docs/functions/e8230c8.md section 'Chunk state'
+struct ChunkState_e8230c8_c03 {
+    void* rbx_base;
+    void* rsi;
+    void* r14;
+    void* r10;
+    void* r11;
+};
+
+static inline void sub_e8230c8_chunk_c03(ChunkState_e8230c8_c03& s) {
+    // 0xe8277f5..0xe828fe9
+    auto* rbx = (unsigned char*)s.rbx_base;
+    auto* rsi = (unsigned char*)s.rsi;
+    auto* r14 = (unsigned char*)s.r14;
+    // 0xe8277f5..0xe827884
+    unsigned r10d = *(unsigned*)(r14 + 0x70);
+    unsigned ecx = *(unsigned*)(rsi + 4);
+    unsigned r11d = 0;
+    unsigned eax = ecx;
+    unsigned edx = 0;
+    // div r10d
+    unsigned r8d = (r10d ? eax / r10d : 0);
+    eax = *(unsigned*)(r14 + 0x60);
+    eax -= ecx;
+    edx = 0;
+    unsigned q = (r10d ? eax / r10d : 0);
+    ecx = r8d;
+    *(unsigned*)(rbx + 0xC0) = r11d;
+    *(unsigned*)(rbx + 0xC4) = (unsigned)(size_t)s.r10; // r9 placeholder
+    *(unsigned long long*)(rbx + 0xC8) = r8d;
+    *(unsigned*)(rbx + 0xD0) = q;
+    *(unsigned*)(rbx + 0xD4) = r10d;
+    // movups xmm0,[r14+0x48]
+    // movups [rbx+0xD8],xmm0
+    // 0xe827839..0xe827884
+    void* dev = *(void**)0x12BB4910ULL;
+    void* rcx = *(void**)((unsigned char*)dev + 0x400);
+    void* raxb = *(void**)(rbx + 0xB8);
+    void* r8 = *(void**)((unsigned char*)raxb + 8);
+    void* rdx = *(void**)(r14);
+    // call r10 (vendor thunk) at 0xe827885
+    // 0xe827888..0xe8278b2
+    rdx = *(void**)(rbx + 0xB8);
+    unsigned a = *(unsigned*)((unsigned char*)rdx + 0x18);
+    *(unsigned long long*)((unsigned char*)rdx + 8) += a;
+    r10d = *(unsigned*)(rbx + 0x110);
+    eax = r10d;
+    void* rcx2 = *(void**)((unsigned char*)rdx + 0x10);
+    *(void**)(rsi + (size_t)eax*8) = rcx2; // rdi base unknown
+    eax = *(unsigned*)((unsigned char*)rdx + 0x18);
+    *(unsigned long long*)((unsigned char*)rdx + 0x10) = (unsigned long long)rcx2 + eax;
+    // 0xe8278b3..0xe827900
+    ++r10d;
+    // tail: fallthrough into sub_e825aab (out of chunk scope) -> stop
+    (void)rbx; (void)rsi; (void)r14; (void)r10d; (void)r11d;
+    (void)dev; (void)rcx; (void)r8; (void)rdx; (void)rcx2; (void)a; (void)q; (void)eax; (void)edx;
+}
+
+#if 0
+0xe827885  call r10
+0xe8279c9  call qword ptr [0xF99FFA0]
+0xe827a2f  call 0xE820500
+0xe827a73  call qword ptr [0xF99FFA0]
+0xe827aa5  call qword ptr [0xF99FFA0]
+0xe827ac9  call qword ptr [0xF99FFA0]
+0xe827af6  call 0xE82DE90
+0xe827b40  call 0xE935700
+0xe827c1d  call qword ptr [0xF99FFA0]
+0xe827c56  call qword ptr [0xF99FFA0]
+0xe827c7e  call qword ptr [0xF99FFA0]
+0xe827cf4  call 0xBC6A9D0
+0xe827e5e  call 0x47E8F0
+0xe827e8a  call 0xE81E1C0
+0xe827edc  call 0xEEC6ED0
+0xe827fad  call 0x47E8F0
+0xe82813e  call 0x47E8F0
+0xe8281b9  call 0x47E8F0
+0xe82821d  call 0x47E8F0
+0xe8282a0  call 0x47E8F0
+0xe82832c  call 0x47E8F0
+0xe828661  call 0x47E8F0
+0xe828983  call 0x47E8F0
+0xe828a03  call 0x47E8F0
+0xe828d30  call 0x47E8F0
+0xe828d94  call 0x47E8F0
+0xe828e0f  call 0x47E8F0
+0xe828fb3  call 0x47E8F0
+#endif

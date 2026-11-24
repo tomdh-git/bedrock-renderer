@@ -540,7 +540,7 @@ Tables live inside the RendererContext object (`this` of the vtable slots, NOT b
 Tables (base, stride, users):
 - **Textures**: base `this+0xbde178`, stride **0xB8**, 4096 inline entries (ends 0xC5A178); used by slots 26 createTexture (u16 handle edx, Memory* r8 = {data,size}, flags r9d), 28 updateTexture, 30 readTexture, 31 resize, 32-34 overrideInternal/getInternal/destroyTexture, 35 createFrameBuffer (attachments look up textures), 51 blit.
 - **Per-handle 0x78 records**: base `this+0x93a178` (users slots 10/16/17 create/dyn buffers, 36/37, 50 submit, 52, 55-57); table ends at 0x9b2178 (0x78000 = 4096 x 0x78).
-- Next tables by base spacing from slot 59 (shutdown/free-all): `0x9b2178` (0x80-byte stride, 4096 entries to 0xa32178), `0xa32178` (0x130-byte stride, 4096 entries to 0xb62178), `0xb62178` (to 0xbde178, 0x7c000 bytes = 2048 x 0xF8: the 0xF8 records used by slot 24 createProgram), `0x57a178` and `0x57a100` (0x3c0000 bytes up to 0x93a178 = 32768 x 0x78, dynamic/transient buffer records). Roles of the 0x80 and 0x130 tables are [I] (vertex layouts / uniforms or shaders / frame buffers).
+- Next tables by base spacing from slot 59 (shutdown/free-all): `0x9b2178` (0x80-byte stride, 4096 entries to 0xa32178), `0xa32178` (0x78-byte stride per EL1q 2026-11-21 [V]; the earlier 0x130 was a mislabel), `0xb62178` (to 0xbde178, 0x7c000 bytes = 2048 x 0xF8: the 0xF8 records used by slot 24 createProgram), `0x57a178` and `0x57a100` (0x3c0000 bytes up to 0x93a178 = 32768 x 0x78, dynamic/transient buffer records). Roles of the 0x80 and 0x130 tables are [I] (vertex layouts / uniforms or shaders / frame buffers).
 - Other fields: `this+0xcc9268` command queue wrapper (all create/update slots touch it), `this+0xc97698` (0x68 stride: 0x68-byte records for slots 6, 39-41: vertex layout / uniform registry), `this+0xc9baa0` (slot 43), `this+0x19f78`/`0x19f58` init-time tables (slot 58), `this+0x14420`/`0x14458`/`0x2c6a8` (small arrays referenced by createTexture and the 0x68-record slots).
 Practical use: to read texture N from a hook, `rec = renderer + 0xbde178 + N*0xB8` for N < 0x1000.
 Live check (2026-11-12): renderer object `*(base+0x12BB4910)` = 0x49c84010000 with vtable rva 0xf4eee80 (the "Direct3D 12 RTX" subclass); `obj+0xbde178+h*0xB8` gives plausible texture records: +0x00 qword (ptr/id), +0x08 u32 3 (state/type), +0x18 width (0x100, 0x40, 0x80 seen), +0x20 height (u32) with +0x24 u32 flags (0x10080/0x10040/0x10010), +0x28 DXGI_FORMAT (0xb R16G16B16A16_UNORM, 0x1c R8G8B8A8_UNORM seen), +0x2c u32 1. Guard byte `obj+0xc96190` = 0. So the table layout above is confirmed on the live object.
@@ -635,7 +635,7 @@ Every one of these touches `ctx+0x1CFD0C8` (the API-thread command/lock state) a
 Strides in this table are not decoded — a pointer arithmetic pass (e.g. `lea rax,[r+r*2]; [rbx+rax*8]` = 0x18 for uniforms) per function gives them; record offsets above are verified, roles are inferred from callee pattern (create has strlen/name-hash, destroy ends in the deferred-queue push). The deferred destroy queue is drained by `frame()` (6s).
 
 ### 6aj. RendererContextD3D12 slots verified by the tables each one touches (B2a-c, supersedes guesses in 6k where marked) [V]
-Method: scan every slot body for renderer-object offsets (see `scratchpad/slotscan.py`). Table bases (this = RendererContext): textures `0xBDE178` (0xB8 stride), `0x93A178` (0x78), `0x9B2178` (0x80), `0xA32178` (0x130), `0xB62178` (0xF8), `0xC97698` (0x68), shaders `0xAAA180/0xAAA228`, guarded paged array guard bytes `0xC96178/0xC96190`, command queue `0xCC9268`, `this+0x19F58` = bgfx::Context* / Caps pointer, framebuffer array block `this+0x22468..0x2c6a8`.
+Method: scan every slot body for renderer-object offsets (see `scratchpad/slotscan.py`). Table bases (this = RendererContext): textures `0xBDE178` (0xB8 stride), `0x93A178` (0x78), `0x9B2178` (0x80), `0xA32178` (0x78; 0x130 was a mislabel), `0xB62178` (0xF8), `0xC97698` (0x68), shaders `0xAAA180/0xAAA228`, guarded paged array guard bytes `0xC96178/0xC96190`, command queue `0xCC9268`, `this+0x19F58` = bgfx::Context* / Caps pointer, framebuffer array block `this+0x22468..0x2c6a8`.
 | slot | evidence | verified role |
 |---|---|---|
 | 6 | 0xC97698 table, 0x19F80..8C | per-frame/reset helper touching uniform-record table |
@@ -651,7 +651,7 @@ Method: scan every slot body for renderer-object offsets (see `scratchpad/slotsc
 | 30-34 | texture table (30 also `0x19F20`, queue) | readTexture, resize, overrideInternal, getInternal, destroyTexture |
 | 35 | texture table + 0xCD8EAC | texture view / swapchain image handling (was labelled createFrameBuffer in 6k: texture table only => NOT createFrameBuffer) |
 | 36 | 0x22468..0x226AC (framebuffer array) | destroyFrameBuffer |
-| 37 | 0x22498.. + 0xA32178 (0x130) | createFrameBuffer (0x130 = framebuffer records) |
+| 37 | 0x22498.. + 0xA32178 (0x78) | createFrameBuffer (0x78 records; 0x130 was a mislabel, EL1q 2026-11-21) |
 | 39-41 | 0xC97698 (0x68 records) + 0xCC9268 | uniform record update (create/destroy/update uniform; 0xC976xx fields) |
 | 42, 43 | 0x19F60/0x19F68 + 0xC9AA9C/AAA0 | shader-format caps / Mojang shader-cache hooks |
 | 44 | 0x19F20 + 0xC9C6D0 + queue | pre-submit/readback helper |
@@ -708,7 +708,7 @@ Not RTX-overridden (inherit base): 6-9, 11-13, 17-18, 20, 22-25, 27-49, 51-53, 5
   | 0, 3 | 0xe8230c8 | texture (guard byte 0xC96190; table `this+0xBDE178`, stride 0xB8, 4096 inline entries then chained pages; handle>>12 selects page) |
   | 1 | 0xe824a42 | buffer in the 0x78-stride table (`this+0x93A178`) |
   | 2 | 0xe824a4f | buffer in the 0x80-stride table (`this+0x9B2178`; `<<7`) |
-  | 4 | 0xe824991 | table at `this+0xA32178` accessed with stride 0x78 here (6z says 0x130 — **conflict to resolve**: 0xA32178 may be two interleaved arrays) and the framebuffer-attachment array at `bgfxCtx+0x224A8` indexed by handle>>6 |
+  | 4 | 0xe824991 | table at `this+0xA32178` accessed with stride 0x78 here (6z's 0x130 was a mislabel; resolved: stride 0x78) and the framebuffer-attachment array at `bgfxCtx+0x224A8` indexed by handle>>6 |
   | 5 | 0xe824ab7 | inline constant/uniform stream copy (reads `[stream+0x10]`, advances `[stream+8] += [stream+0x18]`) |
   | 6, 7 | 0xe82326d | descriptor-table list (loop over a 16-byte-stride array at `local+0x1c0<<4`) |
   | 8 | 0xe824af1 | list variant of 5/6 |

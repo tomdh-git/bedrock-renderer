@@ -121,3 +121,39 @@ String "Disabling dynamic texture handles is not supported." and "Texture handle
 ### Verification (how each claim was checked: static cross-ref, live poll, in-game)
 
 Static only: 62.01 dossier mechanical facts agree with 6s (memcpy sizes, +0xE746D8 not independently confirmed in this dossier's field list [?]). No live poll, no in-game. Status D2.
+
+### Chunk state (U-EX1.c00)
+
+Chunk range 0xbc66de0..0xbc685af. State struct (live): rcx=a0 (Context*), rsp frame (0x58), saved regs rbp/rbx/r12-r15; loop counters in r10/r11 across boundary. Step function is static inline member of assembled function.
+
+### Chunk state (U-EX1.c01)
+
+Chunk range 0xbc685af..0xbc687b7 (part 2/2 of bgfx::Context::frame). State struct ContextFrameChunkC01State (see header):
+- ctx: rsi at entry = this (Context*); rsi is clobbered by 0xbc68744 (`mov esi,[rdi+8]`) after the last use of rsi as this, then restored by pop rsi at 0xbc687ac.
+- viewDst: rdi = current per-view copy dst (ctx+0x4F0 + r12*0x138).
+- r15: frame-relative src offset (0xE60EC8 + r12*0x138).
+- r12: per-view loop counter.
+- r14: frame0 + r15 (src pointer).
+- frameBase: rbp (rsp+0x50).
+- local10: [rbp-0x10].
+- local18: [rbp-0x18] (rbx points here).
+Back-edge 0xbc685e1 -> 0xbc68570 (chunk 1) when r12 < u16[ctx+0x4E8]; epilogue at 0xbc687a6..0xbc687b6 returns from the function.
+Callees: 0xEBCE650 (lift, sub_ebce650), 0xEBDBF20 (lift, sub_ebdbf20), 0xEBCE430 (memset intrinsic, sub_ebce430), indirect slot 0xF99FFA0 -> 0xeea6040 (vendor thunk). No unresolved calls.
+
+### Chunking facts (PLAN U-EX1)
+
+- frame size 0x58, 8 pushes, 0 saved xmm (mechanical facts) [V].
+- arg map: rcx = this (Context*); rdx/r8/r9 never dereferenced (stored/forwarded) [V dossier].
+- chunks: docs/data/native_chunks/bc66de0.tsv (2 chunks, boundaries at basic-block starts 0xbc66de0, 0xbc685af, 0xbc687b7; sizes 0x17cf and 0x208; both <= 0x1800).
+
+### Reversed source (complete)
+
+Chunk 2 (0xbc685af..0xbc687b7) lifted in src/client/features/render/native/bgfx/Context_frame_chunk_c01.cpp:
+- 0xbc685af..0xbc685c5: sub_ebce650(viewDst, 0x100, &local18, 0x7FFFFFFF)
+- 0xbc685c6..0xbc685e1: ++r12; if r12 < u16[ctx+0x4E8] return to loop head
+- 0xbc685e3..0xbc6862a: copy srcCount 16-byte blocks from [ctx+0x13D08] to [ctx+0x13CF8]
+- 0xbc6862c..0xbc68638: sub_ebdbf20(ctx+0x3D0)
+- 0xbc68639..0xbc686cc: frame-number increment, dword swap, handoff fields, memset(ctx+0x1EAAC60,0,0x400)
+- 0xbc686d1..0xbc68735: compute W/H, compare against cached state; skip rebuild if all match
+- 0xbc68737..0xbc687a5: rebuild cached dims + size, alloc via slot 0xF99FFA0, memset tail
+- 0xbc687a6..0xbc687b6: epilogue (add rsp,0x58 / pops / ret)

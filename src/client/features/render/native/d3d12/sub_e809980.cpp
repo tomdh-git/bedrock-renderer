@@ -1,0 +1,99 @@
+// LIFT 0xe809980 size 0x10e 1.26.62.01 sub_e809980
+#include "sub_e809980.h"
+#include <cstring>
+#include <cstddef>
+
+// LIFT_FN(sub_e809980, 0xe809980, Shadow)
+static_assert(sizeof(void*) == 8, "x64");
+
+extern "C" void sub_eec5870(void* rcx, int edx);
+extern "C" void sub_eec5860(void* rcx);
+
+extern "C" void* sub_e809980(void* a0) {
+    void* rsi = a0;
+    // 0xe80998d..0xe8099a3
+    std::memset(rsi, 0, 0x10); // 0xe809990 movups [rcx],xmm6 ; ... (xmm6=0)
+    *reinterpret_cast<unsigned long long*>(static_cast<char*>(rsi) + 0x10) = 0; // 0xe809993
+    *reinterpret_cast<unsigned long long*>(static_cast<char*>(rsi) + 0x18) = 7; // 0xe80999b
+    *reinterpret_cast<unsigned long long*>(static_cast<char*>(rsi) + 0x20) = 0; // 0xe8099a3
+    *reinterpret_cast<unsigned int*>(static_cast<char*>(rsi) + 0x28) = 0; // 0xe8099ab
+    // 0xe8099b2..0xe8099cd
+    void* rcx = static_cast<char*>(rsi) + 0x30;
+    *reinterpret_cast<unsigned int*>(static_cast<char*>(rsi) + 0x30) = 0; // 0xe8099b6
+    std::memset(static_cast<char*>(rsi) + 0x38, 0, 0x40); // movups x4 zero
+    *reinterpret_cast<unsigned long long*>(static_cast<char*>(rsi) + 0x78) = 0; // 0xe8099cd
+    // 0xe8099d5..0xe8099da
+    int edx = 2;
+    sub_eec5870(static_cast<char*>(rsi) + 0x30, edx); // 0xe8099da  call 0xEEC5870
+    // 0xe8099df..0xe809a0c
+    rcx = static_cast<char*>(rsi) + 0x80;
+    *reinterpret_cast<unsigned int*>(static_cast<char*>(rsi) + 0x80) = 0; // 0xe8099e6
+    std::memset(static_cast<char*>(rsi) + 0x88, 0, 0x40); // 0xe8099f0..0xe809a05
+    *reinterpret_cast<unsigned long long*>(static_cast<char*>(rsi) + 0xC8) = 0; // 0xe809a0c
+    // 0xe809a17..0xe809a1c
+    edx = 2;
+    sub_eec5870(static_cast<char*>(rsi) + 0x80, edx); // 0xe809a1c  call 0xEEC5870
+    // 0xe809a21..0xe809a4f
+    rcx = static_cast<char*>(rsi) + 0xD0;
+    std::memset(static_cast<char*>(rsi) + 0xD0, 0, 0x40); // movups x4 zero (order reversed in asm but values zero)
+    *reinterpret_cast<unsigned long long*>(static_cast<char*>(rsi) + 0x110) = 0; // 0xe809a44
+    sub_eec5860(static_cast<char*>(rsi) + 0xD0); // 0xe809a4f  call 0xEEC5860
+    // 0xe809a54..0xe809a79
+    *reinterpret_cast<unsigned short*>(static_cast<char*>(rsi) + 0x118) = 0; // 0xe809a54
+    std::memset(static_cast<char*>(rsi) + 0x120, 0, 0x28); // approx
+    std::memset(static_cast<char*>(rsi) + 0x148, 0, 0x18);
+    std::memset(static_cast<char*>(rsi) + 0x160, 0, 0x10);
+    std::memset(static_cast<char*>(rsi) + 0x170, 0, 0x10);
+    std::memset(static_cast<char*>(rsi) + 0x180, 0, 0x10);
+    // 0xe809a80
+    return rsi; // 0xe809a80  mov rax,rsi
+}
+
+#if 0
+0xe809980  push rsi
+0xe809981  sub rsp,0x30
+0xe809985  movaps [rsp+0x20],xmm6
+0xe80998a  mov rsi,rcx
+0xe80998d  xorps xmm6,xmm6
+0xe809990  movups [rcx],xmm6
+0xe809993  mov qword ptr [rcx+0x10],0
+0xe80999b  mov qword ptr [rcx+0x18],7
+0xe8099a3  mov qword ptr [rcx+0x20],0
+0xe8099ab  mov dword ptr [rcx+0x28],0
+0xe8099b2  add rcx,0x30
+0xe8099b6  mov dword ptr [rsi+0x30],0
+0xe8099bd  movups [rsi+0x38],xmm6
+0xe8099c1  movups [rsi+0x48],xmm6
+0xe8099c5  movups [rsi+0x58],xmm6
+0xe8099c9  movups [rsi+0x68],xmm6
+0xe8099cd  mov qword ptr [rsi+0x78],0
+0xe8099d5  mov edx,2
+0xe8099da  call 0xEEC5870
+0xe8099df  lea rcx,[rsi+0x80]
+0xe8099e6  mov dword ptr [rsi+0x80],0
+0xe8099f0  movups [rsi+0x88],xmm6
+0xe8099f7  movups [rsi+0x98],xmm6
+0xe8099fe  movups [rsi+0xA8],xmm6
+0xe809a05  movups [rsi+0xB8],xmm6
+0xe809a0c  mov qword ptr [rsi+0xC8],0
+0xe809a17  mov edx,2
+0xe809a1c  call 0xEEC5870
+0xe809a21  lea rcx,[rsi+0xD0]
+0xe809a28  movups [rsi+0x100],xmm6
+0xe809a2f  movups [rsi+0xF0],xmm6
+0xe809a36  movups [rsi+0xE0],xmm6
+0xe809a3d  movups [rsi+0xD0],xmm6
+0xe809a44  mov qword ptr [rsi+0x110],0
+0xe809a4f  call 0xEEC5860
+0xe809a54  mov word ptr [rsi+0x118],0
+0xe809a5d  movups [rsi+0x120],xmm6
+0xe809a64  movups [rsi+0x148],xmm6
+0xe809a6b  movups [rsi+0x160],xmm6
+0xe809a72  movups [rsi+0x170],xmm6
+0xe809a79  movups [rsi+0x180],xmm6
+0xe809a80  mov rax,rsi
+0xe809a83  movaps xmm6,[rsp+0x20]
+0xe809a88  add rsp,0x30
+0xe809a8c  pop rsi
+0xe809a8d  ret
+#endif

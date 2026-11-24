@@ -160,3 +160,6 @@ Next (needs the user in game or per-layer deep reading): per-description live ca
 ### Status update (Caps)
 - bgfx::Caps decoded (limits, flag bits, globals): docs/BGFX_MAP.md 6j, src/sdk/mc/deps/bgfx/Caps.h (builds).
 - Next: diff-decode insert descriptions via multi-capture, Fancy-path pass graph from 0x66ea3d0, name the 65 RendererContext slots, extractors/actor identity.
+
+### Status update (2026-11-23): direction changed
+The goal is now the done state in `docs/RENDER_DONE_STATE.md`: instruction-complete source for every function on the render path, verified byte-identical, running as our own code (Native mode), then optimization from that source. PLAN_OPTIMIZATION.md was deleted; references to it in BGFX_MAP 6bh/J3 and RENDER_CHECKLIST J3/L18c are historical.

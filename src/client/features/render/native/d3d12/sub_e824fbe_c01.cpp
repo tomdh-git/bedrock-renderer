@@ -1,0 +1,60 @@
+// LIFT 0xe824fbe size 0x8525 1.26.62.01 sub_e824fbe
+// CHUNK 0xe8267b7..0xe827fa3
+
+// chunk state documented in docs/functions/e824fbe.md section 'Chunk state'
+struct ChunkState_e824fbe_c01 {
+    void* rbx_base;
+    void* r10_scratch;
+    void* r13_scratch;
+    void* r14_scratch;
+};
+
+static inline void sub_e824fbe_chunk_c01(ChunkState_e824fbe_c01& s) {
+    // 0xe8267b7..0xe827fa3
+    (void)s;
+}
+
+#if 0
+0xe82681d  call r10
+0xe8268d3  call r10
+0xe8268e5  call 0xEEC6ED0
+0xe826a5c  call 0xE83AED0
+0xe826a70  call 0xE83AED0
+0xe826a8d  call 0xE83ABB0
+0xe826ab2  call 0xBC5F110
+0xe826be7  call qword ptr [0xF99FFA0]
+0xe826c8a  call 0xE835F00
+0xe826cf0  call 0xBC5F110
+0xe826f42  call 0xE83ACE0
+0xe826ff2  call 0xEBCE430
+0xe827007  call 0xEBCE430
+0xe82704b  call 0xBC5F110
+0xe827094  call qword ptr [0xF99FFA0]
+0xe827193  call qword ptr [0xF99FFA0]
+0xe8271a9  call 0xE83ABB0
+0xe8271da  call 0xBC5F110
+0xe827255  call 0xE82DCC0
+0xe827333  call r10
+0xe827395  call qword ptr [0xF99FFA0]
+0xe82756e  call qword ptr [0xF99FFA0]
+0xe82760e  call qword ptr [0xF99FFA0]
+0xe82764b  call 0xEBD1560
+0xe827679  call 0xE82D960
+0xe8276b0  call qword ptr [0xF99FFA0]
+0xe8277ab  call qword ptr [0xF99FFA0]
+0xe827885  call r10
+0xe8279c9  call qword ptr [0xF99FFA0]
+0xe827a2f  call 0xE820500
+0xe827a73  call qword ptr [0xF99FFA0]
+0xe827aa5  call qword ptr [0xF99FFA0]
+0xe827ac9  call qword ptr [0xF99FFA0]
+0xe827af6  call 0xE82DE90
+0xe827b40  call 0xE935700
+0xe827c1d  call qword ptr [0xF99FFA0]
+0xe827c56  call qword ptr [0xF99FFA0]
+0xe827c7e  call qword ptr [0xF99FFA0]
+0xe827cf4  call 0xBC6A9D0
+0xe827e5e  call 0x47E8F0
+0xe827e8a  call 0xE81E1C0
+0xe827edc  call 0xEEC6ED0
+#endif

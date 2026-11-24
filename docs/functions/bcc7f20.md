@@ -163,12 +163,23 @@ void MaterialInstance::initFromMaterial(const Material* m) {
 }
 ```
 
+### Chunk state
+State struct for chunk: `this` (MaterialInstance*), `m` (const Material*), rbp frame base; local slots per dossier. Passed by reference to static inline step functions.
+
 ### What this settles
 
 - Uniform type numbering (node+0x7C): 1 = vec4 (16-byte default, flag +0x44), 2 = mat3 (0x24 bytes, flag +0x58), 3 = mat4 (0x40 bytes, flag +0x74); anything else asserts. This closes the open type mapping in the body parser (e870870.md).
 - The instance's uniform block is the object at **+0x170** (created by 0xe86a1b0), and every default goes through the uniform writer 0x5679db0 (6gr). The bcd1be0 table's [I] guess that +0x1A0 is the uniform block is corrected: +0x1A0 is a separate object built by 0x67bfa60.
 - bgfx shader and program creation for materials happens here, at load time. Program handles are stored per variant at +0x1C as {u16 handle, valid bit 16}.
 
-### Verification
+## Chunk plan (U-EX1.bcc7f20.plan)
+
+- Range: 0xbcc7f20..0xbccf341 (size 0x7421), 5 chunks <=0x1800 at basic-block starts (docs/data/native_chunks/bcc7f20.tsv).
+- Frame: stack frame 0x3a8, 8 pushes, 10 saved xmm (xmm6+); allocator tag 0x2F.
+- Args: rcx=this (MaterialInstance*, kept rsi/[rbp+0x270]), rdx=m (const Material*).
+- Saved regs: rsi (this), rbp frame base; xmm6..xmm15.
+- Local slots: [rbp+0x270]=this; others per dossier.
+- Jump tables: switch at 0xbcc829c (cases 0..4) dispatches uniform type (1/2/3) and control paths.
+- Callees: see dossier Direct callees; indirect vtable slots [obj+0x8] slot1 x45 etc.
 
 Static. Phase order, callees, field offsets and the uniform/shader/program sequences read raw; the container-heavy middle (buffer copy, pass records, lookup tables) is mapped only by callee. Status D1.

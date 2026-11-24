@@ -7,13 +7,13 @@
 // is no longer there means that layout changed in this build, and the line names the SDK constant to re-derive. Nothing here is
 // dereferenced as game data: the check only reads the code bytes of functions the signature database already resolved.
 //
-// The same list, with the small constants a raw byte search cannot prove (below 0x100), lives in docs/data/layout_asserts.json and is
-// checked offline by tools/sigs/layoutcheck.py, which also prints the nearby values a moved field most likely went to. Keep the two in
-// step by hand when an entry is added. Sizes are the 1.26.62.01 function sizes: the scan window, not a promise.
+// The same list lives in docs/data/layout_asserts.json and is checked offline by tools/sigs/layoutcheck.py, which decodes every
+// immediate and displacement and also prints the nearby values a moved field most likely went to. Keep the two in step by hand when an
+// entry is added. Sizes are the 1.26.62.01 function sizes: the scan window, not a promise.
 namespace renderlayout {
 
 struct Constant {
-    uint64_t value;    // searched as 4 little-endian bytes, or 8 when it does not fit in 32 bits
+    uint64_t value;    // searched as 4 little-endian bytes (8 when it does not fit in 32 bits), then as a disp8/imm8 operand
     const char* backs; // the SDK constant or documented fact that depends on it
 };
 
@@ -97,7 +97,7 @@ inline constexpr Constant kFrameGraphGenerate[] = {
 inline constexpr Constant kTaskDispatch[] = {
     {0x298, "DragonFrameResources task vector begin"},
     {0x2A0, "DragonFrameResources task vector end"},
-    {0xFFFFFF80, "task entry stride 0x80 (sub r12,-0x80 at 0xE900412)"},
+    {0xFFFFFF80, "task entry stride 0x80 (imm8 49 83 EC 80 = sub r12,-0x80)"},
 };
 inline constexpr Constant kDrawExecutor[] = {
     {0x94700, "FrameOffsets::kSortedItems"},
@@ -206,10 +206,10 @@ inline constexpr Constant kVisitUI[] = {
     {0x90, "UIMesh description size lower bound (R10, >= 0x90)"},
 };
 inline constexpr Constant kVisitEditor[] = {
-    {0x64, "Editor description +0x64 16-byte block read (movups)"},
-    {0xD0, "Editor description +0xD0 u16 field read (word)"},
-    {0x3C, "Editor description +0x3C byte field compared to 1"},
-    {0x122, "Editor description +0x122 byte field compared to 1"},
+    {0x64, "Editor description +0x64 16-byte movups block read (disp8 0F 10 77 64)"},
+    {0xD0, "Editor description +0xD0 u16 word read (disp32)"},
+    {0x3C, "Editor description +0x3C byte cmp to 1 (disp8 80 7F 3C 01)"},
+    {0x122, "Editor description +0x122 byte cmp to 1 (disp32 80 BF 22 01 00 00 01)"},
 };
 inline constexpr Constant kRendererContextD3D12Submit[] = {
     {0x1778, "submit stack frame size (stack probe)"},
@@ -248,15 +248,41 @@ inline constexpr Function kFunctions[] = {
 };
 #undef BS_RENDER_LAYOUT_FN
 
-// True when `value` appears in [code, code + size) as a little-endian immediate/displacement (4 bytes, or 8 for a 64-bit value).
+// Small field offsets are encoded by the compiler as an 8-bit displacement or immediate, not as a 4-byte constant, so a raw
+// value search cannot see them. Recognise the three instruction shapes the game code uses for such operands:
+//   - SSE load/store with [reg+disp8]        (0F 10..17 / 0F 28..2F / 0F 6F / 0F 7F /r)
+//   - byte group-1 op with [reg+disp8],imm8  (80 /r ib, e.g. cmp byte ptr [rdi+0x3C],1)
+//   - REX.W group-1 op with reg,imm8         (48..4F 83 /r ib, e.g. sub r12,-0x80)
+// The surrounding opcode bytes keep the match specific: a stray byte cannot satisfy a full template.
+inline bool containsSmallOperand(const uint8_t* code, size_t size, uint8_t value) {
+    for (size_t i = 0; i + 3 < size; ++i) {
+        if (code[i] == 0x0F) {
+            const uint8_t op = code[i + 1];
+            const bool sse = (op >= 0x10 && op <= 0x17) || (op >= 0x28 && op <= 0x2F) || op == 0x6F || op == 0x7F;
+            if (sse && (code[i + 2] & 0xC0) == 0x40 && (code[i + 2] & 0x07) != 0x04 && code[i + 3] == value)
+                return true;
+        }
+        if (code[i] == 0x80 && (code[i + 1] & 0xC0) == 0x40 && (code[i + 1] & 0x07) != 0x04 && code[i + 2] == value)
+            return true;
+        if (code[i] >= 0x48 && code[i] <= 0x4F && code[i + 1] == 0x83 && (code[i + 2] & 0xC0) == 0xC0 && code[i + 3] == value)
+            return true;
+    }
+    return false;
+}
+
+// True when `value` appears in [code, code + size) as a little-endian immediate/displacement (4 bytes, or 8 for a 64-bit value),
+// or, for a value that fits in a signed byte, as the disp8/imm8 form the compiler emits for small offsets.
 inline bool contains(const uint8_t* code, size_t size, uint64_t value) {
     const size_t width = (value >> 32) ? 8 : 4;
-    if (size < width)
+    if (size >= width) {
+        for (size_t i = 0; i + width <= size; ++i)
+            if (std::memcmp(code + i, &value, width) == 0)
+                return true;
+    }
+    const int64_t signedValue = static_cast<int64_t>(static_cast<int32_t>(value));
+    if (signedValue < -128 || signedValue > 127)
         return false;
-    for (size_t i = 0; i + width <= size; ++i)
-        if (std::memcmp(code + i, &value, width) == 0)
-            return true;
-    return false;
+    return containsSmallOperand(code, size, static_cast<uint8_t>(signedValue));
 }
 
 // K-P9: every slot of a renderer vtable must point into the module's code. `vtable` is the live vtable (read through the renderer object),
