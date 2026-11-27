@@ -1,0 +1,701 @@
+# Dead Ends from oc_U-E*.md
+
+Extracted from 1513 files.
+
+- **docs\progress\oc_U-E1b.md**: 0x67d6d70 +0xE4
+- **docs\progress\oc_U-E1c.md**: 0x6646f7a
+- **docs\progress\oc_U-E1c.md**: 0x664705b
+- **docs\progress\oc_U-E1c.md**: 0x6646cc4
+- **docs\progress\oc_U-E1c.md**: 0x66475BB
+- **docs\progress\oc_U-E1c.md**: 0x6646dc2
+- **docs\progress\oc_U-E2.md**: 0x<rva> <question>
+- **docs\progress\oc_U-EC4a_r1.md**: 0xe9002e0 DragonFrameResources object size and constructor — not in endFrame (passed by ref); ctor search blocked in oc_U-C4a2
+- **docs\progress\oc_U-EC4a_r2.md**: 0xe9002e0 DragonFrameResources object size and constructor — DFR passed by reference (args+0x20 → rdi via `0xe900483  mov rdi,[r15+0x20
+- **docs\progress\oc_U-EC4b.md**: exact name
+- **docs\progress\oc_U-EC4b.md**: exact name
+- **docs\progress\oc_U-EC9.md**: 0xE90047A
+- **docs\progress\oc_U-EC9.md**: 0x12862370
+- **docs\progress\oc_U-ED9c.md**: 0x4c88900 no store to rbx+0x08; writer of desc+0x08 not found
+- **docs\progress\oc_U-ED9c.md**: 0x4c88900 no store to rbx+0x08; writer of desc+0x08 not found
+- **docs\progress\oc_U-Edh.md**: 0x4c8a683 message string text at 0xF52E07A not readable from listing
+- **docs\progress\oc_U-Edh.md**: 0x4c892a1 gameplay meaning of floats [rdx+0x64C
+- **docs\progress\oc_U-EG2.md**: 0xe86ff10 object identity — caller of 0xe87a470; flag node +0x40/+0x48 span role (allowed-value list for one axis) inferred from flow, not string-named
+- **docs\progress\oc_U-EG2.md**: define value object layout at 0xe87a160 — hashed bytes are [rsi+rcx
+- **docs\progress\oc_U-EG2_r1.md**: where the extractor sets per-axis flag values (Instancing/Fancy ordinals) before calling 0x675e440 — not seen in 0x66ea3d0/0x6646980 call sites
+- **docs\progress\oc_U-EG2_r1.md**: whether the material node returned by 0x675e440 carries the selected variant/program index, or a separate variant table is consulted
+- **docs\progress\oc_U-EG2_r2.md**: 0xe879eb0 which bytes of the pass object (including any flags field) are hashed into the permutation key
+- **docs\progress\oc_U-EG2_r2.md**: where instance active flags (defines map / MaterialInstance+0x2A8) select among a pass's multiple variants at runtime
+- **docs\progress\oc_U-EG2_r3.md**: 0xe879eb0 which bytes of the pass object (including any flags field) are hashed into the permutation key
+- **docs\progress\oc_U-EG2_r3.md**: where instance active flags (defines map / MaterialInstance+0x2A8) select among a pass's multiple variants at runtime
+- **docs\progress\oc_U-EG2_r5.md**: 0xe86ff10 object identity — caller of 0xe87a470; flag node +0x40/+0x48 span role (allowed-value list for one axis) inferred from flow, not string-named
+- **docs\progress\oc_U-EG2_r5.md**: define value object layout at 0xe87a160 — hashed bytes are [rsi+0x10
+- **docs\progress\oc_U-EG6_r1.md**: 0x6646eab rcx at call site — disassembly shows rcx=[frameCtx+0x68
+- **docs\progress\oc_U-EL10c_r23.md**: 0x888951 what object type does [rbp+0x58
+- **docs\progress\oc_U-EL10c_r25.md**: 0x888951 [rbp+0x58
+- **docs\progress\oc_U-EL12a.md**: 0x66d313d rax at `mov rax,[rax+0xC8
+- **docs\progress\oc_U-EL12a.md**: bodyActor 0x66D589E..0x66D7D8B tail not decoded (0x66d589e disassembles as bad); no further anchor sites expected there
+- **docs\progress\oc_U-EL12d.md**: 0x11288ca rdx=[r13+0x10
+- **docs\progress\oc_U-EL12d.md**: 0x539e3b0 — caller of 0x11276b0; its enclosing function/identity not identified (0 xrefs in to sub_539e3b0)
+- **docs\progress\oc_U-EL15d_r1.md**: 0xe8403d0 rdx+0x30 field access not seen in available listing
+- **docs\progress\oc_U-EL2g.md**: 0xe81b720 call sites
+- **docs\progress\oc_U-EL3p.md**: 0xE90047A
+- **docs\progress\oc_U-EL5b.md**: 0x6649c19
+- **docs\progress\oc_U-EL5b_r1.md**: 0x66477d8
+- **docs\progress\oc_U-EL5b_r2.md**: 0xBCABC91+
+- **docs\progress\oc_U-EL8b_r49.md**: 0x7FF6A8215838 which module owns it — not identifiable from this exe
+- **docs\progress\oc_U-EM1b.md**: 0xaddr the 35 M1e VV/RTX pass-lambda RVAs are not on disk
+- **docs\progress\oc_U-EM1c_r1.md**: 0xbc660a0 which emitted post-command opcode triggers which resource-table drain on the render side
+- **docs\progress\oc_U-EM1e_r19.md**: 0x55f1450 exact call site to 0xbc9ada0 per frame
+- **docs\progress\oc_U-EM2c_r10.md**: 0x11884a0/0x11886f0 what are the 20 member offsets/types for CloudLightingParameters?
+- **docs\progress\oc_U-EM2c_r10.md**: 0xf6419fd where is CloudParameters constructed/deserialized and what are its fields?
+- **docs\progress\oc_U-EM2c_r10.md**: 0x1154800 where is ShadowParameters constructed and what are its field offsets/types?
+- **docs\progress\oc_U-EM2c_r10.md**: sub_53fcac0+0x1c60 what struct offset does shadow_range get stored at?
+- **docs\progress\oc_U-EM2c_r11.md**: 0x11884a0/0x11886f0 what are the 20 member name/offset/typecode triples for CloudLightingParameters?
+- **docs\progress\oc_U-EM2c_r11.md**: 0xf6419fd where is CloudParameters constructed/deserialized and what are its fields?
+- **docs\progress\oc_U-EM2c_r11.md**: 0x1154800 where is ShadowParameters constructed and what are its field offsets/types?
+- **docs\progress\oc_U-EM2c_r11.md**: sub_53fcac0+0x1660 what struct offset does shadow_range get stored at, if any?
+- **docs\progress\oc_U-EM2c_r16.md**: 0xaddr question
+- **docs\progress\oc_U-EM2c_r16.md**: 0x11884a0/0x11886f0 what are the 20 CloudLightingParameters member name/offset/type triples, and where (runtime) are the name strings supplied?
+- **docs\progress\oc_U-EM2c_r16.md**: 0xF6419FD where is CloudParameters constructed/registered, what is its sizeof/member-count, and what are its fields?
+- **docs\progress\oc_U-EM2c_r16.md**: 0x1154800 where is ShadowParameters sizeof/member-count stored, and what are its fields?
+- **docs\progress\oc_U-EM2c_r17.md**: 0xaddr question
+- **docs\progress\oc_U-EM2c_r17.md**: 0x11884a0/0x11886f0 what are the 20 CloudLightingParameters member name/offset/type triples, and where (runtime) are the name strings supplied?
+- **docs\progress\oc_U-EM2c_r17.md**: 0xF6419FD where is CloudParameters constructed/registered, what is its sizeof/member-count, and what are its fields?
+- **docs\progress\oc_U-EM2c_r17.md**: 0x1154800 where is ShadowParameters sizeof/member-count stored, and what are its fields?
+- **docs\progress\oc_U-EM2c_r19.md**: 0xaddr question
+- **docs\progress\oc_U-EM2c_r21.md**: 0xaddr question
+- **docs\progress\oc_U-EM2c_r22.md**: 0xaddr question
+- **docs\progress\oc_U-EM2c_r28.md**: 0xF6419D3 CloudParameters type-init RVA not located; RTTI immediate-LEA absent from .text
+- **docs\progress\oc_U-EM2c_r28.md**: 0xF64102B ShadowParameters type-init RVA not located; RTTI immediate-LEA absent from .text
+- **docs\progress\oc_U-EM3c_r3.md**: 0xE90052C
+- **docs\progress\oc_U-EM3c_r3.md**: 0xE90031F
+- **docs\progress\oc_U-EN1b_r1.md**: 0xe82cde4 what is rbx+0xC0; header+0x4C -> rec+0x60 reader not found
+- **docs\progress\oc_U-EN2b.md**: 0xaddr question
+- **docs\progress\oc_U-EQ5b.md**: 0xE90052C
+- **docs\progress\oc_U-EQ5b.md**: 0xE90031F
+- **docs\progress\oc_U-EQ5b_r1.md**: 0xE90052C
+- **docs\progress\oc_U-EQ5b_r1.md**: 0xE90031F
+- **docs\progress\oc_U-EQ5c_r3.md**: 0xe8224b0 context/executorState/state provenance from CustomItemCtx
+- **docs\progress\oc_U-EQ5c_r4.md**: 0xe8224b0 context/executorState/state provenance from CustomItemCtx
+- **docs\progress\oc_U-ER10.md**: 0x6666c55 width of desc+0x38 field
+- **docs\progress\oc_U-ER10.md**: 0x6666c55 width of desc+0x38 field — lea only
+- **docs\progress\oc_U-ER14_r3.md**: 0xbc660a0 which emitted post-command opcode (0x1F/0x1E/0x1A/0x21/0x22) triggers which resource-table drain on the render side
+- **docs\progress\oc_U-ER5_r19.md**: 0x4c88900 settings-object field names — writer of the runtime object's fields not located
+- **docs\progress\oc_U-ER5_r61.md**: 0x4c88900 does producer settings object r12 == live EditorHighlightConfiguration instance 0x31D31F42A00?
+- **docs\progress\oc_U-ER5_r62.md**: 0x4c88900 does producer settings object r12 == live EditorHighlightConfiguration instance 0x31D31F42A00?
+- **docs\progress\oc_U-ER5_r87.md**: 0x4DFB570 record([rbp+0x57C
+- **docs\progress\oc_U-ER5_r87.md**: 0x4c88900 producer: settings object r12 fields +0x74/+0x84/+0x8C/+0x90 have no semantic name in any instruction or string — which settings member each EditorHighlight field comes from is unknown.
+- **docs\progress\oc_U-ER6_r37.md**: 0x66286f9 is rbx the pass object and is 0x6622840 a light-vector drain?
+- **docs\progress\oc_U-ER6_r38.md**: 0x66286f9 is rbx the pass object and is 0x6622840 a light-vector drain?
+- **docs\progress\oc_U-EX0a_r1.md**: 0xaddr pass-class/Declarator vtable RVAs not located — not a call site, passes resolved via std::function
+- **docs\progress\oc_U-EX0b1.md**: UNRESOLVED CALL: S
+- **docs\progress\oc_U-EX0b2.md**: 0x<rva> class unknown from prologue alone; need callee/string/xref evidence
+- **docs\progress\oc_U-EX0b3.md**: UNRESOLVED CALL: S
+- **docs\progress\oc_U-EX0b3_r1.md**: UNRESOLVED CALL: ees or are non-render utilities (vector-math bounds check "invalid vector subscript", byte-size formatter "BkMGTPEZY"); class not provable.
+- **docs\progress\oc_U-EX1.bc2bca0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc2be20.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc2be20_r1.md**: 0xF440D90+0xC jump-table entry 3 target
+- **docs\progress\oc_U-EX1.bc2be20_r1.md**: UNRESOLVED CALL: . Per the GOAL the unit stops here; no wrapper invented, no source/header written.
+- **docs\progress\oc_U-EX1.bc2be20_r1.md**: UNRESOLVED CALL: - 0xE869FF0 — caller instruction `0xbc2bf2b  call 0xE869FF0` (rcx=&dst+0x98, rdx=&src+0x98 [V: 0xbc2bf19/0xbc2bf20]). Callee `sub_e869ff0` at 0xE869FF0 is a field-copy function (370 xrefs in). Absent from the CALLEES list (empty); present in docs/data/native_boundary.tsv but classified `lift` (not boundary) → not a boundary wrapper target → UNRESOLVED CALL for this unit.
+- **docs\progress\oc_U-EX1.bc2be20_r1.md**: UNRESOLVED CALL: for this unit.
+- **docs\progress\oc_U-EX1.bc2be20_r1.md**: UNRESOLVED CALL: ees before any source may be written)
+- **docs\progress\oc_U-EX1.bc2be20_r1.md**: UNRESOLVED CALL: ; wrapper creation is forbidden, so the lift cannot be completed
+- **docs\progress\oc_U-EX1.bc2e890.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc2e890_r1.md**: UNRESOLVED CALL: 0xbc2e99b  call 0xE869FF0  -- target 0xE869FF0 (sub_e869ff0, [0xE869FF0..0xE86A0C1], size 0xD1, 370 xrefs [V: rdis fn]): descriptor move dest+0x98 <- src+0x98 with source clears, returns dest; callee is outside the lift set and absent from docs/data/native_boundary.tsv [V: grep, no matches].
+- **docs\progress\oc_U-EX1.bc2e890_r1.md**: UNRESOLVED CALL: s are not executed by the lifted body, so the lift is not semantically complete as L1.
+- **docs\progress\oc_U-EX1.bc2e890_r1.md**: UNRESOLVED CALL: calls at 0xbc2e99b (target 0xE869FF0) and 0xbc2e9cc (target 0x5669770) are outside the lift set and absent from docs/data/native_boundary.tsv, so no wrapper may be written and the unit cannot close as L1 (single blocking fact).
+- **docs\progress\oc_U-EX1.bc2f1d0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc2f1d0_r1.md**: UNRESOLVED CALL: Two call targets of sub_bc2f1d0 are neither in the lift set (0 callees in set) nor listed in docs/data/native_boundary.tsv:
+- **docs\progress\oc_U-EX1.bc2f1d0_r1.md**: UNRESOLVED CALL: and no wrapper was invented; the lifted source declares them as the game's own functions (docs/functions/bc2f1d0.md ## Callees, sub_bc2f1d0.cpp extern declarations).
+- **docs\progress\oc_U-EX1.bc2f1d0_r1.md**: UNRESOLVED CALL: calls at 0xbc2f2db -> 0xe869ff0 and 0xbc2f30c -> 0x5669770 have targets in neither the lift set nor docs/data/native_boundary.tsv (liftcheck itself prints LIFTCHECK OK 0xbc2f1d0).
+- **docs\progress\oc_U-EX1.bc301c0.c00.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc301c0.c00_r1.md**: UNRESOLVED CALL: 0x79560 at 0xbc302a5 (call 0x79560) - not in lift set, not in boundary file
+- **docs\progress\oc_U-EX1.bc301c0.c00_r1.md**: UNRESOLVED CALL: s found (0x79560, 0xE93B480, 0xEEC6DE0)
+- **docs\progress\oc_U-EX1.bc301c0.c01.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc301c0.c01_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc301c0.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc324a0.c00.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc324a0.c00_r1.md**: UNRESOLVED CALL: none (0x79560, 0xA78940, indirect via 0xF99FFA0 documented)
+- **docs\progress\oc_U-EX1.bc324a0.c01.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc324a0.c01_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc324a0.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc385e0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc3c6b0.md**: UNRESOLVED CALL: - 0xe935700 (sub_e935700): `call 0xE935700` at 0xbc3c6f8 and 0xbc3c741. sub_e935700 is a thunk (`jmp sub_392960` @0xe935700). Neither sub_e935700 nor sub_392960 appears in docs/data/native_functions.tsv or docs/data/native_boundary.tsv. Declared as `extern "C" void sub_e935700(uint64_t, uint64_t, void*, void*)` matching register usage; no wrapper invented.
+- **docs\progress\oc_U-EX1.bc40a30.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc431b0.md**: UNRESOLVED CALL: = none; CLOSES? YES
+- **docs\progress\oc_U-EX1.bc431b0.md**: UNRESOLVED CALL: = none.
+- **docs\progress\oc_U-EX1.bc431b0.md**: UNRESOLVED CALL: none — every call target in the function is either a callee-list/boundary function (0x75720, 0x9BC830, both in docs/data/native_boundary.tsv) or a spec §5 library intrinsic replacement ([0xF99FFA0]=sub_eea6040 -> std::malloc, 0xEEC6EC0 -> std::memcpy); no call target is outside both sets.
+- **docs\progress\oc_U-EX1.bc44b40.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc45130.md**: UNRESOLVED CALL: = none.
+- **docs\progress\oc_U-EX1.bc45130.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc45c40.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc55ea0.md**: UNRESOLVED CALL: none — every `call` target is the indirect-call gadget 0xF99FFA0 dispatching to the referenced object's own vtable (destroy/dealloc); no external/static callee, no boundary wrapper needed, no UNRESOLVED CALL.
+- **docs\progress\oc_U-EX1.bc55fb0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc56190.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc56190_r1.md**: UNRESOLVED CALL: 0xE935700 at 0xbc56577: `0xbc56577  call 0xE935700` — direct call target neither in the lift set (callees_in_set empty per unit data) nor in docs/data/native_boundary.tsv. Checked docs/data/native_functions.tsv, native_boundary.tsv, function_classes.tsv, native_deps.tsv, native_roots.txt, native_unresolved_indirect.tsv: no entry. Not emitted in lifted code (no wrapper per unit rules); quoted verbatim in source for coverage.
+- **docs\progress\oc_U-EX1.bc56190_r1.md**: UNRESOLVED CALL: 0xE935700 at 0xbc56577 (direct call 0xE935700: target neither lifted nor boundary); import-slot call qword ptr [0xF9A8C78] at 0xbc56600 likewise outside both tables
+- **docs\progress\oc_U-EX1.bc56610.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc567c0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc57460.c00.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc57460.c00_r1.md**: UNRESOLVED CALL: none new (calls in range: 0xeeC73F0, 0xBC09250, 0x567C8B0, 0xAB49C0 — all in lift set per dossier)
+- **docs\progress\oc_U-EX1.bc57460.c01.md**: UNRESOLVED CALL: CLOSES? NO
+- **docs\progress\oc_U-EX1.bc57460.c01_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc57460.c01_r2.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc57460.c02.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc57460.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc5b130.md**: UNRESOLVED CALL: s (0xEEC75A0 and [0xF9A8ED0] are outside the lift set and native_boundary.tsv). Resume classification of those callees to reach CLOSES? YES.
+- **docs\progress\oc_U-EX1.bc5b130.md**: UNRESOLVED CALL: 0xEEC75A0 - IAT thunk: `0xeec75a0 jmp qword ptr [0xF9A8E60]` (rdis fn, size 0x6e). Called via `0xbc5b2d1  call 0xEEC75A0`, `0xbc5b312  call 0xEEC75A0`, `0xbc5b354  call 0xEEC75A0`, `0xbc5b39e  call 0xEEC75A0`, `0xbc5b42b  call 0xEEC75A0`, `0xbc5b4a3  call 0xEEC75A0`, `0xbc5b532  call 0xEEC75A0` [V]. Not in native_functions.tsv and not in native_boundary.tsv.
+- **docs\progress\oc_U-EX1.bc5b130.md**: UNRESOLVED CALL: 0xEEC75A0 and [0xF9A8ED0] are outside the lift set and native_boundary.tsv, so they cannot be wrapped or called from lifted code; the unit cannot reach CLOSES? YES until those callees are classified.
+- **docs\progress\oc_U-EX1.bc5b720.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc5e120.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc5e400.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc5e400_r1.md**: UNRESOLVED CALL: (s) (see below).
+- **docs\progress\oc_U-EX1.bc5e400_r1.md**: UNRESOLVED CALL: .
+- **docs\progress\oc_U-EX1.bc5e400_r1.md**: UNRESOLVED CALL: - 0xbc5e4a5  call qword ptr [0xF99FFA0] (same target at 0xbc5e4d6, 0xbc5e643, 0xbc5e65a): import slot [data_f99ffa0]; the statically visible target is thunk sub_eea6040 at 0xEEA6040 (`jmp qword ptr [0xF99FFA0]`), i.e. a loader-resolved IAT slot with no static code target; not in docs/data/native_functions.tsv or docs/data/native_boundary.tsv.
+- **docs\progress\oc_U-EX1.bc5e400_r1.md**: UNRESOLVED CALL: the calls via import slot [0xF99FFA0] (sub_eea6040 thunk, loader-resolved), the direct call 0xE935700 (forwarder to 0x392960), and [0xF9A8C78] (holds 0xF9B055E, not a known function) resolve to no entry in docs/data/native_functions.tsv or docs/data/native_boundary.tsv, so no native::boundary wrapper exists for them and none may be invented.
+- **docs\progress\oc_U-EX1.bc5f7b0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc5f7b0_r1.md**: UNRESOLVED CALL: s; CLOSES? NO.
+- **docs\progress\oc_U-EX1.bc5f7b0_r1.md**: UNRESOLVED CALL: (not in CALLEES list {0xbc76380}; docs/data/native_boundary.tsv missing)
+- **docs\progress\oc_U-EX1.bc5f7b0_r1.md**: UNRESOLVED CALL: (same)
+- **docs\progress\oc_U-EX1.bc5f7b0_r1.md**: UNRESOLVED CALL: (same)
+- **docs\progress\oc_U-EX1.bc5f7b0_r1.md**: UNRESOLVED CALL: (callees_outside_set per data file; no boundary wrapper; cookie-fail path, int3 follows)
+- **docs\progress\oc_U-EX1.bc5f7b0_r1.md**: UNRESOLVED CALL: s: unknowable statically.
+- **docs\progress\oc_U-EX1.bc5f7b0_r1.md**: UNRESOLVED CALL: - 0xEBCE5E0 at `0xbc5f80b  call 0xEBCE5E0` (rcx=0xF59FECD, edx=0x7FFFFFFF, eax tested) and at `0xbc5f832  call 0xEBCE5E0` (rcx=rdi=*a0+1, edx=0x7FFFFFFF, eax tested). Target not in CALLEES list (only 0xbc76380); docs/data/native_boundary.tsv does not exist; no wrapper invented.
+- **docs\progress\oc_U-EX1.bc5f7b0_r1.md**: UNRESOLVED CALL: `0xbc5f80b  call 0xEBCE5E0` (also `0xbc5f832  call 0xEBCE5E0`, `0xbc5f854  call 0xEBCE570`, `0xbc5f8c8  call 0xE951550`); none of 0xEBCE5E0/0xEBCE570/0xE951550 are in the CALLEES list (only 0xbc76380) and docs/data/native_boundary.tsv does not exist, so no sanctioned call target exists and the lift cannot be completed.
+- **docs\progress\oc_U-EX1.bc5fce0.md**: UNRESOLVED CALL: Three calls in 0xbc5fce0 have targets outside the CALLEES set (empty) and outside docs/data/native_boundary.tsv; they are documented here and expressed faithfully (no wrapper invented):
+- **docs\progress\oc_U-EX1.bc60100.md**: UNRESOLVED CALL: none: calls are sub_ebce5e0 x16 and sub_ebce570 x15 (lift-set, class lift, native_boundary.tsv auto-unresolved->lift) called as plain C++ via native header declarations, and sub_e951550 x1 (boundary, class crt, native_boundary.tsv line 467, /GS cookie failure).
+- **docs\progress\oc_U-EX1.bc60740.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc60740_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc60740_r2.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc60740_r3.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc60d10.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc60f10.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc61140.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc61560.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc618e0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc61e20.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc66c50.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc66de0.c00.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc66de0.c01.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc66de0.c01_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc66de0.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc68840.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc68e40.c01.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc68e40.c01_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc68e40.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc6a9d0.md**: UNRESOLVED CALL: none: 0xEBCE390 and 0xEEC6DE0 are compiler library intrinsics (memcpy/memmove), 0x74C9C0 is a boundary callee (class stl, docs/data/native_boundary.tsv line 129) called via native::sub_74c9c0, and the two [0xF99FFA0] calls are tail calls through the jmp-rax trampoline sub_eea6040 to the renderer interface virtuals updateUniform (slot 46) and setMarker (slot 47). No callee is outside the lift set, boundary, or intrinsic set.
+- **docs\progress\oc_U-EX1.bc6abd0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc6abd0_r1.md**: UNRESOLVED CALL: none (all callees are boundary or lift-set; not lifted due to scope)
+- **docs\progress\oc_U-EX1.bc6aeb0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc6af50.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc6e1e0.md**: UNRESOLVED CALL: 0xbc6e27a  call qword ptr [0xF99FFA0] — target = *(uintptr_t*)0x14F99FFA0 = sub_eea6040 per rdis annotation; sub_eea6040 is in neither docs/data/native_functions.tsv nor docs/data/native_boundary.tsv; called through the slot read at call time (rule 69), argument order (allocator, entryPtr, newCapacity|8, 0, 0, 0).
+- **docs\progress\oc_U-EX1.bc6e360.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc6e360_r1.md**: UNRESOLVED CALL: .
+- **docs\progress\oc_U-EX1.bc6e360_r1.md**: UNRESOLVED CALL: 0xEEC6ED0 @ 0xbc6e3d5 — `0xbc6e3d5  call 0xEEC6ED0` (args r14 = alloc result, 0, 0x410; return unused). sub_eec6ed0 is in neither docs/data/native_functions.tsv nor docs/data/native_boundary.tsv, so per the hard rules the call is emitted as a raw address call; no wrapper invented, no stub.
+- **docs\progress\oc_U-EX1.bc6e550.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc6e550_r1.md**: UNRESOLVED CALL: 0xbc6e5b1  call qword ptr [0xF99FFA0] — target = pointer held at data slot 0xF99FFA0 (rdis symbol sub_eea6040, 0xeea6040; rcx = *(0x12ADF800), rdx = 0, r8 = 0x418, r9 = 0); not a lift row in docs/data/native_functions.tsv and not a row in docs/data/native_boundary.tsv
+- **docs\progress\oc_U-EX1.bc6ee00.md**: UNRESOLVED CALL: .
+- **docs\progress\oc_U-EX1.bc6ee00.md**: UNRESOLVED CALL: none — all three callees class `lift` (boundary tsv 510-512), forwarded in `namespace native` per hard rule 66.
+- **docs\progress\oc_U-EX1.bc6ee00.md**: UNRESOLVED CALL: s, no wrapper, no Sigs.json/CMake/hooks changes, no builds. FINAL CONFIRMATION: no remaining steps; unit closed.
+- **docs\progress\oc_U-EX1.bc6ee00_r1.md**: UNRESOLVED CALL: blockers per the GOAL — no wrapper invented, CLOSES? NO.
+- **docs\progress\oc_U-EX1.bc6ee00_r1.md**: UNRESOLVED CALL: - 0xEBDBF10 sub_ebdbf10 — caller instruction: `0xbc6ee27  call 0xEBDBF10` (preceded by 0xbc6ee24  mov rcx,rdi; rcx = a0 + 0x1C0; return value in rax unused). Seen verbatim in the disassembly at 0xbc6ee27. Absent from docs/data/native_functions.tsv, docs/data/native_boundary.tsv, docs/data/function_classes.tsv and Sigs.json → no sanctioned call mechanism (no native symbol, no boundary wrapper, not lift-classified).
+- **docs\progress\oc_U-EX1.bc6ee00_r1.md**: UNRESOLVED CALL: calls to 0xEBDBF10 (0xbc6ee27), 0xEEC6EC0 (0xbc6ee43) and 0xEBDBF20 (0xbc6ef0e) have targets in neither docs/data/native_functions.tsv nor docs/data/native_boundary.tsv (also absent from Sigs.json and function_classes.tsv), so they cannot be called from lifted code through a native symbol or a boundary wrapper and no wrapper may be invented; the lift is statically complete except for these 3 calls.
+- **docs\progress\oc_U-EX1.bc6f2a0.md**: UNRESOLVED CALL: none — all three callees are classified lift in docs/data/native_boundary.tsv (lines 509-511: 0xebce390, 0xebdbf10, 0xebdbf20), forward-declared and called directly per the hard rule for lift callees.
+- **docs\progress\oc_U-EX1.bc6f2a0_r1.md**: UNRESOLVED CALL: 0xebdbf10 — called at 0xbc6f2c8 `0xbc6f2c8  call 0xEBDBF10` (lock; argument is the address of the ctx+0x1C0 lock field): not in native_functions.tsv, not in native_boundary.tsv.
+- **docs\progress\oc_U-EX1.bc6f2a0_r1.md**: UNRESOLVED CALL: 0xebdbf10, 0xebce390, 0xebdbf20 (called at 0xbc6f2c8 / 0xbc6f310+0xbc6f33c / 0xbc6f34d) are in neither native_functions.tsv nor native_boundary.tsv, so the calls cannot be bound from lifted code and no wrapper may be invented.
+- **docs\progress\oc_U-EX1.bc6f800.md**: UNRESOLVED CALL: s.
+- **docs\progress\oc_U-EX1.bc6f800.md**: UNRESOLVED CALL: s)
+- **docs\progress\oc_U-EX1.bc6f800.md**: UNRESOLVED CALL: none — all four calls (0xbc6f828 sub_ebdbf10 lock, 0xbc6f870/0xbc6f89c sub_ebce390 cmdPost append, 0xbc6f8ad sub_ebdbf20 unlock) target lift-classified callees registered in docs/data/native_boundary.tsv, forward-declared as native::sub_<rva> with signatures from the call sites and called directly.
+- **docs\progress\oc_U-EX1.bc6f800_r1.md**: UNRESOLVED CALL: 0xebdbf10 — called at 0xbc6f828 `0xbc6f828  call 0xEBDBF10` (lock; argument is the address of the ctx+0x1C0 lock field): target is `jmp qword ptr [0xF9A7B10]`; not in native_functions.tsv, not in native_boundary.tsv.
+- **docs\progress\oc_U-EX1.bc6f800_r1.md**: UNRESOLVED CALL: 0xebdbf10, 0xebce390, 0xebdbf20 (called at 0xbc6f828 / 0xbc6f870+0xbc6f89c / 0xbc6f8ad) are in neither native_functions.tsv nor native_boundary.tsv, so the calls cannot be bound from lifted code and no wrapper may be invented.
+- **docs\progress\oc_U-EX1.bc70ca0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc70ca0.md**: UNRESOLVED CALL: s. Body pops one u16 handle from the allocator (count+0x1DF7488, max+0x1DF748A, dense+0x1DF748C with reverse map at values[max+val]), stores a 3-field stride-0x28 record at records[val] (fields +0x00=arg3/r9d, +0x04=arg2/r8d, +0x08=1), advances u64 accumulator at +0x1EBF1E8 by (uint32)(arg3*arg2), emits the packet tag 0x0F/u16/u32/u32/u16(5th stack argument) with the original's cursor alignment steps ((c0&~1)+2, +5&~3, +7&~3, +5&~1, +2), writes *out = val (0xFFFF on either failure branch), unlocks, returns out. Every instruction of [0xbc70ca0, 0xbc70e50) is inside a cited // 0xA..0xB range; every call is quoted verbatim (plain comment + backtick form) and matches rdis via verify_oc. liftcheck printed LIFTCHECK OK 0xbc70ca0 with zero failures.
+- **docs\progress\oc_U-EX1.bc70ea0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc70ff0.md**: UNRESOLVED CALL: none — all 6 calls target lift-classified functions (0xEBDBF10 sub_ebdbf10, 0xEBCE390 x4 sub_ebce390, 0xEBDBF20 sub_ebdbf20), forward-declared in sub_bc70ff0.h per hard rule 66 (native_functions.tsv depth-0 root rows; native_boundary.tsv `lift`/`auto-unresolved->lift`).
+- **docs\progress\oc_U-EX1.bc71da0.md**: UNRESOLVED CALL: s.
+- **docs\progress\oc_U-EX1.bc71da0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc72c80.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc73000.md**: UNRESOLVED CALL: none (all 7 call targets are lifted-set callees: sub_ebdbf10, sub_bc79790, sub_ebdbf20, sub_ebce390 x4)
+- **docs\progress\oc_U-EX1.bc732e0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc735b0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc75b20.md**: UNRESOLVED CALL: none — all 4 callees (ebdbf10, ebce5e0, ebce650, ebdbf20) are class lift in native_boundary.tsv, called through native symbols
+- **docs\progress\oc_U-EX1.bc75c30.md**: UNRESOLVED CALL: .
+- **docs\progress\oc_U-EX1.bc75c30.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc76330.md**: UNRESOLVED CALL: s"; static_assert missing from the .cpp); both fixed; run 2 printed LIFTCHECK OK 0xbc76330.
+- **docs\progress\oc_U-EX1.bc76330.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc76380.md**: UNRESOLVED CALL: 0xbc76448  call qword ptr [0xF9A90C8] (rcx = &rsp+0x34 dest buffer): reads the qword at data_f9a90c8; the stored raw value is RVA 0xF9B0AE2, which is UTF-16 string data ("Pati"), not code, so the call target is not statically resolvable to a lifted function or a boundary wrapper. Not in the lift set (0 callees in set), docs/data/native_boundary.tsv does not exist. Documented honestly per the LIFT brief; no wrapper invented. The lifted code reads the slot at runtime via RewriteRegistry::imageBase() + 0xF9A90C8 and calls it, exactly as the original does (same read, same call, same return use).
+- **docs\progress\oc_U-EX1.bc76610.md**: UNRESOLVED CALL: .
+- **docs\progress\oc_U-EX1.bc76610.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc769c0.md**: UNRESOLVED CALL: none — all 4 calls are `call r10` through the CFG thunk [0xF99FFA0] (data_f99ffa0 = sub_eea6040, class vendor in docs/data/native_boundary.tsv); the real target of each call is rax = (*g)->+0x8 = g->vtable[1] with g = *data_12adf800, rcx = g forwarded as `this` (0xbc76a3c, 0xbc76a95 with r8=0x48, 0xbc76b6d, 0xbc76be0), lifted as direct indirect calls through g->vtable[1] with identical reads and argument order. No callee is outside the lift set/boundary.
+- **docs\progress\oc_U-EX1.bc76e80.md**: UNRESOLVED CALL: none: all 3 calls target sub_eea6040 via data slot 0xF99FFA0, class vendor boundary in docs/data/native_boundary.tsv row 506
+- **docs\progress\oc_U-EX1.bc771f0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc79790.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc79a60.md**: UNRESOLVED CALL: s.
+- **docs\progress\oc_U-EX1.bc79a60.md**: UNRESOLVED CALL: none — every call target is either a library intrinsic (0xEEC6ED0 = CRT memset, std::memset) or a data-slot indirect call ([0xF99FFA0] = sub_eea6040 vendor thunk via allocator vtable slot 1), both documented; no callees in the lift set.
+- **docs\progress\oc_U-EX1.bc7a3d0.md**: UNRESOLVED CALL: = none.
+- **docs\progress\oc_U-EX1.bc7a3d0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc7a7c0.md**: UNRESOLVED CALL: = none (see below).
+- **docs\progress\oc_U-EX1.bc7a7c0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc7a9d0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc7b3a0.md**: UNRESOLVED CALL: none — 0xEEC75A0 and 0xEEC73F0 are class lift in docs/data/native_boundary.tsv (lines 514/513) and docs/data/native_functions.tsv (lines 1638/1637, size 6 each), called as native::sub_eec75a0 / native::sub_eec73f0 forward-declared in the header (hard rule 66); 0x78ed0 is class crt in native_boundary.tsv line 11, entered from the trap block via the slot read at 0xF9A8CF0 (hard rule 69); no call target is outside both tables.
+- **docs\progress\oc_U-EX1.bc7b3a0_r1.md**: UNRESOLVED CALL: 0xEEC75A0 — IAT thunk `jmp qword ptr [0xF9A8E60]`; `call 0xEEC75A0` at 0xbc7b41c, 0xbc7b4fb, 0xbc7b5d7 (per-channel index r0 inputs); absent from docs/data/native_functions.tsv and docs/data/native_boundary.tsv [V].
+- **docs\progress\oc_U-EX1.bc7b7d0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc7c4e0.md**: UNRESOLVED CALL: none — both call targets resolved: sub_bc55ea0 (lift set) and sub_eea6040 via data slot 0xF99FFA0 (vendor boundary table row)
+- **docs\progress\oc_U-EX1.bc7dc90.md**: UNRESOLVED CALL: = none.
+- **docs\progress\oc_U-EX1.bc7dc90.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc7f6e0.c00.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc7f6e0.c01.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc7f6e0.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc82ad0.c00.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc82ad0.c01.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc82ad0.c02.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc82ad0.c02_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc82ad0.c03.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc82ad0.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc8a380.c00.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc8a380.c00_r1.md**: UNRESOLVED CALL: none (all calls in range classified as lift or boundary per native_boundary.tsv)
+- **docs\progress\oc_U-EX1.bc8a380.c01.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc8a380.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc8c720.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc8c890.md**: UNRESOLVED CALL: none (the only call, 0xbc8c959 `call 0x5669770`, targets a lift-class function in native_functions.tsv; forward-declared in the header, called through its native symbol)
+- **docs\progress\oc_U-EX1.bc8eb90.c00.md**: UNRESOLVED CALL: none (not analyzed)
+- **docs\progress\oc_U-EX1.bc8eb90.c01.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc8eb90.c01_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc8eb90.c01_r2.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc8eb90.c02.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc8eb90.c03.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc8eb90.c03_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc8eb90.c03_r2.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc8eb90.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc95db0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc962c0.md**: UNRESOLVED CALL: none — sub_e935700 is a lift-set callee (forward-declared, native symbol); the three `call qword ptr [0xF99FFA0]` and the `call qword ptr [0xF9A8C78]` are indirect calls through documented data slots read at call time (slots 0xF99FFA0 / 0xF9A8C78), per the indirect-call rule; no callee is outside the lift set / boundary.
+- **docs\progress\oc_U-EX1.bc964d0.md**: UNRESOLVED CALL: s.
+- **docs\progress\oc_U-EX1.bc964d0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc97070.md**: UNRESOLVED CALL: none. All six calls resolved: `call 0xE935700` x2 (lift callee sub_e935700, forward-declared and called directly), `call qword ptr [0xF99FFA0]` x3 (vtable slots 4/0/1 through the jmp-rax thunk, no static target by design), `call qword ptr [0xF9A8C78]` x1 (data-slot function-pointer call, rule 69, documented with slot RVA).
+- **docs\progress\oc_U-EX1.bc98310.c00.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc98310.c00_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc98310.c01.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc98310.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc9d7a0.c00.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc9d7a0.c00_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc9d7a0.c00_r2.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc9d7a0.c01.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc9d7a0.c01_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc9d7a0.c02_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc9d7a0.c03.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc9d7a0.c03_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc9d7a0.c03_r2.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc9d7a0.c04.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc9d7a0.c04_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bc9d7a0.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bca7c80.md**: UNRESOLVED CALL: = none
+- **docs\progress\oc_U-EX1.bca8190.md**: UNRESOLVED CALL: none (data-slot call at 0xbca82be via slot 0xF9A8C78 documented as fatal path, invoked through RewriteRegistry::imageBase() + 0xF9A8C78 with zeroed args; sub_e935700 and sub_eea6040 are lifted/boundary callees).
+- **docs\progress\oc_U-EX1.bca92f0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcaa640.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcab880.md**: UNRESOLVED CALL: = none, CLOSES? YES.
+- **docs\progress\oc_U-EX1.bcab880.md**: UNRESOLVED CALL: none: both calls `0xbcab8b5  call qword ptr [0xF99FFA0]` and `0xbcab8cb  call qword ptr [0xF99FFA0]` target sub_eea6040 (0xeea6040), class vendor boundary listed in docs/data/native_boundary.tsv line 506 ("thunk via data slot 0xF99FFA0 (loader-resolved)"), reached through a slot read at call time; slot verified in the PE to store VA 0x14eea6040 = image base 0x140000000 + 0xeea6040. No callee is outside the lift set and native_boundary.tsv.
+- **docs\progress\oc_U-EX1.bcac8b0.md**: UNRESOLVED CALL: none. The function's only `call` instructions are eight `call qword ptr [0xF99FFA0]` sites (0xbcac92a, 0xbcac94c, 0xbcac9d5, 0xbcac9f7, 0xbcaca56, 0xbcaca78, 0xbcacabb, 0xbcacad5), each resolving to boundary class "vendor" sub_eea6040 via data slot 0xF99FFA0 (docs/data/native_boundary.tsv line 506) and called through `native::Boundary`. There are no direct `call` instructions to other functions. The idx 2 and idx 3 paths tail-jump (`jmp 0xBCACB00`, `jmp 0xBCACC20`) to separate continuation functions bcacb00/bcacc20 outside [0xbcac8b0, 0xbcacaf8); these are forward-declared as `sub_bcacb00`/`sub_bcacc20` in `native` and called per the spec section 6 forward-declare pattern (they are their own lift units; native_deps.tsv X1.bcac8b0 lists zero deps).
+- **docs\progress\oc_U-EX1.bcacd90.c00.md**: UNRESOLVED CALL: 0xE9E7970 (0xbcacda1): crt __chkstk boundary (already boundary, not a blocker).
+- **docs\progress\oc_U-EX1.bcacd90.c00_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcacd90.c01.md**: UNRESOLVED CALL: pending
+- **docs\progress\oc_U-EX1.bcacd90.c01_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcacd90.c01_r2.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcacd90.c01_r3.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcacd90.c01_r4.md**: UNRESOLVED CALL: .
+- **docs\progress\oc_U-EX1.bcacd90.c01_r4.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcacd90.c02.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcacd90.c03.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcacd90.c03_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcacd90.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcb3cf0.c00.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcb3cf0.c01.md**: UNRESOLVED CALL: - 0xEEC6DE0 at 0xbcb5601 and 0xbcb5a01 (not in lift set or boundary.tsv)
+- **docs\progress\oc_U-EX1.bcb3cf0.c01.old.md**: UNRESOLVED CALL: 0xEEC6DE0 at 0xbcb5601 and 0xbcb5a01 (direct call, not in lift set or boundary.tsv)
+- **docs\progress\oc_U-EX1.bcb3cf0.c01.old.md**: UNRESOLVED CALL: 0xEEC6DE0 (direct) and 0xF9A8C78 (data slot) are neither in lift set nor boundary.tsv
+- **docs\progress\oc_U-EX1.bcb3cf0.c01_r1.md**: UNRESOLVED CALL: 0xEEC6DE0 at 0xbcb5601 and 0xbcb5a01 (direct call, not in lift set or boundary.tsv)
+- **docs\progress\oc_U-EX1.bcb3cf0.c01_r1.md**: UNRESOLVED CALL: 0xEEC6DE0 (direct) and 0xF9A8C78 (data slot) are neither in lift set nor boundary.tsv
+- **docs\progress\oc_U-EX1.bcb3cf0.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcbdfa0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcbe100.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcbe410.md**: UNRESOLVED CALL: none (0xEEC5AE0 is classified `lift` in docs/data/native_boundary.tsv; forward-declared and called via native::sub_eec5ae0)
+- **docs\progress\oc_U-EX1.bcbe410_r1.md**: UNRESOLVED CALL: 0xEEC5AE0 (`sub_eec5ae0`), caller instruction `0xbcbe41b  call 0xEEC5AE0` inside [0xbcbe410, 0xbcbe421), with rcx = data slot 0xF571225 ("invalid bitset char", tag [data_f571225] [V]). The target is listed in neither docs/data/native_functions.tsv nor docs/data/native_boundary.tsv (and not in src/sdk/Sigs.json), so it cannot be called from lifted code and no wrapper was invented; the call is quoted verbatim in the source and dossier but not emitted.
+- **docs\progress\oc_U-EX1.bcbe410_r1.md**: UNRESOLVED CALL: 0xEEC5AE0 at 0xbcbe41b (`0xbcbe41b  call 0xEEC5AE0` -> sub_eec5ae0): not in docs/data/native_functions.tsv and not in docs/data/native_boundary.tsv
+- **docs\progress\oc_U-EX1.bcbf110.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcbf110_r1.md**: UNRESOLVED CALL: 0xbcbf271  jmp 0xbcbf640 (tail call to sub_bcbf640); target is neither in the lift set nor docs/data/native_boundary.tsv.
+- **docs\progress\oc_U-EX1.bcbf110_r1.md**: UNRESOLVED CALL: 0xbcbf640 (tail call at 0xbcbf271), not lifted/boundary.
+- **docs\progress\oc_U-EX1.bcbf110_r2.md**: UNRESOLVED CALL: none (sub_eea6040 vendor boundary via data slot 0xF99FFA0; sub_e935700 and sub_bcbf640 are lift-forward-declared)
+- **docs\progress\oc_U-EX1.bcbf640.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcc1910.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcc1ae0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcc1ae0_r1.md**: UNRESOLVED CALL: 0xeec59e0/0xeec59f0/0xeec5a00/0xeec5a10 not in boundary or lift set
+- **docs\progress\oc_U-EX1.bcc1ae0_r1.md**: UNRESOLVED CALL: )
+- **docs\progress\oc_U-EX1.bcc1ae0_r1.md**: UNRESOLVED CALL: 0xeec59e0 (at 0xbcc1bcb), 0xeec59f0 (at 0xbcc1b76), 0xeec5a00 (at 0xbcc1bd0, 0xbcc1be9), 0xeec5a10 (at 0xbcc1ba4) -- none in native_boundary.tsv or native_functions.tsv
+- **docs\progress\oc_U-EX1.bcc1ae0_r1.md**: UNRESOLVED CALL: 0xeec59e0 (and 0xeec59f0/0xeec5a00/0xeec5a10) neither lifted nor boundary
+- **docs\progress\oc_U-EX1.bcc24f0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcc3fa0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcc3fa0_r1.md**: UNRESOLVED CALL: 0xEEC6D80, caller instruction 0xbcc4144  call 0xEEC6D80, target not in CALLEES list nor native_boundary.tsv (direct call inside branch at 0xbcc4124..0xbcc4144)
+- **docs\progress\oc_U-EX1.bcc3fa0_r1.md**: UNRESOLVED CALL: )
+- **docs\progress\oc_U-EX1.bcc7570.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcc7570_r1.md**: UNRESOLVED CALL: s 0xeec5850, 0xf9a8c78)
+- **docs\progress\oc_U-EX1.bcc7570_r1.md**: UNRESOLVED CALL: 0xeec5850 (caller 0xbcc7a8a, 0xbcc7a97; throws "unordered_map/set too long"/"invalid hash bucket count"); 0xf9a8c78 data slot (caller 0xbcc7ab7, int3 terminator). Neither in lift set nor native_boundary.tsv.
+- **docs\progress\oc_U-EX1.bcc7570_r1.md**: UNRESOLVED CALL: s 0xeec5850 and 0xf9a8c78 not in boundary/lift tables
+- **docs\progress\oc_U-EX1.bcc7570_r2.md**: UNRESOLVED CALL: 0xbcc7ab7  call qword ptr [0xF9A8C78] -> indirect via data slot, target unknown at static analysis time
+- **docs\progress\oc_U-EX1.bcc7570_r3.md**: UNRESOLVED CALL: none (0xeec5850 is lift; 0x9bc830 is boundary alloc; 0xf9a8c78 indirect data slot handled per hard rule)
+- **docs\progress\oc_U-EX1.bcc7f20.c00.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcc7f20.c00_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcc7f20.c00_r2.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcc7f20.c00_r3.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcc7f20.c00_r4.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcc7f20.c01.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcc7f20.c01_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcc7f20.c02.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcc7f20.c02_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcc7f20.c03.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcc7f20.c03_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcc7f20.c03_r2.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX1.bcc7f20.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e7fd020.md**: UNRESOLVED CALL: none (sub_ebce390 is lift-classified)
+- **docs\progress\oc_U-EX2.e8041a0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e804590.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e805e50.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e806410.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e806560.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8066c0.md**: UNRESOLVED CALL: s.
+- **docs\progress\oc_U-EX2.e8066c0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e806810.md**: UNRESOLVED CALL: .
+- **docs\progress\oc_U-EX2.e806810.md**: UNRESOLVED CALL: none — all five call targets resolved: 0xe834520 and 0xe834330 are lift-set (forward-declared, called via native symbol); 0xeec6de0 and 0xeec6ec0 are classified `lift` in docs/data/native_boundary.tsv (forward-declared, called via native symbol).
+- **docs\progress\oc_U-EX2.e806960.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8097e0.md**: UNRESOLVED CALL: none.
+- **docs\progress\oc_U-EX2.e809980.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e809cc0.md**: UNRESOLVED CALL: ees.
+- **docs\progress\oc_U-EX2.e809cc0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e809f40.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e809fb0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e80b240.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e80bee0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8141e0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8142c0.md**: UNRESOLVED CALL: none. The only callee is 0xEBCE390 (sub_ebce390), called at 0xe81431e and 0xe814376.
+- **docs\progress\oc_U-EX2.e817790.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e817cf0.md**: UNRESOLVED CALL: - sub_e804590 (0xe804590). Caller instruction: `0xe817e45  jmp 0xE804590` (tail call in sub_e817cf0).
+- **docs\progress\oc_U-EX2.e817e50.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8189c0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e818aa0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e81a0c0.md**: UNRESOLVED CALL: none — all 9 calls are `call qword ptr [0xF99FFA0]`, a loader-resolved CFG thunk (sub_eea6040 = `jmp rax`,
+- **docs\progress\oc_U-EX2.e81b0f0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e81b3b0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e81b4d0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e81d660.md**: UNRESOLVED CALL: none — every call target is either lifted (sub_eec59f0, sub_eec5a00, sub_eec5a10, all classified `lift` in docs/data/native_boundary.tsv + native_functions.tsv) or a vendor boundary (sub_eea6040, `jmp rax` guard thunk via data slot 0xF99FFA0, classified `vendor` in native_boundary.tsv). The 0xe81d791 indirect call is the documented data-slot dispatch: the slot holds sub_eea6040 (`jmp rax`), rax = vtable[0x1A8] (0xe81d781/0xe81d784), so it invokes vtable[0x1A8](a1->[0x30], this->[0x7828], 2, tail*2).
+- **docs\progress\oc_U-EX2.e81d850.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e81e1c0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8230c8.c00.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8230c8.c01.md**: UNRESOLVED CALL: all call targets are in the CALLEES list (lift-classified: sub_ebce390, sub_e82dcc0, sub_e82d960, sub_ebd1560, sub_e820500, sub_e935700, sub_e835b50, sub_eec6ed0, sub_e82de90) or the vendor thunk slot `0xF99FFA0` (loader-resolved to sub_eea6040, class vendor), or the `call r10` indirect (r10 = scratch pointer carried in chunk state). All other instructions (non-call) are cited with `// 0xA..0xB` ranges.
+- **docs\progress\oc_U-EX2.e8230c8.c01.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8230c8.c02.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8230c8.c03.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8230c8.c04.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8230c8.c04_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8230c8.c05.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8230c8.c05_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8230c8.c05_r2.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8230c8.c06.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8230c8.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e82326d.asm.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e82326d.c00.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e82326d.c01_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e82326d.c01_r2.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e82326d.c02.md**: UNRESOLVED CALL: 0xEBCE430 - caller 0xe8262b2, 0xe8262c7, 0xe826ff2, 0xe827007 - not in native_functions.tsv or native_boundary.tsv
+- **docs\progress\oc_U-EX2.e82326d.c02_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e82326d.c03.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e82326d.c04.md**: UNRESOLVED CALL: none yet
+- **docs\progress\oc_U-EX2.e82326d.c05.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e82326d.c06.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e82326d.c06_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e82326d.c07.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e82326d.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824991.c00.md**: UNRESOLVED CALL: pending
+- **docs\progress\oc_U-EX2.e824991.c01.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824991.c01_r1.md**: UNRESOLVED CALL: none - all 30 call targets are either lifted (sub_bc5f110, sub_e835f00, sub_e83aed0, sub_e83abb0, sub_e83ace0, sub_e82dcc0, sub_e82d960, sub_ebd1560, sub_e935700, sub_bc6a9d0, sub_e820500, sub_e82de90, sub_47e8f0, sub_e81e1c0) or boundary (sub_eea6040 vendor via [0xF99FFA0], sub_eec6ed0 CRT, sub_ebce430 CRT memset thunk).
+- **docs\progress\oc_U-EX2.e824991.c02.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824991.c02_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824991.c03_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824991.c03_r2.md**: UNRESOLVED CALL: none (all 68 call targets in range are quoted verbatim; targets are 0x47E8F0, 0xEEC6ED0, 0xEEC6EC0, 0xE8360F0, qword ptr [0xF99FFA0], r10, r11, 0xBC6A9D0, 0xE81E1C0)
+- **docs\progress\oc_U-EX2.e824991.c04.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824991.c05.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824991.c06.md**: UNRESOLVED CALL: none (sub_eec59e0 is lift-classified forwarder)
+- **docs\progress\oc_U-EX2.e824991.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824a42.asm.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824a42.c00_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824a42.c01.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824a42.c03.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824a42.c04.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824a42.c05.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824a42.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824a4f.asm.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824a4f.c00.md**: UNRESOLVED CALL: 0xebd1560 at 0xe82533b (call 0xEBD1560 -> sub_ebd1560, size 0xa, 22 xref callers; not in native_functions.tsv or native_boundary.tsv as of X0b5; callers sub_e7ee2e0/e7f27b0/e7f4470/e7f5020/e7f5380/e85d980/e85e5c0 are outside the lift set). Nearest classified rows are 0xebd15b0 (lift) and 0xebd18f0 (lift). This is a 0xa-byte leaf: lea eax,[rcx-0x55]; cmp eax,7; setbe al; ret.
+- **docs\progress\oc_U-EX2.e824a4f.c00_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824a4f.c01.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824a4f.c01_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824a4f.c02.md**: UNRESOLVED CALL: 0xE82DE90 (caller 0xe827af6), 0xE935700 (0xe827b40), 0xBC6A9D0 (0xe827cf4), 0x47E8F0 (many), 0xE81E1C0 (0xe827e8a), 0xEEC6ED0 (0xe827edc), indirect slot 0xF99FFA0 (0xe827a73/aa5/ac9/c1d/c56/c7e)
+- **docs\progress\oc_U-EX2.e824a4f.c03.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824a4f.c03_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824a4f.c04.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824a4f.c05.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824a4f.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824ab7.asm.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824ab7.asm_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824ab7.c00.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824ab7.c01.md**: UNRESOLVED CALL: 0xebd1560 at 0xe82764b `0xe82764b  call 0xEBD1560` — pure leaf, absent from both tables (classified by other units, not a blocker for this chunk).
+- **docs\progress\oc_U-EX2.e824ab7.c02.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824ab7.c03.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824ab7.c03_r2.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824ab7.c04.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824ab7.c05.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824ab7.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824af1.asm.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824af1.asm_r1.md**: UNRESOLVED CALL: none (all callees are lift or boundary per dossier)
+- **docs\progress\oc_U-EX2.e824af1.c00.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824af1.c01.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824af1.c02.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824af1.c03.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824af1.c04.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824af1.c05.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824af1.c06.md**: UNRESOLVED CALL: none (sub_eec59e0 is lift; indirect call via data_f9a8c78 read at call time per spec)
+- **docs\progress\oc_U-EX2.e824af1.plan.md**: UNRESOLVED CALL: none (4 indirect calls via [data_f99ffa0] at 0xe824c35, 0xe824cf0, 0xe824d93, 0xe824e72 target 0xeea6040, classified boundary:vendor in docs/data/native_boundary.tsv:506)
+- **docs\progress\oc_U-EX2.e824fbe.c00.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824fbe.c01.md**: UNRESOLVED CALL: (pending)
+- **docs\progress\oc_U-EX2.e824fbe.c02.md**: UNRESOLVED CALL: (pending)
+- **docs\progress\oc_U-EX2.e824fbe.c03.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824fbe.c04.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824fbe.c04_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824fbe.c05.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824fbe.c05_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824fbe.c06.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e824fbe.plan.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e82dcc0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e834040.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e834330.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e834520.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e834660.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e834b50.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e834c50.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e835b50.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e835b50_r1.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e835f00.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e836640.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e836dc0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e836f30.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e838560.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e838560_r1.md**: UNRESOLVED CALL: 0x9bc830 (caller 0xe838560), 0x6b35400 (caller 0xe838560) - not classified lifted/boundary; classification unknown
+- **docs\progress\oc_U-EX2.e838560_r1.md**: UNRESOLVED CALL: s to 0x9bc830 and 0x6b35400 need classification before any lift.
+- **docs\progress\oc_U-EX2.e839020.md**: UNRESOLVED CALL: none — all call targets are lift-set (0x75740 sub_75740, 0xe935700 sub_e935700) or boundary indirect via data slots (0xF99FFA0 sub_eea6040, 0xF9A8C78) or direct boundary (0x9bc830 sub_9bc830).
+- **docs\progress\oc_U-EX2.e83aaa0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e83ace0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e83b200.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e83b8c0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e83b9f0.md**: UNRESOLVED CALL: )
+- **docs\progress\oc_U-EX2.e83b9f0.md**: UNRESOLVED CALL: )
+- **docs\progress\oc_U-EX2.e83b9f0.md**: UNRESOLVED CALL: 0xe83b8c0 (caller instruction 0xe83ba79  call 0xE83B8C0); not in lift set or native_boundary.tsv; separate helper function that computes available capacity and bumps a refcount.
+- **docs\progress\oc_U-EX2.e83b9f0.md**: UNRESOLVED CALL: 0xe83b8c0
+- **docs\progress\oc_U-EX2.e83bbf0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e83bdd0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e84b0d0.md**: UNRESOLVED CALL: none (indirect slot calls documented)
+- **docs\progress\oc_U-EX2.e84c7d0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e84c7d0_r1.md**: UNRESOLVED CALL: none (all calls are boundary: 0xeea6040 vendor thunk via data slot 0xF99FFA0, 0xe951550 crt)
+- **docs\progress\oc_U-EX2.e84c7d0_r2.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e84d1b0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e84d560.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e84d900.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e854800.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e855080.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8692c0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8698f0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e869cb0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e869ff0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e86d770.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e870630.md**: UNRESOLVED CALL: none (0xe951550 boundary crt via native::boundary::sub_e951550; 0xeec6d80 lift via forward-declared native::sub_eec6d80; 0xF9A7480 indirect slot read-at-call-time per hard rule)
+- **docs\progress\oc_U-EX2.e8707f0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e874d80.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e874e20.md**: 0xe874e39 — exact ABI of the indirect target; assumed __vectorcall/thiscall with r8d=size arg like the direct calls
+- **docs\progress\oc_U-EX2.e874e20.md**: UNRESOLVED CALL: none (0xe951550 boundary crt; 0xeec6d80 lift forward-declared; 0xF9A7480 indirect slot read-at-call-time per hard rule)
+- **docs\progress\oc_U-EX2.e874ea0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e874f20.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e874f20_r1.md**: UNRESOLVED CALL: 0x53d5c20 - called from 0xe874f4e (call 0x53D5C20), not in lift set, not in native_boundary.tsv
+- **docs\progress\oc_U-EX2.e874f20_r1.md**: UNRESOLVED CALL: at 0x53d5c20
+- **docs\progress\oc_U-EX2.e875790.md**: UNRESOLVED CALL: .
+- **docs\progress\oc_U-EX2.e875790.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8762d0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e876380.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e876420.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e8764f0.md**: UNRESOLVED CALL: none. All 6 call sites are accounted for:
+- **docs\progress\oc_U-EX2.e878550.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e878550.md**: UNRESOLVED CALL: s.
+- **docs\progress\oc_U-EX2.e878bc0.md**: UNRESOLVED CALL: none — all calls are boundary/lift-class targets: 0x1f5ef50 (stl boundary, native_boundary.tsv line 211) called as boundary::sub_1f5ef50; 0xe935700 (lift class, forward-declared native::sub_e935700 in the unit header, own X7 unit); call qword ptr [0xF9A8C78] (IAT slot of _invoke_watson, noreturn, read at call time per the indirect-slot rule).
+- **docs\progress\oc_U-EX2.e878df0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e879c60.md**: UNRESOLVED CALL: . Per the callee rule this blocks
+- **docs\progress\oc_U-EX2.e879c60.md**: UNRESOLVED CALL: 0xeec6eb0 (sub_eec6eb0) — called at 0xe879e4a (`call 0xEEC6EB0`) and 0xe879e87 (`call 0xEEC6EB0`); not present in docs/data/native_boundary.tsv or docs/data/native_functions.tsv → UNRESOLVED CALL (blocker). Forward-declared as `extern "C" int sub_eec6eb0(const void*, const void*, std::size_t)` in sub_e879c60.h and called directly.
+- **docs\progress\oc_U-EX2.e879c60.md**: UNRESOLVED CALL: blocks closure
+- **docs\progress\oc_U-EX2.e87b920.md**: UNRESOLVED CALL: s.
+- **docs\progress\oc_U-EX2.e87b920.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e87bb00.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX2.e87c6d0.md**: UNRESOLVED CALL: none — every call target is either in the lift set (0xbc75c30 sub_bc75c30; 0xe935700 sub_e935700, boundary class 'lift', called through its native symbol) or a data-slot indirect call (0xe87c766 call qword ptr [0xF9A8C78], slot read at call time per brief rule 69, five null arguments).
+- **docs\progress\oc_U-EX3.c25f680.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX3.c27ebd0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX3.c283810.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX3.c283ce0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX3.c293af0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX3.e903290.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX3.e903360.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX3.e9058a0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX3.e905ce0.md**: UNRESOLVED CALL: 0xeec6eb0 (callee in neither lift set nor boundary table; call at 0xe905cea cannot be resolved, no wrapper invented per GOAL). Nothing further for this unit.
+- **docs\progress\oc_U-EX3.e905ce0.md**: UNRESOLVED CALL: 0xeec6eb0 — callee of `0xE905CEA  call 0xEEC6EB0`. Callee body [V] `0xeec6eb0  jmp qword ptr [0xF9A8A90]` (IAT import thunk through data slot 0xF9A8A90). CONFIRMED ABSENT from docs/data/native_functions.tsv and docs/data/native_boundary.tsv (case-insensitive grep of docs/data; hits only in listings). It is neither a lifted function (native symbol) nor a boundary wrapper. Per GOAL: reported here as UNRESOLVED CALL, no wrapper invented, unit stops.
+- **docs\progress\oc_U-EX4.661a2f0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX4.6622590.md**: UNRESOLVED CALL: none — all three calls (0xe938cb0, 0xe935740, 0xe938d70) are `os` boundary functions in docs/data/native_boundary.tsv, called through native::boundary wrappers. 0 callees in the lift set.
+- **docs\progress\oc_U-EX4.66397e0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX4.6639850.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX4.6639930.md**: UNRESOLVED CALL: . sub_eea6040 body [V]: `0xEEA6040  jmp rax` (rdis dis 0xeea6040) -> tail-call to RAX with RCX unchanged; net effect call #1 = (*self->vtable+0x230)(self) [vtable slot 70], call #2 = (*self->vtable+0x228)(self) [vtable slot 69], exactly the targets the vtable loads right before each call set up. Same convention as sibling unit sub_66399b0 (identical trampoline pattern, 0x66399c2).
+- **docs\progress\oc_U-EX4.6639930.md**: UNRESOLVED CALL: none (both call targets resolve to sub_eea6040, boundary/vendor via native_boundary.tsv)
+- **docs\progress\oc_U-EX4.66399b0.md**: UNRESOLVED CALL: none: the only call, 0x66399c2 `call qword ptr [0xF99FFA0]`, targets sub_eea6040, which is
+- **docs\progress\oc_U-EX4.66399f0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX4.6639b70.md**: UNRESOLVED CALL: none (the only call is `0x6639b82  call qword ptr [0xF99FFA0]` to sub_eea6040, which is a vendor boundary function per docs/data/native_boundary.tsv; lifted via native::Boundary<uint8_t, void*>)
+- **docs\progress\oc_U-EX4.6639bc0.md**: UNRESOLVED CALL: none — the single call target 0xEEC7570 resolves to CRT strlen via import slot [0xF9A9048] [V] and is called directly as std::strlen (library intrinsic precedent), so it is neither a lift-set callee nor a boundary row nor an unresolved call.
+- **docs\progress\oc_U-EX4.663f9d0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX4.6685f60.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX4.6692d10.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX4.66a0820.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX4.66a17c0.md**: UNRESOLVED CALL: s.
+- **docs\progress\oc_U-EX4.66a17c0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX4.66a1820.md**: UNRESOLVED CALL: s. No null guards/SEH added (original has none).
+- **docs\progress\oc_U-EX4.66a1820.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX4.66ad570.md**: UNRESOLVED CALL: = none
+- **docs\progress\oc_U-EX4.66e5eb0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX4.66e5eb0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX4.670b260.md**: UNRESOLVED CALL: s; CLOSES? YES.
+- **docs\progress\oc_U-EX4.670b260.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX4.6755b50.md**: UNRESOLVED CALL: s. All 70 instructions cited/quoted verbatim; all 5 calls quoted; static_asserts on every struct offset used; registry entry LIFT_FN(sub_6755b50, ...).
+- **docs\progress\oc_U-EX4.6755b50.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX4.675b450.md**: UNRESOLVED CALL: none. All three call targets are resolved:
+- **docs\progress\oc_U-EX4.675b550.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX4.67c4650.md**: UNRESOLVED CALL: s.
+- **docs\progress\oc_U-EX4.67c4650.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX4.bc04270.md**: UNRESOLVED CALL: none: both `call qword ptr [0xF99FFA0]` sites resolve to boundary sub_eea6040 (class vendor, docs/data/native_boundary.tsv) via data slot 0xF99FFA0, and the tail call `jmp 0xBC61560` targets lift-set sub_bc61560 (forward-declared, called by its native symbol); the function row declares 0 callees.
+- **docs\progress\oc_U-EX4.bc04530.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX5.5667e70.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX5.566d290.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX5.567bfe0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX5.567e430.md**: UNRESOLVED CALL: none. All four calls resolved statically:
+- **docs\progress\oc_U-EX5.568b9e0.md**: UNRESOLVED CALL: , CLOSES? YES)
+- **docs\progress\oc_U-EX5.568b9e0.md**: UNRESOLVED CALL: none — `call qword ptr [0xF99FFA0]` at 0x568ba35 and 0x568ba4b targets sub_eea6040 via data slot 0xF99FFA0, native_boundary.tsv row 506 (class vendor, loader-resolved thunk) [V]; the tail call `jmp 0xBC61560` targets sub_bc61560, in native_functions.tsv (lift set, D2) [V]; sub_568bcd0 (lift set, D2) has only its address taken, never called. No call target lies outside the lift set and native_boundary.tsv.
+- **docs\progress\oc_U-EX5.568bcd0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX5.568cd70.md**: UNRESOLVED CALL: .
+- **docs\progress\oc_U-EX5.568cd70.md**: UNRESOLVED CALL: none — the only control-flow transfer is the jmp to 0x568cd90, which is in the lift set (native_functions.tsv, D2); there are no `call` instructions in the function.
+- **docs\progress\oc_U-EX5.568db90.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX5.5699e30.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX5.56ae910.md**: UNRESOLVED CALL: s.
+- **docs\progress\oc_U-EX5.56ae910.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX5.56b67f0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX5.56be290.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX5.56c85c0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX5.56c8810.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.118420.md**: UNRESOLVED CALL: none — both call targets are in the lift set: `sub_118420` (recursion, native symbol) and `sub_e935700` (lift-set callee, forward-declared via sub_e935700.h).
+- **docs\progress\oc_U-EX7.19bbc0.md**: UNRESOLVED CALL: none (all calls resolved: sub_e935700 is lift-set; the indirect call through data slot 0xF9A8C78 is handled per the indirect-call rule)
+- **docs\progress\oc_U-EX7.1a1e80.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.1a459d0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.1d3cb0.md**: UNRESOLVED CALL: 0xaad30 (sub_aad30) - called at 0x1d3cf8, not in native_boundary.tsv or native_functions.tsv as root
+- **docs\progress\oc_U-EX7.1d3cb0.md**: UNRESOLVED CALL: 0xaad30
+- **docs\progress\oc_U-EX7.2462890.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.336380.md**: UNRESOLVED CALL: ee" notes to the "UNRESOLVED CALL = none" convention (liftcheck STUB_RE clean), and rax = imageBase() + kData128c1588Rva so the [0x128C1588] read uses VA = imageBase + RVA like every other global read)
+- **docs\progress\oc_U-EX7.336380.md**: UNRESOLVED CALL: none — all three callees of 0x336380 are resolved: 0xAA3C0 (sub_aa3c0) is classified `lift` (native_functions.tsv:15, native_boundary.tsv:529) and called via forward declaration per hard rule #66; qword [0xF9A8B20] is an indirect data-slot call read at call time; 0xE951550 is boundary crt (native_boundary.tsv:467) called through `native::Boundary<void,std::uintptr_t>`.
+- **docs\progress\oc_U-EX7.34d640.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.35e44a0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.392960.md**: UNRESOLVED CALL: none (the single call at 0x392988 targets sub_eea6040, which is boundary class vendor in docs/data/native_boundary.tsv and is called through native::Boundary<void, void*, void*>)
+- **docs\progress\oc_U-EX7.3af4e0.md**: UNRESOLVED CALL: , updated callee classification sub_3b23c0=lift, complete Reversed source section, no OPEN questions)
+- **docs\progress\oc_U-EX7.3af4e0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.3af4e0_r1.md**: UNRESOLVED CALL: target 0x3b23c0)
+- **docs\progress\oc_U-EX7.3af4e0_r1.md**: UNRESOLVED CALL: 0x3b23c0 (sub_3b23c0): called via `0x3af510  call 0x3B23C0` at entry of sub_3af4e0; returns a pointer (RAX) whose first qword is read at `0x3af515  mov rcx, [rax]`. Not present in docs/data/native_functions.tsv or docs/data/native_boundary.tsv. Per the hard rule: a callee outside both tables is a blocker — name it as UNRESOLVED CALL with the address and stop.
+- **docs\progress\oc_U-EX7.3af4e0_r1.md**: UNRESOLVED CALL: at 0x3b23c0 (sub_3b23c0), called directly at 0x3af510, not in native_functions.tsv or native_boundary.tsv
+- **docs\progress\oc_U-EX7.3b2020.md**: UNRESOLVED CALL: - 0xE943170: called at 0x3b2056 (`0x3b2056  call 0xE943170`, RCX = self). Not in native_functions.tsv or native_boundary.tsv.
+- **docs\progress\oc_U-EX7.3b2020_r1.md**: UNRESOLVED CALL: The following call targets of 0x3b2020 are in NEITHER docs/data/native_functions.tsv NOR docs/data/native_boundary.tsv (and not in Sigs.json), so they are blockers per the hard rules: the calls are quoted verbatim but not translated into C++, and no wrapper was invented.
+- **docs\progress\oc_U-EX7.3b2020_r1.md**: UNRESOLVED CALL: 0x3b2020 calls 0xE943170 (0x3b2056), 0xE943194 (0x3b206d) and 0xEEC5B90 (0x3b2092); none are in native_functions.tsv or native_boundary.tsv, so the calls cannot be translated (no wrappers invented) per the hard rules.
+- **docs\progress\oc_U-EX7.3b23c0.md**: UNRESOLVED CALL: none (function has no calls; 0 callees)
+- **docs\progress\oc_U-EX7.3c75f0.md**: UNRESOLVED CALL: none (all callees boundary: 0x9bc830 alloc @ native_boundary.tsv:149; 0xeea6040 vendor thunk via slot 0xF99FFA0 @ line 506; 0xeec6ed0 crt IAT import thunk @ line 507; 0 callees in lift set).
+- **docs\progress\oc_U-EX7.3c75f0.md**: UNRESOLVED CALL: , final line CLOSES? YES / CLOSES? NO <blocking fact>.
+- **docs\progress\oc_U-EX7.4dfb470.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.4e00d40.md**: UNRESOLVED CALL: none — 0x4e00d6d and 0x4e00db6 `call qword ptr [0xF99FFA0]` both resolve to sub_eea6040 (data slot 0xF99FFA0), boundary class vendor (docs/data/native_boundary.tsv), modeled as direct vtable-entry calls since sub_eea6040 is a `jmp rax` thunk (identical behavior); 0x4e00dc9 `jmp 0xE935700` -> native::sub_e935700 (lift set, already lifted, called through its native symbol); 0x4e00d53 `jmp rcx` computed tail jump modeled through a function-pointer type. No call target outside the lift set/boundary tables.
+- **docs\progress\oc_U-EX7.4e01c30.md**: UNRESOLVED CALL: none — the 3 calls (`0x4e01c5e`, `0x4e01ca6`, `0x4e01cbf` `call qword ptr [0xF99FFA0]`) target sub_eea6040, class `vendor` boundary (docs/data/native_boundary.tsv: "thunk via data slot 0xF99FFA0 (loader-resolved)"), 0xeea6040 = `jmp rax` [V]; lifted as direct vtable-entry calls (behaviorally identical; thunk is only a tail jump to RAX), following the sub_4e00d40 precedent. The `0x4e01c44 jmp rcx` computed jump is not a call; unknown table targets are tail-jumped with the exact register state (RCX=target, RDX=a1, R8=a2). `0x4e01c81 jmp rdx` is the vfptr[1] tail call via the same thunk.
+- **docs\progress\oc_U-EX7.53d5c20.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.6ae330.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.76850.md**: UNRESOLVED CALL: at 0xEEC6E20 documented.
+- **docs\progress\oc_U-EX7.76850.md**: UNRESOLVED CALL: 0xEEC6E20 — direct call at 0x7688e (`0x7688e  call 0xEEC6E20`); target in neither docs/data/native_functions.tsv nor docs/data/native_boundary.tsv; no native symbol, no boundary wrapper. Call omitted in lifted source (blocker for live verification).
+- **docs\progress\oc_U-EX7.76850_r1.md**: UNRESOLVED CALL: , no wrapper is invented, and the lift stops. No .cpp/.h written (an invented wrapper is forbidden; a partial lift would fail liftcheck). CLOSES? NO — see final line.
+- **docs\progress\oc_U-EX7.76850_r1.md**: UNRESOLVED CALL: (see below). Return value discarded.
+- **docs\progress\oc_U-EX7.76850_r1.md**: UNRESOLVED CALL: below; no lift source file can be written without inventing a wrapper for 0xeec6e20, which is forbidden. Ran anyway to record the mechanical state.)
+- **docs\progress\oc_U-EX7.76850_r1.md**: UNRESOLVED CALL: 0xeec6e20 — caller instruction `0x7688e  call 0xEEC6E20` (5-byte E8 rel32, at 0x7688e..0x76893, inside [0x76850, 0x768c8)). Target 0xeec6e20: grep over docs/data found NO match in docs/data/native_functions.tsv (not a lift-set callee, no native symbol to forward-declare) and NO match in docs/data/native_boundary.tsv line 467 is 0xe951550 only (no boundary wrapper). Per GOAL: write as UNRESOLVED CALL with the address, do not invent a wrapper, stop. The only other call, `0x768c2  call 0xE951550`, resolves to the boundary crt `sub_e951550` (class crt, native_boundary.tsv line 467) and is not a blocker.
+- **docs\progress\oc_U-EX7.76850_r1.md**: UNRESOLVED CALL: `0x7688e  call 0xEEC6E20`; target 0xeec6e20 is in neither docs/data/native_functions.tsv nor docs/data/native_boundary.tsv, so there is no native symbol or boundary wrapper for it and the lift of sub_76850 cannot be completed without inventing a wrapper (forbidden).
+- **docs\progress\oc_U-EX7.773320.md**: UNRESOLVED CALL: none (all 4 calls are sub_eea6040 via data slot 0xF99FFA0, boundary/vendor; classified in docs/data/native_boundary.tsv line 506)
+- **docs\progress\oc_U-EX7.78ce0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.7e6d0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.87440.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.8e56b0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.8f21d0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.9bd3c0.md**: UNRESOLVED CALL: ees
+- **docs\progress\oc_U-EX7.9bd3c0.md**: UNRESOLVED CALL: 0x9bd230 — caller 0x9bd400 `call 0x9BD230` — callee not in native_functions.tsv (lift set) nor native_boundary.tsv; native_boundary_candidates.tsv line 171: class '?' (unclassified). Forward-declared as `extern "C" std::uintptr_t sub_9bd230(void*, std::uint32_t)` per call site ABI (RCX=&g_128d7fc0, RDX=a0->field0, returns RAX forwarded).
+- **docs\progress\oc_U-EX7.9bd3c0.md**: UNRESOLVED CALL: ees (0x9bd230, 0x9bde00) neither in lift set nor native_boundary.tsv (boundary_candidates: '?')
+- **docs\progress\oc_U-EX7.9c590.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.a14e0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.aa3c0.md**: UNRESOLVED CALL: none (the function has no calls)
+- **docs\progress\oc_U-EX7.aaa6e0.md**: UNRESOLVED CALL: ee; see CLOSES? NO below.
+- **docs\progress\oc_U-EX7.aaa6e0.md**: UNRESOLVED CALL: 0xa89240 — direct call `0xaaa72c  call 0xA89240` (RCX = rdi + 0x18; return value discarded by caller).
+- **docs\progress\oc_U-EX7.aaa6e0.md**: UNRESOLVED CALL: no native symbol, no wrapper invented, lifting stops here.
+- **docs\progress\oc_U-EX7.aaa6e0.md**: UNRESOLVED CALL: ee 0xa89240 does not fail liftcheck mechanically (liftcheck verifies quoting/coverage, not table membership), but it is a semantic blocker: the callee is outside both native_functions.tsv and native_boundary.tsv.
+- **docs\progress\oc_U-EX7.aaa6e0.md**: UNRESOLVED CALL: 0xa89240 (direct call at 0xaaa72c `call 0xA89240`; callee outside both native_functions.tsv and native_boundary.tsv, only unclassified in native_boundary_candidates.tsv; no native symbol, no wrapper invented per GOAL)
+- **docs\progress\oc_U-EX7.bcd40f0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.bcd41c0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.bcd54a0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.bce15d0.md**: UNRESOLVED CALL: none (only call target is 0xb432e0, boundary class crt, docs/data/native_boundary.tsv row 173; called 0..5 times on the crash path via native::Boundary<std::uintptr_t, void*, void*, void*, void*> sub_b432e0("sub_b432e0"))
+- **docs\progress\oc_U-EX7.e92a800.md**: UNRESOLVED CALL: blocker per GOAL rule; do not invent a wrapper.
+- **docs\progress\oc_U-EX7.e92a800.md**: UNRESOLVED CALL: ee; LIFT_FN registry entry.
+- **docs\progress\oc_U-EX7.e92a800.md**: UNRESOLVED CALL: 0xE92A350 sub_e92a350: called at 0xe92a87f `call 0xE92A350` with rcx=array element ([a0+0x178]+idx*8), rdx=arg2, r8=[a0+0x128]; return in eax (tested via al). Not in native_functions.tsv or native_boundary.tsv -> blocker.
+- **docs\progress\oc_U-EX7.e92a800.md**: UNRESOLVED CALL: to sub_e92a350 (not in native_functions.tsv or native_boundary.tsv; only in native_boundary_candidates.tsv with class '?'). Per GOAL rule, documented but no wrapper invented.
+- **docs\progress\oc_U-EX7.e935700.md**: UNRESOLVED CALL: none (no `call` instruction in the function; jump target sub_392960 is in the lift set)
+- **docs\progress\oc_U-EX7.e93b480.md**: UNRESOLVED CALL: ); nothing else to do for this unit.
+- **docs\progress\oc_U-EX7.e93b480.md**: UNRESOLVED CALL: 0xe93b490 (sub_e93b490): tail-jump target of sub_e93b480. Caller instruction (verbatim from rdis): `0xe93b480  jmp 0xE93B490` (-> loc_e93b490). The lifted body forwards to it as `return sub_e93b490(first, last, ch);` — identical register arguments in the same order (rcx = first wchar_t*, rdx = last wchar_t*, r8 = wchar_t ch), identical return (rax = pointer to first match or last), no register shuffling, no reads/writes/calls of its own in [0xe93b480, 0xe93b486). Target disassembly seen: `0xe93b490  mov eax,[0x1230A11C]`, `0xe93b496  mov r9,rdx`, `0xe93b499  sub r9,rcx`, `0xe93b49c  mov r10,rdx`, ... (wide-char search of [first,last) for (wchar_t)ch).
+- **docs\progress\oc_U-EX7.e93b480.md**: UNRESOLVED CALL: ; no wrapper invented, no forwarder fabricated.
+- **docs\progress\oc_U-EX7.e93b480.md**: UNRESOLVED CALL: ); L1 cannot be claimed although liftcheck printed LIFTCHECK OK 0xe93b480
+- **docs\progress\oc_U-EX7.e9425f0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.e943170.md**: UNRESOLVED CALL: none — the function contains no `call` instruction; its only control transfer is the tail `jmp qword ptr [0xF9A7AF0]` through loader-resolved data slot 0xF9A7AF0, lifted by reading the 8-byte pointer from the slot at call time and tail-calling it as a function pointer (rule 68 slot-indirect call; not a lift-set callee, not a boundary wrapper). LIFTCHECK OK 0xe943170 confirms all calls (zero) are quoted and resolved.
+- **docs\progress\oc_U-EX7.e943194.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.ebce390.md**: UNRESOLVED CALL: none: the function [0xebce390, 0xebce395) contains a single instruction, `0xebce390  jmp 0xEEC6EC0` (no `call`); its tail target sub_eec6ec0 (0xeec6ec0) is class `lift` in docs/data/native_boundary.tsv and is called directly through its forward declaration, linked by its own LIFT_FN at the milestone gate.
+- **docs\progress\oc_U-EX7.ebce570.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.ebce5e0.md**: UNRESOLVED CALL: s, no struct fields touched (only a byte read at [rax]).
+- **docs\progress\oc_U-EX7.ebce5e0.md**: UNRESOLVED CALL: none (the function has no `call` instructions)
+- **docs\progress\oc_U-EX7.ebce650.md**: UNRESOLVED CALL: none (the only call, 0xebce6a0 call 0xEBCE390, targets sub_ebce390 which is class `lift` in docs/data/native_functions.tsv and docs/data/native_boundary.tsv)
+- **docs\progress\oc_U-EX7.ebcf430.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.ebd18f0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.ebd2160.md**: UNRESOLVED CALL: 0xebd1f80 — caller instruction `0xebd21b1  call 0xEBD1F80` (disassembly annotation `; -> sub_ebd1f80`), at 0xebd21b1 inside sub_ebd2160 (0xebd2160..0xebd21bc). Target 0xebd1f80 (sub_ebd1f80) is not in docs/data/native_functions.tsv and not in docs/data/native_boundary.tsv; it is only listed as class `?` in docs/data/native_boundary_candidates.tsv:418. No wrapper invented, no signature fabricated (the source forward-declares it with the observed call-site signature so the lift can be completed once it is classified).
+- **docs\progress\oc_U-EX7.ebd2160.md**: UNRESOLVED CALL: 0xebd1f80 at 0xebd21b1 (`call 0xEBD1F80`): callee is in neither docs/data/native_functions.tsv nor docs/data/native_boundary.tsv; per the unit rules no wrapper was invented and the lift stops here.
+- **docs\progress\oc_U-EX7.ebdb760.md**: UNRESOLVED CALL: blocker.
+- **docs\progress\oc_U-EX7.ebdb760.md**: UNRESOLVED CALL: none (the only call, 0xebdb769 `call qword ptr [0xF9A7CA0]`, is a data-slot indirect call resolved from imageBase()+0xF9A7CA0 at call time per hard rule #68; target address documented by slot RVA, not a blocker)
+- **docs\progress\oc_U-EX7.ebdbf10.md**: UNRESOLVED CALL: none: the function body is a single indirect tail jump `jmp qword ptr [0xF9A7B10]` (0xebdbf10, 7 bytes) through loader-resolved data slot 0xF9A7B10 — handled per boundary rule #69 (read the slot at call time, document the slot RVA; invoked as a function pointer forwarding RCX), no `call` instruction, no callee in either table, no blocker.
+- **docs\progress\oc_U-EX7.ebdbf20.md**: UNRESOLVED CALL: . [V: rdis dis/sum, PE section parse of Minecraft.Windows.exe]
+- **docs\progress\oc_U-EX7.ebdbf20.md**: UNRESOLVED CALL: none — the function contains no `call` instruction; its single `jmp` is an indirect tail jump through documented data slot 0xF9A7B28 (hard-rule data-slot case, not a blocker).
+- **docs\progress\oc_U-EX7.ed35e10.md**: UNRESOLVED CALL: 0xeec5880) is resolved: 0xeec5880 is class `lift` in docs/data/native_functions.tsv (line 1641, size 0x6) and docs/data/native_boundary.tsv (line 526 `0xeec5880 lift auto-unresolved->lift`), so it is forward-declared in my header and called through its native symbol per brief rule 66; no wrapper invented. Slot contents verified [V] via `rdis str`: `f9a92d6  "GetCurrentProcess"` (slot 0xF9A6FD8 -> import-by-name RVA 0xF9A92D4) and `f9ac052  "K32GetProcessMemoryInfo"` (slot 0xF9A7918 -> import-by-name RVA 0xF9AC050). Cookie check re-verified [V] via rdis dis of 0xe951550 (`cmp rcx,[0x1230A0C0]; jne ...; ret` / `jmp 0xE98E3C0`).
+- **docs\progress\oc_U-EX7.ed35e10.md**: UNRESOLVED CALL: none — every call resolved: GetCurrentProcess via data-slot 0xF9A6FD8 (rule 68), sub_eec5880 via native symbol (rule 66), sub_e951550 via native::Boundary crt wrapper.
+- **docs\progress\oc_U-EX7.ed36950.md**: UNRESOLVED CALL: none. The only call in [0xed36950, 0xed369a2) is `0xed36978  call qword ptr [0xF99FF98]`, a loader-resolved data-slot indirect call handled per rule 68 (function-pointer call read from the slot at call time; [data_f99ff98] = sub_e9c7f10 [V]); it is not a static callee, not a blocker, and liftcheck passed with the call quoted verbatim.
+- **docs\progress\oc_U-EX7.ed369b0.md**: UNRESOLVED CALL: 0xe9c7f10 via data slot 0xF99FF98 at 0xed369d8 `0xed369d8  call qword ptr [0xF99FF98]` — target
+- **docs\progress\oc_U-EX7.eec5850.md**: UNRESOLVED CALL: none: the function contains no call instruction; the indirect jump target (std::_Xlength_error via
+- **docs\progress\oc_U-EX7.eec5850.md**: UNRESOLVED CALL: ee.
+- **docs\progress\oc_U-EX7.eec5880.md**: UNRESOLVED CALL: none — the only call target (via import slot 0xF9A7918 -> K32GetProcessMemoryInfo) is a kernel32 import called through a real Win32 signature declaration; no callee outside the lift set/boundary remains unresolved.
+- **docs\progress\oc_U-EX7.eec59e0.md**: UNRESOLVED CALL: )
+- **docs\progress\oc_U-EX7.eec59e0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.eec59f0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.eec5a00.md**: UNRESOLVED CALL: none (the function contains no `call` instruction; the indirect tail jump through data slot 0xF9A72F0 is resolved [V] to MSVCP140.dll std::_Throw_Cpp_error(int) and is called directly by name from the lifted body)
+- **docs\progress\oc_U-EX7.eec5a10.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.eec5ae0.md**: UNRESOLVED CALL: none — the only control transfer is the tail jump `0xeec5ae0  jmp qword ptr [0xF9A7318]` through data slot 0xF9A7318; the slot holds MSVCP140!std::_Xinvalid_argument(const char*) [V: peimports.py] and the lift calls it directly; there are no `call` instructions in the function and no callees in the lift set.
+- **docs\progress\oc_U-EX7.eec5b90.md**: UNRESOLVED CALL: none. The function (0xeec5b90, size 0x6) is a single instruction,
+- **docs\progress\oc_U-EX7.eec5b90.md**: UNRESOLVED CALL: .
+- **docs\progress\oc_U-EX7.eec6d80.md**: UNRESOLVED CALL: none — the function body is a single indirect `jmp qword ptr [0xF9A8A18]` through VCRUNTIME140!_CxxThrowException's import slot [V: tools/sigs/peimports.py "0F9A8A18 VCRUNTIME140.dll!_CxxThrowException"]; _CxxThrowException is forward-declared in sub_eec6d80.h and called directly (same precedent as helpers/sub_eec5ae0 tail-calling std::_Xinvalid_argument through slot 0xF9A7318). No `call` instructions exist in [0xeec6d80, 0xeec6d86).
+- **docs\progress\oc_U-EX7.eec6de0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.eec6e20.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.eec6eb0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.eec6ec0.md**: UNRESOLVED CALL: none
+- **docs\progress\oc_U-EX7.eec73f0.md**: UNRESOLVED CALL: none — the only control transfer is a `jmp` (not a `call`) through data slot 0xF9A8E08
+- **docs\progress\oc_U-EX7.eec75a0.md**: UNRESOLVED CALL: none (the only control transfer is a jmp through data slot 0xF9A8E60 to floorf, which is

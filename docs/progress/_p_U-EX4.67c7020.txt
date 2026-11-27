@@ -1,0 +1,890 @@
+UNIT U-EX4.67c7020: lift the function at 0x67c7020 of the game exe into C++ ("lift" = C++ that does exactly what the function does: same reads, writes, calls in the same order, same return, exact x64 ABI signature). Your whole context is in this message: do NOT read docs/OPENCODE_BRIEF.md, docs/RENDER_NATIVE_SPEC.md, Lift.h, liftcheck.py or the data/pack files again; they are inlined below. Never ask questions. Reply text between tool calls: at most 2 short lines, no analysis in text.
+
+PROGRAMS ALREADY DID THE MECHANICAL PART (it is exact, from the exe; do not redo or retype it):
+  * src/client/features/render/native/helpers/sub_67c7020.cpp  first line `// LIFT ...`, includes, LIFT_FN registry line, every call quoted verbatim as `0xRVA  call ...` inside #if 0, then a BLOCK SKELETON from the control-flow graph: one commented block per basic block with its `// 0xA..0xB` range, its quoted instructions, and the branch conditions already decoded (`-> if ... goto L_0x...`). Each block ends with `__debugbreak(); // [open] NOT LIFTED block N`: replace that line (and the `[open] translate` marker) with the real statements, keep the range comments and labels you still need. A body that still contains __debugbreak is not done.
+  * src/client/features/render/native/helpers/sub_67c7020.h  typed state structs per dereferenced base register: one field per accessed offset named f<hex>, typed by evidence (width, signedness, float, pointer, vtable slot), padding, offsetof static_asserts, R/W instruction citations (this was checked against accepted headers: offsets and widths match). Renaming fields to meaningful names and fixing a type the code proves otherwise is YOUR decision; never move an offset.
+  * docs/functions/67c7020.md  dossier skeleton with a ## DECISIONS section.
+These files already exist and their FULL CURRENT CONTENT is at the end of this message: do not Read them. Produce the finished .h and .cpp by calling the write tool once per file with the complete new content (copy the skeleton's lines you keep). Do not create other source files. Leave the dossier as generated (liftcheck needs it to exist); append a short `## Reversed source (complete)` section with a shell `cat >>` only if you have decisions to record.
+NEVER read these (their behaviour is stated here; reading them costs turns): tools/sigs/liftcheck.py, tools/sigs/verify_oc.py, tools/ctx/gate.py, tools/cppsyntax.py, client/features/render/native/Lift.h, docs/OPENCODE_BRIEF.md, docs/RENDER_NATIVE_SPEC.md, the dossier, and the pack/data files (inlined). Lift.h contract: `LIFT_FN(sub_X, "sub_X", 0xRVA, sub_X, nullptr);` inside namespace native::helpers after the function definition, exactly as the skeleton has it.
+
+YOUR JOB (this is the only thing that needs judgement): replace the placeholder body with the real logic, block by block, with a `// 0xA..0xB` instruction range on every block; give the state struct real field names/types matching every access in the listing (offsetof static_asserts for every field read or written); decide each [open] item below (if the listing truly cannot settle one, describe it in the result file only; the words UNVERIFIED, TODO, UNRESOLVED, stub, incomplete and the markers [?] and [I] must NEVER appear in the .h/.cpp, liftcheck fails on them: write a plain factual comment instead). No stubs, no `return 0` placeholders left, no TODO/[?], no null guards or SEH the original does not have. Every call must go to a function in the callee list below (native symbol) or a boundary function; if a callee is neither, write it in the result file as UNRESOLVED CALL (address, caller instruction) and stop. If you need a fact the pack does not give, use `tools/rdis/target/release/rdis.exe` (rdis MCP: sum, cfg, callees, callers, xr, struct, fld, rw, vt, vcalls); batch several queries in ONE turn.
+
+LOOP (few turns): 1) read nothing; write the .h and .cpp (two write calls in ONE turn). 2) run `python tools/ctx/gate.py 0x67c7020`: it prints ONE line (GATE OK, or GATE FAIL with the first problems; full log docs/progress/gate/0x67C7020.log). 3) fix what it says, rerun, until GATE OK. Target: under 12 turns.
+
+RESULT FILE docs/progress/oc_U-EX4.67c7020.md (write it at the end; first line `## NEXT`, then `DONE`): '## FILES' every path you changed; '## LIFTCHECK' the final gate/liftcheck output; '## UNRESOLVED CALL' address + instruction, or 'none'; final line `CLOSES? YES` (only after GATE OK) or `CLOSES? NO <the single blocking fact>`. Never leave a placeholder line like `CLOSES? NO` when the gate is OK.
+
+DATA ROW AND CALLEES (orchestrator data file):
+FUNCTION ROW (rva size depth milestone region status name root callees_in_set callees_outside_set):
+0x67c7020	0x11f	1	4	framebuilder	D0		BgfxFrameBuilder::endFrame		0xa4c70,0xa4ea0,0x9bc830
+
+CALLEES IN THE LIFT SET (already lifted, call them through their native symbol; id, name, header):
+
+
+
+STATIC PACK (computed by programs; [proven] = from the exe, [derived], [open] = needs your decision):
+# ctxpack build 0x67c7020
+
+STAMP exe=758bacdeef3ede55d45da4418bf0fcdc319dd9992cda79d50560d9a08536f9d8 inputs=data=native_functions.tsv:07ea6058496f3c9340e582f2f9bc57b61494694303373d3389ba71c5842a53a6,data=native_deps.tsv:118356f1f1ba724d2eb40c7fc481ea24319c1aeba9f482039b865d6efece1f8b,data=native_boundary.tsv:058a56d8016eceaff394a955dc2a241d4a8a7d44663fc4cd9102ea82d9ec7315,data=native_boundary_candidates.tsv:b2db6e93be378325c9c8b370ea57463e6e4d762ef5f0a1cae81562abc4635b8c,data=ctx_facts.tsv:d2352cf1ceb26c34830b966be082a5e21a28f989c09fa2d4ecdfb97458b56aab,data=ctx_deadends.md:298967a276b4b7e4454961297c117289bf5ed3fcdf45c3240615fc10ed423c83
+
+## HEADER
+  rva        : 0x67c7020
+  size       : 0x11f (287 bytes)
+  depth      : 
+  D-rank     : [open] (not derivable from static data)
+  callees    : 3 (direct), depth 1
+  callers    : 1
+
+## EXACT LISTING (0x67c7020..0x67c713f)
+```
+sub_67c7020  [0x67c7020..0x67c9020)  size 0x2000  2 xrefs in
+  67c7020  push r15                                      
+  67c7022  push r14                                      
+  67c7024  push r12                                      
+  67c7026  push rsi                                      
+  67c7027  push rdi                                      
+  67c7028  push rbp                                      
+  67c7029  push rbx                                      
+  67c702a  sub rsp,0x30                                  
+  67c702e  mov r14,r8                                    
+  67c7031  mov rsi,rdx                                   
+  67c7034  mov rdi,rcx                                   
+  67c7037  mov r15,[rcx]                                 ; R a0+0x0
+  67c703a  mov rdx,[r15+8]                               ; R *(a0+0x0)+0x8
+  67c703e  xor ebp,ebp                                   
+  67c7040  cmp byte ptr [rdx+0x19],0                     ; R *(*(a0+0x0)+0x8)+0x19
+  67c7044  je short 0x67C7054                            ; -> loc_67c7054
+  67c7046  mov r12,rdx                                   
+  67c7049  mov rbx,r15                                   
+  67c704c  cmp byte ptr [rbx+0x19],0                     ; R *(a0+0x0)+0x19
+  67c7050  jne short 0x67C709A                           ; -> loc_67c709a
+  67c7052  jmp short 0x67C708D                           ; -> loc_67c708d
+
+loc_67c7054:  ; from 67c7044
+  67c7054  movzx eax,byte ptr [r14]                      
+  67c7058  mov rbx,r15                                   
+  67c705b  nop [rax+rax]                                 
+
+loc_67c7060:  ; from 67c707d
+  67c7060  mov r12,rdx                                   
+  67c7063  movzx ecx,byte ptr [rdx+0x1C]                 
+  67c7067  xor edx,edx                                   
+  67c7069  cmp cl,al                                     
+  67c706b  setb dl                                       
+  67c706e  cmovae rbx,r12                                
+  67c7072  shl edx,4                                     
+  67c7075  mov rdx,[r12+rdx]                             
+  67c7079  cmp byte ptr [rdx+0x19],0                     
+  67c707d  je short 0x67C7060                            ; -> loc_67c7060
+  67c707f  xor ebp,ebp                                   
+  67c7081  cmp cl,al                                     
+  67c7083  setae bpl                                     
+  67c7087  cmp byte ptr [rbx+0x19],0                     
+  67c708b  jne short 0x67C709A                           ; -> loc_67c709a
+
+loc_67c708d:  ; from 67c7052
+  67c708d  movzx eax,byte ptr [r14]                      
+  67c7091  cmp al,[rbx+0x1C]                             
+  67c7094  jae 0x67C7129                                 ; -> loc_67c7129
+
+loc_67c709a:  ; from 67c7050, 67c708b
+  67c709a  mov rax,0x555555555555555                     
+  67c70a4  cmp [rdi+8],rax                               
+  67c70a8  je 0x67C7139                                  ; -> loc_67c7139
+  67c70ae  mov rcx,[0x1233E1A8]                          ; [data_1233e1a8]
+  67c70b5  mov rax,[rcx]                                 
+  67c70b8  mov rax,[rax+8]                               
+  67c70bc  mov edx,0x30                                  
+  67c70c1  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  67c70c7  mov rbx,rax                                   
+  67c70ca  test rax,rax                                  
+  67c70cd  je short 0x67C712D                            ; -> loc_67c712d
+
+loc_67c70cf:  ; from 67c7137
+  67c70cf  movzx eax,byte ptr [r14]                      
+  67c70d3  mov [rbx+0x1C],al                             
+  67c70d6  mov qword ptr [rbx+0x20],0                    
+  67c70de  mov dword ptr [rbx+0x28],0                    
+  67c70e5  mov [rbx],r15                                 
+  67c70e8  mov [rbx+8],r15                               
+  67c70ec  mov [rbx+0x10],r15                            
+  67c70f0  mov word ptr [rbx+0x18],0                     
+  67c70f6  mov [rsp+0x20],r12                            
+  67c70fb  mov [rsp+0x28],ebp                            
+  67c70ff  lea rdx,[rsp+0x20]                            
+  67c7104  mov rcx,rdi                                   
+  67c7107  mov r8,rbx                                    
+  67c710a  call 0xA4C70                                  ; -> sub_a4c70
+  67c710f  mov al,1                                      
+
+loc_67c7111:  ; from 67c712b
+  67c7111  mov [rsi],rbx                                 
+  67c7114  mov [rsi+8],al                                
+  67c7117  mov rax,rsi                                   
+  67c711a  add rsp,0x30                                  
+  67c711e  pop rbx                                       
+  67c711f  pop rbp                                       
+  67c7120  pop rdi                                       
+  67c7121  pop rsi                                       
+  67c7122  pop r12                                       
+  67c7124  pop r14                                       
+  67c7126  pop r15                                       
+  67c7128  ret                                           
+
+loc_67c7129:  ; from 67c7094
+  67c7129  xor eax,eax                                   
+  67c712b  jmp short 0x67C7111                           ; -> loc_67c7111
+
+loc_67c712d:  ; from 67c70cd
+  67c712d  mov ecx,0x30                                  
+  67c7132  call 0x9BC830                                 ; -> sub_9bc830
+  67c7137  jmp short 0x67C70CF                           ; -> loc_67c70cf
+
+loc_67c7139:  ; from 67c70a8
+  67c7139  call 0xA4EA0                                  ; -> sub_a4ea0
+  67c713e  int3                                          
+  67c713f  int3                                          
+  67c7140  push rbp                                      
+  67c7141  push rsi                                      
+  67c7142  push rdi                                      
+  67c7143  push rbx                                      
+  67c7144  sub rsp,0x58                                  
+  67c7148  lea rbp,[rsp+0x50]                            
+  67c714d  movaps [rbp-0x10],xmm6                        
+  67c7151  mov qword ptr [rbp-0x18],0xFFFFFFFFFFFFFFFE   
+  67c7159  mov [rbp-0x30],r8                             
+  67c715d  mov [rbp-0x28],r8                             
+  67c7161  mov [rbp-0x20],r9                             
+  67c7165  cmp rcx,rdx                                   
+  67c7168  je 0x67C72A1                                  ; -> loc_67c72a1
+  67c716e  mov rsi,r8                                    
+  67c7171  mov rdi,rdx                                   
+  67c7174  mov rbx,rcx                                   
+  67c7177  add rsi,0x2B0                                 
+  67c717e  xorps xmm6,xmm6                               
+  67c7181  jmp short 0x67C71CC                           ; -> loc_67c71cc
+  67c7183  nop [rax+rax]                                 ; R ret@a4ea0+0x0+idx
+
+loc_67c7190:  ; from 67c7292, 67c729c
+  67c7190  mov rax,[rbx+0x290]                           
+  67c7197  mov [rsi-0x20],rax                            
+  67c719b  mov rax,[rbx+0x298]                           
+  67c71a2  mov [rsi-0x18],rax                            
+  67c71a6  movups xmm0,[rbx+0x2A0]                       
+  67c71ad  movups [rsi-0x10],xmm0                        
+  67c71b1  mov [rbp-0x28],rsi                            
+  67c71b5  add rbx,0x2B0                                 
+  67c71bc  add rsi,0x2B0                                 
+  67c71c3  cmp rbx,rdi                                   
+  67c71c6  je 0x67C72A1                                  ; -> loc_67c72a1
+
+loc_67c71cc:  ; from 67c7181
+  67c71cc  lea rcx,[rsi-0x2B0]                           
+  67c71d3  mov rdx,rbx                                   
+  67c71d6  call 0x566CB20                                ; -> sub_566cb20
+  67c71db  nop                                           
+  67c71dc  movups [rsi-0x60],xmm6                        
+  67c71e0  mov rax,[rbx+0x258]                           
+  67c71e7  test rax,rax                                  
+  67c71ea  je short 0x67C71F0                            ; -> loc_67c71f0
+  67c71ec  lock inc dword ptr [rax+8]                    
+
+loc_67c71f0:  ; from 67c71ea
+  67c71f0  mov rax,[rbx+0x250]                           
+  67c71f7  mov [rsi-0x60],rax                            
+  67c71fb  mov rax,[rbx+0x258]                           
+  67c7202  mov [rsi-0x58],rax                            
+  67c7206  movups [rsi-0x50],xmm6                        
+  67c720a  mov rax,[rbx+0x268]                           
+  67c7211  test rax,rax                                  
+  67c7214  je short 0x67C721A                            ; -> loc_67c721a
+  67c7216  lock inc dword ptr [rax+8]                    
+
+loc_67c721a:  ; from 67c7214
+  67c721a  mov rax,[rbx+0x260]                           
+  67c7221  mov [rsi-0x50],rax                            
+  67c7225  mov rax,[rbx+0x268]                           
+  67c722c  mov [rsi-0x48],rax                            
+  67c7230  movups [rsi-0x40],xmm6                        
+  67c7234  mov rax,[rbx+0x278]                           
+  67c723b  test rax,rax                                  
+  67c723e  je short 0x67C7244                            ; -> loc_67c7244
+  67c7240  lock inc dword ptr [rax+8]                    
+
+loc_67c7244:  ; from 67c723e
+  67c7244  mov rax,[rbx+0x270]                           
+  67c724b  mov [rsi-0x40],rax                            
+  67c724f  mov rax,[rbx+0x278]                           
+  67c7256  mov [rsi-0x38],rax                            
+  67c725a  movups [rsi-0x30],xmm6                        
+  67c725e  mov rax,[rbx+0x288]                           
+  67c7265  test rax,rax                                  
+  67c7268  je short 0x67C726E                            ; -> loc_67c726e
+  67c726a  lock inc dword ptr [rax+8]                    
+
+loc_67c726e:  ; from 67c7268
+  67c726e  mov rax,[rbx+0x280]                           
+  67c7275  mov [rsi-0x30],rax                            
+  67c7279  mov rax,[rbx+0x288]                           
+  67c7280  mov [rsi-0x28],rax                            
+  67c7284  movups [rsi-0x20],xmm6                        
+  67c7288  mov rax,[rbx+0x298]                           
+  67c728f  test rax,rax                                  
+  67c7292  je 0x67C7190                                  ; -> loc_67c7190
+  67c7298  lock inc dword ptr [rax+8]                    
+  67c729c  jmp 0x67C7190                                 ; -> loc_67c7190
+
+loc_67c72a1:  ; from 67c7168, 67c71c6
+  67c72a1  movaps xmm6,[rbp-0x10]                        
+  67c72a5  add rsp,0x58                                  
+  67c72a9  pop rbx                                       
+  67c72aa  pop rdi                                       
+  67c72ab  pop rsi                                       
+  67c72ac  pop rbp                                       
+  67c72ad  ret                                           
+  67c72ae  xchg ax,ax                                    
+  67c72b0  mov [rsp+0x10],rdx                            
+  67c72b5  push rbp                                      
+  67c72b6  push rsi                                      
+  67c72b7  push rdi                                      
+  67c72b8  push rbx                                      
+  67c72b9  sub rsp,0x38                                  
+  67c72bd  lea rbp,[rdx+0x50]                            
+  67c72c1  movaps [rsp+0x20],xmm6                        
+  67c72c6  lea rcx,[rbp-0x30]                            
+  67c72ca  call 0x67C7380                                ; -> sub_67c7380
+  67c72cf  movaps xmm6,[rsp+0x20]                        
+  67c72d4  add rsp,0x38                                  
+  67c72d8  pop rbx                                       
+  67c72d9  pop rdi                                       
+  67c72da  pop rsi                                       
+  67c72db  pop rbp                                       
+  67c72dc  ret                                           
+  67c72dd  int3                                          
+  67c72de  int3                                          
+  67c72df  int3                                          
+  67c72e0  push rsi                                      
+  67c72e1  push rdi                                      
+  67c72e2  push rbx                                      
+  67c72e3  sub rsp,0x30                                  
+  67c72e7  mov rsi,rcx                                   
+  67c72ea  mov rcx,[rcx+8]                               
+  67c72ee  test rcx,rcx                                  
+  67c72f1  je short 0x67C7359                            ; -> loc_67c7359
+  67c72f3  mov rdi,[rsi+0x18]                            
+  67c72f7  mov rbx,[rsi+0x20]                            
+  67c72fb  cmp rdi,rbx                                   
+  67c72fe  je short 0x67C7324                            ; -> loc_67c7324
+
+loc_67c7300:  ; from 67c731e
+  67c7300  lea rcx,[rdi+0x250]                           
+  67c7307  call 0xA10CC0                                 ; -> sub_a10cc0
+  67c730c  mov rcx,rdi                                   
+  67c730f  call 0x566D350                                ; -> sub_566d350
+  67c7314  add rdi,0x2B0                                 
+  67c731b  cmp rdi,rbx                                   
+  67c731e  jne short 0x67C7300                           ; -> loc_67c7300
+  67c7320  mov rcx,[rsi+8]                               
+
+loc_67c7324:  ; from 67c72fe
+  67c7324  imul rdx,[rsi+0x10],0x2B0                     
+  67c732c  cmp rdx,0x1000                                
+  67c7333  jb short 0x67C734D                            ; -> loc_67c734d
+  67c7335  mov rax,[rcx-8]                               
+  67c7339  add rcx,0xFFFFFFFFFFFFFFF8                    
+  67c733d  sub rcx,rax                                   
+  67c7340  cmp rcx,0x20                                  
+  67c7344  jae short 0x67C7361                           ; -> loc_67c7361
+  67c7346  add rdx,0x27                                  
+  67c734a  mov rcx,rax                                   
+
+loc_67c734d:  ; from 67c7333
+  67c734d  add rsp,0x30                                  
+  67c7351  pop rbx                                       
+  67c7352  pop rdi                                       
+  67c7353  pop rsi                                       
+  67c7354  jmp 0xE935700                                 ; -> sub_e935700
+
+loc_67c7359:  ; from 67c72f1
+  67c7359  add rsp,0x30                                  
+  67c735d  pop rbx                                       
+  67c735e  pop rdi                                       
+  67c735f  pop rsi                                       
+  67c7360  ret                                           
+
+loc_67c7361:  ; from 67c7344
+  67c7361  mov qword ptr [rsp+0x20],0                    
+  67c736a  xor ecx,ecx                                   
+  67c736c  xor edx,edx                                   
+  67c736e  xor r8d,r8d                                   
+  67c7371  xor r9d,r9d                                   
+  67c7374  call qword ptr [0xF9A8C78]                    ; [data_f9a8c78]
+  67c737a  int3                                          
+  67c737b  int3                                          
+  67c737c  int3                                          
+  67c737d  int3                                          
+  67c737e  int3                                          
+  67c737f  int3                                          
+  67c7380  push rsi                                      
+  67c7381  push rdi                                      
+  67c7382  sub rsp,0x28                                  
+  67c7386  mov rsi,[rcx]                                 
+  67c7389  mov rdi,[rcx+8]                               
+  67c738d  cmp rsi,rdi                                   
+  67c7390  je short 0x67C73C0                            ; -> loc_67c73c0
+  67c7392  nop [rax+rax]                                 
+
+loc_67c73a0:  ; from 67c73be
+  67c73a0  lea rcx,[rsi+0x250]                           
+  67c73a7  call 0xA10CC0                                 ; -> sub_a10cc0
+  67c73ac  mov rcx,rsi                                   
+  67c73af  call 0x566D350                                ; -> sub_566d350
+  67c73b4  add rsi,0x2B0                                 
+  67c73bb  cmp rsi,rdi                                   
+  67c73be  jne short 0x67C73A0                           ; -> loc_67c73a0
+
+loc_67c73c0:  ; from 67c7390
+  67c73c0  add rsp,0x28                                  
+  67c73c4  pop rdi                                       
+  67c73c5  pop rsi                                       
+  67c73c6  ret                                           
+  67c73c7  int3                                          
+  67c73c8  int3                                          
+  67c73c9  int3                                          
+  67c73ca  int3                                          
+  67c73cb  int3                                          
+  67c73cc  int3                                          
+  67c73cd  int3                                          
+  67c73ce  int3                                          
+  67c73cf  int3                                          
+  67c73d0  push rbp                                      
+  67c73d1  push rsi                                      
+  67c73d2  push rdi                                      
+  67c73d3  sub rsp,0x70                                  
+  67c73d7  lea rbp,[rsp+0x70]                            
+  67c73dc  movaps [rbp-0x10],xmm6                        
+  67c73e0  mov qword ptr [rbp-0x18],0xFFFFFFFFFFFFFFFE   
+  67c73e8  mov rsi,rdx                                   
+  67c73eb  mov rdi,rcx                                   
+  67c73ee  movzx eax,byte ptr [rdx]                      
+  67c73f1  mov [rcx],al                                  
+  67c73f3  add rcx,8                                     
+  67c73f7  mov rax,[rdx+8]                               
+  67c73fb  mov [rdi+8],rax                               
+  67c73ff  xorps xmm6,xmm6                               
+  67c7402  movups [rdi+0x10],xmm6                        
+  67c7406  mov qword ptr [rdi+0x20],0                    
+  67c740e  lea r8,[rdx+0x10]                             
+  67c7412  mov rax,[rdx+0x18]                            
+  67c7416  sub rax,[rdx+0x10]                            
+  67c741a  lea r9,[rdx+0x18]                             
+  67c741e  sar rax,3                                     
+  67c7422  mov rdx,0xCCCCCCCCCCCCCCCD                    
+  67c742c  imul rdx,rax                                  
+  67c7430  call 0x56B8630                                ; -> sub_56b8630
+  67c7435  mov rax,[rsi+0x28]                            
+  67c7439  mov [rdi+0x28],rax                            
+  67c743d  mov byte ptr [rdi+0x40],0xFF                  
+  67c7441  movzx eax,byte ptr [rsi+0x40]                 
+  67c7445  cmp rax,3                                     
+  67c7449  ja short 0x67C749A                            ; -> loc_67c749a
+  67c744b  lea rcx,[rdi+0x30]                            
+  67c744f  lea rdx,[rsi+0x30]                            
+  67c7453  lea r8,[0xF2BFFFC]                            ; [data_f2bfffc]
+  67c745a  movsxd r9,[r8+rax*4]                          
+  67c745e  add r9,r8                                     
+  67c7461  jmp r9                                        
+  67c7464  mov rdx,[rdx]                                 
+  67c7467  mov [rcx],rdx                                 
+  67c746a  jmp short 0x67C7497                           ; -> loc_67c7497
+  67c746c  movups xmm0,[rdx]                             
+  67c746f  movups [rcx],xmm0                             
+  67c7472  jmp short 0x67C7497                           ; -> loc_67c7497
+  67c7474  xorps xmm0,xmm0                               
+  67c7477  movups [rcx],xmm0                             
+  67c747a  mov rcx,[rsi+0x38]                            
+  67c747e  test rcx,rcx                                  
+  67c7481  je short 0x67C7487                            ; -> loc_67c7487
+  67c7483  lock inc dword ptr [rcx+8]                    
+
+loc_67c7487:  ; from 67c7481
+  67c7487  mov rcx,[rsi+0x30]                            
+  67c748b  mov [rdi+0x30],rcx                            
+  67c748f  mov rcx,[rsi+0x38]                            
+  67c7493  mov [rdi+0x38],rcx                            
+
+loc_67c7497:  ; from 67c746a, 67c7472
+  67c7497  mov [rdi+0x40],al                             
+
+loc_67c749a:  ; from 67c7449
+  67c749a  mov rax,[rsi+0x58]                            
+  67c749e  mov [rdi+0x58],rax                            
+  67c74a2  movups xmm0,[rsi+0x48]                        
+  67c74a6  movups [rdi+0x48],xmm0                        
+  67c74aa  mov rax,[rsi+0x60]                            
+  67c74ae  mov [rdi+0x60],rax                            
+  67c74b2  lea rcx,[rdi+0x68]                            
+  67c74b6  lea r8,[rsi+0x68]                             
+  67c74ba  movups [rdi+0x68],xmm6                        
+  67c74be  mov qword ptr [rdi+0x78],0                    
+  67c74c6  mov rax,[rsi+0x70]                            
+  67c74ca  sub rax,[rsi+0x68]                            
+  67c74ce  lea r9,[rsi+0x70]                             
+  67c74d2  sar rax,3                                     
+  67c74d6  mov rdx,0xAFEAFEAFEAFEAFEB                    
+  67c74e0  imul rdx,rax                                  
+  67c74e4  mov [rbp-0x48],rcx                            
+  67c74e8  mov [rbp-0x20],rdi                            
+  67c74ec  call 0x56B7030                                ; -> sub_56b7030
+  67c74f1  nop                                           
+  67c74f2  mov rax,[rbp-0x20]                            
+  67c74f6  lea rcx,[rax+0x80]                            
+  67c74fd  lea r8,[rsi+0x80]                             
+  67c7504  movups [rax+0x80],xmm6                        
+  67c750b  mov qword ptr [rax+0x90],0                    
+  67c7516  mov rax,[rsi+0x88]                            
+  67c751d  sub rax,[rsi+0x80]                            
+  67c7524  lea r9,[rsi+0x88]                             
+  67c752b  sar rax,3                                     
+  67c752f  mov rdx,0x2697CC8AEF46C0F7                    
+  67c7539  imul rdx,rax                                  
+  67c753d  mov [rbp-0x40],rcx                            
+  67c7541  call 0x56B7CD0                                ; -> sub_56b7cd0
+  67c7546  nop                                           
+  67c7547  mov rax,[rbp-0x20]                            
+  67c754b  lea rdi,[rax+0x98]                            
+  67c7552  lea r8,[rsi+0x98]                             
+  67c7559  movups [rax+0x98],xmm6                        
+  67c7560  mov qword ptr [rax+0xA8],0                    
+  67c756b  mov rax,[rsi+0xA0]                            
+  67c7572  sub rax,[rsi+0x98]                            
+  67c7579  lea r9,[rsi+0xA0]                             
+  67c7580  sar rax,3                                     
+  67c7584  mov rdx,0xAF8AF8AF8AF8AF8B                    
+  67c758e  imul rdx,rax                                  
+  67c7592  mov rcx,rdi                                   
+  67c7595  call 0x56B7F40                                ; -> sub_56b7f40
+  67c759a  nop                                           
+  67c759b  xorps xmm0,xmm0                               
+  67c759e  mov rcx,[rbp-0x20]                            
+  67c75a2  movups [rcx+0xB0],xmm0                        
+  67c75a9  mov rax,[rsi+0xB8]                            
+  67c75b0  test rax,rax                                  
+  67c75b3  je short 0x67C75B9                            ; -> loc_67c75b9
+  67c75b5  lock inc dword ptr [rax+8]                    
+
+loc_67c75b9:  ; from 67c75b3
+  67c75b9  mov rax,[rsi+0xB0]                            
+  67c75c0  mov [rcx+0xB0],rax                            
+  67c75c7  mov rax,[rsi+0xB8]                            
+  67c75ce  mov [rcx+0xB8],rax                            
+  67c75d5  lea rdx,[rcx+0xC0]                            
+  67c75dc  mov byte ptr [rcx+0xE0],0                     
+  67c75e3  cmp byte ptr [rsi+0xE0],1                     
+  67c75ea  jne short 0x67C7655                           ; -> loc_67c7655
+  67c75ec  movups [rdx],xmm0                             
+  67c75ef  mov rax,[rsi+0xC8]                            
+  67c75f6  test rax,rax                                  
+  67c75f9  je short 0x67C75FF                            ; -> loc_67c75ff
+  67c75fb  lock inc dword ptr [rax+8]                    
+
+loc_67c75ff:  ; from 67c75f9
+  67c75ff  mov rax,[rsi+0xC0]                            
+  67c7606  mov [rcx+0xC0],rax                            
+  67c760d  mov rax,[rsi+0xC8]                            
+  67c7614  mov [rcx+0xC8],rax                            
+  67c761b  movups [rcx+0xD0],xmm0                        
+  ... (--max 400)
+```
+
+## CALLERS
+```
+  0x66232b0 sub_66232b0 size 0xb3d0
+  -- 1 calling function(s)
+```
+
+## CALLEES (signature + status, trust [proven] from exe)
+  rva        name               status     signature  trust     boundary  source/dossier
+  0xa4c70     sub_a4c70         unknown     [open]     [proven]  boundary=stl
+  0xa4ea0     sub_a4ea0         unknown     [open]     [proven]  boundary=stl
+  0x9bc830    sub_9bc830        unknown     [open]     [proven]  boundary=alloc
+
+## STRINGS AND RIP REFS
+  (none)
+
+## FIELD ACCESS TABLE (descscan2, regs rdi,rsi,r9,r15)
+  (no [reg+off] description reads detected; register unknown -> [open])
+
+## KNOWN STRUCT LAYOUTS TOUCHED
+  (none detected)
+
+## CLOSEST FINISHED LIFT (style example, same size band + call shape)
+  e93c790.md  size 0x101  callees~20  trust [derived]
+  dossier: C:\Users\Atomi\Desktop\BlueySenseV2\docs\functions\e93c790.md
+
+## KNOWN FACTS [derived]
+  (none in ctx_facts.tsv for target or its direct callees/callers)
+
+## DEAD ENDS [open]
+  Unverified questions from oc_U-E*.md for target or its direct callees/callers.
+  - UNRESOLVED CALL: 0x9bc830 (caller 0xe838560), 0x6b35400 (caller 0xe838560) - not classified lifted/boundary; classification unknown (from docs\progress\oc_U-EX2.e838560_r1.md)
+  - UNRESOLVED CALL: s to 0x9bc830 and 0x6b35400 need classification before any lift. (from docs\progress\oc_U-EX2.e838560_r1.md)
+  - UNRESOLVED CALL: none (all callees boundary: 0x9bc830 alloc @ native_boundary.tsv:149; 0xeea6040 vendor thunk via slot 0xF99FFA0 @ line 506; 0xeec6ed0 crt IAT import thunk @ line 507; 0 callees in lift set). (from docs\progress\oc_U-EX7.3c75f0.md)
+
+## DECISIONS
+  - D-rank not derivable from static data; needs a model/orchestrator decision [open]
+  - description register for descscan2 unknown; tried rdi,rsi,r9,r15, result best-effort [open]
+  - callee signatures not available (no Sigs.json); each callee ABI/signature is [open]
+  - field offsets above are [derived] from descscan2; struct/meaning is [open]
+  - 'closest finished lift' size-band match is [derived], not verified as same call shape [open]
+
+
+
+CURRENT FILES (written by the scaffold program):
+===== src/client/features/render/native/helpers/sub_67c7020.h (current content on disk) =====
+#pragma once
+#include <cstddef>
+#include <cstdint>
+
+namespace native::helpers {
+
+// Typed state layout(s) for sub_67c7020, reverse-engineered from the disassembly
+// of [0x67c7020, 0x67c713f), Minecraft Windows 1.26.62.01. [proven] offsets/widths/signedness
+// come straight from the instruction operands; field NAMES and MEANINGS are [open].
+// One struct per base register that is dereferenced (rcx/rdx/r8/r9 this/a1/a2 and
+// any other register used as a memory base). Field f<hex> is at offset 0x<hex>.
+
+// Struct for base register rcx (dereferenced in this function) [proven base, [open] name/meaning]
+// The struct is packed (#pragma pack(1)) so every declared field sits exactly at its
+// observed offset and offsetof() matches it. The real object may have compiler-inserted
+// alignment padding, so sizeof is a lower bound, not an exact size. [open] field meanings.
+#pragma pack(push, 1)
+struct sub_67c7020_rcx {
+    void* f0;   // // +0x00: void* R // vtable-call slot(s) slot 1,slot 4  (R/W cited: 0x67c7037:R, 0x67c70b5:R)
+    std::uint8_t f8;   // // +0x08: std::uint8_t R  (R/W cited: 0x67c70a4:R)
+};
+#pragma pack(pop)
+
+// Struct for base register rdx (dereferenced in this function) [proven base, [open] name/meaning]
+// The struct is packed (#pragma pack(1)) so every declared field sits exactly at its
+// observed offset and offsetof() matches it. The real object may have compiler-inserted
+// alignment padding, so sizeof is a lower bound, not an exact size. [open] field meanings.
+#pragma pack(push, 1)
+struct sub_67c7020_rdx {
+    std::uint8_t f0;   // // +0x00: std::uint8_t W  (R/W cited: 0x67c7111:W)
+    std::uint8_t pad0x01[0x7];   // +0x01..+0x07 padding (no observed access)
+    std::uint8_t f8;   // // +0x08: std::uint8_t W  (R/W cited: 0x67c7114:W)
+    std::uint8_t pad0x09[0x10];   // +0x09..+0x18 padding (no observed access)
+    std::uint8_t f19;   // // +0x19: std::uint8_t R  (R/W cited: 0x67c7040:R, 0x67c7079:R)
+    std::uint8_t pad0x1a[0x2];   // +0x1a..+0x1b padding (no observed access)
+    std::uint8_t f1c;   // // +0x1c: std::uint8_t R  (R/W cited: 0x67c7063:R)
+};
+#pragma pack(pop)
+
+// Struct for base register r8 (dereferenced in this function) [proven base, [open] name/meaning]
+// The struct is packed (#pragma pack(1)) so every declared field sits exactly at its
+// observed offset and offsetof() matches it. The real object may have compiler-inserted
+// alignment padding, so sizeof is a lower bound, not an exact size. [open] field meanings.
+#pragma pack(push, 1)
+struct sub_67c7020_r8 {
+    std::uint8_t f0;   // // +0x00: std::uint8_t R  (R/W cited: 0x67c7054:R, 0x67c708d:R, 0x67c70cf:R)
+};
+#pragma pack(pop)
+
+// Struct for base register r15 (dereferenced in this function) [proven base, [open] name/meaning]
+// The struct is packed (#pragma pack(1)) so every declared field sits exactly at its
+// observed offset and offsetof() matches it. The real object may have compiler-inserted
+// alignment padding, so sizeof is a lower bound, not an exact size. [open] field meanings.
+#pragma pack(push, 1)
+struct sub_67c7020_r15 {
+    std::uint8_t pad0x00[0x8];   // +0x00..+0x07 padding (no observed access)
+    void* f8;   // // +0x08: void* R  (R/W cited: 0x67c703a:R)
+    std::uint8_t pad0x10[0x9];   // +0x10..+0x18 padding (no observed access)
+    std::uint8_t f19;   // // +0x19: std::uint8_t R  (R/W cited: 0x67c704c:R, 0x67c7087:R)
+    std::uint8_t pad0x1a[0x2];   // +0x1a..+0x1b padding (no observed access)
+    std::uint8_t f1c;   // // +0x1c: std::uint8_t R  (R/W cited: 0x67c7091:R)
+};
+#pragma pack(pop)
+
+// Struct for base register rax (dereferenced in this function) [proven base, [open] name/meaning]
+// The struct is packed (#pragma pack(1)) so every declared field sits exactly at its
+// observed offset and offsetof() matches it. The real object may have compiler-inserted
+// alignment padding, so sizeof is a lower bound, not an exact size. [open] field meanings.
+#pragma pack(push, 1)
+struct sub_67c7020_rax {
+    std::uint8_t f0;   // // +0x00: std::uint8_t W  (R/W cited: 0x67c70e5:W)
+    std::uint8_t pad0x01[0x7];   // +0x01..+0x07 padding (no observed access)
+    void* f8;   // // +0x08: void* R/W // vtable-call slot(s) slot 4  (R/W cited: 0x67c70b8:R, 0x67c70e8:W)
+    std::uint8_t f10;   // // +0x10: std::uint8_t W  (R/W cited: 0x67c70ec:W)
+    std::uint8_t pad0x11[0x7];   // +0x11..+0x17 padding (no observed access)
+    std::uint16_t f18;   // // +0x18: std::uint16_t W  (R/W cited: 0x67c70f0:W)
+    std::uint8_t pad0x1a[0x2];   // +0x1a..+0x1b padding (no observed access)
+    std::uint8_t f1c;   // // +0x1c: std::uint8_t W  (R/W cited: 0x67c70d3:W)
+    std::uint8_t pad0x1d[0x3];   // +0x1d..+0x1f padding (no observed access)
+    std::uint64_t f20;   // // +0x20: std::uint64_t W  (R/W cited: 0x67c70d6:W)
+    std::uint32_t f28;   // // +0x28: std::uint32_t W  (R/W cited: 0x67c70de:W)
+};
+#pragma pack(pop)
+
+// Struct for base register rsp (dereferenced in this function) [proven base, [open] name/meaning]
+// The struct is packed (#pragma pack(1)) so every declared field sits exactly at its
+// observed offset and offsetof() matches it. The real object may have compiler-inserted
+// alignment padding, so sizeof is a lower bound, not an exact size. [open] field meanings.
+#pragma pack(push, 1)
+struct sub_67c7020_rsp {
+    std::uint8_t pad0x00[0x20];   // +0x00..+0x1f padding (no observed access)
+    std::uint8_t f20;   // // +0x20: std::uint8_t R/W  (R/W cited: 0x67c70f6:W, 0x67c70ff:R)
+    std::uint8_t pad0x21[0x7];   // +0x21..+0x27 padding (no observed access)
+    std::uint8_t f28;   // // +0x28: std::uint8_t W  (R/W cited: 0x67c70fb:W)
+};
+#pragma pack(pop)
+
+// sizeof lower bound: the largest observed offset plus its width across all structs.
+
+static_assert(offsetof(sub_67c7020_rcx, f0) == 0x0, "sub_0x67c7020 rcx+0x0 field");
+static_assert(offsetof(sub_67c7020_rcx, f8) == 0x8, "sub_0x67c7020 rcx+0x8 field");
+static_assert(sizeof(sub_67c7020_rcx) >= 0x9, "sub_0x67c7020 rcx sizeof lower bound");
+
+static_assert(offsetof(sub_67c7020_rdx, f0) == 0x0, "sub_0x67c7020 rdx+0x0 field");
+static_assert(offsetof(sub_67c7020_rdx, f8) == 0x8, "sub_0x67c7020 rdx+0x8 field");
+static_assert(offsetof(sub_67c7020_rdx, f19) == 0x19, "sub_0x67c7020 rdx+0x19 field");
+static_assert(offsetof(sub_67c7020_rdx, f1c) == 0x1c, "sub_0x67c7020 rdx+0x1c field");
+static_assert(sizeof(sub_67c7020_rdx) >= 0x1d, "sub_0x67c7020 rdx sizeof lower bound");
+
+static_assert(offsetof(sub_67c7020_r8, f0) == 0x0, "sub_0x67c7020 r8+0x0 field");
+static_assert(sizeof(sub_67c7020_r8) >= 0x1, "sub_0x67c7020 r8 sizeof lower bound");
+
+static_assert(offsetof(sub_67c7020_r15, f8) == 0x8, "sub_0x67c7020 r15+0x8 field");
+static_assert(offsetof(sub_67c7020_r15, f19) == 0x19, "sub_0x67c7020 r15+0x19 field");
+static_assert(offsetof(sub_67c7020_r15, f1c) == 0x1c, "sub_0x67c7020 r15+0x1c field");
+static_assert(sizeof(sub_67c7020_r15) >= 0x1d, "sub_0x67c7020 r15 sizeof lower bound");
+
+static_assert(offsetof(sub_67c7020_rax, f0) == 0x0, "sub_0x67c7020 rax+0x0 field");
+static_assert(offsetof(sub_67c7020_rax, f8) == 0x8, "sub_0x67c7020 rax+0x8 field");
+static_assert(offsetof(sub_67c7020_rax, f10) == 0x10, "sub_0x67c7020 rax+0x10 field");
+static_assert(offsetof(sub_67c7020_rax, f18) == 0x18, "sub_0x67c7020 rax+0x18 field");
+static_assert(offsetof(sub_67c7020_rax, f1c) == 0x1c, "sub_0x67c7020 rax+0x1c field");
+static_assert(offsetof(sub_67c7020_rax, f20) == 0x20, "sub_0x67c7020 rax+0x20 field");
+static_assert(offsetof(sub_67c7020_rax, f28) == 0x28, "sub_0x67c7020 rax+0x28 field");
+static_assert(sizeof(sub_67c7020_rax) >= 0x2c, "sub_0x67c7020 rax sizeof lower bound");
+
+static_assert(offsetof(sub_67c7020_rsp, f20) == 0x20, "sub_0x67c7020 rsp+0x20 field");
+static_assert(offsetof(sub_67c7020_rsp, f28) == 0x28, "sub_0x67c7020 rsp+0x28 field");
+static_assert(sizeof(sub_67c7020_rsp) >= 0x29, "sub_0x67c7020 rsp sizeof lower bound");
+
+// Signature (x64 Microsoft ABI) - [open]: exact argument and return types are not
+// derivable from static analysis; the first instructions of the prologue are cited.
+// 0x67c7020  push r15; 0x67c7022  push r14; 0x67c7024  push r12; 0x67c7026  push rsi
+uintptr_t sub_67c7020(void* self);   // [open] signature placeholder (return type, arg types TBD)
+
+} // namespace native::helpers
+
+===== src/client/features/render/native/helpers/sub_67c7020.cpp (current content on disk) =====
+// LIFT 0x67c7020 size 0x11f 1.26.62.01 sub_67c7020
+#include "client/features/render/native/Lift.h"
+#include "client/features/render/native/helpers/sub_67c7020.h"
+
+#include <cstdint>
+#include <cstddef>
+#include <intrin.h>
+
+namespace native::helpers {
+
+LIFT_FN(sub_67c7020, "sub_67c7020", 0x67c7020, sub_67c7020, nullptr);
+
+// Verbatim call instructions from the disassembly of [0x67c7020, 0x67c713f) (rdis `fn` output).
+// Plain lines, two spaces after the address: parseable by tools/sigs/verify_oc.py.
+// Preprocessor-excluded below so the skeleton stays valid C++.
+#if 0
+0x67c70c1  call qword ptr [0xF99FFA0]
+0x67c710a  call 0xA4C70
+0x67c7132  call 0x9BC830
+0x67c7139  call 0xA4EA0
+#endif
+
+// Ranges: every instruction of [0x67c7020, 0x67c713f) is covered by a block range comment and/or
+// a verbatim quote, so liftcheck instruction coverage is satisfied by construction.
+
+uintptr_t sub_67c7020(void* self) {
+    // 0x67c7020..0x67c7046: basic block 0
+    // 0x67c7020  push r15
+    // 0x67c7022  push r14
+    // 0x67c7024  push r12
+    // 0x67c7026  push rsi
+    // 0x67c7027  push rdi
+    // 0x67c7028  push rbp
+    // 0x67c7029  push rbx
+    // 0x67c702a  sub rsp,0x30
+    // 0x67c702e  mov r14,r8
+    // 0x67c7031  mov rsi,rdx
+    // 0x67c7034  mov rdi,rcx
+    // 0x67c7037  mov r15,[rcx]
+    // 0x67c703a  mov rdx,[r15+8]
+    // 0x67c703e  xor ebp,ebp
+    // 0x67c7040  cmp byte ptr [rdx+0x19],0
+    // 0x67c7044  je short 0x67C7054
+    // -> if *u8(*(*(a0)+0x8)+0x19) == 0x0 goto L_0x67c7054
+    // -> if *u8(*(*(a0)+0x8)+0x19) != 0x0 goto L_0x67c7046
+    // [open] translate statements for this block
+    L_0x67c7020:;
+    __debugbreak(); // [open] NOT LIFTED block 0
+
+    // 0x67c7046..0x67c7052: basic block 1
+    // 0x67c7046  mov r12,rdx
+    // 0x67c7049  mov rbx,r15
+    // 0x67c704c  cmp byte ptr [rbx+0x19],0
+    // 0x67c7050  jne short 0x67C709A
+    // -> if *u8(*(a0)+0x19) != 0x0 goto L_0x67c709a
+    // -> if *u8(*(a0)+0x19) == 0x0 goto L_0x67c7052
+    // [open] translate statements for this block
+    L_0x67c7046:;
+    __debugbreak(); // [open] NOT LIFTED block 1
+
+    // 0x67c7052..0x67c7054: basic block 2
+    // 0x67c7052  jmp short 0x67C708D
+    // -> if jmp goto L_0x67c708d
+    // [open] translate statements for this block
+    L_0x67c7052:;
+    __debugbreak(); // [open] NOT LIFTED block 2
+
+    // 0x67c7054..0x67c7060: basic block 3
+    // 0x67c7054  movzx eax,byte ptr [r14]
+    // 0x67c7058  mov rbx,r15
+    // 0x67c705b  nop [rax+rax]
+    // -> if fallthrough goto L_0x67c7060
+    // [open] translate statements for this block
+    L_0x67c7054:;
+    __debugbreak(); // [open] NOT LIFTED block 3
+
+    // 0x67c7060..0x67c707f: basic block 4
+    // 0x67c7060  mov r12,rdx
+    // 0x67c7063  movzx ecx,byte ptr [rdx+0x1C]
+    // 0x67c7067  xor edx,edx
+    // 0x67c7069  cmp cl,al
+    // 0x67c706b  setb dl
+    // 0x67c706e  cmovae rbx,r12
+    // 0x67c7072  shl edx,4
+    // 0x67c7075  mov rdx,[r12+rdx]
+    // 0x67c7079  cmp byte ptr [rdx+0x19],0
+    // 0x67c707d  je short 0x67C7060
+    // -> if ? == 0x0 goto L_0x67c7060
+    // -> if ? != 0x0 goto L_0x67c707f
+    // [open] translate statements for this block
+    L_0x67c7060:;
+    __debugbreak(); // [open] NOT LIFTED block 4
+
+    // 0x67c707f..0x67c708d: basic block 5
+    // 0x67c707f  xor ebp,ebp
+    // 0x67c7081  cmp cl,al
+    // 0x67c7083  setae bpl
+    // 0x67c7087  cmp byte ptr [rbx+0x19],0
+    // 0x67c708b  jne short 0x67C709A
+    // -> if ? != 0x0 goto L_0x67c709a
+    // -> if ? == 0x0 goto L_0x67c708d
+    // [open] translate statements for this block
+    L_0x67c707f:;
+    __debugbreak(); // [open] NOT LIFTED block 5
+
+    // 0x67c708d..0x67c709a: basic block 6
+    // 0x67c708d  movzx eax,byte ptr [r14]
+    // 0x67c7091  cmp al,[rbx+0x1C]
+    // 0x67c7094  jae 0x67C7129
+    // -> if u8(*u8(a2)) >=u ? goto L_0x67c7129
+    // -> if u8(*u8(a2)) <u ? goto L_0x67c709a
+    // [open] translate statements for this block
+    L_0x67c708d:;
+    __debugbreak(); // [open] NOT LIFTED block 6
+
+    // 0x67c709a..0x67c70ae: basic block 7
+    // 0x67c709a  mov rax,0x555555555555555
+    // 0x67c70a4  cmp [rdi+8],rax
+    // 0x67c70a8  je 0x67C7139
+    // -> if *(a0+0x8) == 0x555555555555555 goto L_0x67c7139
+    // -> if *(a0+0x8) != 0x555555555555555 goto L_0x67c70ae
+    // [open] translate statements for this block
+    L_0x67c709a:;
+    __debugbreak(); // [open] NOT LIFTED block 7
+
+    // 0x67c70ae..0x67c70cf: basic block 8
+    // 0x67c70ae  mov rcx,[0x1233E1A8]
+    // 0x67c70b5  mov rax,[rcx]
+    // 0x67c70b8  mov rax,[rax+8]
+    // 0x67c70bc  mov edx,0x30
+    // 0x67c70c1  call qword ptr [0xF99FFA0]
+    // 0x67c70c7  mov rbx,rax
+    // 0x67c70ca  test rax,rax
+    // 0x67c70cd  je short 0x67C712D
+    // -> if ret@67c70c1 == 0 goto L_0x67c712d
+    // -> if ret@67c70c1 != 0 goto L_0x67c70cf
+    // [open] translate statements for this block
+    L_0x67c70ae:;
+    __debugbreak(); // [open] NOT LIFTED block 8
+
+    // 0x67c70cf..0x67c7111: basic block 9
+    // 0x67c70cf  movzx eax,byte ptr [r14]
+    // 0x67c70d3  mov [rbx+0x1C],al
+    // 0x67c70d6  mov qword ptr [rbx+0x20],0
+    // 0x67c70de  mov dword ptr [rbx+0x28],0
+    // 0x67c70e5  mov [rbx],r15
+    // 0x67c70e8  mov [rbx+8],r15
+    // 0x67c70ec  mov [rbx+0x10],r15
+    // 0x67c70f0  mov word ptr [rbx+0x18],0
+    // 0x67c70f6  mov [rsp+0x20],r12
+    // 0x67c70fb  mov [rsp+0x28],ebp
+    // 0x67c70ff  lea rdx,[rsp+0x20]
+    // 0x67c7104  mov rcx,rdi
+    // 0x67c7107  mov r8,rbx
+    // 0x67c710a  call 0xA4C70
+    // 0x67c710f  mov al,1
+    // -> if fallthrough goto L_0x67c7111
+    // [open] translate statements for this block
+    L_0x67c70cf:;
+    __debugbreak(); // [open] NOT LIFTED block 9
+
+    // 0x67c7111..0x67c7129: basic block 10
+    // 0x67c7111  mov [rsi],rbx
+    // 0x67c7114  mov [rsi+8],al
+    // 0x67c7117  mov rax,rsi
+    // 0x67c711a  add rsp,0x30
+    // 0x67c711e  pop rbx
+    // 0x67c711f  pop rbp
+    // 0x67c7120  pop rdi
+    // 0x67c7121  pop rsi
+    // 0x67c7122  pop r12
+    // 0x67c7124  pop r14
+    // 0x67c7126  pop r15
+    // 0x67c7128  ret
+    // -> (fall-through / ret / end)
+    // [open] translate statements for this block
+    L_0x67c7111:;
+    __debugbreak(); // [open] NOT LIFTED block 10
+
+    // 0x67c7129..0x67c712d: basic block 11
+    // 0x67c7129  xor eax,eax
+    // 0x67c712b  jmp short 0x67C7111
+    // -> if jmp goto L_0x67c7111
+    // [open] translate statements for this block
+    L_0x67c7129:;
+    __debugbreak(); // [open] NOT LIFTED block 11
+
+    // 0x67c712d..0x67c7139: basic block 12
+    // 0x67c712d  mov ecx,0x30
+    // 0x67c7132  call 0x9BC830
+    // 0x67c7137  jmp short 0x67C70CF
+    // -> if jmp goto L_0x67c70cf
+    // [open] translate statements for this block
+    L_0x67c712d:;
+    __debugbreak(); // [open] NOT LIFTED block 12
+
+    // 0x67c7139..0x67c713f: basic block 13
+    // 0x67c7139  call 0xA4EA0
+    // 0x67c713e  int3
+    // -> (fall-through / ret / end)
+    // [open] translate statements for this block
+    L_0x67c7139:;
+    __debugbreak(); // [open] NOT LIFTED block 13
+
+    return 0;   // unreachable; kept so the skeleton compiles until every block is translated
+}
+
+} // namespace native::helpers
+

@@ -1,0 +1,954 @@
+UNIT U-EX7.11666d0: lift the function at 0x11666d0 of the game exe into C++ ("lift" = C++ that does exactly what the function does: same reads, writes, calls in the same order, same return, exact x64 ABI signature). Your whole context is in this message: do NOT read docs/OPENCODE_BRIEF.md, docs/RENDER_NATIVE_SPEC.md, Lift.h, liftcheck.py or the data/pack files again; they are inlined below. Never ask questions. Reply text between tool calls: at most 2 short lines, no analysis in text.
+
+PROGRAMS ALREADY DID THE MECHANICAL PART (it is exact, from the exe; do not redo or retype it):
+  * src/client/features/render/native/helpers/sub_11666d0.cpp  first line `// LIFT ...`, includes, LIFT_FN registry line, every call quoted verbatim as `0xRVA  call ...` inside #if 0, then a BLOCK SKELETON from the control-flow graph: one commented block per basic block with its `// 0xA..0xB` range, its quoted instructions, and the branch conditions already decoded (`-> if ... goto L_0x...`). Each block ends with `__debugbreak(); // [open] NOT LIFTED block N`: replace that line (and the `[open] translate` marker) with the real statements, keep the range comments and labels you still need. A body that still contains __debugbreak is not done.
+  * src/client/features/render/native/helpers/sub_11666d0.h  typed state structs per dereferenced base register: one field per accessed offset named f<hex>, typed by evidence (width, signedness, float, pointer, vtable slot), padding, offsetof static_asserts, R/W instruction citations (this was checked against accepted headers: offsets and widths match). Renaming fields to meaningful names and fixing a type the code proves otherwise is YOUR decision; never move an offset.
+  * docs/functions/11666d0.md  dossier skeleton with a ## DECISIONS section.
+These files already exist and their FULL CURRENT CONTENT is at the end of this message: do not Read them. Produce the finished .h and .cpp by calling the write tool once per file with the complete new content (copy the skeleton's lines you keep). Do not create other source files. Leave the dossier as generated (liftcheck needs it to exist); append a short `## Reversed source (complete)` section with a shell `cat >>` only if you have decisions to record.
+NEVER read these (their behaviour is stated here; reading them costs turns): tools/sigs/liftcheck.py, tools/sigs/verify_oc.py, tools/ctx/gate.py, tools/cppsyntax.py, client/features/render/native/Lift.h, docs/OPENCODE_BRIEF.md, docs/RENDER_NATIVE_SPEC.md, the dossier, and the pack/data files (inlined). Lift.h contract: `LIFT_FN(sub_X, "sub_X", 0xRVA, sub_X, nullptr);` inside namespace native::helpers after the function definition, exactly as the skeleton has it.
+
+YOUR JOB (this is the only thing that needs judgement): replace the placeholder body with the real logic, block by block, with a `// 0xA..0xB` instruction range on every block; give the state struct real field names/types matching every access in the listing (offsetof static_asserts for every field read or written); decide each [open] item below (if the listing truly cannot settle one, describe it in the result file only; the words UNVERIFIED, TODO, UNRESOLVED, stub, incomplete and the markers [?] and [I] must NEVER appear in the .h/.cpp, liftcheck fails on them: write a plain factual comment instead). No stubs, no `return 0` placeholders left, no TODO/[?], no null guards or SEH the original does not have. Every call must go to a function in the callee list below (native symbol) or a boundary function; if a callee is neither, write it in the result file as UNRESOLVED CALL (address, caller instruction) and stop. If you need a fact the pack does not give, use `tools/rdis/target/release/rdis.exe` (rdis MCP: sum, cfg, callees, callers, xr, struct, fld, rw, vt, vcalls); batch several queries in ONE turn.
+
+LOOP (few turns): 1) read nothing; write the .h and .cpp (two write calls in ONE turn). 2) run `python tools/ctx/gate.py 0x11666d0`: it prints ONE line (GATE OK, or GATE FAIL with the first problems; full log docs/progress/gate/0x11666D0.log). 3) fix what it says, rerun, until GATE OK. Target: under 12 turns.
+
+RESULT FILE docs/progress/oc_U-EX7.11666d0.md (write it at the end; first line `## NEXT`, then `DONE`): '## FILES' every path you changed; '## LIFTCHECK' the final gate/liftcheck output; '## UNRESOLVED CALL' address + instruction, or 'none'; final line `CLOSES? YES` (only after GATE OK) or `CLOSES? NO <the single blocking fact>`. Never leave a placeholder line like `CLOSES? NO` when the gate is OK.
+
+DATA ROW AND CALLEES (orchestrator data file):
+FUNCTION ROW (rva size depth milestone region status name root callees_in_set callees_outside_set):
+0x11666d0	0x115	0	7	root	D0		added 0x11666d0		
+
+CALLEES IN THE LIFT SET (already lifted, call them through their native symbol; id, name, header):
+
+
+
+STATIC PACK (computed by programs; [proven] = from the exe, [derived], [open] = needs your decision):
+# ctxpack build 0x11666d0
+
+STAMP exe=758bacdeef3ede55d45da4418bf0fcdc319dd9992cda79d50560d9a08536f9d8 inputs=data=native_functions.tsv:07ea6058496f3c9340e582f2f9bc57b61494694303373d3389ba71c5842a53a6,data=native_deps.tsv:118356f1f1ba724d2eb40c7fc481ea24319c1aeba9f482039b865d6efece1f8b,data=native_boundary.tsv:058a56d8016eceaff394a955dc2a241d4a8a7d44663fc4cd9102ea82d9ec7315,data=native_boundary_candidates.tsv:b2db6e93be378325c9c8b370ea57463e6e4d762ef5f0a1cae81562abc4635b8c,data=ctx_facts.tsv:d2352cf1ceb26c34830b966be082a5e21a28f989c09fa2d4ecdfb97458b56aab,data=ctx_deadends.md:298967a276b4b7e4454961297c117289bf5ed3fcdf45c3240615fc10ed423c83
+
+## HEADER
+  rva        : 0x11666d0
+  size       : 0x115 (277 bytes)
+  depth      : 
+  D-rank     : [open] (not derivable from static data)
+  callees    : 3 (direct), depth 1
+  callers    : 7
+
+## EXACT LISTING (0x11666d0..0x11667e5)
+```
+sub_11666d0  [0x11666d0..0x11686d0)  size 0x2000  7 xrefs in
+  11666d0  push r15                                      
+  11666d2  push r14                                      
+  11666d4  push rsi                                      
+  11666d5  push rdi                                      
+  11666d6  push rbx                                      
+  11666d7  sub rsp,0x30                                  
+  11666db  movaps [rsp+0x20],xmm6                        
+  11666e0  mov rsi,rcx                                   
+  11666e3  lea rdi,[rcx+0x50]                            ; R a0+0x50
+  11666e7  mov rcx,rdi                                   
+  11666ea  call 0xEEC59F0                                ; -> sub_eec59f0
+  11666ef  test eax,eax                                  
+  11666f1  jne 0x11667C6                                 ; -> loc_11667c6
+  11666f7  cmp dword ptr [rsi+0x9C],0x7FFFFFFF           ; R a0+0x9C
+  1166701  je 0x11667D0                                  ; -> loc_11667d0
+  1166707  mov rbx,[rsi+0x40]                            ; R a0+0x40
+  116670b  add rsi,0x40                                  
+  116670f  cmp rbx,rsi                                   
+  1166712  je 0x11667AE                                  ; -> loc_11667ae
+  1166718  xorps xmm6,xmm6                               
+  116671b  jmp short 0x1166735                           ; -> loc_1166735
+  116671d  nop [rax]                                     ; R ret@eec59f0+0x0
+
+loc_1166720:  ; from 1166795, 11667a9
+  1166720  mov edx,0x38                                  
+  1166725  mov rcx,rbx                                   
+  1166728  call 0xE935700                                ; -> sub_e935700
+  116672d  mov rbx,[rsi]                                 
+  1166730  cmp rbx,rsi                                   
+  1166733  je short 0x11667AE                            ; -> loc_11667ae
+
+loc_1166735:  ; from 116671b
+  1166735  cmp byte ptr [rbx+0x30],1                     
+  1166739  jne short 0x116678F                           ; -> loc_116678f
+  116673b  mov r14,[rbx+0x18]                            
+  116673f  test r14,r14                                  
+  1166742  je short 0x116678F                            ; -> loc_116678f
+  1166744  mov r15,[rbx+0x20]                            
+  1166748  jmp short 0x1166754                           ; -> loc_1166754
+  116674a  nop [rax+rax]                                 ; R ret@e935700+0x0+idx
+
+loc_1166750:  ; from 1166760, 1166766, 1166775
+  1166750  add r14,0x10                                  
+
+loc_1166754:  ; from 1166748
+  1166754  cmp r14,r15                                   
+  1166757  je short 0x1166780                            ; -> loc_1166780
+  1166759  mov rcx,[r14+8]                               
+  116675d  test rcx,rcx                                  
+  1166760  je short 0x1166750                            ; -> loc_1166750
+  1166762  lock dec dword ptr [rcx+0xC]                  
+  1166766  jne short 0x1166750                           ; -> loc_1166750
+  1166768  mov rax,[rcx]                                 
+  116676b  mov rax,[rax+8]                               
+  116676f  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  1166775  jmp short 0x1166750                           ; -> loc_1166750
+  1166777  nop [rax+rax]                                 
+
+loc_1166780:  ; from 1166757
+  1166780  lea rax,[rbx+0x18]                            
+  1166784  movups [rax],xmm6                             
+  1166787  mov qword ptr [rax+0x10],0                    
+
+loc_116678f:  ; from 1166739, 1166742
+  116678f  mov rax,[rbx]                                 
+  1166792  cmp rax,rbx                                   
+  1166795  je short 0x1166720                            ; -> loc_1166720
+  1166797  mov rcx,[rbx+8]                               
+  116679b  mov [rcx],rax                                 
+  116679e  mov [rax+8],rcx                               
+  11667a2  mov [rbx],rbx                                 
+  11667a5  mov [rbx+8],rbx                               
+  11667a9  jmp 0x1166720                                 ; -> loc_1166720
+
+loc_11667ae:  ; from 1166712, 1166733
+  11667ae  mov rcx,rdi                                   
+  11667b1  movaps xmm6,[rsp+0x20]                        
+  11667b6  add rsp,0x30                                  
+  11667ba  pop rbx                                       
+  11667bb  pop rdi                                       
+  11667bc  pop rsi                                       
+  11667bd  pop r14                                       
+  11667bf  pop r15                                       
+  11667c1  jmp 0xEEC5A10                                 ; -> sub_eec5a10
+
+loc_11667c6:  ; from 11666f1
+  11667c6  mov ecx,5                                     
+  11667cb  call 0xEEC5A00                                ; -> sub_eec5a00
+
+loc_11667d0:  ; from 1166701
+  11667d0  mov dword ptr [rsi+0x9C],0x7FFFFFFE           
+  11667da  mov ecx,6                                     
+  11667df  call 0xEEC5A00                                ; -> sub_eec5a00
+  11667e4  int3                                          
+  11667e5  int3                                          
+  11667e6  int3                                          
+  11667e7  int3                                          
+  11667e8  int3                                          
+  11667e9  int3                                          
+  11667ea  int3                                          
+  11667eb  int3                                          
+  11667ec  int3                                          
+  11667ed  int3                                          
+  11667ee  int3                                          
+  11667ef  int3                                          
+  11667f0  push rbp                                      
+  11667f1  push r15                                      
+  11667f3  push r14                                      
+  11667f5  push r12                                      
+  11667f7  push rsi                                      
+  11667f8  push rdi                                      
+  11667f9  push rbx                                      
+  11667fa  sub rsp,0x40                                  
+  11667fe  lea rbp,[rsp+0x40]                            
+  1166803  movaps [rbp-0x10],xmm6                        
+  1166807  mov qword ptr [rbp-0x18],0xFFFFFFFFFFFFFFFE   
+  116680f  mov rsi,rcx                                   
+  1166812  call 0x1166DE0                                ; -> sub_1166de0
+  1166817  nop                                           
+  1166818  lea rdi,[rsi+0x1D0]                           
+  116681f  mov rcx,rdi                                   
+  1166822  call 0xEEC59F0                                ; -> sub_eec59f0
+  1166827  test eax,eax                                  
+  1166829  jne 0x1166C9F                                 ; -> loc_1166c9f
+  116682f  cmp dword ptr [rsi+0x21C],0x7FFFFFFF          
+  1166839  je 0x1166CAA                                  ; -> loc_1166caa
+  116683f  lea r14,[rsi+0x1C0]                           
+  1166846  mov rbx,[rsi+0x1C0]                           
+  116684d  cmp rbx,r14                                   
+  1166850  je 0x11668EE                                  ; -> loc_11668ee
+  1166856  xorps xmm6,xmm6                               
+  1166859  jmp short 0x1166875                           ; -> loc_1166875
+  116685b  nop [rax+rax]                                 ; R ret@eec59f0+0x0+idx
+
+loc_1166860:  ; from 11668d5, 11668e9
+  1166860  mov edx,0x38                                  
+  1166865  mov rcx,rbx                                   
+  1166868  call 0xE935700                                ; -> sub_e935700
+  116686d  mov rbx,[r14]                                 
+  1166870  cmp rbx,r14                                   
+  1166873  je short 0x11668EE                            ; -> loc_11668ee
+
+loc_1166875:  ; from 1166859
+  1166875  cmp byte ptr [rbx+0x30],1                     
+  1166879  jne short 0x11668CF                           ; -> loc_11668cf
+  116687b  mov r15,[rbx+0x18]                            
+  116687f  test r15,r15                                  
+  1166882  je short 0x11668CF                            ; -> loc_11668cf
+  1166884  mov r12,[rbx+0x20]                            
+  1166888  jmp short 0x1166894                           ; -> loc_1166894
+  116688a  nop [rax+rax]                                 ; R ret@e935700+0x0+idx
+
+loc_1166890:  ; from 11668a0, 11668a6, 11668b5
+  1166890  add r15,0x10                                  
+
+loc_1166894:  ; from 1166888
+  1166894  cmp r15,r12                                   
+  1166897  je short 0x11668C0                            ; -> loc_11668c0
+  1166899  mov rcx,[r15+8]                               
+  116689d  test rcx,rcx                                  
+  11668a0  je short 0x1166890                            ; -> loc_1166890
+  11668a2  lock dec dword ptr [rcx+0xC]                  
+  11668a6  jne short 0x1166890                           ; -> loc_1166890
+  11668a8  mov rax,[rcx]                                 
+  11668ab  mov rax,[rax+8]                               
+  11668af  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  11668b5  jmp short 0x1166890                           ; -> loc_1166890
+  11668b7  nop [rax+rax]                                 
+
+loc_11668c0:  ; from 1166897
+  11668c0  lea rax,[rbx+0x18]                            
+  11668c4  movups [rax],xmm6                             
+  11668c7  mov qword ptr [rax+0x10],0                    
+
+loc_11668cf:  ; from 1166879, 1166882
+  11668cf  mov rax,[rbx]                                 
+  11668d2  cmp rax,rbx                                   
+  11668d5  je short 0x1166860                            ; -> loc_1166860
+  11668d7  mov rcx,[rbx+8]                               
+  11668db  mov [rcx],rax                                 
+  11668de  mov [rax+8],rcx                               
+  11668e2  mov [rbx],rbx                                 
+  11668e5  mov [rbx+8],rbx                               
+  11668e9  jmp 0x1166860                                 ; -> loc_1166860
+
+loc_11668ee:  ; from 1166850, 1166873
+  11668ee  mov rcx,rdi                                   
+  11668f1  call 0xEEC5A10                                ; -> sub_eec5a10
+  11668f6  lea rcx,[rsi+0x220]                           
+  11668fd  call 0x9BD3C0                                 ; -> sub_9bd3c0
+  1166902  mov rax,[rsi+0x1C0]                           
+  1166909  cmp rax,r14                                   
+  116690c  je short 0x116692D                            ; -> loc_116692d
+  116690e  xchg ax,ax                                    
+
+loc_1166910:  ; from 116692b
+  1166910  mov rcx,[rax]                                 
+  1166913  mov rdx,[rax+8]                               
+  1166917  mov [rdx],rcx                                 
+  116691a  mov [rcx+8],rdx                               
+  116691e  mov [rax],rax                                 
+  1166921  mov [rax+8],rax                               
+  1166925  mov rax,[r14]                                 
+  1166928  cmp rax,r14                                   
+  116692b  jne short 0x1166910                           ; -> loc_1166910
+
+loc_116692d:  ; from 116690c
+  116692d  cmp rax,r14                                   
+  1166930  je short 0x116694E                            ; -> loc_116694e
+  1166932  mov rcx,[rsi+0x1C8]                           
+  1166939  mov [rcx],rax                                 
+  116693c  mov [rax+8],rcx                               
+  1166940  mov [rsi+0x1C0],r14                           
+  1166947  mov [rsi+0x1C8],r14                           
+
+loc_116694e:  ; from 1166930
+  116694e  mov rcx,[rsi+0x1B8]                           
+  1166955  test rcx,rcx                                  
+  1166958  je short 0x116697F                            ; -> loc_116697f
+  116695a  lea rax,[rsi+0x180]                           
+  1166961  cmp rcx,rax                                   
+  1166964  setne dl                                      
+  1166967  mov rax,[rcx]                                 
+  116696a  mov rax,[rax+0x20]                            
+  116696e  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  1166974  mov qword ptr [rsi+0x1B8],0                   
+
+loc_116697f:  ; from 1166958
+  116697f  lea rdi,[rsi+0x128]                           
+  1166986  mov rcx,rdi                                   
+  1166989  call 0xEEC59F0                                ; -> sub_eec59f0
+  116698e  test eax,eax                                  
+  1166990  jne 0x1166CBF                                 ; -> loc_1166cbf
+  1166996  cmp dword ptr [rsi+0x174],0x7FFFFFFF          
+  11669a0  je 0x1166CCA                                  ; -> loc_1166cca
+  11669a6  lea r14,[rsi+0x118]                           
+  11669ad  mov rbx,[rsi+0x118]                           
+  11669b4  cmp rbx,r14                                   
+  11669b7  je 0x1166A82                                  ; -> loc_1166a82
+  11669bd  xorps xmm6,xmm6                               
+  11669c0  jmp short 0x11669E9                           ; -> loc_11669e9
+  11669c2  nop [rax+rax]                                 ; R ret@eec59f0+0x0+idx
+
+loc_11669d0:  ; from 1166a65, 1166a7d
+  11669d0  mov edx,0x38                                  
+  11669d5  mov rcx,rbx                                   
+  11669d8  call 0xE935700                                ; -> sub_e935700
+  11669dd  mov rbx,[r14]                                 
+  11669e0  cmp rbx,r14                                   
+  11669e3  je 0x1166A82                                  ; -> loc_1166a82
+
+loc_11669e9:  ; from 11669c0
+  11669e9  cmp byte ptr [rbx+0x30],1                     
+  11669ed  jne short 0x1166A5F                           ; -> loc_1166a5f
+  11669ef  mov r15,[rbx+0x18]                            
+  11669f3  test r15,r15                                  
+  11669f6  je short 0x1166A5F                            ; -> loc_1166a5f
+  11669f8  mov r12,[rbx+0x20]                            
+  11669fc  jmp short 0x1166A04                           ; -> loc_1166a04
+  11669fe  xchg ax,ax                                    
+
+loc_1166a00:  ; from 1166a2a, 1166a30, 1166a3f
+  1166a00  add r15,0x18                                  
+
+loc_1166a04:  ; from 11669fc
+  1166a04  cmp r15,r12                                   
+  1166a07  je short 0x1166A50                            ; -> loc_1166a50
+  1166a09  mov rcx,[r15+0x10]                            
+  1166a0d  test rcx,rcx                                  
+  1166a10  je short 0x1166A23                            ; -> loc_1166a23
+  1166a12  mov rax,[rcx]                                 
+  1166a15  mov rax,[rax]                                 
+  1166a18  mov edx,1                                     
+  1166a1d  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+
+loc_1166a23:  ; from 1166a10
+  1166a23  mov rcx,[r15+8]                               
+  1166a27  test rcx,rcx                                  
+  1166a2a  je short 0x1166A00                            ; -> loc_1166a00
+  1166a2c  lock dec dword ptr [rcx+0xC]                  
+  1166a30  jne short 0x1166A00                           ; -> loc_1166a00
+  1166a32  mov rax,[rcx]                                 
+  1166a35  mov rax,[rax+8]                               
+  1166a39  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  1166a3f  jmp short 0x1166A00                           ; -> loc_1166a00
+  1166a41  nop [rax+rax]                                 
+
+loc_1166a50:  ; from 1166a07
+  1166a50  lea rax,[rbx+0x18]                            
+  1166a54  movups [rax],xmm6                             
+  1166a57  mov qword ptr [rax+0x10],0                    
+
+loc_1166a5f:  ; from 11669ed, 11669f6
+  1166a5f  mov rax,[rbx]                                 
+  1166a62  cmp rax,rbx                                   
+  1166a65  je 0x11669D0                                  ; -> loc_11669d0
+  1166a6b  mov rcx,[rbx+8]                               
+  1166a6f  mov [rcx],rax                                 
+  1166a72  mov [rax+8],rcx                               
+  1166a76  mov [rbx],rbx                                 
+  1166a79  mov [rbx+8],rbx                               
+  1166a7d  jmp 0x11669D0                                 ; -> loc_11669d0
+
+loc_1166a82:  ; from 11669b7, 11669e3
+  1166a82  mov rcx,rdi                                   
+  1166a85  call 0xEEC5A10                                ; -> sub_eec5a10
+  1166a8a  lea rcx,[rsi+0x178]                           
+  1166a91  call 0x9BD3C0                                 ; -> sub_9bd3c0
+  1166a96  mov rax,[rsi+0x118]                           
+  1166a9d  cmp rax,r14                                   
+  1166aa0  je short 0x1166ACD                            ; -> loc_1166acd
+  1166aa2  nop [rax+rax]                                 
+
+loc_1166ab0:  ; from 1166acb
+  1166ab0  mov rcx,[rax]                                 
+  1166ab3  mov rdx,[rax+8]                               
+  1166ab7  mov [rdx],rcx                                 
+  1166aba  mov [rcx+8],rdx                               
+  1166abe  mov [rax],rax                                 
+  1166ac1  mov [rax+8],rax                               
+  1166ac5  mov rax,[r14]                                 
+  1166ac8  cmp rax,r14                                   
+  1166acb  jne short 0x1166AB0                           ; -> loc_1166ab0
+
+loc_1166acd:  ; from 1166aa0
+  1166acd  cmp rax,r14                                   
+  1166ad0  je short 0x1166AEE                            ; -> loc_1166aee
+  1166ad2  mov rcx,[rsi+0x120]                           
+  1166ad9  mov [rcx],rax                                 
+  1166adc  mov [rax+8],rcx                               
+  1166ae0  mov [rsi+0x118],r14                           
+  1166ae7  mov [rsi+0x120],r14                           
+
+loc_1166aee:  ; from 1166ad0
+  1166aee  mov rcx,[rsi+0x110]                           
+  1166af5  test rcx,rcx                                  
+  1166af8  je short 0x1166B1F                            ; -> loc_1166b1f
+  1166afa  lea rax,[rsi+0xD8]                            
+  1166b01  cmp rcx,rax                                   
+  1166b04  setne dl                                      
+  1166b07  mov rax,[rcx]                                 
+  1166b0a  mov rax,[rax+0x20]                            
+  1166b0e  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  1166b14  mov qword ptr [rsi+0x110],0                   
+
+loc_1166b1f:  ; from 1166af8
+  1166b1f  lea rdi,[rsi+0x80]                            
+  1166b26  mov rcx,rdi                                   
+  1166b29  call 0xEEC59F0                                ; -> sub_eec59f0
+  1166b2e  test eax,eax                                  
+  1166b30  jne 0x1166CDF                                 ; -> loc_1166cdf
+  1166b36  cmp dword ptr [rsi+0xCC],0x7FFFFFFF           
+  1166b40  je 0x1166CEA                                  ; -> loc_1166cea
+  1166b46  lea rbx,[rsi+0x70]                            
+  1166b4a  mov rcx,[rsi+0x70]                            
+  1166b4e  jmp short 0x1166B5D                           ; -> loc_1166b5d
+
+loc_1166b50:  ; from 1166b68, 1166b7c
+  1166b50  mov edx,0x28                                  
+  1166b55  call 0xE935700                                ; -> sub_e935700
+  1166b5a  mov rcx,[rbx]                                 
+
+loc_1166b5d:  ; from 1166b4e
+  1166b5d  cmp rcx,rbx                                   
+  1166b60  je short 0x1166B7E                            ; -> loc_1166b7e
+  1166b62  mov rax,[rcx]                                 
+  1166b65  cmp rax,rcx                                   
+  1166b68  je short 0x1166B50                            ; -> loc_1166b50
+  1166b6a  mov rdx,[rcx+8]                               
+  1166b6e  mov [rdx],rax                                 
+  1166b71  mov [rax+8],rdx                               
+  1166b75  mov [rcx],rcx                                 
+  1166b78  mov [rcx+8],rcx                               
+  1166b7c  jmp short 0x1166B50                           ; -> loc_1166b50
+
+loc_1166b7e:  ; from 1166b60
+  1166b7e  mov rcx,rdi                                   
+  1166b81  call 0xEEC5A10                                ; -> sub_eec5a10
+  1166b86  lea rcx,[rsi+0xD0]                            
+  1166b8d  call 0x9BD3C0                                 ; -> sub_9bd3c0
+  1166b92  mov rax,[rsi+0x70]                            
+  1166b96  cmp rax,rbx                                   
+  1166b99  je short 0x1166BBD                            ; -> loc_1166bbd
+  1166b9b  nop [rax+rax]                                 
+
+loc_1166ba0:  ; from 1166bbb
+  1166ba0  mov rcx,[rax]                                 
+  1166ba3  mov rdx,[rax+8]                               
+  1166ba7  mov [rdx],rcx                                 
+  1166baa  mov [rcx+8],rdx                               
+  1166bae  mov [rax],rax                                 
+  1166bb1  mov [rax+8],rax                               
+  1166bb5  mov rax,[rbx]                                 
+  1166bb8  cmp rax,rbx                                   
+  1166bbb  jne short 0x1166BA0                           ; -> loc_1166ba0
+
+loc_1166bbd:  ; from 1166b99
+  1166bbd  cmp rax,rbx                                   
+  1166bc0  je short 0x1166BD5                            ; -> loc_1166bd5
+  1166bc2  mov rcx,[rsi+0x78]                            
+  1166bc6  mov [rcx],rax                                 
+  1166bc9  mov [rax+8],rcx                               
+  1166bcd  mov [rsi+0x70],rbx                            
+  1166bd1  mov [rsi+0x78],rbx                            
+
+loc_1166bd5:  ; from 1166bc0
+  1166bd5  mov rcx,[rsi+0x68]                            
+  1166bd9  test rcx,rcx                                  
+  1166bdc  je short 0x1166BFD                            ; -> loc_1166bfd
+  1166bde  lea rax,[rsi+0x30]                            
+  1166be2  cmp rcx,rax                                   
+  1166be5  setne dl                                      
+  1166be8  mov rax,[rcx]                                 
+  1166beb  mov rax,[rax+0x20]                            
+  1166bef  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  1166bf5  mov qword ptr [rsi+0x68],0                    
+
+loc_1166bfd:  ; from 1166bdc
+  1166bfd  lea rcx,[rsi+0x18]                            
+  1166c01  call 0x6AE330                                 ; -> sub_6ae330
+  1166c06  mov rdi,[rsi]                                 
+  1166c09  test rdi,rdi                                  
+  1166c0c  je short 0x1166C8C                            ; -> loc_1166c8c
+  1166c0e  mov rbx,[rsi+8]                               
+  1166c12  cmp rdi,rbx                                   
+  1166c15  jne short 0x1166C29                           ; -> loc_1166c29
+  1166c17  jmp short 0x1166C4A                           ; -> loc_1166c4a
+  1166c19  nop [rax]                                     ; R ret@6ae330+0x0
+
+loc_1166c20:  ; from 1166c30, 1166c36, 1166c45
+  1166c20  add rdi,0x10                                  
+  1166c24  cmp rdi,rbx                                   
+  1166c27  je short 0x1166C47                            ; -> loc_1166c47
+
+loc_1166c29:  ; from 1166c15
+  1166c29  mov rcx,[rdi+8]                               
+  1166c2d  test rcx,rcx                                  
+  1166c30  je short 0x1166C20                            ; -> loc_1166c20
+  1166c32  lock dec dword ptr [rcx+0xC]                  
+  1166c36  jne short 0x1166C20                           ; -> loc_1166c20
+  1166c38  mov rax,[rcx]                                 
+  1166c3b  mov rax,[rax+8]                               
+  1166c3f  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  1166c45  jmp short 0x1166C20                           ; -> loc_1166c20
+
+loc_1166c47:  ; from 1166c27
+  1166c47  mov rdi,[rsi]                                 
+
+loc_1166c4a:  ; from 1166c17
+  1166c4a  mov rdx,[rsi+0x10]                            
+  1166c4e  sub rdx,rdi                                   
+  1166c51  cmp rdx,0x1000                                
+  1166c58  jb short 0x1166C76                            ; -> loc_1166c76
+  1166c5a  mov rax,[rdi-8]                               
+  1166c5e  add rdi,0xFFFFFFFFFFFFFFF8                    
+  1166c62  sub rdi,rax                                   
+  1166c65  cmp rdi,0x20                                  
+  1166c69  jae 0x1166CFF                                 ; -> loc_1166cff
+  1166c6f  add rdx,0x27                                  
+  1166c73  mov rdi,rax                                   
+
+loc_1166c76:  ; from 1166c58
+  1166c76  mov rcx,rdi                                   
+  1166c79  call 0xE935700                                ; -> sub_e935700
+  1166c7e  xorps xmm0,xmm0                               
+  1166c81  movups [rsi],xmm0                             
+  1166c84  mov qword ptr [rsi+0x10],0                    
+
+loc_1166c8c:  ; from 1166c0c
+  1166c8c  movaps xmm6,[rbp-0x10]                        
+  1166c90  add rsp,0x40                                  
+  1166c94  pop rbx                                       
+  1166c95  pop rdi                                       
+  1166c96  pop rsi                                       
+  1166c97  pop r12                                       
+  1166c99  pop r14                                       
+  1166c9b  pop r15                                       
+  1166c9d  pop rbp                                       
+  1166c9e  ret                                           
+
+loc_1166c9f:  ; from 1166829
+  1166c9f  mov ecx,5                                     
+  1166ca4  call 0xEEC5A00                                ; -> sub_eec5a00
+  1166ca9  nop                                           
+
+loc_1166caa:  ; from 1166839
+  1166caa  mov dword ptr [rsi+0x21C],0x7FFFFFFE          
+  1166cb4  mov ecx,6                                     
+  1166cb9  call 0xEEC5A00                                ; -> sub_eec5a00
+  1166cbe  nop                                           
+
+loc_1166cbf:  ; from 1166990
+  1166cbf  mov ecx,5                                     
+  1166cc4  call 0xEEC5A00                                ; -> sub_eec5a00
+  1166cc9  nop                                           
+
+loc_1166cca:  ; from 11669a0
+  1166cca  mov dword ptr [rsi+0x174],0x7FFFFFFE          
+  ... (--max 400)
+```
+
+## CALLERS
+```
+  0x1166080 sub_1166080 size 0x20b
+  0x1288830 sub_1288830 size 0x20b
+  0x67570b0 sub_67570b0 size 0x20b
+  0x6757450 sub_6757450 size 0x20b
+  0x67bfc10 sub_67bfc10 size 0x20b
+  0xc273060 sub_c273060 size 0x2bd
+  0xc28b930 sub_c28b930 size 0x2bd
+  -- 7 calling function(s)
+```
+
+## CALLEES (signature + status, trust [proven] from exe)
+  rva        name               status     signature  trust     boundary  source/dossier
+  0xe935700   sub_e935700       set         [open]     [proven]  src=src\client\features\render\native\helpers\sub_e935700.cpp;src\client\features\render\native\helpers\sub_e935700.h
+  0xeec59f0   sub_eec59f0       set         [open]     [proven]  src=src\client\features\render\native\helpers\sub_eec59f0.cpp;src\client\features\render\native\helpers\sub_eec59f0.h
+  0xeec5a00   sub_eec5a00       set         [open]     [proven]  src=src\client\features\render\native\helpers\sub_eec5a00.cpp;src\client\features\render\native\helpers\sub_eec5a00.h
+
+## STRINGS AND RIP REFS
+  (none)
+
+## FIELD ACCESS TABLE (descscan2, regs rdi,rsi,r9,r15)
+  (no [reg+off] description reads detected; register unknown -> [open])
+
+## KNOWN STRUCT LAYOUTS TOUCHED
+  (none detected)
+
+## CLOSEST FINISHED LIFT (style example, same size band + call shape)
+  e93c790.md  size 0x101  callees~20  trust [derived]
+  dossier: C:\Users\Atomi\Desktop\BlueySenseV2\docs\functions\e93c790.md
+
+## KNOWN FACTS [derived]
+  (none in ctx_facts.tsv for target or its direct callees/callers)
+
+## DEAD ENDS [open]
+  Unverified questions from oc_U-E*.md for target or its direct callees/callers.
+  - UNRESOLVED CALL: - 0xe935700 (sub_e935700): `call 0xE935700` at 0xbc3c6f8 and 0xbc3c741. sub_e935700 is a thunk (`jmp sub_392960` @0xe935700). Neither sub_e935700 nor sub_392960 appears in docs/data/native_functions.tsv or docs/data/native_boundary.tsv. Declared as `extern "C" void sub_e935700(uint64_t, uint64_t, void*, void*)` matching register usage; no wrapper invented. (from docs\progress\oc_U-EX1.bc3c6b0.md)
+  - UNRESOLVED CALL: 0xE935700 at 0xbc56577: `0xbc56577  call 0xE935700` — direct call target neither in the lift set (callees_in_set empty per unit data) nor in docs/data/native_boundary.tsv. Checked docs/data/native_functions.tsv, native_boundary.tsv, function_classes.tsv, native_deps.tsv, native_roots.txt, native_unresolved_indirect.tsv: no entry. Not emitted in lifted code (no wrapper per unit rules); quoted verbatim in source for coverage. (from docs\progress\oc_U-EX1.bc56190_r1.md)
+  - UNRESOLVED CALL: 0xE935700 at 0xbc56577 (direct call 0xE935700: target neither lifted nor boundary); import-slot call qword ptr [0xF9A8C78] at 0xbc56600 likewise outside both tables (from docs\progress\oc_U-EX1.bc56190_r1.md)
+  - UNRESOLVED CALL: none. All six calls resolved: `call 0xE935700` x2 (lift callee sub_e935700, forward-declared and called directly), `call qword ptr [0xF99FFA0]` x3 (vtable slots 4/0/1 through the jmp-rax thunk, no static target by design), `call qword ptr [0xF9A8C78]` x1 (data-slot function-pointer call, rule 69, documented with slot RVA). (from docs\progress\oc_U-EX1.bc97070.md)
+
+## DECISIONS
+  - D-rank not derivable from static data; needs a model/orchestrator decision [open]
+  - description register for descscan2 unknown; tried rdi,rsi,r9,r15, result best-effort [open]
+  - callee signatures not available (no Sigs.json); each callee ABI/signature is [open]
+  - field offsets above are [derived] from descscan2; struct/meaning is [open]
+  - 'closest finished lift' size-band match is [derived], not verified as same call shape [open]
+
+
+
+CURRENT FILES (written by the scaffold program):
+===== src/client/features/render/native/helpers/sub_11666d0.h (current content on disk) =====
+#pragma once
+#include <cstddef>
+#include <cstdint>
+
+namespace native::helpers {
+
+// Typed state layout(s) for sub_11666d0, reverse-engineered from the disassembly
+// of [0x11666d0, 0x11667e5), Minecraft Windows 1.26.62.01. [proven] offsets/widths/signedness
+// come straight from the instruction operands; field NAMES and MEANINGS are [open].
+// One struct per base register that is dereferenced (rcx/rdx/r8/r9 this/a1/a2 and
+// any other register used as a memory base). Field f<hex> is at offset 0x<hex>.
+
+// Struct for base register rcx (dereferenced in this function) [proven base, [open] name/meaning]
+// The struct is packed (#pragma pack(1)) so every declared field sits exactly at its
+// observed offset and offsetof() matches it. The real object may have compiler-inserted
+// alignment padding, so sizeof is a lower bound, not an exact size. [open] field meanings.
+#pragma pack(push, 1)
+struct sub_11666d0_rcx {
+    void* f0;   // // +0x00: void* R // vtable-call slot(s) slot 0,slot 1,slot 3,slot 4  (R/W cited: 0x116672d:R)
+    std::uint8_t pad0x08[0x38];   // +0x08..+0x3f padding (no observed access)
+    void* f40;   // // +0x40: void* R // vtable-call slot(s) slot 0,slot 1,slot 3,slot 4  (R/W cited: 0x1166707:R)
+    std::uint8_t pad0x48[0x8];   // +0x48..+0x4f padding (no observed access)
+    std::uint8_t f50;   // // +0x50: std::uint8_t R  (R/W cited: 0x11666e3:R)
+    std::uint8_t pad0x51[0x4b];   // +0x51..+0x9b padding (no observed access)
+    std::uint32_t f9c;   // // +0x9c: std::uint32_t R/W  (R/W cited: 0x11666f7:R, 0x11667d0:W)
+};
+#pragma pack(pop)
+
+// Struct for base register r14 (dereferenced in this function) [proven base, [open] name/meaning]
+// The struct is packed (#pragma pack(1)) so every declared field sits exactly at its
+// observed offset and offsetof() matches it. The real object may have compiler-inserted
+// alignment padding, so sizeof is a lower bound, not an exact size. [open] field meanings.
+#pragma pack(push, 1)
+struct sub_11666d0_r14 {
+    std::uint8_t pad0x00[0x8];   // +0x00..+0x07 padding (no observed access)
+    std::uint64_t f8;   // // +0x08: std::uint64_t R  (R/W cited: 0x1166759:R)
+};
+#pragma pack(pop)
+
+// Struct for base register rax (dereferenced in this function) [proven base, [open] name/meaning]
+// The struct is packed (#pragma pack(1)) so every declared field sits exactly at its
+// observed offset and offsetof() matches it. The real object may have compiler-inserted
+// alignment padding, so sizeof is a lower bound, not an exact size. [open] field meanings.
+#pragma pack(push, 1)
+struct sub_11666d0_rax {
+    std::uint64_t f0[2];   // // +0x00: std::uint64_t[2] RW/W  (R/W cited: 0x116671d:RW, 0x1166784:W)
+    // // +0x08: void* R/W // vtable-call slot(s) slot 2  (R/W cited: 0x116676b:R, 0x116679e:W)   [subsumed by earlier field; overlapping access, no separate field]
+    std::uint64_t f10;   // // +0x10: std::uint64_t W  (R/W cited: 0x1166787:W)
+};
+#pragma pack(pop)
+
+// Struct for base register rbx (dereferenced in this function) [proven base, [open] name/meaning]
+// The struct is packed (#pragma pack(1)) so every declared field sits exactly at its
+// observed offset and offsetof() matches it. The real object may have compiler-inserted
+// alignment padding, so sizeof is a lower bound, not an exact size. [open] field meanings.
+#pragma pack(push, 1)
+struct sub_11666d0_rbx {
+    void* f0;   // // +0x00: void* R/W // vtable-call slot(s) slot 1,slot 2  (R/W cited: 0x1166768:R, 0x116678f:R, 0x116679b:W, 0x11667a2:W)
+    void* f8;   // // +0x08: void* R/W  (R/W cited: 0x1166797:R, 0x11667a5:W)
+    // // +0x0c: std::uint32_t RW  (R/W cited: 0x1166762:RW)   [subsumed by earlier field; overlapping access, no separate field]
+    std::uint8_t pad0x10[0x8];   // +0x10..+0x17 padding (no observed access)
+    void* f18;   // // +0x18: void* R // vtable-call slot(s) slot 1  (R/W cited: 0x116673b:R, 0x1166780:R)
+    std::uint64_t f20;   // // +0x20: std::uint64_t R  (R/W cited: 0x1166744:R)
+    std::uint8_t pad0x28[0x8];   // +0x28..+0x2f padding (no observed access)
+    std::uint8_t f30;   // // +0x30: std::uint8_t R  (R/W cited: 0x1166735:R)
+};
+#pragma pack(pop)
+
+// Struct for base register rsp (dereferenced in this function) [proven base, [open] name/meaning]
+// The struct is packed (#pragma pack(1)) so every declared field sits exactly at its
+// observed offset and offsetof() matches it. The real object may have compiler-inserted
+// alignment padding, so sizeof is a lower bound, not an exact size. [open] field meanings.
+#pragma pack(push, 1)
+struct sub_11666d0_rsp {
+    std::uint8_t pad0x00[0x20];   // +0x00..+0x1f padding (no observed access)
+    std::uint8_t f20;   // // +0x20: std::uint8_t R/W  (R/W cited: 0x11666db:W, 0x11667b1:R)
+};
+#pragma pack(pop)
+
+// sizeof lower bound: the largest observed offset plus its width across all structs.
+
+static_assert(offsetof(sub_11666d0_rcx, f0) == 0x0, "sub_0x11666d0 rcx+0x0 field");
+static_assert(offsetof(sub_11666d0_rcx, f40) == 0x40, "sub_0x11666d0 rcx+0x40 field");
+static_assert(offsetof(sub_11666d0_rcx, f50) == 0x50, "sub_0x11666d0 rcx+0x50 field");
+static_assert(offsetof(sub_11666d0_rcx, f9c) == 0x9c, "sub_0x11666d0 rcx+0x9c field");
+static_assert(sizeof(sub_11666d0_rcx) >= 0xa0, "sub_0x11666d0 rcx sizeof lower bound");
+
+static_assert(offsetof(sub_11666d0_r14, f8) == 0x8, "sub_0x11666d0 r14+0x8 field");
+static_assert(sizeof(sub_11666d0_r14) >= 0x10, "sub_0x11666d0 r14 sizeof lower bound");
+
+static_assert(offsetof(sub_11666d0_rax, f0) == 0x0, "sub_0x11666d0 rax+0x0 field");
+static_assert(offsetof(sub_11666d0_rax, f10) == 0x10, "sub_0x11666d0 rax+0x10 field");
+static_assert(sizeof(sub_11666d0_rax) >= 0x18, "sub_0x11666d0 rax sizeof lower bound");
+
+static_assert(offsetof(sub_11666d0_rbx, f0) == 0x0, "sub_0x11666d0 rbx+0x0 field");
+static_assert(offsetof(sub_11666d0_rbx, f8) == 0x8, "sub_0x11666d0 rbx+0x8 field");
+static_assert(offsetof(sub_11666d0_rbx, f18) == 0x18, "sub_0x11666d0 rbx+0x18 field");
+static_assert(offsetof(sub_11666d0_rbx, f20) == 0x20, "sub_0x11666d0 rbx+0x20 field");
+static_assert(offsetof(sub_11666d0_rbx, f30) == 0x30, "sub_0x11666d0 rbx+0x30 field");
+static_assert(sizeof(sub_11666d0_rbx) >= 0x31, "sub_0x11666d0 rbx sizeof lower bound");
+
+static_assert(offsetof(sub_11666d0_rsp, f20) == 0x20, "sub_0x11666d0 rsp+0x20 field");
+static_assert(sizeof(sub_11666d0_rsp) >= 0x21, "sub_0x11666d0 rsp sizeof lower bound");
+
+// Signature (x64 Microsoft ABI) - [open]: exact argument and return types are not
+// derivable from static analysis; the first instructions of the prologue are cited.
+// 0x11666d0  push r15; 0x11666d2  push r14; 0x11666d4  push rsi; 0x11666d5  push rdi
+uintptr_t sub_11666d0(void* self);   // [open] signature placeholder (return type, arg types TBD)
+
+} // namespace native::helpers
+
+===== src/client/features/render/native/helpers/sub_11666d0.cpp (current content on disk) =====
+// LIFT 0x11666d0 size 0x115 1.26.62.01 sub_11666d0
+#include "client/features/render/native/Lift.h"
+#include "client/features/render/native/helpers/sub_11666d0.h"
+
+#include <cstdint>
+#include <cstddef>
+#include <intrin.h>
+
+namespace native::helpers {
+
+LIFT_FN(sub_11666d0, "sub_11666d0", 0x11666d0, sub_11666d0, nullptr);
+
+// Verbatim call instructions from the disassembly of [0x11666d0, 0x11667e5) (rdis `fn` output).
+// Plain lines, two spaces after the address: parseable by tools/sigs/verify_oc.py.
+// Preprocessor-excluded below so the skeleton stays valid C++.
+#if 0
+0x11666ea  call 0xEEC59F0
+0x1166728  call 0xE935700
+0x116676f  call qword ptr [0xF99FFA0]
+0x11667cb  call 0xEEC5A00
+0x11667df  call 0xEEC5A00
+#endif
+
+// Ranges: every instruction of [0x11666d0, 0x11667e5) is covered by a block range comment and/or
+// a verbatim quote, so liftcheck instruction coverage is satisfied by construction.
+
+uintptr_t sub_11666d0(void* self) {
+    // 0x11666d0..0x11666f7: basic block 0
+    // 0x11666d0  push r15
+    // 0x11666d2  push r14
+    // 0x11666d4  push rsi
+    // 0x11666d5  push rdi
+    // 0x11666d6  push rbx
+    // 0x11666d7  sub rsp,0x30
+    // 0x11666db  movaps [rsp+0x20],xmm6
+    // 0x11666e0  mov rsi,rcx
+    // 0x11666e3  lea rdi,[rcx+0x50]
+    // 0x11666e7  mov rcx,rdi
+    // 0x11666ea  call 0xEEC59F0
+    // 0x11666ef  test eax,eax
+    // 0x11666f1  jne 0x11667C6
+    // -> if u32(ret@11666ea) != 0 goto L_0x11667c6
+    // -> if u32(ret@11666ea) == 0 goto L_0x11666f7
+    // [open] translate statements for this block
+    L_0x11666d0:;
+    __debugbreak(); // [open] NOT LIFTED block 0
+
+    // 0x11666f7..0x1166707: basic block 1
+    // 0x11666f7  cmp dword ptr [rsi+0x9C],0x7FFFFFFF
+    // 0x1166701  je 0x11667D0
+    // -> if *u32(a0+0x9C) == 0x7FFFFFFF goto L_0x11667d0
+    // -> if *u32(a0+0x9C) != 0x7FFFFFFF goto L_0x1166707
+    // [open] translate statements for this block
+    L_0x11666f7:;
+    __debugbreak(); // [open] NOT LIFTED block 1
+
+    // 0x1166707..0x1166718: basic block 2
+    // 0x1166707  mov rbx,[rsi+0x40]
+    // 0x116670b  add rsi,0x40
+    // 0x116670f  cmp rbx,rsi
+    // 0x1166712  je 0x11667AE
+    // -> if *(a0+0x40) == a0+0x40 goto L_0x11667ae
+    // -> if *(a0+0x40) != a0+0x40 goto L_0x1166718
+    // [open] translate statements for this block
+    L_0x1166707:;
+    __debugbreak(); // [open] NOT LIFTED block 2
+
+    // 0x1166718..0x116671d: basic block 3
+    // 0x1166718  xorps xmm6,xmm6
+    // 0x116671b  jmp short 0x1166735
+    // -> if jmp goto L_0x1166735
+    // [open] translate statements for this block
+    L_0x1166718:;
+    __debugbreak(); // [open] NOT LIFTED block 3
+
+    // 0x116671d..0x1166720: basic block 4
+    // 0x116671d  nop [rax]
+    // -> if fallthrough goto L_0x1166720
+    // [open] translate statements for this block
+    L_0x116671d:;
+    __debugbreak(); // [open] NOT LIFTED block 4
+
+    // 0x1166720..0x1166735: basic block 5
+    // 0x1166720  mov edx,0x38
+    // 0x1166725  mov rcx,rbx
+    // 0x1166728  call 0xE935700
+    // 0x116672d  mov rbx,[rsi]
+    // 0x1166730  cmp rbx,rsi
+    // 0x1166733  je short 0x11667AE
+    // -> if *(a0+0x40) == a0+0x40 goto L_0x11667ae
+    // -> if *(a0+0x40) != a0+0x40 goto L_0x1166735
+    // [open] translate statements for this block
+    L_0x1166720:;
+    __debugbreak(); // [open] NOT LIFTED block 5
+
+    // 0x1166735..0x116673b: basic block 6
+    // 0x1166735  cmp byte ptr [rbx+0x30],1
+    // 0x1166739  jne short 0x116678F
+    // -> if *u8(*(a0+0x40)+0x30) != 0x1 goto L_0x116678f
+    // -> if *u8(*(a0+0x40)+0x30) == 0x1 goto L_0x116673b
+    // [open] translate statements for this block
+    L_0x1166735:;
+    __debugbreak(); // [open] NOT LIFTED block 6
+
+    // 0x116673b..0x1166744: basic block 7
+    // 0x116673b  mov r14,[rbx+0x18]
+    // 0x116673f  test r14,r14
+    // 0x1166742  je short 0x116678F
+    // -> if *(*(a0+0x40)+0x18) == 0 goto L_0x116678f
+    // -> if *(*(a0+0x40)+0x18) != 0 goto L_0x1166744
+    // [open] translate statements for this block
+    L_0x116673b:;
+    __debugbreak(); // [open] NOT LIFTED block 7
+
+    // 0x1166744..0x116674a: basic block 8
+    // 0x1166744  mov r15,[rbx+0x20]
+    // 0x1166748  jmp short 0x1166754
+    // -> if jmp goto L_0x1166754
+    // [open] translate statements for this block
+    L_0x1166744:;
+    __debugbreak(); // [open] NOT LIFTED block 8
+
+    // 0x116674a..0x1166750: basic block 9
+    // 0x116674a  nop [rax+rax]
+    // -> if fallthrough goto L_0x1166750
+    // [open] translate statements for this block
+    L_0x116674a:;
+    __debugbreak(); // [open] NOT LIFTED block 9
+
+    // 0x1166750..0x1166754: basic block 10
+    // 0x1166750  add r14,0x10
+    // -> if fallthrough goto L_0x1166754
+    // [open] translate statements for this block
+    L_0x1166750:;
+    __debugbreak(); // [open] NOT LIFTED block 10
+
+    // 0x1166754..0x1166759: basic block 11
+    // 0x1166754  cmp r14,r15
+    // 0x1166757  je short 0x1166780
+    // -> if ? == *(*(a0+0x40)+0x20) goto L_0x1166780
+    // -> if ? != *(*(a0+0x40)+0x20) goto L_0x1166759
+    // [open] translate statements for this block
+    L_0x1166754:;
+    __debugbreak(); // [open] NOT LIFTED block 11
+
+    // 0x1166759..0x1166762: basic block 12
+    // 0x1166759  mov rcx,[r14+8]
+    // 0x116675d  test rcx,rcx
+    // 0x1166760  je short 0x1166750
+    // -> if ? == 0 goto L_0x1166750
+    // -> if ? != 0 goto L_0x1166762
+    // [open] translate statements for this block
+    L_0x1166759:;
+    __debugbreak(); // [open] NOT LIFTED block 12
+
+    // 0x1166762..0x1166768: basic block 13
+    // 0x1166762  lock dec dword ptr [rcx+0xC]
+    // 0x1166766  jne short 0x1166750
+    // -> if (Dec ?, ?) != 0 goto L_0x1166750
+    // -> if (Dec ?, ?) == 0 goto L_0x1166768
+    // [open] translate statements for this block
+    L_0x1166762:;
+    __debugbreak(); // [open] NOT LIFTED block 13
+
+    // 0x1166768..0x1166777: basic block 14
+    // 0x1166768  mov rax,[rcx]
+    // 0x116676b  mov rax,[rax+8]
+    // 0x116676f  call qword ptr [0xF99FFA0]
+    // 0x1166775  jmp short 0x1166750
+    // -> if jmp goto L_0x1166750
+    // [open] translate statements for this block
+    L_0x1166768:;
+    __debugbreak(); // [open] NOT LIFTED block 14
+
+    // 0x1166777..0x1166780: basic block 15
+    // 0x1166777  nop [rax+rax]
+    // -> if fallthrough goto L_0x1166780
+    // [open] translate statements for this block
+    L_0x1166777:;
+    __debugbreak(); // [open] NOT LIFTED block 15
+
+    // 0x1166780..0x116678f: basic block 16
+    // 0x1166780  lea rax,[rbx+0x18]
+    // 0x1166784  movups [rax],xmm6
+    // 0x1166787  mov qword ptr [rax+0x10],0
+    // -> if fallthrough goto L_0x116678f
+    // [open] translate statements for this block
+    L_0x1166780:;
+    __debugbreak(); // [open] NOT LIFTED block 16
+
+    // 0x116678f..0x1166797: basic block 17
+    // 0x116678f  mov rax,[rbx]
+    // 0x1166792  cmp rax,rbx
+    // 0x1166795  je short 0x1166720
+    // -> if *(*(a0+0x40)) == *(a0+0x40) goto L_0x1166720
+    // -> if *(*(a0+0x40)) != *(a0+0x40) goto L_0x1166797
+    // [open] translate statements for this block
+    L_0x116678f:;
+    __debugbreak(); // [open] NOT LIFTED block 17
+
+    // 0x1166797..0x11667ae: basic block 18
+    // 0x1166797  mov rcx,[rbx+8]
+    // 0x116679b  mov [rcx],rax
+    // 0x116679e  mov [rax+8],rcx
+    // 0x11667a2  mov [rbx],rbx
+    // 0x11667a5  mov [rbx+8],rbx
+    // 0x11667a9  jmp 0x1166720
+    // -> if jmp goto L_0x1166720
+    // [open] translate statements for this block
+    L_0x1166797:;
+    __debugbreak(); // [open] NOT LIFTED block 18
+
+    // 0x11667ae..0x11667c6: basic block 19
+    // 0x11667ae  mov rcx,rdi
+    // 0x11667b1  movaps xmm6,[rsp+0x20]
+    // 0x11667b6  add rsp,0x30
+    // 0x11667ba  pop rbx
+    // 0x11667bb  pop rdi
+    // 0x11667bc  pop rsi
+    // 0x11667bd  pop r14
+    // 0x11667bf  pop r15
+    // 0x11667c1  jmp 0xEEC5A10
+    // -> (fall-through / ret / end)
+    // [open] translate statements for this block
+    L_0x11667ae:;
+    __debugbreak(); // [open] NOT LIFTED block 19
+
+    // 0x11667c6..0x11667d0: basic block 20
+    // 0x11667c6  mov ecx,5
+    // 0x11667cb  call 0xEEC5A00
+    // -> if fallthrough goto L_0x11667d0
+    // [open] translate statements for this block
+    L_0x11667c6:;
+    __debugbreak(); // [open] NOT LIFTED block 20
+
+    // 0x11667d0..0x11667e5: basic block 21
+    // 0x11667d0  mov dword ptr [rsi+0x9C],0x7FFFFFFE
+    // 0x11667da  mov ecx,6
+    // 0x11667df  call 0xEEC5A00
+    // 0x11667e4  int3
+    // -> (fall-through / ret / end)
+    // [open] translate statements for this block
+    L_0x11667d0:;
+    __debugbreak(); // [open] NOT LIFTED block 21
+
+    return 0;   // unreachable; kept so the skeleton compiles until every block is translated
+}
+
+} // namespace native::helpers
+

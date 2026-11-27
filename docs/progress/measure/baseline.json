@@ -1,0 +1,89 @@
+{
+  "generated_at": "2026-11-24T19:15:26.909444Z",
+  "sources": {
+    "ocd_db": "C:\\Users\\Atomi\\opencode-mcp-bridge\\ocd.db",
+    "opencode_db": "C:\\Users\\Atomi\\.local\\share\\opencode\\opencode.db"
+  },
+  "definitions": {
+    "finished_state": "units.state = 'done'",
+    "wall_time_min": "(units.updated_at - units.started_at) / 60000",
+    "sends": "COUNT(session_message) for session_id = units.id",
+    "tokens_cumulative": "session_v2.tokens_input + session_v2.tokens_output",
+    "rotations": "COUNT(journal) WHERE kind='ROTATE' AND unit = units.name",
+    "difficulty_rank": "name suffix: .cNN=chunk, .plan=plan, .asm=asm, else single",
+    "size_bucket": "progress file size: <1KB, 1-10KB, 10-100KB, >=100KB, unknown"
+  },
+  "total_items": 508,
+  "by_bucket": {
+    "single|1-10KB": {
+      "N": 116,
+      "med_wall": 15.630366666666667,
+      "med_sends": 29.5,
+      "med_tokens": 210858.5,
+      "med_rot": 0.0
+    },
+    "single|10-100KB": {
+      "N": 51,
+      "med_wall": 6.750266666666667,
+      "med_sends": 31,
+      "med_tokens": 272646,
+      "med_rot": 0
+    },
+    "single|>=100KB": {
+      "N": 2,
+      "med_wall": 9.501175,
+      "med_sends": 32.0,
+      "med_tokens": 257200.5,
+      "med_rot": 0.0
+    },
+    "single|<1KB": {
+      "N": 120,
+      "med_wall": 1.5464583333333333,
+      "med_sends": 23.0,
+      "med_tokens": 84792.0,
+      "med_rot": 0.0
+    },
+    "plan|<1KB": {
+      "N": 19,
+      "med_wall": 1.88715,
+      "med_sends": 20,
+      "med_tokens": 63790,
+      "med_rot": 0
+    },
+    "plan|1-10KB": {
+      "N": 3,
+      "med_wall": 26.875916666666665,
+      "med_sends": 114,
+      "med_tokens": 441491,
+      "med_rot": 0
+    },
+    "chunk|1-10KB": {
+      "N": 17,
+      "med_wall": 6.1374,
+      "med_sends": 23,
+      "med_tokens": 183230,
+      "med_rot": 0
+    },
+    "chunk|<1KB": {
+      "N": 171,
+      "med_wall": 0.8707333333333334,
+      "med_sends": 17,
+      "med_tokens": 67366,
+      "med_rot": 0
+    },
+    "asm|unknown": {
+      "N": 2,
+      "med_wall": 8.248558333333333,
+      "med_sends": 37.5,
+      "med_tokens": 455944.5,
+      "med_rot": 0.0
+    },
+    "asm|<1KB": {
+      "N": 7,
+      "med_wall": 0.7402333333333333,
+      "med_sends": 37,
+      "med_tokens": 79751,
+      "med_rot": 0
+    }
+  }
+}

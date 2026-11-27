@@ -1,0 +1,570 @@
+UNIT U-EX5.568da90: lift the function at 0x568da90 of the game exe into C++ ("lift" = C++ that does exactly what the function does: same reads, writes, calls in the same order, same return, exact x64 ABI signature). Your whole context is in this message: do NOT read docs/OPENCODE_BRIEF.md, docs/RENDER_NATIVE_SPEC.md, Lift.h, liftcheck.py or the data/pack files again; they are inlined below. Never ask questions. Reply text between tool calls: at most 2 short lines, no analysis in text.
+
+PROGRAMS ALREADY DID THE MECHANICAL PART (it is exact, from the exe; do not redo or retype it):
+  * src/client/features/render/native/helpers/sub_568da90.cpp  first line `// LIFT ...`, includes, LIFT_FN registry line, every call quoted verbatim as `0xRVA  call ...` inside #if 0, then a BLOCK SKELETON from the control-flow graph: one commented block per basic block with its `// 0xA..0xB` range, its quoted instructions, and the branch conditions already decoded (`-> if ... goto L_0x...`). Each block ends with `__debugbreak(); // [open] NOT LIFTED block N`: replace that line (and the `[open] translate` marker) with the real statements, keep the range comments and labels you still need. A body that still contains __debugbreak is not done.
+  * src/client/features/render/native/helpers/sub_568da90.h  typed state structs per dereferenced base register: one field per accessed offset named f<hex>, typed by evidence (width, signedness, float, pointer, vtable slot), padding, offsetof static_asserts, R/W instruction citations (this was checked against accepted headers: offsets and widths match). Renaming fields to meaningful names and fixing a type the code proves otherwise is YOUR decision; never move an offset.
+  * docs/functions/568da90.md  dossier skeleton with a ## DECISIONS section.
+These files already exist: EDIT them (Edit/Write). Do not create other source files.
+
+YOUR JOB (this is the only thing that needs judgement): replace the placeholder body with the real logic, block by block, with a `// 0xA..0xB` instruction range on every block; give the state struct real field names/types matching every access in the listing (offsetof static_asserts for every field read or written); decide each [open] item below (if the listing truly cannot settle one, describe it in the result file only; the words UNVERIFIED, TODO, UNRESOLVED, stub, incomplete and the markers [?] and [I] must NEVER appear in the .h/.cpp, liftcheck fails on them: write a plain factual comment instead). No stubs, no `return 0` placeholders left, no TODO/[?], no null guards or SEH the original does not have. Every call must go to a function in the callee list below (native symbol) or a boundary function; if a callee is neither, write it in the result file as UNRESOLVED CALL (address, caller instruction) and stop. If you need a fact the pack does not give, use `tools/rdis/target/release/rdis.exe` (rdis MCP: sum, cfg, callees, callers, xr, struct, fld, rw, vt, vcalls); batch several queries in ONE turn.
+
+LOOP (few turns): 1) read nothing; write the .h and .cpp in one or two turns. 2) run `python tools/ctx/gate.py 0x568da90`: it prints ONE line (GATE OK, or GATE FAIL with the first problems; full log docs/progress/gate/0x568DA90.log). 3) fix what it says, rerun, until GATE OK. Target: under 12 turns.
+
+RESULT FILE docs/progress/oc_U-EX5.568da90.md (write it at the end; first line `## NEXT`, then `DONE`): '## FILES' every path you changed; '## LIFTCHECK' the final gate/liftcheck output; '## UNRESOLVED CALL' address + instruction, or 'none'; final line `CLOSES? YES` (only after GATE OK) or `CLOSES? NO <the single blocking fact>`. Never leave a placeholder line like `CLOSES? NO` when the gate is OK.
+
+DATA ROW AND CALLEES (orchestrator data file):
+FUNCTION ROW (rva size depth milestone region status name root callees_in_set callees_outside_set):
+0x568da90	0xf7	1	5	pass-tasks	D0		Scene/HUD view-setup task	0x568db90	
+
+CALLEES IN THE LIFT SET (already lifted, call them through their native symbol; id, name, header):
+X5.568db90		lifted header: src/client/features/render/native\passes\sub_568db90.h
+
+
+STATIC PACK (computed by programs; [proven] = from the exe, [derived], [open] = needs your decision):
+# ctxpack build 0x568da90
+
+STAMP exe=758bacdeef3ede55d45da4418bf0fcdc319dd9992cda79d50560d9a08536f9d8 inputs=data=native_functions.tsv:07ea6058496f3c9340e582f2f9bc57b61494694303373d3389ba71c5842a53a6,data=native_deps.tsv:118356f1f1ba724d2eb40c7fc481ea24319c1aeba9f482039b865d6efece1f8b,data=native_boundary.tsv:058a56d8016eceaff394a955dc2a241d4a8a7d44663fc4cd9102ea82d9ec7315,data=native_boundary_candidates.tsv:b2db6e93be378325c9c8b370ea57463e6e4d762ef5f0a1cae81562abc4635b8c,data=ctx_facts.tsv:d2352cf1ceb26c34830b966be082a5e21a28f989c09fa2d4ecdfb97458b56aab,data=ctx_deadends.md:298967a276b4b7e4454961297c117289bf5ed3fcdf45c3240615fc10ed423c83
+
+## HEADER
+  rva        : 0x568da90
+  size       : 0xf7 (247 bytes)
+  depth      : 
+  D-rank     : [open] (not derivable from static data)
+  callees    : 2 (direct), depth 1
+  callers    : 33
+
+## EXACT LISTING (0x568da90..0x568db87)
+```
+sub_568da90  [0x568da90..0x568fa90)  size 0x2000  34 xrefs in
+  568da90  push r15                                      
+  568da92  push r14                                      
+  568da94  push rsi                                      
+  568da95  push rdi                                      
+  568da96  push rbx                                      
+  568da97  sub rsp,0x30                                  
+  568da9b  mov rsi,rcx                                   
+  568da9e  mov rdi,[rcx+0x18]                            ; R a0+0x18
+  568daa2  test rdi,rdi                                  
+  568daa5  je short 0x568DB1E                            ; -> loc_568db1e
+  568daa7  lea r14,[rsi+0x18]                            ; R a0+0x18
+  568daab  mov r15,[rsi+0x20]                            ; R a0+0x20
+  568daaf  cmp rdi,r15                                   
+  568dab2  je short 0x568DADF                            ; -> loc_568dadf
+  568dab4  lea rbx,[rsp+0x2F]                            
+  568dab9  nop [rax]                                     
+
+loc_568dac0:  ; from 568dada
+  568dac0  movsx rcx,byte ptr [rdi+0x18]                 ; R *(a0+0x18)+0x18
+  568dac5  inc rcx                                       
+  568dac8  mov rdx,rbx                                   
+  568dacb  mov r8,rdi                                    
+  568dace  call 0x568DB90                                ; -> sub_568db90
+  568dad3  add rdi,0x20                                  
+  568dad7  cmp rdi,r15                                   
+  568dada  jne short 0x568DAC0                           ; -> loc_568dac0
+  568dadc  mov rdi,[r14]                                 ; R a0+0x18+0x0
+
+loc_568dadf:  ; from 568dab2
+  568dadf  mov rdx,[rsi+0x28]                            ; R a0+0x28
+  568dae3  sub rdx,rdi                                   
+  568dae6  cmp rdx,0x1000                                
+  568daed  jb short 0x568DB07                            ; -> loc_568db07
+  568daef  mov rax,[rdi-8]                               ; R *(a0+0x18+0x0)-0x8
+  568daf3  add rdi,0xFFFFFFFFFFFFFFF8                    
+  568daf7  sub rdi,rax                                   
+  568dafa  cmp rdi,0x20                                  
+  568dafe  jae short 0x568DB6D                           ; -> loc_568db6d
+  568db00  add rdx,0x27                                  
+  568db04  mov rdi,rax                                   
+
+loc_568db07:  ; from 568daed
+  568db07  mov rcx,rdi                                   
+  568db0a  call 0xE935700                                ; -> sub_e935700
+  568db0f  xorps xmm0,xmm0                               
+  568db12  movups [r14],xmm0                             ; W a0+0x18+0x0
+  568db16  mov qword ptr [r14+0x10],0                    ; W a0+0x18+0x10
+
+loc_568db1e:  ; from 568daa5
+  568db1e  mov rcx,[rsi]                                 ; R a0+0x0
+  568db21  test rcx,rcx                                  
+  568db24  je short 0x568DB61                            ; -> loc_568db61
+  568db26  mov rdx,[rsi+0x10]                            ; R a0+0x10
+  568db2a  sub rdx,rcx                                   
+  568db2d  cmp rdx,0x1000                                
+  568db34  jb short 0x568DB4E                            ; -> loc_568db4e
+  568db36  mov rax,[rcx-8]                               ; R *(a0+0x0)-0x8
+  568db3a  add rcx,0xFFFFFFFFFFFFFFF8                    
+  568db3e  sub rcx,rax                                   
+  568db41  cmp rcx,0x20                                  
+  568db45  jae short 0x568DB6D                           ; -> loc_568db6d
+  568db47  add rdx,0x27                                  
+  568db4b  mov rcx,rax                                   
+
+loc_568db4e:  ; from 568db34
+  568db4e  call 0xE935700                                ; -> sub_e935700
+  568db53  xorps xmm0,xmm0                               
+  568db56  movups [rsi],xmm0                             ; W a0+0x0
+  568db59  mov qword ptr [rsi+0x10],0                    ; W a0+0x10
+
+loc_568db61:  ; from 568db24
+  568db61  add rsp,0x30                                  
+  568db65  pop rbx                                       
+  568db66  pop rdi                                       
+  568db67  pop rsi                                       
+  568db68  pop r14                                       
+  568db6a  pop r15                                       
+  568db6c  ret                                           
+
+loc_568db6d:  ; from 568dafe, 568db45
+  568db6d  mov qword ptr [rsp+0x20],0                    
+  568db76  xor ecx,ecx                                   
+  568db78  xor edx,edx                                   
+  568db7a  xor r8d,r8d                                   
+  568db7d  xor r9d,r9d                                   
+  568db80  call qword ptr [0xF9A8C78]                    ; [data_f9a8c78]
+  568db86  int3                                          
+  568db87  int3                                          
+  568db88  int3                                          
+  568db89  int3                                          
+  568db8a  int3                                          
+  568db8b  int3                                          
+  568db8c  int3                                          
+  568db8d  int3                                          
+  568db8e  int3                                          
+  568db8f  int3                                          
+  568db90  push rsi                                      
+  568db91  sub rsp,0x30                                  
+  568db95  lea rax,[0xF25D03C]                           ; [data_f25d03c]
+  568db9c  movsxd rcx,[rax+rcx*4]                        
+  568dba0  add rcx,rax                                   
+  568dba3  jmp rcx                                       
+  568dba5  mov rcx,[r8]                                  
+  568dba8  test rcx,rcx                                  
+  568dbab  je short 0x568DBF0                            ; -> loc_568dbf0
+  568dbad  mov rdx,[r8+0x10]                             
+  568dbb1  sub rdx,rcx                                   
+  568dbb4  cmp rdx,0x1000                                
+  568dbbb  jb short 0x568DBDA                            ; -> loc_568dbda
+  568dbbd  mov rax,[rcx-8]                               
+  568dbc1  add rcx,0xFFFFFFFFFFFFFFF8                    
+  568dbc5  sub rcx,rax                                   
+  568dbc8  cmp rcx,0x20                                  
+  568dbcc  jae short 0x568DBF6                           ; -> loc_568dbf6
+  568dbce  mov rsi,r8                                    
+  568dbd1  add rdx,0x27                                  
+  568dbd5  mov rcx,rax                                   
+  568dbd8  jmp short 0x568DBDD                           ; -> loc_568dbdd
+
+loc_568dbda:  ; from 568dbbb
+  568dbda  mov rsi,r8                                    
+
+loc_568dbdd:  ; from 568dbd8
+  568dbdd  call 0xE935700                                ; -> sub_e935700
+  568dbe2  xorps xmm0,xmm0                               
+  568dbe5  movups [rsi],xmm0                             
+  568dbe8  mov qword ptr [rsi+0x10],0                    
+
+loc_568dbf0:  ; from 568dbab
+  568dbf0  add rsp,0x30                                  
+  568dbf4  pop rsi                                       
+  568dbf5  ret                                           
+
+loc_568dbf6:  ; from 568dbcc
+  568dbf6  mov qword ptr [rsp+0x20],0                    
+  568dbff  xor ecx,ecx                                   
+  568dc01  xor edx,edx                                   
+  568dc03  xor r8d,r8d                                   
+  568dc06  xor r9d,r9d                                   
+  568dc09  call qword ptr [0xF9A8C78]                    ; [data_f9a8c78]
+  568dc0f  int3                                          
+  568dc10  mov rax,rdx                                   
+  568dc13  lea rdx,[0xF25B550]                           ; [data_f25b550]
+  568dc1a  mov [rax],rdx                                 
+  568dc1d  mov rcx,[rcx+8]                               
+  568dc21  mov [rax+8],rcx                               
+  568dc25  ret                                           
+  568dc26  int3                                          
+  568dc27  int3                                          
+  568dc28  int3                                          
+  568dc29  int3                                          
+  568dc2a  int3                                          
+  568dc2b  int3                                          
+  568dc2c  int3                                          
+  568dc2d  int3                                          
+  568dc2e  int3                                          
+  568dc2f  int3                                          
+  568dc30  lea rax,[0x124B7FA0]                          ; [data_124b7fa0]
+  568dc37  ret                                           
+  568dc38  int3                                          
+  568dc39  int3                                          
+  568dc3a  int3                                          
+  568dc3b  int3                                          
+  568dc3c  int3                                          
+  568dc3d  int3                                          
+  568dc3e  int3                                          
+  568dc3f  int3                                          
+  568dc40  push rbp                                      
+  568dc41  push r15                                      
+  568dc43  push r14                                      
+  568dc45  push r13                                      
+  568dc47  push r12                                      
+  568dc49  push rsi                                      
+  568dc4a  push rdi                                      
+  568dc4b  push rbx                                      
+  568dc4c  sub rsp,0xB8                                  
+  568dc53  lea rbp,[rsp+0x80]                            
+  568dc5b  mov qword ptr [rbp+0x30],0xFFFFFFFFFFFFFFFE   
+  568dc63  mov r15,r9                                    
+  568dc66  mov r12,r8                                    
+  568dc69  mov r14,rdx                                   
+  568dc6c  mov rdi,rcx                                   
+  568dc6f  mov rcx,[r8+0x40]                             
+  568dc73  add r12,0x40                                  
+  568dc77  cmp rcx,r12                                   
+  568dc7a  mov [rbp+0x18],rdi                            
+  568dc7e  je 0x568DD51                                  ; -> loc_568dd51
+  568dc84  xor esi,esi                                   
+  568dc86  mov rax,0x8F5C28F5C28F5C29                    
+  568dc90  mov r8,rcx                                    
+  568dc93  nop [rax+rax]                                 
+
+loc_568dca0:  ; from 568dcb9
+  568dca0  mov rdx,[rcx+0x18]                            
+  568dca4  sub rdx,[rcx+0x10]                            
+  568dca8  mov rcx,[rcx]                                 
+  568dcab  sar rdx,3                                     
+  568dcaf  imul rdx,rax                                  
+  568dcb3  add rsi,rdx                                   
+  568dcb6  cmp rcx,r12                                   
+  568dcb9  jne short 0x568DCA0                           ; -> loc_568dca0
+  568dcbb  mov rcx,[r14]                                 
+  568dcbe  test rsi,rsi                                  
+  568dcc1  mov [rbp+0x28],rcx                            
+  568dcc5  je 0x568DD5F                                  ; -> loc_568dd5f
+  568dccb  mov rax,0xAAAAAAAAAAAAAAB                     
+  568dcd5  cmp rsi,rax                                   
+  568dcd8  jae 0x568E07A                                 ; -> loc_568e07a
+  568dcde  lea rax,[rsi*8]                               
+  568dce6  lea r8,[rax+rax*2]                            
+  568dcea  mov rcx,[rcx]                                 
+  568dced  lea rdx,[rbp-0x60]                            
+  568dcf1  mov r9d,1                                     
+  568dcf7  call 0xA78940                                 ; -> sub_a78940
+  568dcfc  nop                                           
+  568dcfd  mov rbx,[rbp-0x50]                            
+  568dd01  mov rax,[rbp-0x60]                            
+  568dd05  mov rdi,[rbp-0x58]                            
+  568dd09  mov r13,[rax]                                 
+  568dd0c  test rdi,rdi                                  
+  568dd0f  je short 0x568DD3C                            ; -> loc_568dd3c
+  568dd11  lock dec dword ptr [rdi+8]                    
+  568dd15  jne short 0x568DD3C                           ; -> loc_568dd3c
+  568dd17  mov rax,[rdi]                                 
+  568dd1a  mov rax,[rax]                                 
+  568dd1d  mov rcx,rdi                                   
+  568dd20  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  568dd26  lock dec dword ptr [rdi+0xC]                  
+  568dd2a  jne short 0x568DD3C                           ; -> loc_568dd3c
+  568dd2c  mov rax,[rdi]                                 
+  568dd2f  mov rax,[rax+8]                               
+  568dd33  mov rcx,rdi                                   
+  568dd36  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+
+loc_568dd3c:  ; from 568dd0f, 568dd15, 568dd2a
+  568dd3c  add r13,rbx                                   
+  568dd3f  mov rbx,r13                                   
+  568dd42  lea rax,[rsi+rsi*2]                           
+  568dd46  lea r13,[r13+rax*8]                           
+  568dd4b  mov rcx,[r12]                                 
+  568dd4f  jmp short 0x568DD67                           ; -> loc_568dd67
+
+loc_568dd51:  ; from 568dc7e
+  568dd51  mov rax,[r14]                                 
+  568dd54  mov [rbp+0x28],rax                            
+  568dd58  xor r13d,r13d                                 
+  568dd5b  xor ebx,ebx                                   
+  568dd5d  jmp short 0x568DD67                           ; -> loc_568dd67
+
+loc_568dd5f:  ; from 568dcc5
+  568dd5f  xor r13d,r13d                                 
+  568dd62  xor ebx,ebx                                   
+  568dd64  mov rcx,r8                                    
+
+loc_568dd67:  ; from 568dd4f, 568dd5d
+  568dd67  mov [rbp+0x20],r14                            
+  568dd6b  cmp rcx,r12                                   
+  568dd6e  je 0x568E040                                  ; -> loc_568e040
+  568dd74  mov [rbp-0x10],r12                            
+  568dd78  mov r14,0x2002007020                          
+  568dd82  mov r12,rbx                                   
+  568dd85  mov [rbp-0x18],r15                            
+  568dd89  jmp short 0x568DDA1                           ; -> loc_568dda1
+  568dd8b  nop [rax+rax]                                 
+
+loc_568dd90:  ; from 568ddb0, 568de06
+  568dd90  mov rcx,[rbp+8]                               
+  568dd94  mov rcx,[rcx]                                 
+  568dd97  cmp rcx,[rbp-0x10]                            
+  568dd9b  je 0x568DF57                                  ; -> loc_568df57
+
+loc_568dda1:  ; from 568dd89
+  568dda1  mov rsi,[rcx+0x10]                            
+  568dda5  mov rdx,[rcx+0x18]                            
+  568dda9  cmp rsi,rdx                                   
+  568ddac  mov [rbp+8],rcx                               
+  568ddb0  je short 0x568DD90                            ; -> loc_568dd90
+  568ddb2  lea rax,[rcx+0x28]                            
+  568ddb6  mov [rbp-0x30],rax                            
+  568ddba  mov [rbp-0x28],rdx                            
+  568ddbe  jmp short 0x568DE08                           ; -> loc_568de08
+
+loc_568ddc0:  ; from 568de2c, 568de31, 568de41, 568de5a
+  568ddc0  mov rcx,[rbp+0xA0]                            
+  568ddc7  lea rdx,[rbp-8]                               
+  568ddcb  call 0x56894C0                                ; -> sub_56894c0
+  568ddd0  mov r14,rax                                   
+  568ddd3  cmp r12,r13                                   
+  568ddd6  je 0x568DE62                                  ; -> loc_568de62
+  568dddc  mov [r12],r14                                 
+  568dde0  movups xmm0,[rbp-8]                           
+  568dde4  movups [r12+8],xmm0                           
+  568ddea  add r12,0x18                                  
+
+loc_568ddee:  ; from 568df52
+  568ddee  mov r14,0x2002007020                          
+
+loc_568ddf8:  ; from 568de60
+  568ddf8  mov rdx,[rbp-0x28]                            
+
+loc_568ddfc:  ; from 568de11
+  568ddfc  add rsi,0xC8                                  
+  568de03  cmp rsi,rdx                                   
+  568de06  je short 0x568DD90                            ; -> loc_568dd90
+
+loc_568de08:  ; from 568ddbe
+  568de08  mov rax,[rsi]                                 
+  568de0b  not rax                                       
+  568de0e  test rax,r14                                  
+  568de11  jne short 0x568DDFC                           ; -> loc_568ddfc
+  568de13  mov [rbp-8],rsi                               
+  568de17  mov rax,[rbp-0x30]                            
+  568de1b  mov [rbp],rax                                 
+  568de1f  mov rdi,[r15]                                 
+  568de22  mov rcx,[rdi]                                 
+  568de25  mov rdx,[rdi+8]                               
+  568de29  cmp rcx,rdx                                   
+  568de2c  je short 0x568DDC0                            ; -> loc_568ddc0
+  568de2e  test byte ptr [rsi],1                         
+  568de31  je short 0x568DDC0                            ; -> loc_568ddc0
+  568de33  mov rax,[rbp+8]                               
+  568de37  mov rax,[rax+0x8B0]                           
+  568de3e  test rax,rax                                  
+  568de41  je 0x568DDC0                                  ; -> loc_568ddc0
+  568de47  movzx r8d,word ptr [rsi+0x10]                 
+  568de4c  movzx r8d,word ptr [rax+r8*2]                 
+  568de51  call 0xE93B480                                ; -> sub_e93b480
+  568de56  cmp rax,[rdi+8]                               
+  568de5a  jne 0x568DDC0                                 ; -> loc_568ddc0
+  568de60  jmp short 0x568DDF8                           ; -> loc_568ddf8
+
+loc_568de62:  ; from 568ddd6
+  568de62  mov [rbp-0x20],rbx                            
+  568de66  sub r12,rbx                                   
+  568de69  mov rax,r12                                   
+  568de6c  sar rax,3                                     
+  568de70  mov rcx,0xAAAAAAAAAAAAAAAB                    
+  568de7a  imul rax,rcx                                  
+  568de7e  lea rbx,[rax+1]                               
+  568de82  mov rdi,rax                                   
+  568de85  shr rdi,1                                     
+  568de88  mov rdx,0xAAAAAAAAAAAAAAA                     
+  568de92  mov rcx,rdx                                   
+  568de95  sub rcx,rdi                                   
+  568de98  add rdi,rax                                   
+  568de9b  cmp rdi,rbx                                   
+  568de9e  cmovbe rdi,rbx                                
+  568dea2  cmp rax,rcx                                   
+  568dea5  cmova rdi,rdx                                 
+  568dea9  lea rax,[rdi*8]                               
+  568deb1  lea r8,[rax+rax*2]                            
+  568deb5  mov rax,[rbp+0x28]                            
+  568deb9  mov rcx,[rax]                                 
+  568debc  mov r9d,1                                     
+  568dec2  lea rdx,[rbp-0x60]                            
+  568dec6  call 0xA78940                                 ; -> sub_a78940
+  568decb  nop                                           
+  568decc  mov rcx,[rbp-0x50]                            
+  568ded0  mov rax,[rbp-0x60]                            
+  568ded4  mov r13,[rbp-0x58]                            
+  568ded8  mov r15,[rax]                                 
+  568dedb  test r13,r13                                  
+  568dede  je short 0x568DF1B                            ; -> loc_568df1b
+  568dee0  lock dec dword ptr [r13+8]                    
+  568dee5  jne short 0x568DF1B                           ; -> loc_568df1b
+  568dee7  mov rax,[r13]                                 
+  568deeb  mov rax,[rax]                                 
+  568deee  mov [rbp+0x10],rcx                            
+  568def2  mov rcx,r13                                   
+  568def5  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  568defb  mov rcx,[rbp+0x10]                            
+  568deff  lock dec dword ptr [r13+0xC]                  
+  568df04  jne short 0x568DF1B                           ; -> loc_568df1b
+  568df06  mov rax,[r13]                                 
+  568df0a  mov rax,[rax+8]                               
+  568df0e  mov rcx,r13                                   
+  568df11  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  568df17  mov rcx,[rbp+0x10]                            
+
+loc_568df1b:  ; from 568dede, 568dee5, 568df04
+  568df1b  add r15,rcx                                   
+  568df1e  mov [r12+r15],r14                             
+  568df22  movups xmm0,[rbp-8]                           
+  568df26  movups [r12+r15+8],xmm0                       
+  568df2c  mov rcx,r15                                   
+  568df2f  mov rdx,[rbp-0x20]                            
+  568df33  mov r8,r12                                    
+  568df36  call 0xEEC6DE0                                ; -> sub_eec6de0
+  568df3b  lea rax,[rbx+rbx*2]                           
+  568df3f  lea r12,[r15+rax*8]                           
+  568df43  lea rax,[rdi+rdi*2]                           
+  568df47  lea r13,[r15+rax*8]                           
+  568df4b  mov rbx,r15                                   
+  568df4e  mov r15,[rbp-0x18]                            
+  568df52  jmp 0x568DDEE                                 ; -> loc_568ddee
+
+loc_568df57:  ; from 568dd9b
+  568df57  cmp rbx,r12                                   
+  568df5a  je 0x568E040                                  ; -> loc_568e040
+  568df60  mov rdi,r12                                   
+  568df63  sub rdi,rbx                                   
+  568df66  mov rcx,rbx                                   
+  568df69  mov rbx,rdi                                   
+  568df6c  sar rbx,3                                     
+  568df70  mov rax,0xAAAAAAAAAAAAAAAB                    
+  568df7a  imul rbx,rax                                  
+  568df7e  mov r13,rcx                                   
+  568df81  mov rdx,r12                                   
+  568df84  mov r8,rbx                                    
+  568df87  call 0x5689800                                ; -> sub_5689800
+  568df8c  mov r15,[rbp+0x18]                            
+  568df90  mov rax,[rbp+0x20]                            
+  568df94  mov [r15],rax                                 
+  568df97  mov rcx,[rbp+0x28]                            
+  568df9b  mov [r15+8],rcx                               
+  568df9f  xorps xmm0,xmm0                               
+  568dfa2  movups [r15+0x10],xmm0                        
+  568dfa7  mov qword ptr [r15+0x20],0                    
+  568dfaf  mov rax,0xAAAAAAAAAAAAAAB                     
+  568dfb9  cmp rbx,rax                                   
+  568dfbc  jae 0x568E07A                                 ; -> loc_568e07a
+  568dfc2  mov rcx,[rcx]                                 
+  568dfc5  lea rdx,[rbp-0x60]                            
+  568dfc9  mov r9d,1                                     
+  568dfcf  mov r8,rdi                                    
+  568dfd2  call 0xA78940                                 ; -> sub_a78940
+  568dfd7  nop                                           
+  568dfd8  mov rsi,[rbp-0x50]                            
+  568dfdc  mov rax,[rbp-0x60]                            
+  568dfe0  mov r14,[rbp-0x58]                            
+  568dfe4  mov rbx,[rax]                                 
+  568dfe7  test r14,r14                                  
+  568dfea  je short 0x568E019                            ; -> loc_568e019
+  568dfec  lock dec dword ptr [r14+8]                    
+  568dff1  jne short 0x568E019                           ; -> loc_568e019
+  568dff3  mov rax,[r14]                                 
+  568dff6  mov rax,[rax]                                 
+  568dff9  mov rcx,r14                                   
+  568dffc  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  568e002  lock dec dword ptr [r14+0xC]                  
+  568e007  jne short 0x568E019                           ; -> loc_568e019
+  568e009  mov rax,[r14]                                 
+  568e00c  mov rax,[rax+8]                               
+  568e010  mov rcx,r14                                   
+  568e013  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+
+loc_568e019:  ; from 568dfea, 568dff1, 568e007
+  568e019  add rbx,rsi                                   
+  568e01c  mov [r15+0x10],rbx                            
+  568e020  mov [r15+0x18],rbx                            
+  568e024  lea rsi,[rbx+rdi]                             
+  568e028  mov [r15+0x20],rsi                            
+  568e02c  mov rcx,rbx                                   
+  568e02f  mov rdx,r13                                   
+  ... (--max 400)
+```
+
+## CALLERS
+```
+  0x568cd90 sub_568cd90 size 0x615
+  0x56ae230 sub_56ae230 size 0x545
+  0x56ca9c0 sub_56ca9c0 size 0x648
+  0x56d16a0 sub_56d16a0 size 0x6b3
+  0x56d3170 sub_56d3170 size 0x1019
+  0x56d46f0 sub_56d46f0 size 0x79
+  0x56d5ed0 sub_56d5ed0 size 0x1cf3
+  0xbc04dc0 sub_bc04dc0 size 0x5d3
+  0xbc080c0 sub_bc080c0 size 0x25b
+  0xbc0b240 sub_bc0b240 size 0x88b
+  0xbc0f130 sub_bc0f130 size 0x648
+  0xbc2c590 sub_bc2c590 size 0x558
+  0xbc2cd20 sub_bc2cd20 size 0x5f2
+  0xbc2d550 sub_bc2d550 size 0x5e4
+  0xbc2dd20 sub_bc2dd20 size 0x5db
+  0xbc2eb50 sub_bc2eb50 size 0x54c
+  0xbc2f4a0 sub_bc2f4a0 size 0x85b
+  0xbc36140 sub_bc36140 size 0x5aa
+  0xbc38c20 sub_bc38c20 size 0xda8
+  0xbc39a00 sub_bc39a00 size 0xa6
+  0xbc5bad0 sub_bc5bad0 size 0x19d1
+  0xbc7e100 sub_bc7e100 size 0xa5f
+  0xbc82400 sub_bc82400 size 0x5df
+  0xbc8cfd0 sub_bc8cfd0 size 0x1775
+  0xbc96950 sub_bc96950 size 0x4d1
+  0xbc973e0 sub_bc973e0 size 0x4e1
+  0xbc97bc0 sub_bc97bc0 size 0x4b1
+  0xbca85e0 sub_bca85e0 size 0x8f8
+  0xbca9770 sub_bca9770 size 0xab8
+  0xbcaaac0 sub_bcaaac0 size 0x988
+  0xbcb7590 sub_bcb7590 size 0x3d8
+  0xbcb7e70 sub_bcb7e70 size 0x447
+  0xe7ebfc0 sub_e7ebfc0 size 0x1ce
+  -- 33 calling function(s)
+```
+
+## CALLEES (signature + status, trust [proven] from exe)
+  rva        name               status     signature  trust     boundary  source/dossier
+  0x568db90   sub_568db90       set         [open]     [proven]  src=src\client\features\render\native\passes\sub_568db90.cpp;src\client\features\render\native\passes\sub_568db90.h
+  0xe935700   sub_e935700       set         [open]     [proven]  src=src\client\features\render\native\helpers\sub_e935700.cpp;src\client\features\render\native\helpers\sub_e935700.h
+
+## STRINGS AND RIP REFS
+  (none)
+
+## FIELD ACCESS TABLE (descscan2, regs rdi,rsi,r9,r15)
+  (no [reg+off] description reads detected; register unknown -> [open])
+
+## KNOWN STRUCT LAYOUTS TOUCHED
+  (none detected)
+
+## CLOSEST FINISHED LIFT (style example, same size band + call shape)
+  5667e70.md  size 0xe6  callees~25  trust [derived]
+  dossier: C:\Users\Atomi\Desktop\BlueySenseV2\docs\functions\5667e70.md
+
+## KNOWN FACTS [derived]
+  (none in ctx_facts.tsv for target or its direct callees/callers)
+
+## DEAD ENDS [open]
+  Unverified questions from oc_U-E*.md for target or its direct callees/callers.
+  - UNRESOLVED CALL: - 0xe935700 (sub_e935700): `call 0xE935700` at 0xbc3c6f8 and 0xbc3c741. sub_e935700 is a thunk (`jmp sub_392960` @0xe935700). Neither sub_e935700 nor sub_392960 appears in docs/data/native_functions.tsv or docs/data/native_boundary.tsv. Declared as `extern "C" void sub_e935700(uint64_t, uint64_t, void*, void*)` matching register usage; no wrapper invented. (from docs\progress\oc_U-EX1.bc3c6b0.md)
+  - UNRESOLVED CALL: 0xE935700 at 0xbc56577: `0xbc56577  call 0xE935700` — direct call target neither in the lift set (callees_in_set empty per unit data) nor in docs/data/native_boundary.tsv. Checked docs/data/native_functions.tsv, native_boundary.tsv, function_classes.tsv, native_deps.tsv, native_roots.txt, native_unresolved_indirect.tsv: no entry. Not emitted in lifted code (no wrapper per unit rules); quoted verbatim in source for coverage. (from docs\progress\oc_U-EX1.bc56190_r1.md)
+  - UNRESOLVED CALL: 0xE935700 at 0xbc56577 (direct call 0xE935700: target neither lifted nor boundary); import-slot call qword ptr [0xF9A8C78] at 0xbc56600 likewise outside both tables (from docs\progress\oc_U-EX1.bc56190_r1.md)
+  - UNRESOLVED CALL: none. All six calls resolved: `call 0xE935700` x2 (lift callee sub_e935700, forward-declared and called directly), `call qword ptr [0xF99FFA0]` x3 (vtable slots 4/0/1 through the jmp-rax thunk, no static target by design), `call qword ptr [0xF9A8C78]` x1 (data-slot function-pointer call, rule 69, documented with slot RVA). (from docs\progress\oc_U-EX1.bc97070.md)
+  - UNRESOLVED CALL: none — the only control-flow transfer is the jmp to 0x568cd90, which is in the lift set (native_functions.tsv, D2); there are no `call` instructions in the function. (from docs\progress\oc_U-EX5.568cd70.md)
+
+## DECISIONS
+  - D-rank not derivable from static data; needs a model/orchestrator decision [open]
+  - description register for descscan2 unknown; tried rdi,rsi,r9,r15, result best-effort [open]
+  - callee signatures not available (no Sigs.json); each callee ABI/signature is [open]
+  - field offsets above are [derived] from descscan2; struct/meaning is [open]
+  - 'closest finished lift' size-band match is [derived], not verified as same call shape [open]
+
+

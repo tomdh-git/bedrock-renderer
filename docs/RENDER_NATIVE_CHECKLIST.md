@@ -2,26 +2,26 @@
 # Native render checklist: every render function lifted to our own verified source, then run as our own code
 
 <!-- STATUS:BEGIN -->
-## STATUS (auto-updated by tools/checklist_status.py after every tick; last update 2026-11-24)
-**Items: 300 done / 1580 open.** Lifted code (L1, statically complete, liftcheck OK): **197 of 3934 KB (5%)**. The done state is Native mode over the whole path (X6z); until then this number is the honest progress, and nothing is live-verified (L2) before the gates.
+## STATUS (auto-updated by tools/checklist_status.py after every tick; last update 2026-11-25)
+**Items: 502 done / 1388 open.** Lifted code (L1, statically complete, liftcheck OK): **236 of 3935 KB (6%)**. The done state is Native mode over the whole path (X6z); until then this number is the honest progress, and nothing is live-verified (L2) before the gates.
 **Last change:** 
 
 | Section | done | open | lifted bytes |
 |---|---|---|---|
 | X0 | 13 | 1 |  |
-| X1 | 140 | 107 | 51 / 322 KB (15%) |
-| X2 | 131 | 180 | 146 / 645 KB (22%) |
-| X3 | 0 | 146 | 0 / 214 KB (0%) |
-| X4 | 0 | 547 | 0 / 1523 KB (0%) |
-| X5 | 1 | 244 | 0 / 580 KB (0%) |
+| X1 | 143 | 104 | 51 / 322 KB (16%) |
+| X2 | 140 | 171 | 147 / 645 KB (22%) |
+| X3 | 18 | 128 | 3 / 214 KB (1%) |
+| X4 | 54 | 493 | 10 / 1523 KB (0%) |
+| X5 | 32 | 213 | 6 / 580 KB (1%) |
 | X6 | 0 | 6 |  |
-| X7 | 15 | 343 | 0 / 647 KB (0%) |
+| X7 | 102 | 266 | 15 / 649 KB (2%) |
 | XO | 0 | 6 |  |
 <!-- STATUS:END -->
 
 Goal and definition of done: `docs/RENDER_DONE_STATE.md`. How a function is lifted, what "done" means per item, file layout, ABI/STL/boundary rules: `docs/RENDER_NATIVE_SPEC.md`. Live verification: `docs/NATIVE_VERIFY_PROTOCOL.md`. This file replaces the reversal checklist (kept as `docs/RENDER_CHECKLIST_V1.md`; its dossiers, headers and data are the inputs here).
 
-Generated part (X1-X5): 1649 functions, 3.84 MB of machine code, from the direct-call closure of the render roots (`tools/native_checklist_gen.py`; the closure is NOT complete until X0a is done: indirect callees are added then, as X7 items). Order inside each milestone = callees first, and `docs/data/native_deps.tsv` makes `tools/nextitems.py` hand out an item only when every callee in the set is already [x].
+Generated part (X1-X5): 1659 functions, 3.84 MB of machine code, from the direct-call closure of the render roots (`tools/native_checklist_gen.py`; the closure is NOT complete until X0a is done: indirect callees are added then, as X7 items). Order inside each milestone = callees first, and `docs/data/native_deps.tsv` makes `tools/nextitems.py` hand out an item only when every callee in the set is already [x].
 
 ## How an item is closed (short; full rules in the spec)
 An item is [x] only when `python tools/sigs/liftcheck.py <rva>` prints `LIFTCHECK OK`: every instruction of the function lies in an address range cited by the source/dossier and every call is quoted verbatim (verify_oc mismatch=0), the C++ lives under `src/client/features/render/native/`, every call is to a lifted function or a listed boundary function, every struct offset used is asserted, and the registry entry (Shadow/Verify/On) exists. Items are statically complete when ticked ("L1"); live verification ("L2", zero divergence in the scenes) happens at the milestone gate Xnz and by the user. A stub, a subset, a [?] in the code, or a hook that stands in for the function is NOT [x].
@@ -125,20 +125,20 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [x] X1.bc56610 LIFT sub_bc56610 (0xbc56610, 0x18e bytes, depth 1, D0, 1 callees in set)
 - [x] X1.bc567c0 LIFT sub_bc567c0 (0xbc567c0, 0x193 bytes, depth 1, D0, 1 callees in set)
 - [ ] X1.bc56990 LIFT sub_bc56990 (0xbc56990, 0x2a5 bytes, depth 1, D0, 1 callees in set)
-- [ ] X1.bc5f110 LIFT sub_bc5f110 (0xbc5f110, 0x121 bytes, depth 1, D0, 1 callees in set)
+- [x] X1.bc5f110 LIFT sub_bc5f110 (0xbc5f110, 0x121 bytes, depth 1, D0, 1 callees in set) | DONE 2026-11-25 oc_U-EX1.bc5f110.md liftcheck OK
 - [x] X1.bc60740 LIFT bgfx::Encoder::submit (0xbc60740, 0x5d0 bytes, depth 2, D2, 4 callees in set)
 - [x] X1.bc61140 LIFT EncoderImpl::dispatch (compute), fully reversed (0xbc61140, 0x411 bytes, depth 0, D2, 4 callees in set)
 - [x] X1.bc61560 LIFT custom item submit (key bit 53) (0xbc61560, 0x372 bytes, depth 0, D2, 4 callees in set)
 - [x] X1.bc618e0 LIFT compute item + frame parameter blocks (0xbc618e0, 0x535 bytes, depth 0, D2, 4 callees in set)
 - [x] X1.bc61e20 LIFT bgfx::Frame::sort (0xbc61e20, 0x215 bytes, depth 2, D2, 1 callees in set)
 - [x] X1.bc6aeb0 LIFT sub_bc6aeb0 (0xbc6aeb0, 0x86 bytes, depth 4, D0, 1 callees in set)
-- [ ] X1.bc6ef50 LIFT sub_bc6ef50 (0xbc6ef50, 0xf1 bytes, depth 2, D0, 1 callees in set)
+- [x] X1.bc6ef50 LIFT sub_bc6ef50 (0xbc6ef50, 0xf1 bytes, depth 2, D0, 1 callees in set) | DONE 2026-11-24 oc_U-EX1.bc6ef50.md liftcheck OK
 - [x] X1.bc70ea0 LIFT sub_bc70ea0 (0xbc70ea0, 0xf2 bytes, depth 1, D0, 2 callees in set)
 - [ ] X1.bc71140 LIFT sub_bc71140 (0xbc71140, 0x235 bytes, depth 1, D0, 1 callees in set)
 - [ ] X1.bc729e0 LIFT bgfx::setName(ShaderHandle, name, len) [I] (0xbc729e0, 0x23f bytes, depth 2, D0, 1 callees in set)
 - [x] X1.bc735b0 LIFT sub_bc735b0 (0xbc735b0, 0x1b2 bytes, depth 6, D0, 1 callees in set)
 - [ ] X1.bc75440 LIFT sub_bc75440 (0xbc75440, 0x67a bytes, depth 2, D0, 3 callees in set)
-- [ ] X1.bc75b20 LIFT sub_bc75b20 (0xbc75b20, 0xb9 bytes, depth 2, D0, 1 callees in set)
+- [x] X1.bc75b20 LIFT sub_bc75b20 (0xbc75b20, 0xb9 bytes, depth 2, D0, 1 callees in set)
 - [x] X1.bc76380 LIFT sub_bc76380 (0xbc76380, 0x107 bytes, depth 5, D0, 1 callees in set)
 - [x] X1.bc79790 LIFT sub_bc79790 (0xbc79790, 0x2ce bytes, depth 2, D0, 1 callees in set)
 - [ ] X1.bcac590 LIFT sub_bcac590 (0xbcac590, 0x269 bytes, depth 2, D0, 2 callees in set)
@@ -449,26 +449,23 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [x] X2.e8066c0 LIFT sub_e8066c0 (0xe8066c0, 0x11c bytes, depth 1, D0, 2 callees in set)
 - [x] X2.e806810 LIFT sub_e806810 (0xe806810, 0x11c bytes, depth 1, D0, 2 callees in set)
 - [x] X2.e806960 LIFT sub_e806960 (0xe806960, 0x11c bytes, depth 1, D0, 2 callees in set)
-- [ ] X2.e809cc0 LIFT sub_e809cc0 (0xe809cc0, 0xa1 bytes, depth 1, D0, 1 callees in set)
-- [ ] X2.e809fb0 LIFT sub_e809fb0 (0xe809fb0, 0xa1 bytes, depth 1, D0, 1 callees in set)
+- [x] X2.e809cc0 LIFT sub_e809cc0 (0xe809cc0, 0xa1 bytes, depth 1, D0, 1 callees in set)
+- [x] X2.e809fb0 LIFT sub_e809fb0 (0xe809fb0, 0xa1 bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e80a090 LIFT sub_e80a090 (0xe80a090, 0xd96 bytes, depth 1, D0, 3 callees in set)
 - [ ] X2.e80afc0 LIFT sub_e80afc0 (0xe80afc0, 0x27d bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e80b310 LIFT sub_e80b310 (0xe80b310, 0x464 bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e80da50 LIFT sub_e80da50 (0xe80da50, 0x2e7 bytes, depth 1, D0, 2 callees in set)
 - [ ] X2.e80dd60 LIFT sub_e80dd60 (0xe80dd60, 0x151 bytes, depth 1, D0, 1 callees in set)
-- [ ] X2.e80ef60 LIFT sub_e80ef60 (0xe80ef60, 0x329 bytes, depth 1, D0, 1 callees in set)
-- [ ] X2.e80f290 LIFT sub_e80f290 (0xe80f290, 0x35e bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e811fb0 LIFT sub_e811fb0 (0xe811fb0, 0x504 bytes, depth 0, D0, 1 callees in set)
 - [ ] X2.e815590 LIFT sub_e815590 (0xe815590, 0x2af bytes, depth 1, D0, 2 callees in set)
 - [ ] X2.e818490 LIFT sub_e818490 (0xe818490, 0x4e6 bytes, depth 1, D0, 1 callees in set)
-- [ ] X2.e8189c0 LIFT sub_e8189c0 (0xe8189c0, 0xa1 bytes, depth 0, D0, 1 callees in set)
+- [x] X2.e8189c0 LIFT sub_e8189c0 (0xe8189c0, 0xa1 bytes, depth 0, D0, 1 callees in set)
 - [ ] X2.e820500 LIFT sub_e820500 (0xe820500, 0x409 bytes, depth 1, D0, 3 callees in set)
 - [ ] X2.e82de90 LIFT sub_e82de90 (0xe82de90, 0x399 bytes, depth 2, D0, 2 callees in set)
 - [ ] X2.e835490 LIFT sub_e835490 (0xe835490, 0x677 bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e836770 LIFT sub_e836770 (0xe836770, 0x1b5 bytes, depth 2, D0, 1 callees in set)
-- [ ] X2.e837b40 LIFT sub_e837b40 (0xe837b40, 0x12b bytes, depth 2, D0, 1 callees in set)
-- [ ] X2.e83abb0 LIFT sub_e83abb0 (0xe83abb0, 0x12f bytes, depth 1, D0, 1 callees in set)
-- [ ] X2.e84d3f0 LIFT sub_e84d3f0 (0xe84d3f0, 0x12f bytes, depth 1, D0, 1 callees in set)
+- [x] X2.e83abb0 LIFT sub_e83abb0 (0xe83abb0, 0x12f bytes, depth 1, D0, 1 callees in set) | DONE 2026-11-25 oc_U-EX2.e83abb0.md liftcheck OK
+- [x] X2.e84d3f0 LIFT sub_e84d3f0 (0xe84d3f0, 0x12f bytes, depth 1, D0, 1 callees in set) | DONE 2026-11-25 oc_U-EX2.e84d3f0.md liftcheck OK
 - [ ] X2.e84d730 LIFT sub_e84d730 (0xe84d730, 0x148 bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e84dc70 LIFT sub_e84dc70 (0xe84dc70, 0x28f bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e84df40 LIFT sub_e84df40 (0xe84df40, 0x28f bytes, depth 1, D0, 1 callees in set)
@@ -480,33 +477,29 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X2.e877670 LIFT sub_e877670 (0xe877670, 0x194 bytes, depth 6, D0, 1 callees in set)
 - [ ] X2.e878c80 LIFT sub_e878c80 (0xe878c80, 0x16d bytes, depth 7, D0, 1 callees in set)
 - [ ] X2.e879100 LIFT sub_e879100 (0xe879100, 0xa2a bytes, depth 6, D0, 1 callees in set)
-- [ ] X2.e87c6d0 LIFT sub_e87c6d0 (0xe87c6d0, 0x9d bytes, depth 1, D0, 1 callees in set)
+- [x] X2.e87c6d0 LIFT sub_e87c6d0 (0xe87c6d0, 0x9d bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e80bc90 LIFT sub_e80bc90 (0xe80bc90, 0x14b bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e80bde0 LIFT sub_e80bde0 (0xe80bde0, 0xf2 bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e80ecb0 LIFT sub_e80ecb0 (0xe80ecb0, 0x1c6 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e80ef60 LIFT sub_e80ef60 (0xe80ef60, 0x329 bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80f290 LIFT sub_e80f290 (0xe80f290, 0x35e bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e80f820 LIFT sub_e80f820 (0xe80f820, 0x889 bytes, depth 1, D0, 4 callees in set)
 - [ ] X2.e8137b0 LIFT createShader (parse CSH/FSH/VSH binary, fill ShaderD3D12 record, MurmurHash2A) (0xe8137b0, 0xa22 bytes, depth 0, D1, 3 callees in set)
-- [ ] X2.e8146f0 LIFT sub_e8146f0 (0xe8146f0, 0x372 bytes, depth 0, D0, 3 callees in set)
-- [ ] X2.e815c30 LIFT sub_e815c30 (0xe815c30, 0x13c bytes, depth 0, D0, 3 callees in set)
-- [ ] X2.e815d70 LIFT sub_e815d70 (0xe815d70, 0x12b bytes, depth 0, D0, 2 callees in set)
-- [ ] X2.e815ea0 LIFT sub_e815ea0 (0xe815ea0, 0x11f bytes, depth 0, D0, 2 callees in set)
-- [ ] X2.e816f40 LIFT sub_e816f40 (0xe816f40, 0x130 bytes, depth 0, D0, 1 callees in set)
+- [x] X2.e815d70 LIFT sub_e815d70 (0xe815d70, 0x12b bytes, depth 0, D0, 2 callees in set) | DONE 2026-11-25 oc_U-EX2.e815d70.md liftcheck OK
+- [x] X2.e815ea0 LIFT sub_e815ea0 (0xe815ea0, 0x11f bytes, depth 0, D0, 2 callees in set) | DONE 2026-11-25 oc_U-EX2.e815ea0.md liftcheck OK
 - [ ] X2.e817070 LIFT sub_e817070 (0xe817070, 0x5e2 bytes, depth 0, D0, 1 callees in set)
-- [ ] X2.e818b70 LIFT sub_e818b70 (0xe818b70, 0x4c bytes, depth 0, D0, 2 callees in set)
+- [x] X2.e818b70 LIFT sub_e818b70 (0xe818b70, 0x4c bytes, depth 0, D0, 2 callees in set) | DONE 2026-11-25 oc_U-EX2.e818b70.md liftcheck OK
 - [ ] X2.e819b50 LIFT framebuffer post-create (derive color/depth from attachments) (0xe819b50, 0x570 bytes, depth 1, D0, 2 callees in set)
 - [ ] X2.e81ac80 LIFT sub_e81ac80 (0xe81ac80, 0x18c bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e81bf30 LIFT TextureD3D12::create (dimensions, type, formats, mips; resource and views) (0xe81bf30, 0x1727 bytes, depth 1, D1, 3 callees in set)
-- [ ] X2.e81da20 LIFT sub_e81da20 (0xe81da20, 0x412 bytes, depth 1, D0, 3 callees in set)
 - [ ] X2.e81e860.plan PLAN D3D12 graphics PSO builder: split 0xe81e860..0xe8204fa at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e81e860.tsv (start end role), then the checklist generator --expand adds the chunk items
 - [ ] X2.e81e860.asm LIFT ASSEMBLE D3D12 graphics PSO builder (waits for chunks)
 - [ ] X2.e835d00 LIFT sub_e835d00 (0xe835d00, 0x1f1 bytes, depth 3, D0, 2 callees in set)
 - [ ] X2.e836970 LIFT sub_e836970 (0xe836970, 0x334 bytes, depth 2, D0, 3 callees in set)
-- [ ] X2.e837a10 LIFT sub_e837a10 (0xe837a10, 0x122 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e837b40 LIFT sub_e837b40 (0xe837b40, 0x12b bytes, depth 2, D0, 1 callees in set)
 - [ ] X2.e837ca0 LIFT sub_e837ca0 (0xe837ca0, 0x610 bytes, depth 2, D0, 2 callees in set)
 - [ ] X2.e83aed0 LIFT sub_e83aed0 (0xe83aed0, 0x201 bytes, depth 1, D0, 2 callees in set)
-- [ ] X2.e83d2f0 LIFT sub_e83d2f0 (0xe83d2f0, 0x49 bytes, depth 0, D0, 1 callees in set)
 - [ ] X2.e83d7d0 LIFT sub_e83d7d0 (0xe83d7d0, 0x671 bytes, depth 0, D0, 3 callees in set)
-- [ ] X2.e84b980 LIFT sub_e84b980 (0xe84b980, 0xae bytes, depth 1, D0, 2 callees in set)
 - [ ] X2.e84ba30 LIFT sub_e84ba30 (0xe84ba30, 0xb27 bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e8546c0 LIFT sub_e8546c0 (0xe8546c0, 0x108 bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e854ee0 LIFT sub_e854ee0 (0xe854ee0, 0x156 bytes, depth 1, D0, 1 callees in set)
@@ -515,26 +508,27 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X2.e878800 LIFT sub_e878800 (0xe878800, 0x308 bytes, depth 6, D0, 2 callees in set)
 - [ ] X2.e879eb0 LIFT sub_e879eb0 (0xe879eb0, 0x568 bytes, depth 3, D0, 4 callees in set)
 - [ ] X2.e87c210 LIFT sub_e87c210 (0xe87c210, 0x436 bytes, depth 1, D0, 1 callees in set)
-- [ ] X2.e807a80 LIFT sub_e807a80 (0xe807a80, 0x5a bytes, depth 1, D0, 2 callees in set)
 - [ ] X2.e809a90 LIFT sub_e809a90 (0xe809a90, 0x13d bytes, depth 1, D0, 1 callees in set)
-- [ ] X2.e809c30 LIFT sub_e809c30 (0xe809c30, 0x69 bytes, depth 1, D0, 2 callees in set)
 - [ ] X2.e809da0 LIFT sub_e809da0 (0xe809da0, 0x13d bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e80b780 LIFT sub_e80b780 (0xe80b780, 0x505 bytes, depth 1, D0, 2 callees in set)
-- [ ] X2.e80bf90 LIFT sub_e80bf90 (0xe80bf90, 0x1ef bytes, depth 1, D0, 1 callees in set)
-- [ ] X2.e80c180 LIFT sub_e80c180 (0xe80c180, 0x47a bytes, depth 1, D0, 1 callees in set)
-- [ ] X2.e80da20 LIFT sub_e80da20 (0xe80da20, 0x2d bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e80ee80 LIFT sub_e80ee80 (0xe80ee80, 0xd9 bytes, depth 1, D0, 2 callees in set)
 - [ ] X2.e80f630 LIFT sub_e80f630 (0xe80f630, 0x45 bytes, depth 0, D0, 2 callees in set)
 - [ ] X2.e8102b0.plan PLAN device-lost / TDR handler (slot 7): split 0xe8102b0..0xe811bd4 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e8102b0.tsv (start end role), then the checklist generator --expand adds the chunk items
 - [ ] X2.e8102b0.asm LIFT ASSEMBLE device-lost / TDR handler (slot 7) (waits for chunks)
+- [ ] X2.e8146f0 LIFT sub_e8146f0 (0xe8146f0, 0x372 bytes, depth 0, D0, 3 callees in set)
 - [ ] X2.e815840 LIFT sub_e815840 (0xe815840, 0x3ae bytes, depth 0, D0, 6 callees in set)
+- [ ] X2.e815c30 LIFT sub_e815c30 (0xe815c30, 0x13c bytes, depth 0, D0, 3 callees in set)
+- [ ] X2.e816f40 LIFT sub_e816f40 (0xe816f40, 0x130 bytes, depth 0, D0, 1 callees in set)
 - [ ] X2.e817c00 LIFT destroyFrameBuffer slot 41 (release swap chain, window-list swap-remove), fully reversed (0xe817c00, 0xe5 bytes, depth 0, D2, 2 callees in set)
 - [ ] X2.e818050 LIFT sub_e818050 (0xe818050, 0x438 bytes, depth 0, D0, 6 callees in set)
+- [ ] X2.e81da20 LIFT sub_e81da20 (0xe81da20, 0x412 bytes, depth 1, D0, 3 callees in set)
 - [ ] X2.e82d960 LIFT resource state transition helper (0xe82d960, 0x359 bytes, depth 1, D1, 3 callees in set)
-- [ ] X2.e834aa0 LIFT sub_e834aa0 (0xe834aa0, 0xad bytes, depth 2, D0, 1 callees in set)
 - [ ] X2.e8360f0 LIFT upload ring allocator (0xe8360f0, 0x3f6 bytes, depth 1, D1, 3 callees in set)
+- [ ] X2.e837a10 LIFT sub_e837a10 (0xe837a10, 0x122 bytes, depth 1, D0, 2 callees in set)
 - [ ] X2.e83b0e0 LIFT sub_e83b0e0 (0xe83b0e0, 0x11c bytes, depth 1, D0, 4 callees in set)
 - [ ] X2.e83b3d0 LIFT sub_e83b3d0 (0xe83b3d0, 0x3d0 bytes, depth 2, D0, 2 callees in set)
+- [ ] X2.e83d2f0 LIFT sub_e83d2f0 (0xe83d2f0, 0x49 bytes, depth 0, D0, 1 callees in set)
+- [ ] X2.e84b980 LIFT sub_e84b980 (0xe84b980, 0xae bytes, depth 1, D0, 2 callees in set)
 - [ ] X2.e84ce00 LIFT sub_e84ce00 (0xe84ce00, 0x3a3 bytes, depth 2, D0, 4 callees in set)
 - [ ] X2.e86b370 LIFT sub_e86b370 (0xe86b370, 0x293 bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e86c820 LIFT sub_e86c820 (0xe86c820, 0x687 bytes, depth 4, D0, 8 callees in set)
@@ -543,7 +537,11 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X2.e86f700 LIFT sub_e86f700 (0xe86f700, 0x44a bytes, depth 2, D0, 2 callees in set)
 - [ ] X2.e875050 LIFT sub_e875050 (0xe875050, 0x73c bytes, depth 6, D0, 2 callees in set)
 - [ ] X2.e800c10 LIFT sub_e800c10 (0xe800c10, 0x58 bytes, depth 2, D0, 1 callees in set)
-- [ ] X2.e807b00 LIFT sub_e807b00 (0xe807b00, 0x445 bytes, depth 1, D0, 6 callees in set)
+- [ ] X2.e807a80 LIFT sub_e807a80 (0xe807a80, 0x5a bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e809c30 LIFT sub_e809c30 (0xe809c30, 0x69 bytes, depth 1, D0, 2 callees in set)
+- [ ] X2.e80bf90 LIFT sub_e80bf90 (0xe80bf90, 0x1ef bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80c180 LIFT sub_e80c180 (0xe80c180, 0x47a bytes, depth 1, D0, 1 callees in set)
+- [ ] X2.e80da20 LIFT sub_e80da20 (0xe80da20, 0x2d bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e80dec0 LIFT sub_e80dec0 (0xe80dec0, 0xdad bytes, depth 0, D0, 15 callees in set)
 - [ ] X2.e80f680 LIFT sub_e80f680 (0xe80f680, 0x196 bytes, depth 2, D0, 2 callees in set)
 - [ ] X2.e812740 LIFT BufferD3D12::create (record fields, SRV/UAV descs, persistent map) (0xe812740, 0x446 bytes, depth 1, D2, 2 callees in set)
@@ -559,6 +557,7 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X2.e81a610 LIFT reset handler (slot 60, base) (0xe81a610, 0x670 bytes, depth 0, D1, 5 callees in set)
 - [ ] X2.e81b720 LIFT D3D12 draw batch flush (DrawInstanced / DrawIndexedInstanced / ExecuteIndirect) (0xe81b720, 0x803 bytes, depth 2, D2, 1 callees in set)
 - [ ] X2.e833210 LIFT sub_e833210 (0xe833210, 0xde4 bytes, depth 2, D0, 8 callees in set)
+- [ ] X2.e834aa0 LIFT sub_e834aa0 (0xe834aa0, 0xad bytes, depth 2, D0, 1 callees in set)
 - [ ] X2.e83f1d0 LIFT RTX GPU skinning (slot 63) (0xe83f1d0, 0x107b bytes, depth 0, D1, 5 callees in set)
 - [ ] X2.e84c560 LIFT sub_e84c560 (0xe84c560, 0x229 bytes, depth 1, D0, 2 callees in set)
 - [ ] X2.e8542d0 LIFT sub_e8542d0 (0xe8542d0, 0x3a6 bytes, depth 1, D0, 3 callees in set)
@@ -569,6 +568,7 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X2.e876760 LIFT sub_e876760 (0xe876760, 0x943 bytes, depth 6, D0, 8 callees in set)
 - [ ] X2.e87a470 LIFT sub_e87a470 (0xe87a470, 0x645 bytes, depth 3, D0, 6 callees in set)
 - [ ] X2.e87bd50 LIFT sub_e87bd50 (0xe87bd50, 0x2cc bytes, depth 7, D0, 2 callees in set)
+- [ ] X2.e807b00 LIFT sub_e807b00 (0xe807b00, 0x445 bytes, depth 1, D0, 6 callees in set)
 - [ ] X2.e80c600 LIFT sub_e80c600 (0xe80c600, 0x1286 bytes, depth 1, D0, 1 callees in set)
 - [ ] X2.e8124c0 LIFT createIndexBuffer base (record create + used-handle bitset) (0xe8124c0, 0x23b bytes, depth 0, D1, 2 callees in set)
 - [ ] X2.e812be0 LIFT createVertexBuffer base (0xe812be0, 0x257 bytes, depth 0, D0, 2 callees in set)
@@ -579,10 +579,8 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X2.e81af20 LIFT sub_e81af20 (0xe81af20, 0x1c8 bytes, depth 1, D0, 2 callees in set)
 - [ ] X2.e81de60 LIFT sub_e81de60 (0xe81de60, 0x352 bytes, depth 2, D0, 1 callees in set)
 - [ ] X2.e820910 LIFT sub_e820910 (0xe820910, 0x80c bytes, depth 1, D0, 4 callees in set)
-- [ ] X2.e83c630 LIFT sub_e83c630 (0xe83c630, 0x2d bytes, depth 0, D0, 1 callees in set)
 - [ ] X2.e83e980 LIFT sub_e83e980 (0xe83e980, 0x2e5 bytes, depth 0, D0, 4 callees in set)
 - [ ] X2.e83ec70 LIFT reset handler RTX override (DLSS mode select) (0xe83ec70, 0x55e bytes, depth 0, D1, 3 callees in set)
-- [ ] X2.e84b280 LIFT sub_e84b280 (0xe84b280, 0x39d bytes, depth 0, D0, 2 callees in set)
 - [ ] X2.e84b620 LIFT sub_e84b620 (0xe84b620, 0x351 bytes, depth 1, D0, 2 callees in set)
 - [ ] X2.e84e210.plan PLAN sub_e84e210: split 0xe84e210..0xe85428f at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e84e210.tsv (start end role), then the checklist generator --expand adds the chunk items
 - [ ] X2.e84e210.asm LIFT ASSEMBLE sub_e84e210 (waits for chunks)
@@ -596,6 +594,7 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X2.e821120.asm LIFT ASSEMBLE D3D12 draw executor (per-job item loop) (waits for chunks)
 - [ ] X2.e82e230.plan PLAN RendererContextD3D12::submit (slot 50, base): split 0xe82e230..0xe832fc1 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e82e230.tsv (start end role), then the checklist generator --expand adds the chunk items
 - [ ] X2.e82e230.asm LIFT ASSEMBLE RendererContextD3D12::submit (slot 50, base) (waits for chunks)
+- [ ] X2.e83c630 LIFT sub_e83c630 (0xe83c630, 0x2d bytes, depth 0, D0, 1 callees in set)
 - [ ] X2.e83d210 LIFT RTX createIndexBuffer override (track handle for RTX) (0xe83d210, 0x47 bytes, depth 0, D2, 1 callees in set)
 - [ ] X2.e83d260 LIFT RTX createVertexBuffer override (track handle, register geometry 0xe84b620) (0xe83d260, 0x85 bytes, depth 0, D2, 2 callees in set)
 - [ ] X2.e83d340 LIFT sub_e83d340 (0xe83d340, 0x47 bytes, depth 0, D0, 1 callees in set)
@@ -603,6 +602,7 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X2.e83df70 LIFT sub_e83df70 (0xe83df70, 0x28a bytes, depth 0, D0, 1 callees in set)
 - [ ] X2.e8403d0.plan PLAN RTX SuperSampling evaluate (slot 64): split 0xe8403d0..0xe84ae2b at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e8403d0.tsv (start end role), then the checklist generator --expand adds the chunk items
 - [ ] X2.e8403d0.asm LIFT ASSEMBLE RTX SuperSampling evaluate (slot 64) (waits for chunks)
+- [ ] X2.e84b280 LIFT sub_e84b280 (0xe84b280, 0x39d bytes, depth 0, D0, 2 callees in set)
 - [ ] X2.e870870.plan PLAN Material::parseBody (buffers, uniforms, properties, passes, variants, shaders; per-stage platform pick): split 0xe870870..0xe8735ea at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/e870870.tsv (start end role), then the checklist generator --expand adds the chunk items
 - [ ] X2.e870870.asm LIFT ASSEMBLE Material::parseBody (buffers, uniforms, properties, passes, variants, shaders; per-stage platform pick) (waits for chunks)
 - [ ] X2.e83c390 LIFT draw executor wrapper (job launch) (0xe83c390, 0xd0 bytes, depth 0, D1, 1 callees in set)
@@ -617,32 +617,32 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 
 138 functions, 214 KB of machine code. Order = callees first. Source dir: `src/client/features/render/native/dragon/`. Gate: X3z.
 
-- [ ] X3.c25f680 LIFT sub_c25f680 (0xc25f680, 0x77 bytes, depth 1, D0, 0 callees in set)
+- [x] X3.c25f680 LIFT sub_c25f680 (0xc25f680, 0x77 bytes, depth 1, D0, 0 callees in set)
 - [ ] X3.c260a60 LIFT sub_c260a60 (0xc260a60, 0x4f5 bytes, depth 1, D0, 0 callees in set)
-- [ ] X3.c2625e0 LIFT sub_c2625e0 (0xc2625e0, 0x130 bytes, depth 4, D0, 0 callees in set)
+- [x] X3.c2625e0 LIFT sub_c2625e0 (0xc2625e0, 0x130 bytes, depth 4, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX3.c2625e0.md liftcheck OK
 - [ ] X3.c2713e0 LIFT sub_c2713e0 (0xc2713e0, 0x170 bytes, depth 2, D0, 0 callees in set)
 - [ ] X3.c272e10 LIFT sub_c272e10 (0xc272e10, 0x17c bytes, depth 2, D0, 0 callees in set)
-- [ ] X3.c27ebd0 LIFT sub_c27ebd0 (0xc27ebd0, 0x8b bytes, depth 3, D0, 0 callees in set)
+- [x] X3.c27ebd0 LIFT sub_c27ebd0 (0xc27ebd0, 0x8b bytes, depth 3, D0, 0 callees in set)
 - [ ] X3.c27ed70 LIFT sub_c27ed70 (0xc27ed70, 0x237 bytes, depth 3, D0, 0 callees in set)
 - [ ] X3.c27efb0 LIFT sub_c27efb0 (0xc27efb0, 0x848 bytes, depth 3, D0, 0 callees in set)
 - [ ] X3.c27f940 LIFT sub_c27f940 (0xc27f940, 0x377 bytes, depth 3, D0, 0 callees in set)
 - [ ] X3.c27fcc0 LIFT sub_c27fcc0 (0xc27fcc0, 0x34b bytes, depth 3, D0, 0 callees in set)
-- [ ] X3.c280a80 LIFT sub_c280a80 (0xc280a80, 0x10f bytes, depth 4, D0, 0 callees in set)
-- [ ] X3.c280b90 LIFT sub_c280b90 (0xc280b90, 0x10f bytes, depth 4, D0, 0 callees in set)
-- [ ] X3.c283810 LIFT sub_c283810 (0xc283810, 0x8b bytes, depth 3, D0, 0 callees in set)
-- [ ] X3.c283ce0 LIFT sub_c283ce0 (0xc283ce0, 0x6b bytes, depth 3, D0, 0 callees in set)
+- [x] X3.c280a80 LIFT sub_c280a80 (0xc280a80, 0x10f bytes, depth 4, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX3.c280a80.md liftcheck OK
+- [x] X3.c280b90 LIFT sub_c280b90 (0xc280b90, 0x10f bytes, depth 4, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX3.c280b90.md liftcheck OK
+- [x] X3.c283810 LIFT sub_c283810 (0xc283810, 0x8b bytes, depth 3, D0, 0 callees in set)
+- [x] X3.c283ce0 LIFT sub_c283ce0 (0xc283ce0, 0x6b bytes, depth 3, D0, 0 callees in set)
 - [ ] X3.c288990.plan PLAN per-frame loader tracked-list merge (from endFrame): split 0xc288990..0xc28a912 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/c288990.tsv (start end role), then the checklist generator --expand adds the chunk items
 - [ ] X3.c288990.asm LIFT ASSEMBLE per-frame loader tracked-list merge (from endFrame) (waits for chunks)
-- [ ] X3.c28a920 LIFT sub_c28a920 (0xc28a920, 0xeb bytes, depth 3, D0, 0 callees in set)
-- [ ] X3.c28d3e0 LIFT sub_c28d3e0 (0xc28d3e0, 0x128 bytes, depth 1, D0, 0 callees in set)
+- [x] X3.c28a920 LIFT sub_c28a920 (0xc28a920, 0xeb bytes, depth 3, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX3.c28a920.md liftcheck OK
+- [x] X3.c28d3e0 LIFT sub_c28d3e0 (0xc28d3e0, 0x128 bytes, depth 1, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX3.c28d3e0.md liftcheck OK
 - [ ] X3.c28d710 LIFT sub_c28d710 (0xc28d710, 0x144 bytes, depth 1, D0, 0 callees in set)
 - [ ] X3.c28e330 LIFT sub_c28e330 (0xc28e330, 0xcc6 bytes, depth 1, D0, 0 callees in set)
-- [ ] X3.c293af0 LIFT sub_c293af0 (0xc293af0, 0xd6 bytes, depth 3, D0, 0 callees in set)
+- [x] X3.c293af0 LIFT sub_c293af0 (0xc293af0, 0xd6 bytes, depth 3, D0, 0 callees in set)
 - [ ] X3.c2981f0 LIFT sub_c2981f0 (0xc2981f0, 0x130 bytes, depth 3, D0, 0 callees in set)
 - [ ] X3.e8fe1d0 LIFT sub_e8fe1d0 (0xe8fe1d0, 0x483 bytes, depth 2, D0, 0 callees in set)
 - [ ] X3.e8ffc10 LIFT sub_e8ffc10 (0xe8ffc10, 0x689 bytes, depth 2, D0, 0 callees in set)
 - [ ] X3.e9045b0 LIFT sub_e9045b0 (0xe9045b0, 0x1fe bytes, depth 2, D0, 0 callees in set)
-- [ ] X3.e9058a0 LIFT sub_e9058a0 (0xe9058a0, 0xbd bytes, depth 5, D0, 0 callees in set)
+- [x] X3.e9058a0 LIFT sub_e9058a0 (0xe9058a0, 0xbd bytes, depth 5, D0, 0 callees in set)
 - [ ] X3.e905ce0 LIFT sub_e905ce0 (0xe905ce0, 0x19 bytes, depth 3, D0, 0 callees in set)
 - [ ] X3.e905d00 LIFT sub_e905d00 (0xe905d00, 0x1ec bytes, depth 3, D0, 0 callees in set)
 - [ ] X3.e905ef0 LIFT sub_e905ef0 (0xe905ef0, 0x177 bytes, depth 3, D0, 0 callees in set)
@@ -659,18 +659,18 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X3.c283720 LIFT sub_c283720 (0xc283720, 0xe6 bytes, depth 2, D0, 1 callees in set)
 - [ ] X3.c2838a0 LIFT sub_c2838a0 (0xc2838a0, 0x438 bytes, depth 3, D0, 1 callees in set)
 - [ ] X3.c287400 LIFT sub_c287400 (0xc287400, 0x35d bytes, depth 3, D0, 1 callees in set)
-- [ ] X3.c2878c0 LIFT sub_c2878c0 (0xc2878c0, 0x110 bytes, depth 3, D0, 1 callees in set)
-- [ ] X3.c2879f0 LIFT sub_c2879f0 (0xc2879f0, 0x120 bytes, depth 3, D0, 1 callees in set)
-- [ ] X3.c28bc30 LIFT sub_c28bc30 (0xc28bc30, 0xbb bytes, depth 3, D0, 1 callees in set)
+- [x] X3.c2878c0 LIFT sub_c2878c0 (0xc2878c0, 0x110 bytes, depth 3, D0, 1 callees in set) | DONE 2026-11-25 oc_U-EX3.c2878c0.md liftcheck OK
+- [x] X3.c2879f0 LIFT sub_c2879f0 (0xc2879f0, 0x120 bytes, depth 3, D0, 1 callees in set) | DONE 2026-11-25 oc_U-EX3.c2879f0.md liftcheck OK
+- [x] X3.c28bc30 LIFT sub_c28bc30 (0xc28bc30, 0xbb bytes, depth 3, D0, 1 callees in set)
 - [ ] X3.c28bcf0 LIFT loader shutdown unload (tracked resources, drop pending) (0xc28bcf0, 0x186 bytes, depth 3, D2, 1 callees in set)
 - [ ] X3.c2914b0 LIFT sub_c2914b0 (0xc2914b0, 0x18f bytes, depth 3, D0, 2 callees in set)
 - [ ] X3.c293850 LIFT sub_c293850 (0xc293850, 0x20d bytes, depth 1, D0, 2 callees in set)
 - [ ] X3.c293ed0 LIFT sub_c293ed0 (0xc293ed0, 0x651 bytes, depth 4, D0, 1 callees in set)
 - [ ] X3.c29d620 LIFT sub_c29d620 (0xc29d620, 0x258 bytes, depth 2, D0, 2 callees in set)
-- [ ] X3.e8fc640 LIFT sub_e8fc640 (0xe8fc640, 0x11f bytes, depth 2, D0, 1 callees in set)
+- [x] X3.e8fc640 LIFT sub_e8fc640 (0xe8fc640, 0x11f bytes, depth 2, D0, 1 callees in set) | DONE 2026-11-25 oc_U-EX3.e8fc640.md liftcheck OK
 - [ ] X3.e8feb10 LIFT PipelineDiskCache::tick (0xe8feb10, 0x2df bytes, depth 1, D1, 2 callees in set)
-- [ ] X3.e903290 LIFT sub_e903290 (0xe903290, 0xc3 bytes, depth 2, D0, 1 callees in set)
-- [ ] X3.e903360 LIFT sub_e903360 (0xe903360, 0xa9 bytes, depth 2, D0, 1 callees in set)
+- [x] X3.e903290 LIFT sub_e903290 (0xe903290, 0xc3 bytes, depth 2, D0, 1 callees in set)
+- [x] X3.e903360 LIFT sub_e903360 (0xe903360, 0xa9 bytes, depth 2, D0, 1 callees in set)
 - [ ] X3.e9055a0 LIFT sub_e9055a0 (0xe9055a0, 0x2c2 bytes, depth 5, D0, 1 callees in set)
 - [ ] X3.c25f650 LIFT sub_c25f650 (0xc25f650, 0x2c bytes, depth 1, D0, 1 callees in set)
 - [ ] X3.c260f60 LIFT sub_c260f60 (0xc260f60, 0x426 bytes, depth 2, D0, 4 callees in set)
@@ -686,7 +686,7 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X3.c273060 LIFT sub_c273060 (0xc273060, 0x2bd bytes, depth 2, D0, 5 callees in set)
 - [ ] X3.c280ca0 LIFT std::stable_sort driver (chunks of 0x20) over pass records (0xc280ca0, 0x599 bytes, depth 4, D2, 3 callees in set)
 - [ ] X3.c282db0 LIFT sub_c282db0 (0xc282db0, 0x70c bytes, depth 6, D0, 4 callees in set)
-- [ ] X3.c284020 LIFT sub_c284020 (0xc284020, 0x10b bytes, depth 2, D0, 1 callees in set)
+- [x] X3.c284020 LIFT sub_c284020 (0xc284020, 0x10b bytes, depth 2, D0, 1 callees in set) | DONE 2026-11-25 oc_U-EX3.c284020.md liftcheck OK
 - [ ] X3.c288880 LIFT per-frame pending merge driver (7 loaders, from endFrame) (0xc288880, 0x10d bytes, depth 1, D2, 1 callees in set)
 - [ ] X3.c28b930 LIFT sub_c28b930 (0xc28b930, 0x2bd bytes, depth 3, D0, 5 callees in set)
 - [ ] X3.c2965e0 LIFT sub_c2965e0 (0xc2965e0, 0x235 bytes, depth 2, D0, 5 callees in set)
@@ -770,24 +770,24 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 
 - [ ] X4.6611410 LIFT sub_6611410 (0x6611410, 0x1a5 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.6619e90 LIFT sub_6619e90 (0x6619e90, 0x1e1 bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.661a2f0 LIFT sub_661a2f0 (0x661a2f0, 0xce bytes, depth 0, D0, 0 callees in set)
-- [ ] X4.6622590 LIFT sub_6622590 (0x6622590, 0x72 bytes, depth 1, D0, 0 callees in set)
+- [x] X4.661a2f0 LIFT sub_661a2f0 (0x661a2f0, 0xce bytes, depth 0, D0, 0 callees in set)
+- [x] X4.6622590 LIFT sub_6622590 (0x6622590, 0x72 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.6622840 LIFT sub_6622840 (0x6622840, 0x221 bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.6637a70 LIFT sub_6637a70 (0x6637a70, 0xf6 bytes, depth 1, D0, 0 callees in set)
+- [x] X4.6637a70 LIFT sub_6637a70 (0x6637a70, 0xf6 bytes, depth 1, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX4.6637a70.md liftcheck OK
 - [ ] X4.6637c40 LIFT sub_6637c40 (0x6637c40, 0x255 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.6637ea0 LIFT sub_6637ea0 (0x6637ea0, 0x178 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.6638a50 LIFT sub_6638a50 (0x6638a50, 0x7f3 bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.66397e0 LIFT sub_66397e0 (0x66397e0, 0x6d bytes, depth 0, D0, 0 callees in set)
-- [ ] X4.6639850 LIFT sub_6639850 (0x6639850, 0x6d bytes, depth 0, D0, 0 callees in set)
-- [ ] X4.6639930 LIFT sub_6639930 (0x6639930, 0x72 bytes, depth 0, D0, 0 callees in set)
-- [ ] X4.66399b0 LIFT sub_66399b0 (0x66399b0, 0x34 bytes, depth 0, D0, 0 callees in set)
-- [ ] X4.66399f0 LIFT sub_66399f0 (0x66399f0, 0x64 bytes, depth 0, D0, 0 callees in set)
-- [ ] X4.6639b70 LIFT sub_6639b70 (0x6639b70, 0x42 bytes, depth 0, D0, 0 callees in set)
-- [ ] X4.6639bc0 LIFT sub_6639bc0 (0x6639bc0, 0x24 bytes, depth 0, D0, 0 callees in set)
+- [x] X4.66397e0 LIFT sub_66397e0 (0x66397e0, 0x6d bytes, depth 0, D0, 0 callees in set)
+- [x] X4.6639850 LIFT sub_6639850 (0x6639850, 0x6d bytes, depth 0, D0, 0 callees in set)
+- [x] X4.6639930 LIFT sub_6639930 (0x6639930, 0x72 bytes, depth 0, D0, 0 callees in set)
+- [x] X4.66399b0 LIFT sub_66399b0 (0x66399b0, 0x34 bytes, depth 0, D0, 0 callees in set)
+- [x] X4.66399f0 LIFT sub_66399f0 (0x66399f0, 0x64 bytes, depth 0, D0, 0 callees in set)
+- [x] X4.6639b70 LIFT sub_6639b70 (0x6639b70, 0x42 bytes, depth 0, D0, 0 callees in set)
+- [x] X4.6639bc0 LIFT sub_6639bc0 (0x6639bc0, 0x24 bytes, depth 0, D0, 0 callees in set)
 - [ ] X4.663a530 LIFT sub_663a530 (0x663a530, 0x485 bytes, depth 0, D0, 0 callees in set)
 - [ ] X4.663bdc0 LIFT sub_663bdc0 (0x663bdc0, 0x176 bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.663d280 LIFT sub_663d280 (0x663d280, 0xf6 bytes, depth 0, D0, 0 callees in set)
-- [ ] X4.663f9d0 LIFT sub_663f9d0 (0x663f9d0, 0x54 bytes, depth 0, D0, 0 callees in set)
+- [x] X4.663d280 LIFT sub_663d280 (0x663d280, 0xf6 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX4.663d280.md liftcheck OK
+- [x] X4.663f9d0 LIFT sub_663f9d0 (0x663f9d0, 0x54 bytes, depth 0, D0, 0 callees in set)
 - [ ] X4.6646a10.plan PLAN sub_6646a10: split 0x6646a10..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6646a10.tsv (start end role), then the checklist generator --expand adds the chunk items
 - [ ] X4.6646a10.asm LIFT ASSEMBLE sub_6646a10 (waits for chunks)
 - [ ] X4.6646a89.plan PLAN sub_6646a89: split 0x6646a89..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/6646a89.tsv (start end role), then the checklist generator --expand adds the chunk items
@@ -811,7 +811,7 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X4.66473e6.plan PLAN sub_66473e6: split 0x66473e6..0x664fda5 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/66473e6.tsv (start end role), then the checklist generator --expand adds the chunk items
 - [ ] X4.66473e6.asm LIFT ASSEMBLE sub_66473e6 (waits for chunks)
 - [ ] X4.664ef12 LIFT sub_664ef12 (0x664ef12, 0xe93 bytes, depth 0, D0, 0 callees in set)
-- [ ] X4.6685f60 LIFT sub_6685f60 (0x6685f60, 0x25 bytes, depth 0, D0, 0 callees in set)
+- [x] X4.6685f60 LIFT sub_6685f60 (0x6685f60, 0x25 bytes, depth 0, D0, 0 callees in set)
 - [ ] X4.6686030 LIFT sub_6686030 (0x6686030, 0x1a7 bytes, depth 0, D0, 0 callees in set)
 - [ ] X4.66861e0 LIFT sub_66861e0 (0x66861e0, 0x16d bytes, depth 0, D0, 0 callees in set)
 - [ ] X4.668b6e0 LIFT RenderNametagDescription constructor, fully reversed (0x668b6e0, 0x170 bytes, depth 1, D2, 0 callees in set)
@@ -819,23 +819,23 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X4.668e940 LIFT RenderCloudsDescription constructor, fully reversed (0x668e940, 0x1c3 bytes, depth 1, D2, 0 callees in set)
 - [ ] X4.6691110 LIFT sub_6691110 (0x6691110, 0x1cd bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.6692480 LIFT sub_6692480 (0x6692480, 0x797 bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.6692d10 LIFT sub_6692d10 (0x6692d10, 0x79 bytes, depth 2, D0, 0 callees in set)
-- [ ] X4.6694560 LIFT sub_6694560 (0x6694560, 0xfe bytes, depth 2, D0, 0 callees in set)
+- [x] X4.6692d10 LIFT sub_6692d10 (0x6692d10, 0x79 bytes, depth 2, D0, 0 callees in set)
+- [x] X4.6694560 LIFT sub_6694560 (0x6694560, 0xfe bytes, depth 2, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX4.6694560.md liftcheck OK
 - [ ] X4.6698060 LIFT sub_6698060 (0x6698060, 0x240 bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.66982a0 LIFT sub_66982a0 (0x66982a0, 0x10b bytes, depth 3, D0, 0 callees in set)
-- [ ] X4.66a0820 LIFT sub_66a0820 (0x66a0820, 0x84 bytes, depth 2, D0, 0 callees in set)
-- [ ] X4.66a17c0 LIFT sub_66a17c0 (0x66a17c0, 0x51 bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.66a1820 LIFT sub_66a1820 (0x66a1820, 0x36 bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.66a6060 LIFT sub_66a6060 (0x66a6060, 0x122 bytes, depth 2, D0, 0 callees in set)
+- [x] X4.66982a0 LIFT sub_66982a0 (0x66982a0, 0x10b bytes, depth 3, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX4.66982a0.md liftcheck OK
+- [x] X4.66a0820 LIFT sub_66a0820 (0x66a0820, 0x84 bytes, depth 2, D0, 0 callees in set)
+- [x] X4.66a17c0 LIFT sub_66a17c0 (0x66a17c0, 0x51 bytes, depth 1, D0, 0 callees in set)
+- [x] X4.66a1820 LIFT sub_66a1820 (0x66a1820, 0x36 bytes, depth 1, D0, 0 callees in set)
+- [x] X4.66a6060 LIFT sub_66a6060 (0x66a6060, 0x122 bytes, depth 2, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX4.66a6060.md liftcheck OK
 - [ ] X4.66a6470 LIFT sub_66a6470 (0x66a6470, 0x140 bytes, depth 2, D0, 0 callees in set)
 - [ ] X4.66a65b0 LIFT sub_66a65b0 (0x66a65b0, 0x140 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.66a66f0 LIFT sub_66a66f0 (0x66a66f0, 0x140 bytes, depth 2, D0, 0 callees in set)
 - [ ] X4.66a9ad0 LIFT sub_66a9ad0 (0x66a9ad0, 0x140 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.66a9c10 LIFT sub_66a9c10 (0x66a9c10, 0x140 bytes, depth 2, D0, 0 callees in set)
 - [ ] X4.66ad430 LIFT sub_66ad430 (0x66ad430, 0x13c bytes, depth 2, D0, 0 callees in set)
-- [ ] X4.66ad570 LIFT sub_66ad570 (0x66ad570, 0xc5 bytes, depth 2, D0, 0 callees in set)
-- [ ] X4.66ad730 LIFT sub_66ad730 (0x66ad730, 0xe8 bytes, depth 2, D0, 0 callees in set)
-- [ ] X4.66ad820 LIFT sub_66ad820 (0x66ad820, 0x126 bytes, depth 2, D0, 0 callees in set)
+- [x] X4.66ad570 LIFT sub_66ad570 (0x66ad570, 0xc5 bytes, depth 2, D0, 0 callees in set)
+- [x] X4.66ad730 LIFT sub_66ad730 (0x66ad730, 0xe8 bytes, depth 2, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX4.66ad730.md liftcheck OK
+- [x] X4.66ad820 LIFT sub_66ad820 (0x66ad820, 0x126 bytes, depth 2, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX4.66ad820.md liftcheck OK
 - [ ] X4.66ad950 LIFT sub_66ad950 (0x66ad950, 0x147 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.66adaa0 LIFT sub_66adaa0 (0x66adaa0, 0x263 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.66b2b30 LIFT sub_66b2b30 (0x66b2b30, 0x2a8 bytes, depth 1, D0, 0 callees in set)
@@ -849,16 +849,16 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X4.66d9710 LIFT sub_66d9710 (0x66d9710, 0x343 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.66e56a0 LIFT sub_66e56a0 (0x66e56a0, 0x137 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.66e5b10 LIFT sub_66e5b10 (0x66e5b10, 0x137 bytes, depth 2, D0, 0 callees in set)
-- [ ] X4.66e5eb0 LIFT sub_66e5eb0 (0x66e5eb0, 0xae bytes, depth 1, D0, 0 callees in set)
+- [x] X4.66e5eb0 LIFT sub_66e5eb0 (0x66e5eb0, 0xae bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.66e6240 LIFT sub_66e6240 (0x66e6240, 0x13a bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.66e74b0 LIFT sub_66e74b0 (0x66e74b0, 0x140 bytes, depth 2, D0, 0 callees in set)
 - [ ] X4.66e9dc0 LIFT sub_66e9dc0 (0x66e9dc0, 0x224 bytes, depth 2, D0, 0 callees in set)
 - [ ] X4.66ea020 LIFT sub_66ea020 (0x66ea020, 0x1bb bytes, depth 2, D0, 0 callees in set)
 - [ ] X4.66ea1e0 LIFT sub_66ea1e0 (0x66ea1e0, 0x1e9 bytes, depth 2, D0, 0 callees in set)
-- [ ] X4.670b260 LIFT sub_670b260 (0x670b260, 0x98 bytes, depth 1, D0, 0 callees in set)
+- [x] X4.670b260 LIFT sub_670b260 (0x670b260, 0x98 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.673cb40 LIFT sub_673cb40 (0x673cb40, 0x140 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.673cc80 LIFT sub_673cc80 (0x673cc80, 0x184 bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.673cef0 LIFT sub_673cef0 (0x673cef0, 0xea bytes, depth 2, D0, 0 callees in set)
+- [x] X4.673cef0 LIFT sub_673cef0 (0x673cef0, 0xea bytes, depth 2, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX4.673cef0.md liftcheck OK
 - [ ] X4.674a1d0 LIFT sub_674a1d0 (0x674a1d0, 0x1c1 bytes, depth 2, D0, 0 callees in set)
 - [ ] X4.6751170 LIFT sub_6751170 (0x6751170, 0x5dc bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.6751750 LIFT sub_6751750 (0x6751750, 0x12c4 bytes, depth 1, D0, 0 callees in set)
@@ -868,41 +868,41 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X4.6752fd0 LIFT sub_6752fd0 (0x6752fd0, 0x2b9 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.6753290 LIFT sub_6753290 (0x6753290, 0x3c5 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.6753660 LIFT sub_6753660 (0x6753660, 0x4e4 bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.6754750 LIFT sub_6754750 (0x6754750, 0x12f bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.6754880 LIFT sub_6754880 (0x6754880, 0x115 bytes, depth 1, D0, 0 callees in set)
+- [x] X4.6754750 LIFT sub_6754750 (0x6754750, 0x12f bytes, depth 1, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX4.6754750.md liftcheck OK
+- [x] X4.6754880 LIFT sub_6754880 (0x6754880, 0x115 bytes, depth 1, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX4.6754880.md liftcheck OK
 - [ ] X4.67549a0 LIFT sub_67549a0 (0x67549a0, 0x28c bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.6754f80 LIFT sub_6754f80 (0x6754f80, 0x2f4 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.6755280 LIFT sub_6755280 (0x6755280, 0x356 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.67555e0 LIFT sub_67555e0 (0x67555e0, 0x238 bytes, depth 2, D0, 0 callees in set)
 - [ ] X4.6755820 LIFT sub_6755820 (0x6755820, 0x1a9 bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.6755b50 LIFT sub_6755b50 (0x6755b50, 0xe2 bytes, depth 2, D0, 0 callees in set)
+- [x] X4.6755b50 LIFT sub_6755b50 (0x6755b50, 0xe2 bytes, depth 2, D0, 0 callees in set)
 - [ ] X4.6755c40 LIFT sub_6755c40 (0x6755c40, 0x164 bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.67577c0 LIFT sub_67577c0 (0x67577c0, 0x10f bytes, depth 1, D0, 0 callees in set)
+- [x] X4.67577c0 LIFT sub_67577c0 (0x67577c0, 0x10f bytes, depth 1, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX4.67577c0.md liftcheck OK
 - [ ] X4.6757d70 LIFT sub_6757d70 (0x6757d70, 0x1b0 bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.6758fc0 LIFT sub_6758fc0 (0x6758fc0, 0xff bytes, depth 2, D0, 0 callees in set)
+- [x] X4.6758fc0 LIFT sub_6758fc0 (0x6758fc0, 0xff bytes, depth 2, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX4.6758fc0.md liftcheck OK
 - [ ] X4.6759740 LIFT sub_6759740 (0x6759740, 0x755 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.675a5f0 LIFT sub_675a5f0 (0x675a5f0, 0x34e bytes, depth 3, D0, 0 callees in set)
 - [ ] X4.675a9e0 LIFT sub_675a9e0 (0x675a9e0, 0x160 bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.675b350 LIFT sub_675b350 (0x675b350, 0xfb bytes, depth 2, D0, 0 callees in set)
-- [ ] X4.675b450 LIFT sub_675b450 (0x675b450, 0xc8 bytes, depth 2, D0, 0 callees in set)
-- [ ] X4.675b550 LIFT sub_675b550 (0x675b550, 0xc8 bytes, depth 2, D0, 0 callees in set)
+- [x] X4.675b350 LIFT sub_675b350 (0x675b350, 0xfb bytes, depth 2, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX4.675b350.md liftcheck OK
+- [x] X4.675b450 LIFT sub_675b450 (0x675b450, 0xc8 bytes, depth 2, D0, 0 callees in set)
+- [x] X4.675b550 LIFT sub_675b550 (0x675b550, 0xc8 bytes, depth 2, D0, 0 callees in set)
 - [ ] X4.675b650 LIFT sub_675b650 (0x675b650, 0x249 bytes, depth 2, D0, 0 callees in set)
 - [ ] X4.675b8a0 LIFT sub_675b8a0 (0x675b8a0, 0x26b bytes, depth 3, D0, 0 callees in set)
 - [ ] X4.675bb10 LIFT sub_675bb10 (0x675bb10, 0x25e bytes, depth 2, D0, 0 callees in set)
 - [ ] X4.675c530 LIFT sub_675c530 (0x675c530, 0x49e bytes, depth 2, D0, 0 callees in set)
-- [ ] X4.675d320 LIFT sub_675d320 (0x675d320, 0x10f bytes, depth 1, D0, 0 callees in set)
+- [x] X4.675d320 LIFT sub_675d320 (0x675d320, 0x10f bytes, depth 1, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX4.675d320.md liftcheck OK
 - [ ] X4.675d840 LIFT sub_675d840 (0x675d840, 0x181 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.675df40 LIFT sub_675df40 (0x675df40, 0x160 bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.675e290 LIFT sub_675e290 (0x675e290, 0xf4 bytes, depth 3, D0, 0 callees in set)
+- [x] X4.675e290 LIFT sub_675e290 (0x675e290, 0xf4 bytes, depth 3, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX4.675e290.md liftcheck OK
 - [ ] X4.675f3b0 LIFT DrawItem pool +0x780 push (0x58 material record) (0x675f3b0, 0x700 bytes, depth 1, D1, 0 callees in set)
-- [ ] X4.67602c0 LIFT sub_67602c0 (0x67602c0, 0xea bytes, depth 2, D0, 0 callees in set)
+- [x] X4.67602c0 LIFT sub_67602c0 (0x67602c0, 0xea bytes, depth 2, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX4.67602c0.md liftcheck OK
 - [ ] X4.6760560 LIFT sub_6760560 (0x6760560, 0x1a3 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.6760710 LIFT sub_6760710 (0x6760710, 0x327 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.6760a80 LIFT sub_6760a80 (0x6760a80, 0x3d2 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.6760e60 LIFT sub_6760e60 (0x6760e60, 0x1ad bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.6761590 LIFT sub_6761590 (0x6761590, 0x37a bytes, depth 2, D0, 0 callees in set)
 - [ ] X4.6762270 LIFT DrawItem pool +0x660 push (0x2C: optional box + 4 floats) (0x6762270, 0x4ec bytes, depth 2, D2, 0 callees in set)
-- [ ] X4.67627d0 LIFT sub_67627d0 (0x67627d0, 0x127 bytes, depth 2, D0, 0 callees in set)
+- [x] X4.67627d0 LIFT sub_67627d0 (0x67627d0, 0x127 bytes, depth 2, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX4.67627d0.md liftcheck OK
 - [ ] X4.6764400 LIFT sub_6764400 (0x6764400, 0x33d bytes, depth 2, D0, 0 callees in set)
 - [ ] X4.6764990 LIFT DrawItem pool +0x588 copy (0x30 small vector) (0x6764990, 0x4f4 bytes, depth 1, D1, 0 callees in set)
 - [ ] X4.6767380 LIFT sub_6767380 (0x6767380, 0x249 bytes, depth 4, D0, 0 callees in set)
@@ -954,18 +954,18 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X4.67c0300 LIFT sub_67c0300 (0x67c0300, 0x13f bytes, depth 3, D0, 0 callees in set)
 - [ ] X4.67c04a0 LIFT sub_67c04a0 (0x67c04a0, 0x13d bytes, depth 2, D0, 0 callees in set)
 - [ ] X4.67c05e0 LIFT sub_67c05e0 (0x67c05e0, 0x1df bytes, depth 2, D0, 0 callees in set)
-- [ ] X4.67c07e0 LIFT sub_67c07e0 (0x67c07e0, 0xed bytes, depth 1, D0, 0 callees in set)
+- [x] X4.67c07e0 LIFT sub_67c07e0 (0x67c07e0, 0xed bytes, depth 1, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX4.67c07e0.md liftcheck OK
 - [ ] X4.67c4470 LIFT sub_67c4470 (0x67c4470, 0x1d2 bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.67c4650 LIFT sub_67c4650 (0x67c4650, 0xc1 bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.67c7020 LIFT sub_67c7020 (0x67c7020, 0x11f bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.67cace0 LIFT sub_67cace0 (0x67cace0, 0xf3 bytes, depth 2, D0, 0 callees in set)
+- [x] X4.67c4650 LIFT sub_67c4650 (0x67c4650, 0xc1 bytes, depth 1, D0, 0 callees in set)
+- [x] X4.67c7020 LIFT sub_67c7020 (0x67c7020, 0x11f bytes, depth 1, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX4.67c7020.md liftcheck OK
+- [x] X4.67cace0 LIFT sub_67cace0 (0x67cace0, 0xf3 bytes, depth 2, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX4.67cace0.md liftcheck OK
 - [ ] X4.67cc7e0 LIFT sub_67cc7e0 (0x67cc7e0, 0x3d2 bytes, depth 2, D0, 0 callees in set)
-- [ ] X4.67ccf50 LIFT sub_67ccf50 (0x67ccf50, 0x105 bytes, depth 2, D0, 0 callees in set)
+- [x] X4.67ccf50 LIFT sub_67ccf50 (0x67ccf50, 0x105 bytes, depth 2, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX4.67ccf50.md liftcheck OK
 - [ ] X4.67ce5b0 LIFT sub_67ce5b0 (0x67ce5b0, 0x3d2 bytes, depth 3, D0, 0 callees in set)
 - [ ] X4.67cf1d0 LIFT sub_67cf1d0 (0x67cf1d0, 0x1ab bytes, depth 3, D0, 0 callees in set)
 - [ ] X4.67d0750 LIFT sub_67d0750 (0x67d0750, 0x3a2 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.67d0b00 LIFT sub_67d0b00 (0x67d0b00, 0x4ee bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.67d0ff0 LIFT sub_67d0ff0 (0x67d0ff0, 0x12e bytes, depth 2, D0, 0 callees in set)
+- [x] X4.67d0ff0 LIFT sub_67d0ff0 (0x67d0ff0, 0x12e bytes, depth 2, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX4.67d0ff0.md liftcheck OK
 - [ ] X4.67d1120 LIFT sub_67d1120 (0x67d1120, 0x182 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.67d5ce0 LIFT sub_67d5ce0 (0x67d5ce0, 0x30f bytes, depth 2, D0, 0 callees in set)
 - [ ] X4.67d7410 LIFT sub_67d7410 (0x67d7410, 0x610 bytes, depth 2, D0, 0 callees in set)
@@ -979,10 +979,10 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X4.67e40a0 LIFT sub_67e40a0 (0x67e40a0, 0x147 bytes, depth 2, D0, 0 callees in set)
 - [ ] X4.67e5d10 LIFT sub_67e5d10 (0x67e5d10, 0x1c8 bytes, depth 1, D0, 0 callees in set)
 - [ ] X4.67e90d0 LIFT Light tag 5 0xB00 record copy-construct into pass vector (+0x260) (0x67e90d0, 0x719 bytes, depth 2, D0, 0 callees in set)
-- [ ] X4.67eb640 LIFT sub_67eb640 (0x67eb640, 0x103 bytes, depth 1, D0, 0 callees in set)
+- [x] X4.67eb640 LIFT sub_67eb640 (0x67eb640, 0x103 bytes, depth 1, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX4.67eb640.md liftcheck OK
 - [ ] X4.67edd40 LIFT sub_67edd40 (0x67edd40, 0x159 bytes, depth 1, D0, 0 callees in set)
-- [ ] X4.bc04270 LIFT sub_bc04270 (0xbc04270, 0x95 bytes, depth 0, D0, 0 callees in set)
-- [ ] X4.bc04530 LIFT pass task render-thread body (class D, same template) (0xbc04530, 0xc4 bytes, depth 0, D2, 0 callees in set)
+- [x] X4.bc04270 LIFT sub_bc04270 (0xbc04270, 0x95 bytes, depth 0, D0, 0 callees in set)
+- [x] X4.bc04530 LIFT pass task render-thread body (class D, same template) (0xbc04530, 0xc4 bytes, depth 0, D2, 0 callees in set)
 - [ ] X4.1127330 LIFT insert<RenderNametagDescription> fat clone, fully reversed (0x1127330, 0x2c6 bytes, depth 0, D2, 5 callees in set)
 - [ ] X4.15a6880 LIFT insert<ChunkGeometry> thin clone (Item tag 3), fully reversed (0x15a6880, 0x139 bytes, depth 0, D2, 3 callees in set)
 - [ ] X4.4c85d70 LIFT insert<Editor variant 1> thin clone (Editor tag 1), fully reversed (0x4c85d70, 0x139 bytes, depth 0, D2, 3 callees in set)
@@ -1016,7 +1016,7 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X4.668c750 LIFT RenderUITextDescription constructor, fully reversed (0x668c750, 0x172 bytes, depth 1, D2, 1 callees in set)
 - [ ] X4.668c910 LIFT RenderSkyDescription constructor, fully reversed (0x668c910, 0x21a bytes, depth 1, D2, 1 callees in set)
 - [ ] X4.668d990 LIFT RenderBlockSelectionOverlayBlockEntityDescription constructor, fully reversed (0x668d990, 0x2f0 bytes, depth 1, D2, 1 callees in set)
-- [ ] X4.668eb10 LIFT RenderCubemapDescription ctor (texture ref, mat4, u16, u8), fully reversed (0x668eb10, 0xce bytes, depth 2, D2, 1 callees in set)
+- [x] X4.668eb10 LIFT RenderCubemapDescription ctor (texture ref, mat4, u16, u8), fully reversed (0x668eb10, 0xce bytes, depth 2, D2, 1 callees in set) | DONE 2026-11-25 oc_U-EX4.668eb10.md liftcheck OK
 - [ ] X4.6691440 LIFT sub_6691440 (0x6691440, 0x1c7 bytes, depth 2, D0, 1 callees in set)
 - [ ] X4.6691610 LIFT sub_6691610 (0x6691610, 0x195 bytes, depth 1, D0, 3 callees in set)
 - [ ] X4.6693160 LIFT sub_6693160 (0x6693160, 0x18f bytes, depth 1, D0, 1 callees in set)
@@ -1027,21 +1027,21 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X4.66e58b0 LIFT sub_66e58b0 (0x66e58b0, 0x138 bytes, depth 1, D0, 1 callees in set)
 - [ ] X4.66e5c50 LIFT sub_66e5c50 (0x66e5c50, 0x162 bytes, depth 2, D0, 1 callees in set)
 - [ ] X4.66e5dc0 LIFT sub_66e5dc0 (0x66e5dc0, 0xed bytes, depth 2, D0, 1 callees in set)
-- [ ] X4.66e6da0 LIFT sub_66e6da0 (0x66e6da0, 0x11b bytes, depth 1, D0, 1 callees in set)
+- [x] X4.66e6da0 LIFT sub_66e6da0 (0x66e6da0, 0x11b bytes, depth 1, D0, 1 callees in set) | DONE 2026-11-25 oc_U-EX4.66e6da0.md liftcheck OK
 - [ ] X4.66e7170 LIFT sub_66e7170 (0x66e7170, 0x340 bytes, depth 1, D0, 2 callees in set)
 - [ ] X4.67559d0 LIFT sub_67559d0 (0x67559d0, 0x180 bytes, depth 1, D0, 1 callees in set)
 - [ ] X4.6755db0 LIFT sub_6755db0 (0x6755db0, 0xed bytes, depth 1, D0, 3 callees in set)
-- [ ] X4.6757320 LIFT sub_6757320 (0x6757320, 0x12e bytes, depth 2, D0, 1 callees in set)
-- [ ] X4.67576c0 LIFT sub_67576c0 (0x67576c0, 0xf8 bytes, depth 2, D0, 1 callees in set)
+- [x] X4.6757320 LIFT sub_6757320 (0x6757320, 0x12e bytes, depth 2, D0, 1 callees in set) | DONE 2026-11-25 oc_U-EX4.6757320.md liftcheck OK
+- [x] X4.67576c0 LIFT sub_67576c0 (0x67576c0, 0xf8 bytes, depth 2, D0, 1 callees in set) | DONE 2026-11-24 oc_U-EX4.67576c0.md liftcheck OK
 - [ ] X4.6758860 LIFT sub_6758860 (0x6758860, 0x1e0 bytes, depth 4, D0, 1 callees in set)
-- [ ] X4.6758b90 LIFT sub_6758b90 (0x6758b90, 0xdd bytes, depth 1, D0, 1 callees in set)
+- [x] X4.6758b90 LIFT sub_6758b90 (0x6758b90, 0xdd bytes, depth 1, D0, 1 callees in set) | DONE 2026-11-25 oc_U-EX4.6758b90.md liftcheck OK
 - [ ] X4.67591e0 LIFT merge per-thread pending jobs into loader+0x18 (drops jobs of dead resources) (0x67591e0, 0x28d bytes, depth 1, D2, 1 callees in set)
 - [ ] X4.67594c0 LIFT sub_67594c0 (0x67594c0, 0x23d bytes, depth 1, D0, 2 callees in set)
 - [ ] X4.675a170 LIFT sub_675a170 (0x675a170, 0x479 bytes, depth 2, D0, 1 callees in set)
 - [ ] X4.675aec0 LIFT sub_675aec0 (0x675aec0, 0x386 bytes, depth 1, D0, 2 callees in set)
 - [ ] X4.675da10 LIFT sub_675da10 (0x675da10, 0xaf bytes, depth 2, D0, 1 callees in set)
 - [ ] X4.675dac0 LIFT sub_675dac0 (0x675dac0, 0xaf bytes, depth 2, D0, 1 callees in set)
-- [ ] X4.675dbe0 LIFT sub_675dbe0 (0x675dbe0, 0xdf bytes, depth 1, D0, 1 callees in set)
+- [x] X4.675dbe0 LIFT sub_675dbe0 (0x675dbe0, 0xdf bytes, depth 1, D0, 1 callees in set) | DONE 2026-11-25 oc_U-EX4.675dbe0.md liftcheck OK
 - [ ] X4.6760450 LIFT sub_6760450 (0x6760450, 0x110 bytes, depth 1, D0, 1 callees in set)
 - [ ] X4.6765870 LIFT sub_6765870 (0x6765870, 0x370 bytes, depth 1, D0, 1 callees in set)
 - [ ] X4.6766510 LIFT sub_6766510 (0x6766510, 0x2a0 bytes, depth 3, D0, 1 callees in set)
@@ -1063,7 +1063,7 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X4.67bf5b0 LIFT sub_67bf5b0 (0x67bf5b0, 0x4a9 bytes, depth 2, D0, 1 callees in set)
 - [ ] X4.67c0090 LIFT sub_67c0090 (0x67c0090, 0x268 bytes, depth 2, D0, 2 callees in set)
 - [ ] X4.67ca960 LIFT sub_67ca960 (0x67ca960, 0x197 bytes, depth 1, D0, 2 callees in set)
-- [ ] X4.67cab00 LIFT sub_67cab00 (0x67cab00, 0xce bytes, depth 1, D0, 1 callees in set)
+- [x] X4.67cab00 LIFT sub_67cab00 (0x67cab00, 0xce bytes, depth 1, D0, 1 callees in set) | DONE 2026-11-25 oc_U-EX4.67cab00.md liftcheck OK
 - [ ] X4.67cf410 LIFT sub_67cf410 (0x67cf410, 0x73f bytes, depth 3, D0, 3 callees in set)
 - [ ] X4.67d0420 LIFT sub_67d0420 (0x67d0420, 0x262 bytes, depth 2, D0, 1 callees in set)
 - [ ] X4.67d5ff0 LIFT sub_67d5ff0 (0x67d5ff0, 0x475 bytes, depth 2, D0, 1 callees in set)
@@ -1321,58 +1321,58 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 242 functions, 580 KB of machine code. Order = callees first. Source dir: `src/client/features/render/native/passes/`. Gate: X5z.
 
 - [ ] X5.5667860 LIFT sub_5667860 (0x5667860, 0x3e4 bytes, depth 1, D0, 0 callees in set)
-- [ ] X5.5667e70 LIFT sub_5667e70 (0x5667e70, 0xe6 bytes, depth 1, D0, 0 callees in set)
+- [x] X5.5667e70 LIFT sub_5667e70 (0x5667e70, 0xe6 bytes, depth 1, D0, 0 callees in set)
 - [ ] X5.5668ac0 LIFT sub_5668ac0 (0x5668ac0, 0x2c9 bytes, depth 1, D0, 0 callees in set)
 - [ ] X5.5669770 LIFT sub_5669770 (0x5669770, 0x36a bytes, depth 0, D0, 0 callees in set)
-- [ ] X5.566a620 LIFT sub_566a620 (0x566a620, 0xf2 bytes, depth 1, D0, 0 callees in set)
-- [ ] X5.566d290 LIFT sub_566d290 (0x566d290, 0xbd bytes, depth 1, D0, 0 callees in set)
-- [ ] X5.567a5b0 LIFT sub_567a5b0 (0x567a5b0, 0x10e bytes, depth 2, D0, 0 callees in set)
-- [ ] X5.567a6c0 LIFT sub_567a6c0 (0x567a6c0, 0xef bytes, depth 2, D0, 0 callees in set)
+- [x] X5.566a620 LIFT sub_566a620 (0x566a620, 0xf2 bytes, depth 1, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX5.566a620.md liftcheck OK
+- [x] X5.566d290 LIFT sub_566d290 (0x566d290, 0xbd bytes, depth 1, D0, 0 callees in set)
+- [x] X5.567a5b0 LIFT sub_567a5b0 (0x567a5b0, 0x10e bytes, depth 2, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX5.567a5b0.md liftcheck OK
+- [x] X5.567a6c0 LIFT sub_567a6c0 (0x567a6c0, 0xef bytes, depth 2, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX5.567a6c0.md liftcheck OK
 - [ ] X5.567a7b0 LIFT sub_567a7b0 (0x567a7b0, 0x138 bytes, depth 1, D0, 0 callees in set)
-- [ ] X5.567acf0 LIFT sub_567acf0 (0x567acf0, 0xe9 bytes, depth 4, D0, 0 callees in set)
-- [ ] X5.567bfe0 LIFT sub_567bfe0 (0x567bfe0, 0xbd bytes, depth 3, D0, 0 callees in set)
+- [x] X5.567acf0 LIFT sub_567acf0 (0x567acf0, 0xe9 bytes, depth 4, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX5.567acf0.md liftcheck OK
+- [x] X5.567bfe0 LIFT sub_567bfe0 (0x567bfe0, 0xbd bytes, depth 3, D0, 0 callees in set)
 - [ ] X5.567d8b0 LIFT sub_567d8b0 (0x567d8b0, 0x13f bytes, depth 2, D0, 0 callees in set)
-- [ ] X5.567d9f0 LIFT sub_567d9f0 (0x567d9f0, 0x109 bytes, depth 1, D0, 0 callees in set)
+- [x] X5.567d9f0 LIFT sub_567d9f0 (0x567d9f0, 0x109 bytes, depth 1, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX5.567d9f0.md liftcheck OK
 - [ ] X5.567e060 LIFT sub_567e060 (0x567e060, 0x201 bytes, depth 2, D0, 0 callees in set)
-- [ ] X5.567e430 LIFT sub_567e430 (0x567e430, 0xdd bytes, depth 1, D0, 0 callees in set)
+- [x] X5.567e430 LIFT sub_567e430 (0x567e430, 0xdd bytes, depth 1, D0, 0 callees in set)
 - [ ] X5.5689f00 LIFT sub_5689f00 (0x5689f00, 0x402 bytes, depth 3, D0, 0 callees in set)
 - [ ] X5.568b4f0 LIFT sub_568b4f0 (0x568b4f0, 0x3ed bytes, depth 2, D0, 0 callees in set)
-- [ ] X5.568b9e0 LIFT common pass task encode (queues the custom item) (0x568b9e0, 0x95 bytes, depth 0, D2, 0 callees in set)
-- [ ] X5.568bcd0 LIFT common pass task render-thread body (static, called by the executor for a custom item), fully reversed (0x568bcd0, 0xc4 bytes, depth 0, D2, 0 callees in set)
+- [x] X5.568b9e0 LIFT common pass task encode (queues the custom item) (0x568b9e0, 0x95 bytes, depth 0, D2, 0 callees in set)
+- [x] X5.568bcd0 LIFT common pass task render-thread body (static, called by the executor for a custom item), fully reversed (0x568bcd0, 0xc4 bytes, depth 0, D2, 0 callees in set)
 - [ ] X5.568bdc0 LIFT sub_568bdc0 (0x568bdc0, 0x3d4 bytes, depth 1, D0, 0 callees in set)
 - [ ] X5.568cbe0 LIFT sub_568cbe0 (0x568cbe0, 0x17f bytes, depth 2, D0, 0 callees in set)
-- [x] X5.568cd70 LIFT sub_568cd70 (0x568cd70, 0xc bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX5.568cd70.md liftcheck OK
-- [ ] X5.568db90 LIFT sub_568db90 (0x568db90, 0x80 bytes, depth 1, D0, 0 callees in set)
+- [x] X5.568cd70 LIFT sub_568cd70 (0x568cd70, 0xc bytes, depth 0, D0, 0 callees in set)
+- [x] X5.568db90 LIFT sub_568db90 (0x568db90, 0x80 bytes, depth 1, D0, 0 callees in set)
 - [ ] X5.5699980 LIFT sub_5699980 (0x5699980, 0x1e2 bytes, depth 2, D0, 0 callees in set)
-- [ ] X5.5699be0 LIFT sub_5699be0 (0x5699be0, 0x95 bytes, depth 0, D0, 0 callees in set)
-- [ ] X5.5699e30 LIFT pass task render-thread body (class B, same template as 0x568bcd0) (0x5699e30, 0xc4 bytes, depth 0, D2, 0 callees in set)
+- [x] X5.5699be0 LIFT sub_5699be0 (0x5699be0, 0x95 bytes, depth 0, D0, 0 callees in set)
+- [x] X5.5699e30 LIFT pass task render-thread body (class B, same template as 0x568bcd0) (0x5699e30, 0xc4 bytes, depth 0, D2, 0 callees in set)
 - [ ] X5.5699f20 LIFT sub_5699f20 (0x5699f20, 0x1c9 bytes, depth 1, D0, 0 callees in set)
 - [ ] X5.56adbb0 LIFT sub_56adbb0 (0x56adbb0, 0x172 bytes, depth 1, D0, 0 callees in set)
 - [ ] X5.56add30 LIFT sub_56add30 (0x56add30, 0x1de bytes, depth 2, D0, 0 callees in set)
-- [ ] X5.56ae910 LIFT sub_56ae910 (0x56ae910, 0x79 bytes, depth 2, D0, 0 callees in set)
-- [ ] X5.56aea80 LIFT sub_56aea80 (0x56aea80, 0x113 bytes, depth 1, D0, 0 callees in set)
-- [ ] X5.56b66f0 LIFT sub_56b66f0 (0x56b66f0, 0xfc bytes, depth 1, D0, 0 callees in set)
-- [ ] X5.56b67f0 LIFT sub_56b67f0 (0x56b67f0, 0xc8 bytes, depth 1, D0, 0 callees in set)
-- [ ] X5.56b7980 LIFT sub_56b7980 (0x56b7980, 0xfc bytes, depth 2, D0, 0 callees in set)
-- [ ] X5.56b8180 LIFT sub_56b8180 (0x56b8180, 0xfc bytes, depth 1, D0, 0 callees in set)
+- [x] X5.56ae910 LIFT sub_56ae910 (0x56ae910, 0x79 bytes, depth 2, D0, 0 callees in set)
+- [x] X5.56aea80 LIFT sub_56aea80 (0x56aea80, 0x113 bytes, depth 1, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX5.56aea80.md liftcheck OK
+- [x] X5.56b66f0 LIFT sub_56b66f0 (0x56b66f0, 0xfc bytes, depth 1, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX5.56b66f0.md liftcheck OK
+- [x] X5.56b67f0 LIFT sub_56b67f0 (0x56b67f0, 0xc8 bytes, depth 1, D0, 0 callees in set)
+- [x] X5.56b7980 LIFT sub_56b7980 (0x56b7980, 0xfc bytes, depth 2, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX5.56b7980.md liftcheck OK
+- [x] X5.56b8180 LIFT sub_56b8180 (0x56b8180, 0xfc bytes, depth 1, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX5.56b8180.md liftcheck OK
 - [ ] X5.56b8280 LIFT sub_56b8280 (0x56b8280, 0x21b bytes, depth 1, D0, 0 callees in set)
-- [ ] X5.56b84e0 LIFT sub_56b84e0 (0x56b84e0, 0x116 bytes, depth 1, D0, 0 callees in set)
+- [x] X5.56b84e0 LIFT sub_56b84e0 (0x56b84e0, 0x116 bytes, depth 1, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX5.56b84e0.md liftcheck OK
 - [ ] X5.56b8a20 LIFT sub_56b8a20 (0x56b8a20, 0x23d bytes, depth 3, D0, 0 callees in set)
-- [ ] X5.56bba40 LIFT sub_56bba40 (0x56bba40, 0x119 bytes, depth 4, D0, 0 callees in set)
-- [ ] X5.56bbb60 LIFT sub_56bbb60 (0x56bbb60, 0x11d bytes, depth 4, D0, 0 callees in set)
+- [x] X5.56bba40 LIFT sub_56bba40 (0x56bba40, 0x119 bytes, depth 4, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX5.56bba40.md liftcheck OK
+- [x] X5.56bbb60 LIFT sub_56bbb60 (0x56bbb60, 0x11d bytes, depth 4, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX5.56bbb60.md liftcheck OK
 - [ ] X5.56bc800 LIFT sub_56bc800 (0x56bc800, 0x1c4 bytes, depth 2, D0, 0 callees in set)
 - [ ] X5.56bdb50 LIFT sub_56bdb50 (0x56bdb50, 0x3d2 bytes, depth 2, D0, 0 callees in set)
-- [ ] X5.56be290 LIFT sub_56be290 (0x56be290, 0xc6 bytes, depth 2, D0, 0 callees in set)
+- [x] X5.56be290 LIFT sub_56be290 (0x56be290, 0xc6 bytes, depth 2, D0, 0 callees in set)
 - [ ] X5.56c24e0 LIFT sub_56c24e0 (0x56c24e0, 0x429 bytes, depth 1, D0, 0 callees in set)
 - [ ] X5.56c2910 LIFT sub_56c2910 (0x56c2910, 0x20f bytes, depth 1, D0, 0 callees in set)
 - [ ] X5.56c82d0 LIFT sub_56c82d0 (0x56c82d0, 0x282 bytes, depth 3, D0, 0 callees in set)
-- [ ] X5.56c85c0 LIFT sub_56c85c0 (0x56c85c0, 0x95 bytes, depth 0, D0, 0 callees in set)
-- [ ] X5.56c8810 LIFT pass task render-thread body (class C, same template) (0x56c8810, 0xc4 bytes, depth 0, D2, 0 callees in set)
+- [x] X5.56c85c0 LIFT sub_56c85c0 (0x56c85c0, 0x95 bytes, depth 0, D0, 0 callees in set)
+- [x] X5.56c8810 LIFT pass task render-thread body (class C, same template) (0x56c8810, 0xc4 bytes, depth 0, D2, 0 callees in set)
 - [ ] X5.56c8900 LIFT sub_56c8900 (0x56c8900, 0x269 bytes, depth 3, D0, 0 callees in set)
 - [ ] X5.56c9740 LIFT sub_56c9740 (0x56c9740, 0x1e7 bytes, depth 1, D0, 0 callees in set)
-- [ ] X5.56cc4f0 LIFT sub_56cc4f0 (0x56cc4f0, 0xef bytes, depth 2, D0, 0 callees in set)
+- [x] X5.56cc4f0 LIFT sub_56cc4f0 (0x56cc4f0, 0xef bytes, depth 2, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX5.56cc4f0.md liftcheck OK
 - [ ] X5.56cca60 LIFT sub_56cca60 (0x56cca60, 0x181 bytes, depth 2, D0, 0 callees in set)
-- [ ] X5.56d03a0 LIFT sub_56d03a0 (0x56d03a0, 0x12a bytes, depth 5, D0, 0 callees in set)
+- [x] X5.56d03a0 LIFT sub_56d03a0 (0x56d03a0, 0x12a bytes, depth 5, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX5.56d03a0.md liftcheck OK
 - [ ] X5.56d09d0 LIFT sub_56d09d0 (0x56d09d0, 0x270 bytes, depth 6, D0, 0 callees in set)
 - [ ] X5.56d1040 LIFT sub_56d1040 (0x56d1040, 0x257 bytes, depth 6, D0, 0 callees in set)
 - [ ] X5.56d2cc0 LIFT sub_56d2cc0 (0x56d2cc0, 0x147 bytes, depth 1, D0, 0 callees in set)
@@ -1380,7 +1380,7 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X5.56d5a20 LIFT sub_56d5a20 (0x56d5a20, 0x147 bytes, depth 1, D0, 0 callees in set)
 - [ ] X5.56d9660 LIFT sub_56d9660 (0x56d9660, 0x2a8 bytes, depth 1, D0, 0 callees in set)
 - [ ] X5.5667c80 LIFT sub_5667c80 (0x5667c80, 0x1b5 bytes, depth 1, D0, 1 callees in set)
-- [ ] X5.5669ae0 LIFT sub_5669ae0 (0x5669ae0, 0x129 bytes, depth 1, D0, 1 callees in set)
+- [x] X5.5669ae0 LIFT sub_5669ae0 (0x5669ae0, 0x129 bytes, depth 1, D0, 1 callees in set) | DONE 2026-11-25 oc_U-EX5.5669ae0.md liftcheck OK
 - [ ] X5.566a450 LIFT sub_566a450 (0x566a450, 0x19f bytes, depth 1, D0, 1 callees in set)
 - [ ] X5.566b010 LIFT sub_566b010 (0x566b010, 0x498 bytes, depth 1, D0, 1 callees in set)
 - [ ] X5.5679db0 LIFT UniformBlock::setUniform (vec4 array, dirty bit, running hash), fully reversed (0x5679db0, 0x165 bytes, depth 1, D2, 1 callees in set)
@@ -1392,8 +1392,8 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X5.5689c00 LIFT sub_5689c00 (0x5689c00, 0x2f1 bytes, depth 2, D0, 1 callees in set)
 - [ ] X5.568ad40 LIFT sub_568ad40 (0x568ad40, 0xc2 bytes, depth 1, D0, 1 callees in set)
 - [ ] X5.568c640 LIFT sub_568c640 (0x568c640, 0x4ea bytes, depth 1, D0, 2 callees in set)
-- [ ] X5.568da90 LIFT sub_568da90 (0x568da90, 0xf7 bytes, depth 1, D0, 1 callees in set)
-- [ ] X5.56aeff0 LIFT sub_56aeff0 (0x56aeff0, 0xff bytes, depth 1, D0, 1 callees in set)
+- [x] X5.568da90 LIFT sub_568da90 (0x568da90, 0xf7 bytes, depth 1, D0, 1 callees in set) | DONE 2026-11-24 oc_U-EX5.568da90.md liftcheck OK
+- [x] X5.56aeff0 LIFT sub_56aeff0 (0x56aeff0, 0xff bytes, depth 1, D0, 1 callees in set) | DONE 2026-11-25 oc_U-EX5.56aeff0.md liftcheck OK
 - [ ] X5.56b7710 LIFT sub_56b7710 (0x56b7710, 0x17f bytes, depth 2, D0, 1 callees in set)
 - [ ] X5.56b7a80 LIFT sub_56b7a80 (0x56b7a80, 0x24e bytes, depth 1, D0, 1 callees in set)
 - [ ] X5.56b7f40 LIFT sub_56b7f40 (0x56b7f40, 0x143 bytes, depth 1, D0, 1 callees in set)
@@ -1568,78 +1568,80 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 
 ## X7. Indirect and helper functions found by closure expansion (X0a/X0b output)
 
-335 functions, 647 KB of machine code. Order = callees first. Source dir: `src/client/features/render/native/helpers/`. Gate: X7z.
+345 functions, 649 KB of machine code. Order = callees first. Source dir: `src/client/features/render/native/helpers/`. Gate: X7z.
 
-- [ ] X7.76850 LIFT sub_76850 (0x76850, 0x78 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.76850 LIFT sub_76850 (0x76850, 0x78 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.76b30 LIFT sub_76b30 (0x76b30, 0x218 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.78ce0 LIFT sub_78ce0 (0x78ce0, 0x98 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.7e6d0 LIFT sub_7e6d0 (0x7e6d0, 0x48 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.78ce0 LIFT sub_78ce0 (0x78ce0, 0x98 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.7e6d0 LIFT sub_7e6d0 (0x7e6d0, 0x48 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.9b020 LIFT sub_9b020 (0x9b020, 0x181 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.9c590 LIFT sub_9c590 (0x9c590, 0xb4 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.9c650 LIFT sub_9c650 (0x9c650, 0xf3 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.9c590 LIFT sub_9c590 (0x9c590, 0xb4 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.9c650 LIFT sub_9c650 (0x9c650, 0xf3 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX7.9c650.md liftcheck OK
 - [ ] X7.a0c60 LIFT sub_a0c60 (0xa0c60, 0x1e2 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.a14e0 LIFT sub_a14e0 (0xa14e0, 0xd1 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.a14e0 LIFT sub_a14e0 (0xa14e0, 0xd1 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.a1c40 LIFT sub_a1c40 (0xa1c40, 0x181 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.aa3c0 LIFT sub_aa3c0 (0xaa3c0, 0x8 bytes, depth 0, D0, 0 callees in set)
+- [ ] X7.aad30 LIFT sub_aad30 (0xaad30, 0x226 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.ac370 LIFT sub_ac370 (0xac370, 0x179 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.ac4f0 LIFT sub_ac4f0 (0xac4f0, 0x1c6 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.ae500 LIFT sub_ae500 (0xae500, 0x10a bytes, depth 0, D0, 0 callees in set)
+- [x] X7.ae500 LIFT sub_ae500 (0xae500, 0x10a bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.ae500.md liftcheck OK
 - [ ] X7.b1b70 LIFT sub_b1b70 (0xb1b70, 0x380 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.b2450 LIFT sub_b2450 (0xb2450, 0x15c bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.111bb0 LIFT sub_111bb0 (0x111bb0, 0x164 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.113ea0 LIFT sub_113ea0 (0x113ea0, 0x2cf bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.114360 LIFT sub_114360 (0x114360, 0x115 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.118420 LIFT sub_118420 (0x118420, 0x53 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.114360 LIFT sub_114360 (0x114360, 0x115 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.114360.md liftcheck OK
+- [x] X7.118420 LIFT sub_118420 (0x118420, 0x53 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.120e00 LIFT sub_120e00 (0x120e00, 0x1b0 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.12b5f0 LIFT sub_12b5f0 (0x12b5f0, 0x1cd bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.130ee0 LIFT sub_130ee0 (0x130ee0, 0xfb bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.147b10 LIFT sub_147b10 (0x147b10, 0x117 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.14a0c0 LIFT sub_14a0c0 (0x14a0c0, 0x130 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.19bbc0 LIFT sub_19bbc0 (0x19bbc0, 0xce bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.1a1e80 LIFT sub_1a1e80 (0x1a1e80, 0xd2 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.130ee0 LIFT sub_130ee0 (0x130ee0, 0xfb bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX7.130ee0.md liftcheck OK
+- [x] X7.147b10 LIFT sub_147b10 (0x147b10, 0x117 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.147b10.md liftcheck OK
+- [x] X7.14a0c0 LIFT sub_14a0c0 (0x14a0c0, 0x130 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.14a0c0.md liftcheck OK
+- [x] X7.19bbc0 LIFT sub_19bbc0 (0x19bbc0, 0xce bytes, depth 0, D0, 0 callees in set)
+- [x] X7.1a1e80 LIFT sub_1a1e80 (0x1a1e80, 0xd2 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.1a2440 LIFT sub_1a2440 (0x1a2440, 0x236 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.1c3170 LIFT sub_1c3170 (0x1c3170, 0x3a0 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.1d2c10 LIFT sub_1d2c10 (0x1d2c10, 0x4f5 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.1d3b70 LIFT sub_1d3b70 (0x1d3b70, 0x11a bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.1d3cb0 LIFT sub_1d3cb0 (0x1d3cb0, 0xd8 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.1d3b70 LIFT sub_1d3b70 (0x1d3b70, 0x11a bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.1d3b70.md liftcheck OK
 - [ ] X7.2014b0 LIFT sub_2014b0 (0x2014b0, 0x1db bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.20b330 LIFT sub_20b330 (0x20b330, 0x1c4 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.2791b0 LIFT sub_2791b0 (0x2791b0, 0x143 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.2e8fc0 LIFT sub_2e8fc0 (0x2e8fc0, 0x178 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.2fe330 LIFT sub_2fe330 (0x2fe330, 0x10b bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.336380 LIFT sub_336380 (0x336380, 0x97 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.341070 LIFT sub_341070 (0x341070, 0x12d bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.34d640 LIFT sub_34d640 (0x34d640, 0x39 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.392960 LIFT sub_392960 (0x392960, 0x35 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.2fe330 LIFT sub_2fe330 (0x2fe330, 0x10b bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.2fe330.md liftcheck OK
+- [x] X7.336380 LIFT sub_336380 (0x336380, 0x97 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.341070 LIFT sub_341070 (0x341070, 0x12d bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.341070.md liftcheck OK
+- [x] X7.34d640 LIFT sub_34d640 (0x34d640, 0x39 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.392960 LIFT sub_392960 (0x392960, 0x35 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.393660 LIFT sub_393660 (0x393660, 0x215 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.3af4e0 LIFT sub_3af4e0 (0x3af4e0, 0x83 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.3b2020 LIFT sub_3b2020 (0x3b2020, 0xac bytes, depth 0, D0, 0 callees in set)
+- [x] X7.3af4e0 LIFT sub_3af4e0 (0x3af4e0, 0x83 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.3b2020 LIFT sub_3b2020 (0x3b2020, 0xac bytes, depth 0, D0, 0 callees in set)
+- [x] X7.3b23c0 LIFT sub_3b23c0 (0x3b23c0, 0x8 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.3c75f0 LIFT sub_3c75f0 (0x3c75f0, 0xb2 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.42c180 LIFT sub_42c180 (0x42c180, 0x1f8 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.446cb0 LIFT sub_446cb0 (0x446cb0, 0x1bd bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.58f1b0 LIFT sub_58f1b0 (0x58f1b0, 0x141 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.5e2270 LIFT sub_5e2270 (0x5e2270, 0x118 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.6ae330 LIFT sub_6ae330 (0x6ae330, 0xd4 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.5e2270 LIFT sub_5e2270 (0x5e2270, 0x118 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.5e2270.md liftcheck OK
+- [x] X7.6ae330 LIFT sub_6ae330 (0x6ae330, 0xd4 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.74cb90 LIFT sub_74cb90 (0x74cb90, 0x1d1 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.772520 LIFT sub_772520 (0x772520, 0x285 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.773320 LIFT sub_773320 (0x773320, 0xc9 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.773320 LIFT sub_773320 (0x773320, 0xc9 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.7a7870 LIFT sub_7a7870 (0x7a7870, 0x230 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.8db490 LIFT sub_8db490 (0x8db490, 0x119 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.8e56b0 LIFT sub_8e56b0 (0x8e56b0, 0x78 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.8f21d0 LIFT sub_8f21d0 (0x8f21d0, 0xe3 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.8db490 LIFT sub_8db490 (0x8db490, 0x119 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.8db490.md liftcheck OK
+- [x] X7.8e56b0 LIFT sub_8e56b0 (0x8e56b0, 0x78 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.8f21d0 LIFT sub_8f21d0 (0x8f21d0, 0xe3 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.9bd3c0 LIFT sub_9bd3c0 (0x9bd3c0, 0x82 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.9e62b0 LIFT sub_9e62b0 (0x9e62b0, 0x173 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.a784c0 LIFT sub_a784c0 (0xa784c0, 0x10f bytes, depth 0, D0, 0 callees in set)
+- [x] X7.a784c0 LIFT sub_a784c0 (0xa784c0, 0x10f bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.a784c0.md liftcheck OK
 - [ ] X7.a79e10 LIFT sub_a79e10 (0xa79e10, 0xb1b bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.aa6580 LIFT mat4 multiply (out=rcx, A=rdx, B=r8), pure leaf (0xaa6580, 0x1c6 bytes, depth 0, D1, 0 callees in set)
 - [ ] X7.aaa420 LIFT sub_aaa420 (0xaaa420, 0x1f6 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.aaa6e0 LIFT sub_aaa6e0 (0xaaa6e0, 0xd7 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.ab49c0 LIFT sub_ab49c0 (0xab49c0, 0x6f9 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.bd11a0 LIFT sub_bd11a0 (0xbd11a0, 0x133 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.bd11a0 LIFT sub_bd11a0 (0xbd11a0, 0x133 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.bd11a0.md liftcheck OK
 - [ ] X7.c4bba0 LIFT sub_c4bba0 (0xc4bba0, 0x2ca bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.e7e150 LIFT sub_e7e150 (0xe7e150, 0x10d bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.1126680 LIFT sub_1126680 (0x1126680, 0xfe bytes, depth 0, D0, 0 callees in set)
+- [x] X7.e7e150 LIFT sub_e7e150 (0xe7e150, 0x10d bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.e7e150.md liftcheck OK
+- [x] X7.1126680 LIFT sub_1126680 (0x1126680, 0xfe bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.1126680.md liftcheck OK
 - [ ] X7.11664a0 LIFT sub_11664a0 (0x11664a0, 0x139 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.11666d0 LIFT sub_11666d0 (0x11666d0, 0x115 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.11666d0 LIFT sub_11666d0 (0x11666d0, 0x115 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.11666d0.md liftcheck OK
 - [ ] X7.119b5f0 LIFT sub_119b5f0 (0x119b5f0, 0x156 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.12893d0 LIFT runJobs (lock weak, Job::run, collect continuations, count), fully reversed (0x12893d0, 0x203 bytes, depth 0, D2, 0 callees in set)
 - [ ] X7.1289960 LIFT sub_1289960 (0x1289960, 0x296 bytes, depth 0, D0, 0 callees in set)
@@ -1651,20 +1653,20 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X7.19932c0 LIFT sub_19932c0 (0x19932c0, 0x32d bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.1999140 LIFT sub_1999140 (0x1999140, 0x241 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.1999390 LIFT sub_1999390 (0x1999390, 0x855 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.1a459d0 LIFT sub_1a459d0 (0x1a459d0, 0xb9 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.1a459d0 LIFT sub_1a459d0 (0x1a459d0, 0xb9 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.1eac280 LIFT sub_1eac280 (0x1eac280, 0x332 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.2462890 LIFT sub_2462890 (0x2462890, 0xc5 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.2462890 LIFT sub_2462890 (0x2462890, 0xc5 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.24af560 LIFT sub_24af560 (0x24af560, 0x181 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.2b96970 LIFT sub_2b96970 (0x2b96970, 0x100 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.2fd4210 LIFT sub_2fd4210 (0x2fd4210, 0x11f bytes, depth 0, D0, 0 callees in set)
+- [x] X7.2b96970 LIFT sub_2b96970 (0x2b96970, 0x100 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.2b96970.md liftcheck OK
+- [x] X7.2fd4210 LIFT sub_2fd4210 (0x2fd4210, 0x11f bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.2fd4210.md liftcheck OK
 - [ ] X7.3165620 LIFT sub_3165620 (0x3165620, 0x137 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.31f83d0 LIFT sub_31f83d0 (0x31f83d0, 0x17cc bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.32d0f30 LIFT sub_32d0f30 (0x32d0f30, 0x1b8 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.35e44a0 LIFT sub_35e44a0 (0x35e44a0, 0x39 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.35e44a0 LIFT sub_35e44a0 (0x35e44a0, 0x39 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.38464c0 LIFT sub_38464c0 (0x38464c0, 0x1ca bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.39a7d40 LIFT sub_39a7d40 (0x39a7d40, 0x612 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.3cf43f0 LIFT sub_3cf43f0 (0x3cf43f0, 0xfd bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.3cf44f0 LIFT sub_3cf44f0 (0x3cf44f0, 0xe3 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.3cf43f0 LIFT sub_3cf43f0 (0x3cf43f0, 0xfd bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.3cf43f0.md liftcheck OK
+- [x] X7.3cf44f0 LIFT sub_3cf44f0 (0x3cf44f0, 0xe3 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.4bc9d20 LIFT sub_4bc9d20 (0x4bc9d20, 0x1f1 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.4de83f0 LIFT sub_4de83f0 (0x4de83f0, 0x3ab bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.4dea990 LIFT sub_4dea990 (0x4dea990, 0x155 bytes, depth 0, D0, 0 callees in set)
@@ -1673,29 +1675,29 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X7.4def2b0 LIFT sub_4def2b0 (0x4def2b0, 0x1cf bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.4df6a90 LIFT sub_4df6a90 (0x4df6a90, 0x21b bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.4df6e80 LIFT sub_4df6e80 (0x4df6e80, 0x641 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.4dfb470 LIFT sub_4dfb470 (0x4dfb470, 0x47 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.4dfb570 LIFT resolve loaded texture (handle -> shared texture), fully reversed (0x4dfb570, 0x120 bytes, depth 0, D2, 0 callees in set)
-- [ ] X7.4e00c00 LIFT sub_4e00c00 (0x4e00c00, 0x132 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.4e00d40 LIFT sub_4e00d40 (0x4e00d40, 0x94 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.4e01c30 LIFT sub_4e01c30 (0x4e01c30, 0x9d bytes, depth 0, D0, 0 callees in set)
+- [x] X7.4dfb470 LIFT sub_4dfb470 (0x4dfb470, 0x47 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.4dfb570 LIFT resolve loaded texture (handle -> shared texture), fully reversed (0x4dfb570, 0x120 bytes, depth 0, D2, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.4dfb570.md liftcheck OK
+- [x] X7.4e00c00 LIFT sub_4e00c00 (0x4e00c00, 0x132 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.4e00c00.md liftcheck OK
+- [x] X7.4e00d40 LIFT sub_4e00d40 (0x4e00d40, 0x94 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.4e01c30 LIFT sub_4e01c30 (0x4e01c30, 0x9d bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.4e052d0 LIFT sub_4e052d0 (0x4e052d0, 0x153 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.4e3b020 LIFT sub_4e3b020 (0x4e3b020, 0x11e bytes, depth 0, D0, 0 callees in set)
+- [x] X7.4e3b020 LIFT sub_4e3b020 (0x4e3b020, 0x11e bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.4e3b020.md liftcheck OK
 - [ ] X7.4e69050 LIFT sub_4e69050 (0x4e69050, 0x213 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.4e69270 LIFT sub_4e69270 (0x4e69270, 0xea bytes, depth 0, D0, 0 callees in set)
+- [x] X7.4e69270 LIFT sub_4e69270 (0x4e69270, 0xea bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX7.4e69270.md liftcheck OK
 - [ ] X7.4e69370 LIFT sub_4e69370 (0x4e69370, 0x555 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.4e8eb00 LIFT sub_4e8eb00 (0x4e8eb00, 0x16f bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.5353600 LIFT sub_5353600 (0x5353600, 0x17d bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.539d8c0 LIFT sub_539d8c0 (0x539d8c0, 0x2f0 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.53d0be0 LIFT sub_53d0be0 (0x53d0be0, 0x157 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.53d3fd0 LIFT sub_53d3fd0 (0x53d3fd0, 0x181 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.53d5c20 LIFT sub_53d5c20 (0x53d5c20, 0xab bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.53dc590 LIFT sub_53dc590 (0x53dc590, 0x10f bytes, depth 0, D0, 0 callees in set)
+- [x] X7.53d5c20 LIFT sub_53d5c20 (0x53d5c20, 0xab bytes, depth 0, D0, 0 callees in set)
+- [x] X7.53dc590 LIFT sub_53dc590 (0x53dc590, 0x10f bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.53dc590.md liftcheck OK
 - [ ] X7.5a39390 LIFT sub_5a39390 (0x5a39390, 0x16f bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.5a49890 LIFT sub_5a49890 (0x5a49890, 0x13a bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.5a4c4f0 LIFT sub_5a4c4f0 (0x5a4c4f0, 0x108 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.5aba5c0 LIFT ThreadLocalObject<T>::get (per-thread frame-data block), fully reversed (0x5aba5c0, 0x10f bytes, depth 0, D2, 0 callees in set)
+- [x] X7.5a4c4f0 LIFT sub_5a4c4f0 (0x5a4c4f0, 0x108 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.5a4c4f0.md liftcheck OK
+- [x] X7.5aba5c0 LIFT ThreadLocalObject<T>::get (per-thread frame-data block), fully reversed (0x5aba5c0, 0x10f bytes, depth 0, D2, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.5aba5c0.md liftcheck OK
 - [ ] X7.5ac2420 LIFT sub_5ac2420 (0x5ac2420, 0x216 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.62f07f0 LIFT sub_62f07f0 (0x62f07f0, 0x10b bytes, depth 0, D0, 0 callees in set)
+- [x] X7.62f07f0 LIFT sub_62f07f0 (0x62f07f0, 0x10b bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.62f07f0.md liftcheck OK
 - [ ] X7.62f1240 LIFT sub_62f1240 (0x62f1240, 0x44a bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.62f20f0 LIFT sub_62f20f0 (0x62f20f0, 0x2a4 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.68b5ee0 LIFT sub_68b5ee0 (0x68b5ee0, 0x4a0 bytes, depth 0, D0, 0 callees in set)
@@ -1715,8 +1717,8 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X7.6c2db40 LIFT sub_6c2db40 (0x6c2db40, 0x661 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.6e184f0 LIFT sub_6e184f0 (0x6e184f0, 0x179 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.77a2500 LIFT sub_77a2500 (0x77a2500, 0x359 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.bb47d30 LIFT sub_bb47d30 (0xbb47d30, 0x11f bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.bb67fd0 LIFT sub_bb67fd0 (0xbb67fd0, 0xef bytes, depth 0, D0, 0 callees in set)
+- [x] X7.bb47d30 LIFT sub_bb47d30 (0xbb47d30, 0x11f bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.bb47d30.md liftcheck OK
+- [x] X7.bb67fd0 LIFT sub_bb67fd0 (0xbb67fd0, 0xef bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX7.bb67fd0.md liftcheck OK
 - [ ] X7.bb680f0 LIFT sub_bb680f0 (0xbb680f0, 0x181 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.bb682b0 LIFT sub_bb682b0 (0xbb682b0, 0x39f bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.bb68930 LIFT sub_bb68930 (0xbb68930, 0x899 bytes, depth 0, D0, 0 callees in set)
@@ -1724,70 +1726,76 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X7.bc090b0 LIFT sub_bc090b0 (0xbc090b0, 0x193 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.bcd1540 LIFT sub_bcd1540 (0xbcd1540, 0x4a6 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.bcd2cd0 LIFT sub_bcd2cd0 (0xbcd2cd0, 0x6f7 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.bcd3530 LIFT sub_bcd3530 (0xbcd3530, 0x109 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.bcd3530 LIFT sub_bcd3530 (0xbcd3530, 0x109 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.bcd3530.md liftcheck OK
 - [ ] X7.bcd3640 LIFT sub_bcd3640 (0xbcd3640, 0x6ed bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.bcd40f0 LIFT sub_bcd40f0 (0xbcd40f0, 0xc3 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.bcd40f0 LIFT sub_bcd40f0 (0xbcd40f0, 0xc3 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.bcd4330 LIFT sub_bcd4330 (0xbcd4330, 0x181 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.bcd4740 LIFT sub_bcd4740 (0xbcd4740, 0x150 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.bcd4930 LIFT sub_bcd4930 (0xbcd4930, 0x181 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.bcd4c30 LIFT sub_bcd4c30 (0xbcd4c30, 0xed bytes, depth 0, D0, 0 callees in set)
+- [x] X7.bcd4c30 LIFT sub_bcd4c30 (0xbcd4c30, 0xed bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX7.bcd4c30.md liftcheck OK
 - [ ] X7.bcd5080 LIFT sub_bcd5080 (0xbcd5080, 0x34e bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.bcd54a0 LIFT sub_bcd54a0 (0xbcd54a0, 0xb9 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.bcd54a0 LIFT sub_bcd54a0 (0xbcd54a0, 0xb9 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.bcd55a0 LIFT sub_bcd55a0 (0xbcd55a0, 0x181 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.bcd5770 LIFT sub_bcd5770 (0xbcd5770, 0x181 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.bcd5a20 LIFT sub_bcd5a20 (0xbcd5a20, 0x2e5 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.bcd6840 LIFT sub_bcd6840 (0xbcd6840, 0x42a bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.bce07c0 LIFT sub_bce07c0 (0xbce07c0, 0x2ab bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.bce15d0 LIFT sub_bce15d0 (0xbce15d0, 0x91 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.bce15d0 LIFT sub_bce15d0 (0xbce15d0, 0x91 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.c2a4290 LIFT sub_c2a4290 (0xc2a4290, 0x959 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.c2a4cb0 LIFT sub_c2a4cb0 (0xc2a4cb0, 0x140 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.c2a7b60 LIFT sub_c2a7b60 (0xc2a7b60, 0x151 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.c2aa180 LIFT sub_c2aa180 (0xc2aa180, 0xec bytes, depth 0, D0, 0 callees in set)
+- [x] X7.c2aa180 LIFT sub_c2aa180 (0xc2aa180, 0xec bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX7.c2aa180.md liftcheck OK
 - [ ] X7.c2adfd0 LIFT sub_c2adfd0 (0xc2adfd0, 0x261 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.c2ae6c0 LIFT sub_c2ae6c0 (0xc2ae6c0, 0x10d bytes, depth 0, D0, 0 callees in set)
+- [x] X7.c2ae6c0 LIFT sub_c2ae6c0 (0xc2ae6c0, 0x10d bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.c2ae6c0.md liftcheck OK
 - [ ] X7.e9241b0 LIFT sub_e9241b0 (0xe9241b0, 0x2ed bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.e928fb0 LIFT sub_e928fb0 (0xe928fb0, 0x848 bytes, depth 0, D0, 0 callees in set)
+- [ ] X7.e92a350 LIFT sub_e92a350 (0xe92a350, 0x22a bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.e92a5f0 LIFT sub_e92a5f0 (0xe92a5f0, 0x1dd bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.e92a800 LIFT sub_e92a800 (0xe92a800, 0xbf bytes, depth 0, D0, 0 callees in set)
 - [x] X7.e935700 LIFT sub_e935700 (0xe935700, 0x5 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.e93b480 LIFT sub_e93b480 (0xe93b480, 0x6 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.e93c790 LIFT sub_e93c790 (0xe93c790, 0x101 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.e9425f0 LIFT sub_e9425f0 (0xe9425f0, 0x13 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.e93c790 LIFT sub_e93c790 (0xe93c790, 0x101 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-25 oc_U-EX7.e93c790.md liftcheck OK
+- [x] X7.e9425f0 LIFT sub_e9425f0 (0xe9425f0, 0x13 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.e943170 LIFT sub_e943170 (0xe943170, 0x7 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.e943194 LIFT sub_e943194 (0xe943194, 0x7 bytes, depth 0, D0, 0 callees in set)
 - [x] X7.ebce390 LIFT sub_ebce390 (0xebce390, 0x5 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.ebce570 LIFT sub_ebce570 (0xebce570, 0x5c bytes, depth 0, D0, 0 callees in set)
-- [x] X7.ebce5e0 LIFT sub_ebce5e0 (0xebce5e0, 0x8 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX7.ebce5e0.md liftcheck OK
-- [ ] X7.ebce650 LIFT sub_ebce650 (0xebce650, 0x6b bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.ebcf430 LIFT sub_ebcf430 (0xebcf430, 0x2a bytes, depth 0, D0, 0 callees in set)
+- [x] X7.ebce570 LIFT sub_ebce570 (0xebce570, 0x5c bytes, depth 0, D0, 0 callees in set)
+- [x] X7.ebce5e0 LIFT sub_ebce5e0 (0xebce5e0, 0x8 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.ebce650 LIFT sub_ebce650 (0xebce650, 0x6b bytes, depth 0, D0, 0 callees in set)
+- [x] X7.ebcf430 LIFT sub_ebcf430 (0xebcf430, 0x2a bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.ebcf580 LIFT sub_ebcf580 (0xebcf580, 0x141 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.ebd15b0 LIFT sub_ebd15b0 (0xebd15b0, 0x2a9 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.ebd18f0 LIFT sub_ebd18f0 (0xebd18f0, 0xb9 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.ebd18f0 LIFT sub_ebd18f0 (0xebd18f0, 0xb9 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.ebd2160 LIFT sub_ebd2160 (0xebd2160, 0x5c bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.ebdb760 LIFT sub_ebdb760 (0xebdb760, 0x19 bytes, depth 0, D0, 0 callees in set)
-- [x] X7.ebdbf10 LIFT sub_ebdbf10 (0xebdbf10, 0x7 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX7.ebdbf10.md liftcheck OK
-- [ ] X7.ebdbf20 LIFT sub_ebdbf20 (0xebdbf20, 0x7 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.ed35e10 LIFT sub_ed35e10 (0xed35e10, 0x49 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.ed36950 LIFT sub_ed36950 (0xed36950, 0x52 bytes, depth 0, D0, 0 callees in set)
-- [ ] X7.ed369b0 LIFT sub_ed369b0 (0xed369b0, 0x52 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.ebdb760 LIFT sub_ebdb760 (0xebdb760, 0x19 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.ebdbf10 LIFT sub_ebdbf10 (0xebdbf10, 0x7 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.ebdbf20 LIFT sub_ebdbf20 (0xebdbf20, 0x7 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.ed35e10 LIFT sub_ed35e10 (0xed35e10, 0x49 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.ed36950 LIFT sub_ed36950 (0xed36950, 0x52 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.ed369b0 LIFT sub_ed369b0 (0xed369b0, 0x52 bytes, depth 0, D0, 0 callees in set)
 - [x] X7.eec5850 LIFT sub_eec5850 (0xeec5850, 0x6 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.eec5880 LIFT sub_eec5880 (0xeec5880, 0x6 bytes, depth 0, D0, 0 callees in set)
 - [x] X7.eec59e0 LIFT sub_eec59e0 (0xeec59e0, 0x6 bytes, depth 0, D0, 0 callees in set)
 - [x] X7.eec59f0 LIFT sub_eec59f0 (0xeec59f0, 0x6 bytes, depth 0, D0, 0 callees in set)
-- [x] X7.eec5a00 LIFT sub_eec5a00 (0xeec5a00, 0x6 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX7.eec5a00.md liftcheck OK
-- [x] X7.eec5a10 LIFT sub_eec5a10 (0xeec5a10, 0x6 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX7.eec5a10.md liftcheck OK
-- [x] X7.eec5ae0 LIFT sub_eec5ae0 (0xeec5ae0, 0x6 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX7.eec5ae0.md liftcheck OK
-- [x] X7.eec6d80 LIFT sub_eec6d80 (0xeec6d80, 0x6 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX7.eec6d80.md liftcheck OK
-- [x] X7.eec6de0 LIFT sub_eec6de0 (0xeec6de0, 0x6 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX7.eec6de0.md liftcheck OK
-- [x] X7.eec6ec0 LIFT sub_eec6ec0 (0xeec6ec0, 0x6 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX7.eec6ec0.md liftcheck OK
-- [x] X7.eec73f0 LIFT sub_eec73f0 (0xeec73f0, 0x6 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX7.eec73f0.md liftcheck OK
-- [x] X7.eec75a0 LIFT sub_eec75a0 (0xeec75a0, 0x6 bytes, depth 0, D0, 0 callees in set) | DONE 2026-11-24 oc_U-EX7.eec75a0.md liftcheck OK
+- [x] X7.eec5a00 LIFT sub_eec5a00 (0xeec5a00, 0x6 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.eec5a10 LIFT sub_eec5a10 (0xeec5a10, 0x6 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.eec5ae0 LIFT sub_eec5ae0 (0xeec5ae0, 0x6 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.eec5b90 LIFT sub_eec5b90 (0xeec5b90, 0x6 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.eec6d80 LIFT sub_eec6d80 (0xeec6d80, 0x6 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.eec6de0 LIFT sub_eec6de0 (0xeec6de0, 0x6 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.eec6e20 LIFT sub_eec6e20 (0xeec6e20, 0x6 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.eec6eb0 LIFT sub_eec6eb0 (0xeec6eb0, 0x6 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.eec6ec0 LIFT sub_eec6ec0 (0xeec6ec0, 0x6 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.eec73f0 LIFT sub_eec73f0 (0xeec73f0, 0x6 bytes, depth 0, D0, 0 callees in set)
+- [x] X7.eec75a0 LIFT sub_eec75a0 (0xeec75a0, 0x6 bytes, depth 0, D0, 0 callees in set)
 - [ ] X7.77d80 LIFT sub_77d80 (0x77d80, 0x2dd bytes, depth 0, D0, 1 callees in set)
-- [ ] X7.79950 LIFT sub_79950 (0x79950, 0x11a bytes, depth 0, D0, 2 callees in set)
-- [ ] X7.87440 LIFT sub_87440 (0x87440, 0xcf bytes, depth 0, D0, 1 callees in set)
+- [x] X7.79950 LIFT sub_79950 (0x79950, 0x11a bytes, depth 0, D0, 2 callees in set) | DONE 2026-11-25 oc_U-EX7.79950.md liftcheck OK
+- [x] X7.87440 LIFT sub_87440 (0x87440, 0xcf bytes, depth 0, D0, 1 callees in set)
 - [ ] X7.abd50 LIFT sub_abd50 (0xabd50, 0x3d9 bytes, depth 0, D0, 2 callees in set)
 - [ ] X7.ac130 LIFT sub_ac130 (0xac130, 0x196 bytes, depth 0, D0, 1 callees in set)
 - [ ] X7.eaa30 LIFT sub_eaa30 (0xeaa30, 0x182 bytes, depth 0, D0, 1 callees in set)
+- [x] X7.1d3cb0 LIFT sub_1d3cb0 (0x1d3cb0, 0xd8 bytes, depth 0, D0, 1 callees in set) | DONE 2026-11-24 oc_U-EX7.1d3cb0.md liftcheck OK
 - [ ] X7.5f6920 LIFT sub_5f6920 (0x5f6920, 0x19f bytes, depth 0, D0, 1 callees in set)
 - [ ] X7.775d90 LIFT sub_775d90 (0x775d90, 0xb5 bytes, depth 0, D0, 1 callees in set)
-- [ ] X7.8f1e10 LIFT sub_8f1e10 (0x8f1e10, 0x118 bytes, depth 0, D0, 1 callees in set)
+- [x] X7.8f1e10 LIFT sub_8f1e10 (0x8f1e10, 0x118 bytes, depth 0, D0, 1 callees in set) | DONE 2026-11-25 oc_U-EX7.8f1e10.md liftcheck OK
 - [ ] X7.8f1fa0 LIFT sub_8f1fa0 (0x8f1fa0, 0x17d bytes, depth 0, D0, 1 callees in set)
 - [ ] X7.a77be0 LIFT sub_a77be0 (0xa77be0, 0x1b8 bytes, depth 0, D0, 1 callees in set)
 - [ ] X7.a79330 LIFT sub_a79330 (0xa79330, 0x251 bytes, depth 0, D0, 1 callees in set)
@@ -1819,19 +1827,20 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X7.bcd3f50 LIFT sub_bcd3f50 (0xbcd3f50, 0x19f bytes, depth 0, D0, 1 callees in set)
 - [ ] X7.bcd4630 LIFT sub_bcd4630 (0xbcd4630, 0x10f bytes, depth 0, D0, 1 callees in set)
 - [ ] X7.bcd4d20 LIFT sub_bcd4d20 (0xbcd4d20, 0x35f bytes, depth 0, D0, 1 callees in set)
-- [ ] X7.bcd6df0 LIFT sub_bcd6df0 (0xbcd6df0, 0x24e bytes, depth 0, D0, 3 callees in set)
+- [ ] X7.bcd6840 LIFT sub_bcd6840 (0xbcd6840, 0x42a bytes, depth 0, D0, 1 callees in set)
 - [ ] X7.bcd7040 LIFT sub_bcd7040 (0xbcd7040, 0x15c bytes, depth 0, D0, 1 callees in set)
 - [ ] X7.bcd71a0 LIFT sub_bcd71a0 (0xbcd71a0, 0x164 bytes, depth 0, D0, 1 callees in set)
 - [ ] X7.bcd7310 LIFT sub_bcd7310 (0xbcd7310, 0x16d bytes, depth 0, D0, 1 callees in set)
 - [ ] X7.bcd7480 LIFT sub_bcd7480 (0xbcd7480, 0x15c bytes, depth 0, D0, 1 callees in set)
-- [ ] X7.c2a4150 LIFT sub_c2a4150 (0xc2a4150, 0x132 bytes, depth 0, D0, 1 callees in set)
+- [x] X7.c2a4150 LIFT sub_c2a4150 (0xc2a4150, 0x132 bytes, depth 0, D0, 1 callees in set) | DONE 2026-11-25 oc_U-EX7.c2a4150.md liftcheck OK
 - [ ] X7.c2a7ce0 LIFT sub_c2a7ce0 (0xc2a7ce0, 0x3d9 bytes, depth 0, D0, 2 callees in set)
 - [ ] X7.c2a80c0 LIFT sub_c2a80c0 (0xc2a80c0, 0x13a bytes, depth 0, D0, 1 callees in set)
 - [ ] X7.c2ad210 LIFT sub_c2ad210 (0xc2ad210, 0x872 bytes, depth 0, D0, 1 callees in set)
+- [ ] X7.e92a800 LIFT sub_e92a800 (0xe92a800, 0xbf bytes, depth 0, D0, 1 callees in set)
 - [ ] X7.e93e0f0 LIFT sub_e93e0f0 (0xe93e0f0, 0x15f bytes, depth 0, D0, 1 callees in set)
-- [ ] X7.aa840 LIFT sub_aa840 (0xaa840, 0x426 bytes, depth 0, D0, 1 callees in set)
+- [ ] X7.aa840 LIFT sub_aa840 (0xaa840, 0x426 bytes, depth 0, D0, 2 callees in set)
 - [ ] X7.43c5d0 LIFT sub_43c5d0 (0x43c5d0, 0x16b bytes, depth 0, D0, 1 callees in set)
-- [ ] X7.45e860 LIFT sub_45e860 (0x45e860, 0x102 bytes, depth 0, D0, 1 callees in set)
+- [x] X7.45e860 LIFT sub_45e860 (0x45e860, 0x102 bytes, depth 0, D0, 1 callees in set) | DONE 2026-11-25 oc_U-EX7.45e860.md liftcheck OK
 - [ ] X7.a78940 LIFT sub_a78940 (0xa78940, 0x540 bytes, depth 0, D0, 1 callees in set)
 - [ ] X7.4e05450 LIFT sub_4e05450 (0x4e05450, 0x3f3 bytes, depth 0, D0, 2 callees in set)
 - [ ] X7.4e36150.plan PLAN sub_4e36150: split 0x4e36150..0x4e39b21 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/4e36150.tsv (start end role), then the checklist generator --expand adds the chunk items
@@ -1845,9 +1854,10 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X7.bc054a0 LIFT sub_bc054a0 (0xbc054a0, 0x246 bytes, depth 0, D0, 1 callees in set)
 - [ ] X7.bc09250 LIFT sub_bc09250 (0xbc09250, 0x11b bytes, depth 0, D0, 2 callees in set)
 - [ ] X7.bcd3ea0 LIFT sub_bcd3ea0 (0xbcd3ea0, 0xac bytes, depth 0, D0, 1 callees in set)
-- [ ] X7.bcd41c0 LIFT sub_bcd41c0 (0xbcd41c0, 0xad bytes, depth 0, D0, 1 callees in set)
+- [x] X7.bcd41c0 LIFT sub_bcd41c0 (0xbcd41c0, 0xad bytes, depth 0, D0, 1 callees in set)
 - [ ] X7.bcd4560 LIFT sub_bcd4560 (0xbcd4560, 0xcd bytes, depth 0, D0, 1 callees in set)
 - [ ] X7.bcd6770 LIFT sub_bcd6770 (0xbcd6770, 0xcc bytes, depth 0, D0, 1 callees in set)
+- [ ] X7.bcd6df0 LIFT sub_bcd6df0 (0xbcd6df0, 0x24e bytes, depth 0, D0, 3 callees in set)
 - [ ] X7.c2aa290 LIFT sub_c2aa290 (0xc2aa290, 0x10ac bytes, depth 0, D0, 2 callees in set)
 - [ ] X7.c2ae5b0 LIFT sub_c2ae5b0 (0xc2ae5b0, 0x105 bytes, depth 0, D0, 1 callees in set)
 - [ ] X7.e328dd0 LIFT sub_e328dd0 (0xe328dd0, 0x6e8 bytes, depth 0, D0, 3 callees in set)
@@ -1912,41 +1922,4 @@ Legend: LIFT = write the function. PLAN/CHUNK/ASSEMBLE = big function (> 0x1800 
 - [ ] X7.bb6b350.plan PLAN sub_bb6b350: split 0xbb6b350..0xbb7047a at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bb6b350.tsv (start end role), then the checklist generator --expand adds the chunk items
 - [ ] X7.bb6b350.asm LIFT ASSEMBLE sub_bb6b350 (waits for chunks)
 - [ ] X7.bb74040.plan PLAN sub_bb74040: split 0xbb74040..0xbb7687d at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bb74040.tsv (start end role), then the checklist generator --expand adds the chunk items
-- [ ] X7.bb74040.asm LIFT ASSEMBLE sub_bb74040 (waits for chunks)
-- [ ] X7.bb7efb0.plan PLAN sub_bb7efb0: split 0xbb7efb0..0xbb807dc at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bb7efb0.tsv (start end role), then the checklist generator --expand adds the chunk items
-- [ ] X7.bb7efb0.asm LIFT ASSEMBLE sub_bb7efb0 (waits for chunks)
-- [ ] X7.bb81880.plan PLAN sub_bb81880: split 0xbb81880..0xbb83ab1 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bb81880.tsv (start end role), then the checklist generator --expand adds the chunk items
-- [ ] X7.bb81880.asm LIFT ASSEMBLE sub_bb81880 (waits for chunks)
-- [ ] X7.bb84ee0.plan PLAN sub_bb84ee0: split 0xbb84ee0..0xbb8aaa4 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bb84ee0.tsv (start end role), then the checklist generator --expand adds the chunk items
-- [ ] X7.bb84ee0.asm LIFT ASSEMBLE sub_bb84ee0 (waits for chunks)
-- [ ] X7.bb8ccb0 LIFT sub_bb8ccb0 (0xbb8ccb0, 0xc51 bytes, depth 0, D0, 4 callees in set)
-- [ ] X7.bb8eb70.plan PLAN sub_bb8eb70: split 0xbb8eb70..0xbb918d8 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bb8eb70.tsv (start end role), then the checklist generator --expand adds the chunk items
-- [ ] X7.bb8eb70.asm LIFT ASSEMBLE sub_bb8eb70 (waits for chunks)
-- [ ] X7.bbc9db0.plan PLAN sub_bbc9db0: split 0xbbc9db0..0xbbcc72c at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bbc9db0.tsv (start end role), then the checklist generator --expand adds the chunk items
-- [ ] X7.bbc9db0.asm LIFT ASSEMBLE sub_bbc9db0 (waits for chunks)
-- [ ] X7.bcd77b0.plan PLAN sub_bcd77b0: split 0xbcd77b0..0xbcdab64 at basic-block boundaries into chunks of <= 0x1800 bytes, write docs/data/native_chunks/bcd77b0.tsv (start end role), then the checklist generator --expand adds the chunk items
-- [ ] X7.bcd77b0.asm LIFT ASSEMBLE sub_bcd77b0 (waits for chunks)
-- [ ] X7.bcdba70 LIFT sub_bcdba70 (0xbcdba70, 0x1229 bytes, depth 0, D0, 9 callees in set)
-- [ ] X7z GATE (orchestrator): all X7 items [x]; build the DLL, fix compile errors, run the milestone verify scenes (docs/NATIVE_VERIFY_PROTOCOL.md), zero divergence; set functions.tsv rows to L2; push mirror
-
-
-## X6. Closure and Native mode (the done state)
-
-- [ ] X6a Native roots: design and write the root installer: with `BS_NATIVE=on` the entry detours are installed only at the roots and at functions that have callers outside the lift set or indirect callers (vtable/functor tables the game built); everything below runs as direct calls between lifted functions. List of those entry points derived by tool into `docs/data/native_entries.tsv` with a [V] reason per row.
-- [ ] X6b Boundary audit: `tools/sigs/liftcheck.py --boundary` proves every call out of a lifted function goes to a lifted function or to a `native_boundary.tsv` row (nothing hidden behind a raw function pointer or an RVA constant).
-- [ ] X6c Closure audit: every function in the set has `LIFTCHECK OK`; every direct callee of every lifted function is in the set or in the boundary; every indirect call site of the frame path is resolved to a lifted target set or a boundary; zero rows in `native_unresolved_indirect.tsv`.
-- [ ] X6d Game-built tables: every vtable, `std::function`, task record and callback table that the game constructs and that points into lifted code is listed with how the entry detour (or a table patch) reaches our source; verified against the live objects.
-- [ ] X6e Native-mode run recipe and BIGBANG section: exact steps for the user's in-game test (modes, scenes, logs, what zero divergence means, what to send back).
-- [ ] X6z GATE (orchestrator + user): `BS_NATIVE=on` runs the whole render path on our code through every scene without divergence or crash; the lifted tree is the renderer. Push mirror and tag.
-
-## XO. Optimization from the lifted source (not started before X6z)
-
-Method: the lifted tree is the baseline. Each change is a source change to a lifted function (or a fusion of several), verified against the baseline for identical output on the scene recordings, and measured. Hot paths come from a profile of the native build, not from guesses.
-
-- [ ] XO1 Profile the native build per frame stage and per lifted function (RewriteTimed/Profiler rows, GPU timestamps via custom item), on the scene list; ranked table `docs/data/native_profile.tsv`.
-- [ ] XO2 Candidate list: for the top 40 functions by cost, the specific waste (redundant work, allocation per frame, std container churn, repeated hashing, sort, unnecessary copies, serial where parallel is possible), with the invariant that must hold for the change to be safe.
-- [ ] XO3 Hot-path rewrites in cost order, one item per function or fusion, each with before/after output equality and a measured gain.
-- [ ] XO4 Allocation and memory layout: per-frame arena for transient data, pooled descriptions, cache-friendly records, only where the game's observable memory contract is kept.
-- [ ] XO5 Threading and pipelining changes the lifted structure now allows (encode parallelism, extractor parallelism), with the thread-model proof of the original first.
-- [ ] XO6 New renderer pieces behind the lifted interfaces (own terrain submission, own culling, own post), only after XO1-XO3 show where the time goes.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+- [ ] X7.bb74040.asm LIFT AS

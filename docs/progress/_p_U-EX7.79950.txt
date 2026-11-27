@@ -1,0 +1,2081 @@
+UNIT U-EX7.79950: lift the function at 0x79950 of the game exe into C++ ("lift" = C++ that does exactly what the function does: same reads, writes, calls in the same order, same return, exact x64 ABI signature). Your whole context is in this message: do NOT read docs/OPENCODE_BRIEF.md, docs/RENDER_NATIVE_SPEC.md, Lift.h, liftcheck.py or the data/pack files again; they are inlined below. Never ask questions. Reply text between tool calls: at most 2 short lines, no analysis in text.
+
+PROGRAMS ALREADY DID THE MECHANICAL PART (it is exact, from the exe; do not redo or retype it):
+  * src/client/features/render/native/helpers/sub_79950.cpp  first line `// LIFT ...`, includes, LIFT_FN registry line, every call quoted verbatim as `0xRVA  call ...` inside #if 0, then a BLOCK SKELETON from the control-flow graph: one commented block per basic block with its `// 0xA..0xB` range, its quoted instructions, and the branch conditions already decoded (`-> if ... goto L_0x...`). Each block ends with `__debugbreak(); // [open] NOT LIFTED block N`: replace that line (and the `[open] translate` marker) with the real statements, keep the range comments and labels you still need. A body that still contains __debugbreak is not done.
+  * src/client/features/render/native/helpers/sub_79950.h  typed state structs per dereferenced base register: one field per accessed offset named f<hex>, typed by evidence (width, signedness, float, pointer, vtable slot), padding, offsetof static_asserts, R/W instruction citations (this was checked against accepted headers: offsets and widths match). Renaming fields to meaningful names and fixing a type the code proves otherwise is YOUR decision; never move an offset.
+  * docs/functions/79950.md  dossier skeleton with a ## DECISIONS section.
+These files already exist and their FULL CURRENT CONTENT is at the end of this message: do not Read them. Produce the finished .h and .cpp by calling the write tool once per file with the complete new content (copy the skeleton's lines you keep). Do not create other source files. Leave the dossier as generated (liftcheck needs it to exist); append a short `## Reversed source (complete)` section with a shell `cat >>` only if you have decisions to record.
+NEVER read these (their behaviour is stated here; reading them costs turns): tools/sigs/liftcheck.py, tools/sigs/verify_oc.py, tools/ctx/gate.py, tools/cppsyntax.py, client/features/render/native/Lift.h, docs/OPENCODE_BRIEF.md, docs/RENDER_NATIVE_SPEC.md, the dossier, and the pack/data files (inlined). Lift.h contract: `LIFT_FN(sub_X, "sub_X", 0xRVA, sub_X, nullptr);` inside namespace native::helpers after the function definition, exactly as the skeleton has it.
+
+YOUR JOB (this is the only thing that needs judgement): replace the placeholder body with the real logic, block by block, with a `// 0xA..0xB` instruction range on every block; give the state struct real field names/types matching every access in the listing (offsetof static_asserts for every field read or written); decide each [open] item below (if the listing truly cannot settle one, describe it in the result file only; the words UNVERIFIED, TODO, UNRESOLVED, stub, incomplete and the markers [?] and [I] must NEVER appear in the .h/.cpp, liftcheck fails on them: write a plain factual comment instead). No stubs, no `return 0` placeholders left, no TODO/[?], no null guards or SEH the original does not have. Every call must go to a function in the callee list below (native symbol) or a boundary function; if a callee is neither, write it in the result file as UNRESOLVED CALL (address, caller instruction) and stop. If you need a fact the pack does not give, use `tools/rdis/target/release/rdis.exe` (rdis MCP: sum, cfg, callees, callers, xr, struct, fld, rw, vt, vcalls); batch several queries in ONE turn.
+
+LOOP (few turns): 1) read nothing; write the .h and .cpp (two write calls in ONE turn). 2) run `python tools/ctx/gate.py 0x79950`: it prints ONE line (GATE OK, or GATE FAIL with the first problems; full log docs/progress/gate/0x79950.log). 3) fix what it says, rerun, until GATE OK. Target: under 12 turns.
+
+RESULT FILE docs/progress/oc_U-EX7.79950.md (write it at the end; first line `## NEXT`, then `DONE`): '## FILES' every path you changed; '## LIFTCHECK' the final gate/liftcheck output; '## UNRESOLVED CALL' address + instruction, or 'none'; final line `CLOSES? YES` (only after GATE OK) or `CLOSES? NO <the single blocking fact>`. Never leave a placeholder line like `CLOSES? NO` when the gate is OK.
+
+DATA ROW AND CALLEES (orchestrator data file):
+FUNCTION ROW (rva size depth milestone region status name root callees_in_set callees_outside_set):
+0x79950	0x11a	0	7	root	D0		added 0x79950	0x9c590,0x9c650	
+
+CALLEES IN THE LIFT SET (already lifted, call them through their native symbol; id, name, header):
+X7.9c590		lifted header: src/client/features/render/native\helpers\sub_9c590.h
+X7.9c650		lifted header: src/client/features/render/native\helpers\sub_9c650.h
+
+
+STATIC PACK (computed by programs; [proven] = from the exe, [derived], [open] = needs your decision):
+# ctxpack build 0x79950
+
+STAMP exe=758bacdeef3ede55d45da4418bf0fcdc319dd9992cda79d50560d9a08536f9d8 inputs=data=native_functions.tsv:07ea6058496f3c9340e582f2f9bc57b61494694303373d3389ba71c5842a53a6,data=native_deps.tsv:118356f1f1ba724d2eb40c7fc481ea24319c1aeba9f482039b865d6efece1f8b,data=native_boundary.tsv:058a56d8016eceaff394a955dc2a241d4a8a7d44663fc4cd9102ea82d9ec7315,data=native_boundary_candidates.tsv:b2db6e93be378325c9c8b370ea57463e6e4d762ef5f0a1cae81562abc4635b8c,data=ctx_facts.tsv:d2352cf1ceb26c34830b966be082a5e21a28f989c09fa2d4ecdfb97458b56aab,data=ctx_deadends.md:298967a276b4b7e4454961297c117289bf5ed3fcdf45c3240615fc10ed423c83
+
+## HEADER
+  rva        : 0x79950
+  size       : 0x11a (282 bytes)
+  depth      : 
+  D-rank     : [open] (not derivable from static data)
+  callees    : 3 (direct), depth 1
+  callers    : 1252
+
+## EXACT LISTING (0x79950..0x79a6a)
+```
+sub_79950  [0x79950..0x7b950)  size 0x2000  3216 xrefs in
+  79950  push r15                                      
+  79952  push r14                                      
+  79954  push rsi                                      
+  79955  push rdi                                      
+  79956  push rbx                                      
+  79957  sub rsp,0x70                                  
+  7995b  mov rdi,rdx                                   
+  7995e  mov rsi,rcx                                   
+  79961  movups xmm0,[rdx]                             ; R a1+0x0
+  79964  movaps [rsp+0x30],xmm0                        
+  79969  lea rcx,[rsp+0x40]                            
+  7996e  movups xmm0,[rdx+0x10]                        ; R a1+0x10
+  79972  movups xmm1,[rdx+0x20]                        ; R a1+0x20
+  79976  movups xmm2,[rdx+0x30]                        ; R a1+0x30
+  7997a  xorps xmm3,xmm3                               
+  7997d  movups [rdx+0x10],xmm3                        ; W a1+0x10
+  79981  movups [rdx+0x20],xmm3                        ; W a1+0x20
+  79985  movups [rdx+0x30],xmm3                        ; W a1+0x30
+  79989  mov byte ptr [rsi+0x40],0                     ; W a0+0x40
+  7998d  movaps xmm4,[rsp+0x30]                        
+  79992  movups [rsi],xmm4                             ; W a0+0x0
+  79995  movaps [rsp+0x40],xmm3                        
+  7999a  mov qword ptr [rsp+0x50],0                    
+  799a3  movups [rsi+0x10],xmm0                        ; W a0+0x10
+  799a7  movups [rsp+0x58],xmm3                        
+  799ac  mov qword ptr [rsp+0x68],0                    
+  799b5  movups [rsi+0x20],xmm1                        ; W a0+0x20
+  799b9  movups [rsi+0x30],xmm2                        ; W a0+0x30
+  799bd  call 0x9C650                                  ; -> sub_9c650
+  799c2  mov r14,[rdi+0x28]                            ; R a1+0x28
+  799c6  test r14,r14                                  
+  799c9  je short 0x79A35                              ; -> loc_79a35
+  799cb  lea rbx,[rdi+0x28]                            ; R a1+0x28
+  799cf  mov r15,[rdi+0x30]                            ; R a1+0x30
+  799d3  cmp r14,r15                                   
+  799d6  je short 0x799F7                              ; -> loc_799f7
+  799d8  nop [rax+rax]                                 ; R ret@9c650+0x0+idx
+
+loc_799e0:  ; from 799f2
+  799e0  mov rcx,rbx                                   
+  799e3  mov rdx,r14                                   
+  799e6  call 0x9C590                                  ; -> sub_9c590
+  799eb  add r14,0x40                                  
+  799ef  cmp r14,r15                                   
+  799f2  jne short 0x799E0                             ; -> loc_799e0
+  799f4  mov r14,[rbx]                                 ; R a1+0x28+0x0
+
+loc_799f7:  ; from 799d6
+  799f7  mov rdx,[rdi+0x38]                            ; R a1+0x38
+  799fb  sub rdx,r14                                   
+  799fe  cmp rdx,0x1000                                
+  79a05  jb short 0x79A1F                              ; -> loc_79a1f
+  79a07  mov rax,[r14-8]                               ; R *(a1+0x28+0x0)-0x8
+  79a0b  add r14,0xFFFFFFFFFFFFFFF8                    
+  79a0f  sub r14,rax                                   
+  79a12  cmp r14,0x20                                  
+  79a16  jae short 0x79A50                             ; -> loc_79a50
+  79a18  or rdx,0x27                                   
+  79a1c  mov r14,rax                                   
+
+loc_79a1f:  ; from 79a05
+  79a1f  mov rcx,r14                                   
+  79a22  call 0xE935700                                ; -> sub_e935700
+  79a27  xorps xmm0,xmm0                               
+  79a2a  movups [rbx],xmm0                             ; W a1+0x28+0x0
+  79a2d  mov qword ptr [rbx+0x10],0                    ; W a1+0x28+0x10
+
+loc_79a35:  ; from 799c9
+  79a35  add rdi,0x10                                  
+  79a39  mov rcx,rdi                                   
+  79a3c  call 0x9C650                                  ; -> sub_9c650
+  79a41  mov rax,rsi                                   
+  79a44  add rsp,0x70                                  
+  79a48  pop rbx                                       
+  79a49  pop rdi                                       
+  79a4a  pop rsi                                       
+  79a4b  pop r14                                       
+  79a4d  pop r15                                       
+  79a4f  ret                                           
+
+loc_79a50:  ; from 79a16
+  79a50  mov qword ptr [rsp+0x20],0                    
+  79a59  xor ecx,ecx                                   
+  79a5b  xor edx,edx                                   
+  79a5d  xor r8d,r8d                                   
+  79a60  xor r9d,r9d                                   
+  79a63  call qword ptr [0xF9A8C78]                    ; [data_f9a8c78]
+  79a69  int3                                          
+  79a6a  int3                                          
+  79a6b  int3                                          
+  79a6c  int3                                          
+  79a6d  int3                                          
+  79a6e  int3                                          
+  79a6f  int3                                          
+  79a70  push rsi                                      
+  79a71  push rdi                                      
+  79a72  sub rsp,0x198                                 
+  79a79  mov rsi,rcx                                   
+  79a7c  movzx eax,byte ptr [0x128C1098]               ; [data_128c1098]
+  79a83  cmp eax,1                                     
+  79a86  je short 0x79A99                              ; -> loc_79a99
+  79a88  test eax,eax                                  
+  79a8a  je 0x79BEF                                    ; -> loc_79bef
+  79a90  cmp al,2                                      
+  79a92  je short 0x79AF0                              ; -> loc_79af0
+  79a94  jmp 0x79BBF                                   ; -> loc_79bbf
+
+loc_79a99:  ; from 79a86
+  79a99  lea rcx,[0x128C1060]                          ; [data_128c1060]
+  79aa0  mov dl,1                                      
+  79aa2  call 0xE935E30                                ; -> sub_e935e30
+  79aa7  test eax,eax                                  
+  79aa9  js 0x79B51                                    ; -> loc_79b51
+  79aaf  cmp byte ptr [0x128C1098],2                   ; [data_128c1098]
+  79ab6  je short 0x79ABF                              ; -> loc_79abf
+  79ab8  mov byte ptr [0x128C1098],2                   ; [data_128c1098]
+
+loc_79abf:  ; from 79ab6
+  79abf  mov qword ptr [0x128C1060],0                  ; [data_128c1060]
+  79aca  lea rcx,[0x128C1060]                          ; [data_128c1060]
+  79ad1  mov rdx,rcx                                   
+  79ad4  call 0xE93635C                                ; -> sub_e93635c
+  79ad9  test eax,eax                                  
+  79adb  js 0x79B7D                                    ; -> loc_79b7d
+  79ae1  movzx eax,byte ptr [0x128C1098]               ; [data_128c1098]
+  79ae8  cmp al,2                                      
+  79aea  jne 0x79BBF                                   ; -> loc_79bbf
+
+loc_79af0:  ; from 79a92
+  79af0  mov rcx,[0x128C1060]                          ; [data_128c1060]
+  79af7  test rcx,rcx                                  
+  79afa  je 0x79BBF                                    ; -> loc_79bbf
+  79b00  mov qword ptr [rsp+0x40],0                    
+  79b09  lea rdx,[rsp+0x40]                            
+  79b0e  call 0xE936190                                ; -> sub_e936190
+  79b13  test eax,eax                                  
+  79b15  js short 0x79B28                              ; -> loc_79b28
+  79b17  mov byte ptr [rsi+0x40],1                     
+  79b1b  mov rax,[rsp+0x40]                            
+  79b20  mov [rsi],rax                                 
+  79b23  jmp 0x79BB2                                   ; -> loc_79bb2
+
+loc_79b28:  ; from 79b15
+  79b28  mov [rsp+0x28],eax                            
+  79b2c  lea rax,[0xEFCC3E0]                           ; [data_efcc3e0]
+  79b33  mov [rsp+0x30],rax                            
+  79b38  mov byte ptr [rsp+0x38],1                     
+  79b3d  lea rdi,[rsp+0x58]                            
+  79b42  lea rdx,[rsp+0x28]                            
+  79b47  mov rcx,rdi                                   
+  79b4a  call 0x7A220                                  ; -> sub_7a220
+  79b4f  jmp short 0x79BA7                             ; -> loc_79ba7
+
+loc_79b51:  ; from 79aa9
+  79b51  mov [rsp+0x28],eax                            
+  79b55  lea rax,[0xEFCC3E0]                           ; [data_efcc3e0]
+  79b5c  mov [rsp+0x30],rax                            
+  79b61  mov byte ptr [rsp+0x38],1                     
+  79b66  lea rdi,[rsp+0x118]                           
+  79b6e  lea rdx,[rsp+0x28]                            
+  79b73  mov rcx,rdi                                   
+  79b76  call 0x79DA0                                  ; -> sub_79da0
+  79b7b  jmp short 0x79BA7                             ; -> loc_79ba7
+
+loc_79b7d:  ; from 79adb
+  79b7d  mov [rsp+0x40],eax                            
+  79b81  lea rax,[0xEFCC3E0]                           ; [data_efcc3e0]
+  79b88  mov [rsp+0x48],rax                            
+  79b8d  mov byte ptr [rsp+0x50],1                     
+  79b92  lea rdi,[rsp+0xD8]                            
+  79b9a  lea rdx,[rsp+0x40]                            
+  79b9f  mov rcx,rdi                                   
+  79ba2  call 0x79F20                                  ; -> sub_79f20
+
+loc_79ba7:  ; from 79b4f, 79b7b, 79bed, 79c1d
+  79ba7  mov rcx,rsi                                   
+  79baa  mov rdx,rdi                                   
+  79bad  call 0x79950                                  ; -> sub_79950
+
+loc_79bb2:  ; from 79b23
+  79bb2  mov rax,rsi                                   
+  79bb5  add rsp,0x198                                 
+  79bbc  pop rdi                                       
+  79bbd  pop rsi                                       
+  79bbe  ret                                           
+
+loc_79bbf:  ; from 79a94, 79aea, 79afa
+  79bbf  mov dword ptr [rsp+0x28],0x16                 
+  79bc7  lea rax,[0xEFCC500]                           ; [data_efcc500]
+  79bce  mov [rsp+0x30],rax                            
+  79bd3  mov byte ptr [rsp+0x38],1                     
+  79bd8  lea rdi,[rsp+0x98]                            
+  79be0  lea rdx,[rsp+0x28]                            
+  79be5  mov rcx,rdi                                   
+  79be8  call 0x7A0A0                                  ; -> sub_7a0a0
+  79bed  jmp short 0x79BA7                             ; -> loc_79ba7
+
+loc_79bef:  ; from 79a8a
+  79bef  mov dword ptr [rsp+0x28],0x16                 
+  79bf7  lea rax,[0xEFCC500]                           ; [data_efcc500]
+  79bfe  mov [rsp+0x30],rax                            
+  79c03  mov byte ptr [rsp+0x38],1                     
+  79c08  lea rdi,[rsp+0x158]                           
+  79c10  lea rdx,[rsp+0x28]                            
+  79c15  mov rcx,rdi                                   
+  79c18  call 0x79C20                                  ; -> sub_79c20
+  79c1d  jmp short 0x79BA7                             ; -> loc_79ba7
+  79c1f  int3                                          
+  79c20  push rsi                                      
+  79c21  push rdi                                      
+  79c22  sub rsp,0xD8                                  
+  79c29  mov rsi,rcx                                   
+  79c2c  movups xmm0,[rdx]                             
+  79c2f  movaps [rsp+0xB0],xmm0                        
+  79c37  mov rcx,[0x1233E1A8]                          ; [data_1233e1a8]
+  79c3e  mov rax,[rcx]                                 
+  79c41  mov rax,[rax+8]                               
+  79c45  mov edx,0x30                                  
+  79c4a  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  79c50  test rax,rax                                  
+  79c53  je 0x79D67                                    ; -> loc_79d67
+
+loc_79c59:  ; from 79d77
+  79c59  movups xmm0,[0xF83F072]                       ; [data_f83f072] "tstrap was not started!"
+  79c60  movups [rax+0x10],xmm0                        
+  79c64  movups xmm0,[0xF83F062]                       ; [data_f83f062] "Default user bootstrap was not started!"
+  79c6b  movups [rax],xmm0                             
+  79c6e  mov rcx,0x2164657472617473                    
+  79c78  mov [rax+0x1F],rcx                            
+  79c7c  mov byte ptr [rax+0x27],0                     
+  79c80  movups xmm0,[0xEFC9908]                       ; [data_efc9908]
+  79c87  movaps [rsp+0x40],xmm0                        
+  79c8c  movups xmm0,[0xEFC98F8]                       ; [data_efc98f8]
+  79c93  movaps [rsp+0x30],xmm0                        
+  79c98  mov [rsp+0x50],rax                            
+  79c9d  mov qword ptr [rsp+0x58],0                    
+  79ca6  mov qword ptr [rsp+0x60],0x27                 
+  79caf  mov qword ptr [rsp+0x68],0x2F                 
+  79cb8  mov byte ptr [rsp+0x72],0                     
+  79cbd  mov qword ptr [rsp+0x74],0                    
+  79cc6  mov byte ptr [rsp+0x80],1                     
+  79cce  lea rdi,[rsp+0xC0]                            
+  79cd6  lea rdx,[rsp+0x30]                            
+  79cdb  mov rcx,rdi                                   
+  79cde  call 0x3AD570                                 ; -> sub_3ad570
+  79ce3  xorps xmm0,xmm0                               
+  79ce6  movaps [rsp+0x90],xmm0                        
+  79cee  mov qword ptr [rsp+0xA0],0                    
+  79cfa  lea rdx,[rsp+0xB0]                            
+  79d02  lea r9,[rsp+0x90]                             
+  79d0a  mov rcx,rsi                                   
+  79d0d  mov r8,rdi                                    
+  79d10  call 0x3AD730                                 ; -> sub_3ad730
+  79d15  cmp byte ptr [rsp+0x80],1                     
+  79d1d  jne short 0x79D5D                             ; -> loc_79d5d
+  79d1f  mov rax,[rsp+0x68]                            
+  79d24  cmp rax,0x10                                  
+  79d28  jb short 0x79D5D                              ; -> loc_79d5d
+  79d2a  mov rcx,[rsp+0x50]                            
+  79d2f  lea rdx,[rax+1]                               
+  79d33  cmp rdx,0x1000                                
+  79d3a  jb short 0x79D57                              ; -> loc_79d57
+  79d3c  mov r8,[rcx-8]                                
+  79d40  add rcx,0xFFFFFFFFFFFFFFF8                    
+  79d44  sub rcx,r8                                    
+  79d47  cmp rcx,0x20                                  
+  79d4b  jae short 0x79D7C                             ; -> loc_79d7c
+  79d4d  add rax,0x28                                  
+  79d51  mov rdx,rax                                   
+  79d54  mov rcx,r8                                    
+
+loc_79d57:  ; from 79d3a
+  79d57  call 0xE935700                                ; -> sub_e935700
+  79d5c  nop                                           
+
+loc_79d5d:  ; from 79d1d, 79d28
+  79d5d  add rsp,0xD8                                  
+  79d64  pop rdi                                       
+  79d65  pop rsi                                       
+  79d66  ret                                           
+
+loc_79d67:  ; from 79c53
+  79d67  mov ecx,0x30                                  
+  79d6c  mov rdi,rax                                   
+  79d6f  call 0x9BC830                                 ; -> sub_9bc830
+  79d74  mov rax,rdi                                   
+  79d77  jmp 0x79C59                                   ; -> loc_79c59
+
+loc_79d7c:  ; from 79d4b
+  79d7c  mov qword ptr [rsp+0x20],0                    
+  79d85  xor ecx,ecx                                   
+  79d87  xor edx,edx                                   
+  79d89  xor r8d,r8d                                   
+  79d8c  xor r9d,r9d                                   
+  79d8f  call qword ptr [0xF9A8C78]                    ; [data_f9a8c78]
+  79d95  int3                                          
+  79d96  int3                                          
+  79d97  int3                                          
+  79d98  int3                                          
+  79d99  int3                                          
+  79d9a  int3                                          
+  79d9b  int3                                          
+  79d9c  int3                                          
+  79d9d  int3                                          
+  79d9e  int3                                          
+  79d9f  int3                                          
+  79da0  push rsi                                      
+  79da1  push rdi                                      
+  79da2  sub rsp,0xD8                                  
+  79da9  mov rsi,rcx                                   
+  79dac  movups xmm0,[rdx]                             
+  79daf  movaps [rsp+0xB0],xmm0                        
+  79db7  mov rcx,[0x1233E1A8]                          ; [data_1233e1a8]
+  79dbe  mov rax,[rcx]                                 
+  79dc1  mov rax,[rax+8]                               
+  79dc5  mov edx,0x40                                  
+  79dca  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  79dd0  test rax,rax                                  
+  79dd3  je 0x79EEB                                    ; -> loc_79eeb
+
+loc_79dd9:  ; from 79efb
+  79dd9  movups xmm0,[0xF83DB59]                       ; [data_f83db59] "andle async status!"
+  79de0  movups [rax+0x20],xmm0                        
+  79de4  movups xmm0,[0xF83DB49]                       ; [data_f83db49] "e Default User Handle async status!"
+  79deb  movups [rax+0x10],xmm0                        
+  79def  movups xmm0,[0xF83DB39]                       ; [data_f83db39] "Error getting the Default User Handle async status!"
+  79df6  movups [rax],xmm0                             
+  79df9  mov dword ptr [rax+0x2F],0x21737574           
+  79e00  mov byte ptr [rax+0x33],0                     
+  79e04  movups xmm0,[0xEFC9928]                       ; [data_efc9928]
+  79e0b  movaps [rsp+0x40],xmm0                        
+  79e10  movups xmm0,[0xEFC9918]                       ; [data_efc9918]
+  79e17  movaps [rsp+0x30],xmm0                        
+  79e1c  mov [rsp+0x50],rax                            
+  79e21  mov qword ptr [rsp+0x58],0                    
+  79e2a  mov qword ptr [rsp+0x60],0x33                 
+  79e33  mov qword ptr [rsp+0x68],0x3F                 
+  79e3c  mov byte ptr [rsp+0x72],0                     
+  79e41  mov qword ptr [rsp+0x74],0                    
+  79e4a  mov byte ptr [rsp+0x80],1                     
+  79e52  lea rdi,[rsp+0xC0]                            
+  79e5a  lea rdx,[rsp+0x30]                            
+  79e5f  mov rcx,rdi                                   
+  79e62  call 0x3AD570                                 ; -> sub_3ad570
+  79e67  xorps xmm0,xmm0                               
+  79e6a  movaps [rsp+0x90],xmm0                        
+  79e72  mov qword ptr [rsp+0xA0],0                    
+  79e7e  lea rdx,[rsp+0xB0]                            
+  79e86  lea r9,[rsp+0x90]                             
+  79e8e  mov rcx,rsi                                   
+  79e91  mov r8,rdi                                    
+  79e94  call 0x3AD730                                 ; -> sub_3ad730
+  79e99  cmp byte ptr [rsp+0x80],1                     
+  79ea1  jne short 0x79EE1                             ; -> loc_79ee1
+  79ea3  mov rax,[rsp+0x68]                            
+  79ea8  cmp rax,0x10                                  
+  79eac  jb short 0x79EE1                              ; -> loc_79ee1
+  79eae  mov rcx,[rsp+0x50]                            
+  79eb3  lea rdx,[rax+1]                               
+  79eb7  cmp rdx,0x1000                                
+  79ebe  jb short 0x79EDB                              ; -> loc_79edb
+  79ec0  mov r8,[rcx-8]                                
+  79ec4  add rcx,0xFFFFFFFFFFFFFFF8                    
+  79ec8  sub rcx,r8                                    
+  79ecb  cmp rcx,0x20                                  
+  79ecf  jae short 0x79F00                             ; -> loc_79f00
+  79ed1  add rax,0x28                                  
+  79ed5  mov rdx,rax                                   
+  79ed8  mov rcx,r8                                    
+
+loc_79edb:  ; from 79ebe
+  79edb  call 0xE935700                                ; -> sub_e935700
+  79ee0  nop                                           
+
+loc_79ee1:  ; from 79ea1, 79eac
+  79ee1  add rsp,0xD8                                  
+  79ee8  pop rdi                                       
+  79ee9  pop rsi                                       
+  79eea  ret                                           
+
+loc_79eeb:  ; from 79dd3
+  79eeb  mov ecx,0x40                                  
+  79ef0  mov rdi,rax                                   
+  79ef3  call 0x9BC830                                 ; -> sub_9bc830
+  79ef8  mov rax,rdi                                   
+  79efb  jmp 0x79DD9                                   ; -> loc_79dd9
+
+loc_79f00:  ; from 79ecf
+  79f00  mov qword ptr [rsp+0x20],0                    
+  79f09  xor ecx,ecx                                   
+  79f0b  xor edx,edx                                   
+  79f0d  xor r8d,r8d                                   
+  79f10  xor r9d,r9d                                   
+  79f13  call qword ptr [0xF9A8C78]                    ; [data_f9a8c78]
+  79f19  int3                                          
+  79f1a  int3                                          
+  79f1b  int3                                          
+  79f1c  int3                                          
+  79f1d  int3                                          
+  79f1e  int3                                          
+  79f1f  int3                                          
+  79f20  push rsi                                      
+  79f21  push rdi                                      
+  79f22  sub rsp,0xD8                                  
+  79f29  mov rsi,rcx                                   
+  79f2c  movups xmm0,[rdx]                             
+  79f2f  movaps [rsp+0xB0],xmm0                        
+  79f37  mov rcx,[0x1233E1A8]                          ; [data_1233e1a8]
+  79f3e  mov rax,[rcx]                                 
+  79f41  mov rax,[rax+8]                               
+  79f45  mov edx,0x40                                  
+  79f4a  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  79f50  test rax,rax                                  
+  79f53  je 0x7A06B                                    ; -> loc_7a06b
+
+loc_79f59:  ; from 7a07b
+  79f59  movups xmm0,[0xF83E422]                       ; [data_f83e422] "rom the XAsyncBlock!"
+  79f60  movups [rax+0x20],xmm0                        
+  79f64  movups xmm0,[0xF83E412]                       ; [data_f83e412] "ve XUserHandle from the XAsyncBlock!"
+  79f6b  movups [rax+0x10],xmm0                        
+  79f6f  movups xmm0,[0xF83E402]                       ; [data_f83e402] "Failed to retrieve XUserHandle from the XAsyncBlock!"
+  79f76  movups [rax],xmm0                             
+  79f79  mov dword ptr [rax+0x30],0x216B636F           
+  79f80  mov byte ptr [rax+0x34],0                     
+  79f84  movups xmm0,[0xEFC9948]                       ; [data_efc9948]
+  79f8b  movaps [rsp+0x40],xmm0                        
+  79f90  movups xmm0,[0xEFC9938]                       ; [data_efc9938]
+  79f97  movaps [rsp+0x30],xmm0                        
+  79f9c  mov [rsp+0x50],rax                            
+  79fa1  mov qword ptr [rsp+0x58],0                    
+  79faa  mov qword ptr [rsp+0x60],0x34                 
+  79fb3  mov qword ptr [rsp+0x68],0x3F                 
+  79fbc  mov byte ptr [rsp+0x72],0                     
+  79fc1  mov qword ptr [rsp+0x74],0                    
+  79fca  mov byte ptr [rsp+0x80],1                     
+  79fd2  lea rdi,[rsp+0xC0]                            
+  79fda  lea rdx,[rsp+0x30]                            
+  79fdf  mov rcx,rdi                                   
+  79fe2  call 0x3AD570                                 ; -> sub_3ad570
+  79fe7  xorps xmm0,xmm0                               
+  79fea  movaps [rsp+0x90],xmm0                        
+  79ff2  mov qword ptr [rsp+0xA0],0                    
+  79ffe  lea rdx,[rsp+0xB0]                            
+  7a006  lea r9,[rsp+0x90]                             
+  7a00e  mov rcx,rsi                                   
+  7a011  mov r8,rdi                                    
+  7a014  call 0x3AD730                                 ; -> sub_3ad730
+  7a019  cmp byte ptr [rsp+0x80],1                     
+  7a021  jne short 0x7A061                             ; -> loc_7a061
+  7a023  mov rax,[rsp+0x68]                            
+  7a028  cmp rax,0x10                                  
+  7a02c  jb short 0x7A061                              ; -> loc_7a061
+  ... (--max 400)
+```
+
+## CALLERS
+```
+  0x79a70 sub_79a70 size 0x1af
+  0x7a7e0 sub_7a7e0 size 0x286d
+  0x7d130 sub_7d130 size 0x8b
+  0x7d5e0 sub_7d5e0 size 0x8c
+  0x7f2c0 sub_7f2c0 size 0x1fcd
+  0x98160 sub_98160 size 0x2d0
+  0xae280 sub_ae280 size 0x76
+  0xaf010 sub_af010 size 0x107c
+  0xd1a80 sub_d1a80 size 0xd96
+  0x165b50 sub_165b50 size 0xde4
+  0x2632a0 sub_2632a0 size 0xe88
+  0x2f2160 sub_2f2160 size 0x231
+  0x2f2400 sub_2f2400 size 0x231
+  0x301050 sub_301050 size 0x191
+  0x3174e0 sub_3174e0 size 0x352
+  0x32b660 sub_32b660 size 0x65c
+  0x32be80 sub_32be80 size 0x148
+  0x32c1d0 sub_32c1d0 size 0xad2
+  0x32ef40 sub_32ef40 size 0x68e
+  0x336440 sub_336440 size 0x491d
+  0x33f210 sub_33f210 size 0x11a
+  0x33f420 sub_33f420 size 0x14a
+  0x34b580 sub_34b580 size 0x4f9
+  0x374260 sub_374260 size 0x662
+  0x374a80 sub_374a80 size 0xc2f
+  0x375cb0 sub_375cb0 size 0x791
+  0x378ce0 sub_378ce0 size 0x64b
+  0x3799a0 sub_3799a0 size 0xe4b
+  0x382750 sub_382750 size 0x2be5
+  0x39dc40 sub_39dc40 size 0x16a
+  0x39ddb0 sub_39ddb0 size 0x7e
+  0x3b0200 sub_3b0200 size 0x3bb
+  0x3b0610 sub_3b0610 size 0x3b6
+  0x3b0a20 sub_3b0a20 size 0x38e
+  0x3b0e00 sub_3b0e00 size 0x389
+  0x3b5e90 sub_3b5e90 size 0xb19
+  0x3b6c80 sub_3b6c80 size 0xc27
+  0x3b86c0 sub_3b86c0 size 0x441
+  0x3b8bd0 sub_3b8bd0 size 0x33f
+  0x3b8fd0 sub_3b8fd0 size 0x5e7
+  0x3b96b0 sub_3b96b0 size 0x3e4
+  0x3ba110 sub_3ba110 size 0xb98
+  0x3bb0b0 sub_3bb0b0 size 0x4e6
+  0x3bb660 sub_3bb660 size 0x32d
+  0x3bbbc0 sub_3bbbc0 size 0x811
+  0x3bc4f0 sub_3bc4f0 size 0x111
+  0x3bc670 sub_3bc670 size 0x225
+  0x3bc9f0 sub_3bc9f0 size 0x241
+  0x3bcc80 sub_3bcc80 size 0x189
+  0x3bd0e0 sub_3bd0e0 size 0x12f
+  0x3bd390 sub_3bd390 size 0x2e2
+  0x3bd700 sub_3bd700 size 0xb5
+  0x3bd8e0 sub_3bd8e0 size 0xbf
+  0x3bdac0 sub_3bdac0 size 0xb8
+  0x3be190 sub_3be190 size 0x36e
+  0x3be990 sub_3be990 size 0x24c
+  0x3bf070 sub_3bf070 size 0x3cb
+  0x3bf4a0 sub_3bf4a0 size 0x346
+  0x3db480 sub_3db480 size 0x279
+  0x43c7e0 sub_43c7e0 size 0x144
+  0x43c990 sub_43c990 size 0x52b
+  0x43d240 sub_43d240 size 0x862
+  0x440bc0 sub_440bc0 size 0x1e3
+  0x4421b0 sub_4421b0 size 0x25e
+  0x442b00 sub_442b00 size 0x8f3
+  0x4445b0 sub_4445b0 size 0x1b4
+  0x444d10 sub_444d10 size 0x426
+  0x445280 sub_445280 size 0x722
+  0x446420 sub_446420 size 0x750
+  0x446f60 sub_446f60 size 0xa1f
+  0x447e20 sub_447e20 size 0xb77
+  0x448be0 sub_448be0 size 0x2f3
+  0x448fa0 sub_448fa0 size 0x2e3
+  0x449350 sub_449350 size 0x5e3
+  0x449b30 sub_449b30 size 0x2e3
+  0x449f60 sub_449f60 size 0xd10
+  0x44b130 sub_44b130 size 0x2e3
+  0x44b560 sub_44b560 size 0x1e6
+  0x44b920 sub_44b920 size 0x3f3
+  0x44bde0 sub_44bde0 size 0xb13
+  0x44cb90 sub_44cb90 size 0x384
+  0x44d020 sub_44d020 size 0x2e3
+  0x44d3d0 sub_44d3d0 size 0x2e3
+  0x44d780 sub_44d780 size 0x2e3
+  0x44db30 sub_44db30 size 0x2f3
+  0x44def0 sub_44def0 size 0x2e3
+  0x44e2a0 sub_44e2a0 size 0x353
+  0x44e760 sub_44e760 size 0x2e3
+  0x44eb10 sub_44eb10 size 0x2e3
+  0x44ef40 sub_44ef40 size 0x303
+  0x44f310 sub_44f310 size 0x3b3
+  0x44f790 sub_44f790 size 0x313
+  0x44fb70 sub_44fb70 size 0x3b3
+  0x44fff0 sub_44fff0 size 0x3b3
+  0x450470 sub_450470 size 0x3c3
+  0x450980 sub_450980 size 0x3ac
+  0x451020 sub_451020 size 0x2f3
+  0x4513e0 sub_4513e0 size 0x3b3
+  0x451860 sub_451860 size 0x3b3
+  0x451ce0 sub_451ce0 size 0x3b3
+  0x452190 sub_452190 size 0x48c
+  0x452720 sub_452720 size 0x2e3
+  0x452bd0 sub_452bd0 size 0x348
+  0x452ff0 sub_452ff0 size 0x97e
+  0x4559e0 sub_4559e0 size 0x646
+  0x456680 sub_456680 size 0x407
+  0x456d90 sub_456d90 size 0x800
+  0x457730 sub_457730 size 0x3f3
+  0x457bf0 sub_457bf0 size 0x6a5
+  0x4583d0 sub_4583d0 size 0x605
+  0x458c40 sub_458c40 size 0x481
+  0x459250 sub_459250 size 0x605
+  0x459ac0 sub_459ac0 size 0x681
+  0x45aa90 sub_45aa90 size 0xaba
+  0x45c040 sub_45c040 size 0x50c
+  0x45c690 sub_45c690 size 0x13d
+  0x45caa0 sub_45caa0 size 0x157
+  0x45cee0 sub_45cee0 size 0x11f
+  0x45d130 sub_45d130 size 0x51b
+  0x45dad0 sub_45dad0 size 0x480
+  0x45ebb0 sub_45ebb0 size 0x32f
+  0x45f2f0 sub_45f2f0 size 0x78a
+  0x463e90 sub_463e90 size 0x349
+  0x464370 sub_464370 size 0x6b9
+  0x464bb0 sub_464bb0 size 0x614
+  0x465330 sub_465330 size 0x649
+  0x465b20 sub_465b20 size 0x605
+  0x4665e0 sub_4665e0 size 0x480
+  0x466d40 sub_466d40 size 0x480
+  0x467460 sub_467460 size 0x982
+  0x4680b0 sub_4680b0 size 0x67a
+  0x469320 sub_469320 size 0x2d1
+  0x4696a0 sub_4696a0 size 0x3b6
+  0x469c30 sub_469c30 size 0x48f
+  0x46a140 sub_46a140 size 0x2cc
+  0x46a450 sub_46a450 size 0x29d
+  0x46a9e0 sub_46a9e0 size 0x705
+  0x46b3f0 sub_46b3f0 size 0x18b
+  0x46b820 sub_46b820 size 0xb9e
+  0x46c750 sub_46c750 size 0x301
+  0x46cbe0 sub_46cbe0 size 0x2c2
+  0x46cff0 sub_46cff0 size 0x183
+  0x46d2e0 sub_46d2e0 size 0x249
+  0x46d660 sub_46d660 size 0x249
+  0x46d9e0 sub_46d9e0 size 0x4f1
+  0x46e3a0 sub_46e3a0 size 0x2f0
+  0x46e990 sub_46e990 size 0x155
+  0x46f890 sub_46f890 size 0xa32
+  0x470830 sub_470830 size 0x880
+  0x471650 sub_471650 size 0x453
+  0x471f30 sub_471f30 size 0x1b4
+  0x472130 sub_472130 size 0x1b4
+  0x472360 sub_472360 size 0x17e
+  0x475d30 sub_475d30 size 0x2845
+  0x479200 sub_479200 size 0xeb1
+  0x47a940 sub_47a940 size 0x11a
+  0x47ac90 sub_47ac90 size 0x5ed
+  0x47b740 sub_47b740 size 0x3c3
+  0x47c950 sub_47c950 size 0xf6d
+  0x480420 sub_480420 size 0x425
+  0x480cf0 sub_480cf0 size 0x17a
+  0x4817a0 sub_4817a0 size 0x86a
+  0x483c10 sub_483c10 size 0xec9
+  0x487b00 sub_487b00 size 0x5a3
+  0x4885c0 sub_4885c0 size 0x30d
+  0x488bd0 sub_488bd0 size 0x349
+  0x489470 sub_489470 size 0x6d5
+  0x48a510 sub_48a510 size 0x5ab
+  0x48abe0 sub_48abe0 size 0x50d
+  0x48b3c0 sub_48b3c0 size 0x5dc
+  0x48c130 sub_48c130 size 0x2a7
+  0x48c4c0 sub_48c4c0 size 0x1b4
+  0x48c6e0 sub_48c6e0 size 0x2d5
+  0x48ccd0 sub_48ccd0 size 0x460
+  0x48de10 sub_48de10 size 0x2fa
+  0x48ed70 sub_48ed70 size 0x3ab
+  0x494cd0 sub_494cd0 size 0x6e3
+  0x4f71e0 sub_4f71e0 size 0xac
+  0x6323c0 sub_6323c0 size 0x85d
+  0x6dac50 sub_6dac50 size 0x5aba
+  0x6e3330 sub_6e3330 size 0x231c
+  0x6f8e70 sub_6f8e70 size 0x7ed
+  0x6fa040 sub_6fa040 size 0x136d
+  0x6fb850 sub_6fb850 size 0xae8
+  0x6fd060 sub_6fd060 size 0xda2
+  0x6fe050 sub_6fe050 size 0x53d
+  0x6feb10 sub_6feb10 size 0x664
+  0x6ff320 sub_6ff320 size 0x232
+  0x6ffa80 sub_6ffa80 size 0x664
+  0x700290 sub_700290 size 0x330
+  0x708940 sub_708940 size 0x5e8
+  0x71aee0 sub_71aee0 size 0xe6
+  0x71e260 sub_71e260 size 0x724
+  0x72c830 sub_72c830 size 0x175
+  0x72cd50 sub_72cd50 size 0x191
+  0x72cf30 sub_72cf30 size 0x1a1
+  0x72d3f0 sub_72d3f0 size 0x1a1
+  0x72d6e0 sub_72d6e0 size 0x1a1
+  0x72da80 sub_72da80 size 0x1a1
+  0x72dd70 sub_72dd70 size 0x1a1
+  0x72e110 sub_72e110 size 0x1a1
+  0x72e4b0 sub_72e4b0 size 0x1a1
+  0x72e7a0 sub_72e7a0 size 0x1a1
+  0x72eb40 sub_72eb40 size 0x1a1
+  0x72ee30 sub_72ee30 size 0x1b1
+  0x72f1e0 sub_72f1e0 size 0x1a1
+  0x72f580 sub_72f580 size 0x191
+  0x72f7b0 sub_72f7b0 size 0x191
+  0x72f990 sub_72f990 size 0x395
+  0x72fff0 sub_72fff0 size 0x395
+  0x730650 sub_730650 size 0x7ad
+  0x731200 sub_731200 size 0x212
+  0x7315a0 sub_7315a0 size 0x521
+  0x731df0 sub_731df0 size 0x1a1
+  0x732290 sub_732290 size 0x924
+  0x733040 sub_733040 size 0x924
+  0x733a10 sub_733a10 size 0x924
+  0x7343e0 sub_7343e0 size 0x97e
+  0x734e50 sub_734e50 size 0x2b8
+  0x735550 sub_735550 size 0x636
+  0x735f20 sub_735f20 size 0x7c6
+  0x737760 sub_737760 size 0x1a1
+  0x737a50 sub_737a50 size 0x1b1
+  0x737d50 sub_737d50 size 0x1a1
+  0x738040 sub_738040 size 0x1a1
+  0x738330 sub_738330 size 0x1a1
+  0x738620 sub_738620 size 0x1a1
+  0x738910 sub_738910 size 0x5ff
+  0x739560 sub_739560 size 0x5ff
+  0x73be50 sub_73be50 size 0x51c
+  0x73cc50 sub_73cc50 size 0x7ef
+  0x747530 sub_747530 size 0x4ee
+  0x747b30 sub_747b30 size 0xb35
+  0x755bf0 sub_755bf0 size 0x2d6
+  0x757dc0 sub_757dc0 size 0x274
+  0x758080 sub_758080 size 0x6db
+  0x758a50 sub_758a50 size 0x136a
+  0x75a510 sub_75a510 size 0x22a
+  0x75a780 sub_75a780 size 0x8f4
+  0x75b470 sub_75b470 size 0x7f8
+  0x75c440 sub_75c440 size 0x3cc
+  0x75c8d0 sub_75c8d0 size 0x11f
+  0x75cb20 sub_75cb20 size 0x178
+  0x75d010 sub_75d010 size 0x249
+  0x75d3e0 sub_75d3e0 size 0x11e
+  0x75ef70 sub_75ef70 size 0x540
+  0x80ab10 sub_80ab10 size 0x1014
+  0x9c6a20 sub_9c6a20 size 0x928
+  0x9cac20 sub_9cac20 size 0xbb0
+  0x9cbdb0 sub_9cbdb0 size 0x1297
+  0x9cd3e0 sub_9cd3e0 size 0x70f
+  0x9ce000 sub_9ce000 size 0x2c7
+  0x9f16a0 sub_9f16a0 size 0x81e
+  0xa54110 sub_a54110 size 0x1f52
+  0xa5ca60 sub_a5ca60 size 0x1b44
+  0xab7240 sub_ab7240 size 0x1a9
+  0xad6fd0 sub_ad6fd0 size 0x7f2
+  0xad8ce0 sub_ad8ce0 size 0x527
+  0xad96f0 sub_ad96f0 size 0x2e4
+  0xad9ec0 sub_ad9ec0 size 0xca0
+  0xadb0b0 sub_adb0b0 size 0xc19
+  0xae15a0 sub_ae15a0 size 0x37f
+  0xae1f30 sub_ae1f30 size 0x235
+  0xae2340 sub_ae2340 size 0x2e9
+  0xae2690 sub_ae2690 size 0x317
+  0xae3720 sub_ae3720 size 0x849
+  0xd05fe0 sub_d05fe0 size 0x708
+  0xd3d6d0 sub_d3d6d0 size 0x315
+  0xd3e280 sub_d3e280 size 0x8e3
+  0xd40a10 sub_d40a10 size 0x241
+  0xd410f0 sub_d410f0 size 0x315
+  0xd41c70 sub_d41c70 size 0x99f
+  0xd44270 sub_d44270 size 0x315
+  0xd465f0 sub_d465f0 size 0x315
+  0xd471c0 sub_d471c0 size 0x9fe
+  0xd49110 sub_d49110 size 0x315
+  0xd49cd0 sub_d49cd0 size 0x9de
+  0xd4c4a0 sub_d4c4a0 size 0x315
+  0xd4d030 sub_d4d030 size 0x99f
+  0xd4ef90 sub_d4ef90 size 0x315
+  0xd4fb20 sub_d4fb20 size 0xaf0
+  0xd52780 sub_d52780 size 0x315
+  0xd53250 sub_d53250 size 0x99f
+  0xd566c0 sub_d566c0 size 0x315
+  0xd57290 sub_d57290 size 0x99f
+  0xd59210 sub_d59210 size 0x315
+  0xd59da0 sub_d59da0 size 0x99f
+  0xd5c570 sub_d5c570 size 0x315
+  0xd5d040 sub_d5d040 size 0x3af
+  0xd601f0 sub_d601f0 size 0x60e8
+  0xd68050 sub_d68050 size 0x315
+  0xd68b20 sub_d68b20 size 0xcda
+  0xd6cce0 sub_d6cce0 size 0x315
+  0xd6d840 sub_d6d840 size 0x99f
+  0xd6f7c0 sub_d6f7c0 size 0x315
+  0xd70290 sub_d70290 size 0x99f
+  0xd73250 sub_d73250 size 0x315
+  0xd73d20 sub_d73d20 size 0x99f
+  0xd77b10 sub_d77b10 size 0x315
+  0xd785e0 sub_d785e0 size 0x99f
+  0xd7ab80 sub_d7ab80 size 0x315
+  0xd7b650 sub_d7b650 size 0x99f
+  0xd7dd90 sub_d7dd90 size 0x315
+  0xd7e860 sub_d7e860 size 0xc43
+  0xd810c0 sub_d810c0 size 0x315
+  0xd81b90 sub_d81b90 size 0xad7
+  0xd84220 sub_d84220 size 0x231
+  0xd846c0 sub_d846c0 size 0x231
+  0xd84b30 sub_d84b30 size 0x315
+  0xd856c0 sub_d856c0 size 0x8a3
+  0xd87890 sub_d87890 size 0x315
+  0xd88360 sub_d88360 size 0x8f9
+  0xd8ae50 sub_d8ae50 size 0x315
+  0xd8b920 sub_d8b920 size 0x9ad
+  0xd8e880 sub_d8e880 size 0x315
+  0xd8f350 sub_d8f350 size 0x13be
+  0xd93030 sub_d93030 size 0x315
+  0xd93bd0 sub_d93bd0 size 0x8a3
+  0xd95920 sub_d95920 size 0x315
+  0xd963f0 sub_d963f0 size 0x14ed
+  0xd9bf50 sub_d9bf50 size 0x6d9
+  0xda05a0 sub_da05a0 size 0x532
+  0xda92b0 sub_da92b0 size 0x6d9
+  0xdad2a0 sub_dad2a0 size 0x6d9
+  0xdb2790 sub_db2790 size 0x6d9
+  0xdbdfb0 sub_dbdfb0 size 0x6d9
+  0xdd8d00 sub_dd8d00 size 0x6d9
+  0xddb4f0 sub_ddb4f0 size 0x58a
+  0xdde6d0 sub_dde6d0 size 0x7d7
+  0xddf410 sub_ddf410 size 0x442
+  0xdfd4d0 sub_dfd4d0 size 0x6d9
+  0xdffad0 sub_dffad0 size 0x3f8
+  0xe31e10 sub_e31e10 size 0x6d9
+  0xe374a0 sub_e374a0 size 0x6d9
+  0xe39ac0 sub_e39ac0 size 0x191
+  0xe3cab0 sub_e3cab0 size 0x6d9
+  0xe41150 sub_e41150 size 0x6d9
+  0xe48c80 sub_e48c80 size 0x6d9
+  0xe4cce0 sub_e4cce0 size 0x6d9
+  0xe52660 sub_e52660 size 0x6d9
+  0xe57090 sub_e57090 size 0x6d9
+  0xe59df0 sub_e59df0 size 0x1bf
+  0xfc1080 sub_fc1080 size 0x5b6
+  0x1064980 sub_1064980 size 0x8cb
+  0x1093320 sub_1093320 size 0x941
+  0x10971a0 sub_10971a0 size 0x108d
+  0x12f6990 sub_12f6990 size 0xdfe
+  0x12f7c50 sub_12f7c50 size 0x315
+  0x12f8720 sub_12f8720 size 0x1024
+  0x12fe450 sub_12fe450 size 0xd91
+  0x12ffe90 sub_12ffe90 size 0x185f
+  0x130ac80 sub_130ac80 size 0x168d
+  0x130cac0 sub_130cac0 size 0x142f
+  0x130e730 sub_130e730 size 0x209
+  0x132b270 sub_132b270 size 0x3cd
+  0x1348560 sub_1348560 size 0x201
+  0x13497f0 sub_13497f0 size 0x153
+  0x1359660 sub_1359660 size 0x6d9
+  0x1362460 sub_1362460 size 0xd20
+  0x1591ac0 sub_1591ac0 size 0x766
+  0x1592bd0 sub_1592bd0 size 0x3ae
+  0x15bdc30 sub_15bdc30 size 0xab4
+  0x15be980 sub_15be980 size 0x1664
+  0x1624630 sub_1624630 size 0x5a0
+  0x167ac70 sub_167ac70 size 0x682
+  0x167bc30 sub_167bc30 size 0x122b
+  0x1689030 sub_1689030 size 0xe5a
+  0x17d7280 sub_17d7280 size 0xcd4
+  0x17e49e0 sub_17e49e0 size 0x4cbc
+  0x17ec540 sub_17ec540 size 0x56f
+  0x18295f0 sub_18295f0 size 0x2580
+  0x187bff0 sub_187bff0 size 0xff
+  0x1883940 sub_1883940 size 0xcf9
+  0x1943c80 sub_1943c80 size 0xd3c
+  0x19883f0 sub_19883f0 size 0xd2
+  0x1989000 sub_1989000 size 0x10e
+  0x1989590 sub_1989590 size 0x70e
+  0x1989e60 sub_1989e60 size 0xd2
+  0x1989f40 sub_1989f40 size 0x1805
+  0x198be90 sub_198be90 size 0x24b9
+  0x19907e0 sub_19907e0 size 0x2bb
+  0x1990ff0 sub_1990ff0 size 0xc9b
+  0x199b080 sub_199b080 size 0x318
+  0x199bde0 sub_199bde0 size 0x2db
+  0x199ca60 sub_199ca60 size 0x80
+  0x199cae0 sub_199cae0 size 0x165
+  0x19adaa0 sub_19adaa0 size 0x428
+  0x19daf30 sub_19daf30 size 0x15eb
+  0x19ddab0 sub_19ddab0 size 0x6de
+  0x19e89d0 sub_19e89d0 size 0x5cd
+  0x19ee6b0 sub_19ee6b0 size 0xbed
+  0x19fd470 sub_19fd470 size 0x1999
+  0x1a6e400 sub_1a6e400 size 0x27dd
+  0x1aeb0b0 sub_1aeb0b0 size 0x3b1
+  0x1aec170 sub_1aec170 size 0x6c0
+  0x1bde520 sub_1bde520 size 0xad8
+  0x1be0020 sub_1be0020 size 0xd92
+  0x1cc1e30 sub_1cc1e30 size 0xcb
+  0x1cc2010 sub_1cc2010 size 0x32f
+  0x1cc24d0 sub_1cc24d0 size 0x311
+  0x1cc2c80 sub_1cc2c80 size 0x627
+  0x1cca9c0 sub_1cca9c0 size 0xc6b
+  0x1cf0320 sub_1cf0320 size 0x8d1
+  0x1cf6cb0 sub_1cf6cb0 size 0x649
+  0x1cf84b0 sub_1cf84b0 size 0x282
+  0x1cf8b00 sub_1cf8b00 size 0xf4
+  0x1cfb680 sub_1cfb680 size 0x4b1
+  0x1ec6820 sub_1ec6820 size 0x241
+  0x1ec6ad0 sub_1ec6ad0 size 0x1f8
+  0x1ecd620 sub_1ecd620 size 0x588
+  0x1f7f000 sub_1f7f000 size 0x18d2
+  0x1f83210 sub_1f83210 size 0x794
+  0x1fca230 sub_1fca230 size 0x15b6
+  0x1fcd170 sub_1fcd170 size 0x1fd2
+  0x1fcfdc0 sub_1fcfdc0 size 0x1ab2
+  0x204e150 sub_204e150 size 0x228
+  0x2053b10 sub_2053b10 size 0xd60
+  0x2054bb0 sub_2054bb0 size 0x276a
+  0x2059990 sub_2059990 size 0xc24
+  0x22f8e20 sub_22f8e20 size 0x7f7
+  0x22fc8f0 sub_22fc8f0 size 0x1388
+  0x2342670 sub_2342670 size 0x21f1
+  0x2345f70 sub_2345f70 size 0x2ba8
+  0x237df40 sub_237df40 size 0x2931
+  0x23953a0 sub_23953a0 size 0xa0
+  0x2395610 sub_2395610 size 0x396
+  0x2422360 sub_2422360 size 0x39d
+  0x2429590 sub_2429590 size 0x7b
+  0x2429740 sub_2429740 size 0xe6
+  0x2429960 sub_2429960 size 0xf1
+  0x2429b90 sub_2429b90 size 0xf1
+  0x2429dc0 sub_2429dc0 size 0xf1
+  0x2429ff0 sub_2429ff0 size 0xf1
+  0x242a220 sub_242a220 size 0xef
+  0x242a440 sub_242a440 size 0xf1
+  0x242a670 sub_242a670 size 0xf5
+  0x242a8a0 sub_242a8a0 size 0x131
+  0x242ab10 sub_242ab10 size 0x10b
+  0x242ad50 sub_242ad50 size 0xe2
+  0x242af70 sub_242af70 size 0x22b
+  0x242b480 sub_242b480 size 0x30b
+  0x242bf90 sub_242bf90 size 0x7a
+  0x242c140 sub_242c140 size 0xec
+  0x242c360 sub_242c360 size 0xde
+  0x242c570 sub_242c570 size 0xde
+  0x242c780 sub_242c780 size 0xdf
+  0x242c990 sub_242c990 size 0xdf
+  0x242cba0 sub_242cba0 size 0xde
+  0x242cdb0 sub_242cdb0 size 0xe0
+  0x242cfc0 sub_242cfc0 size 0xe3
+  0x242d1e0 sub_242d1e0 size 0x122
+  0x242d440 sub_242d440 size 0xf1
+  0x242d670 sub_242d670 size 0xee
+  0x242d890 sub_242d890 size 0x223
+  0x242dda0 sub_242dda0 size 0x30d
+  0x242ebf0 sub_242ebf0 size 0x7b
+  0x242eda0 sub_242eda0 size 0x6a
+  0x242ef40 sub_242ef40 size 0x6b
+  0x242f0e0 sub_242f0e0 size 0x6c
+  0x242f280 sub_242f280 size 0x6c
+  0x242f420 sub_242f420 size 0x6d
+  0x242f5c0 sub_242f5c0 size 0x64
+  0x242f760 sub_242f760 size 0x64
+  0x242f900 sub_242f900 size 0x66
+  0x242faa0 sub_242faa0 size 0x66
+  0x242fc40 sub_242fc40 size 0xf4
+  0x242fe70 sub_242fe70 size 0xb9
+  0x2430060 sub_2430060 size 0x229
+  0x2430570 sub_2430570 size 0x30b
+  0x2565c00 sub_2565c00 size 0x79d
+  0x2567980 sub_2567980 size 0x51a
+  0x25a61f0 sub_25a61f0 size 0x4d1
+  0x25f1e50 sub_25f1e50 size 0x654
+  0x2795c30 sub_2795c30 size 0xcd8
+  0x2799160 sub_2799160 size 0xa44
+  0x27ecee0 sub_27ecee0 size 0x494
+  0x2805550 sub_2805550 size 0x38e
+  0x28256e0 sub_28256e0 size 0x7e0
+  0x2944c70 sub_2944c70 size 0xd5b
+  0x29464c0 sub_29464c0 size 0x15e
+  0x29624e0 sub_29624e0 size 0x5a2
+  0x2962f00 sub_2962f00 size 0x1b1
+  0x29637e0 sub_29637e0 size 0xa29
+  0x2967a60 sub_2967a60 size 0x319
+  0x2968730 sub_2968730 size 0x1f3
+  0x2968df0 sub_2968df0 size 0x1c1
+  0x29693d0 sub_29693d0 size 0x1b1
+  0x2969e30 sub_2969e30 size 0x6b4
+  0x296a990 sub_296a990 size 0x1b1
+  0x296b060 sub_296b060 size 0xca0
+  0x296c190 sub_296c190 size 0x5db
+  0x296c8a0 sub_296c8a0 size 0xff
+  0x296f0b0 sub_296f0b0 size 0x18b
+  0x296f240 sub_296f240 size 0x7a
+  0x296f3f0 sub_296f3f0 size 0x79
+  0x296f5a0 sub_296f5a0 size 0x79
+  0x296f750 sub_296f750 size 0x7a
+  0x296f900 sub_296f900 size 0x7a
+  0x296fab0 sub_296fab0 size 0x78
+  0x296fc60 sub_296fc60 size 0x78
+  0x296fe10 sub_296fe10 size 0x7a
+  0x296ffc0 sub_296ffc0 size 0x7a
+  0x2970170 sub_2970170 size 0x7c
+  0x2970320 sub_2970320 size 0x7c
+  0x29704d0 sub_29704d0 size 0x1af
+  0x2970920 sub_2970920 size 0x2d6
+  0x29719d0 sub_29719d0 size 0x659
+  0x29727d0 sub_29727d0 size 0x1b1
+  0x2972de0 sub_2972de0 size 0x1c1
+  0x298cfa0 sub_298cfa0 size 0x28b
+  0x29bc400 sub_29bc400 size 0x315
+  0x29bcfb0 sub_29bcfb0 size 0x9fe
+  0x29bf140 sub_29bf140 size 0x315
+  0x29bfc10 sub_29bfc10 size 0xdec
+  0x29c5850 sub_29c5850 size 0x315
+  0x29c6320 sub_29c6320 size 0x99f
+  0x29c92d0 sub_29c92d0 size 0x315
+  0x29c9eb0 sub_29c9eb0 size 0x99f
+  0x29cbce0 sub_29cbce0 size 0x315
+  0x29cc880 sub_29cc880 size 0xa33
+  0x29ce6a0 sub_29ce6a0 size 0x315
+  0x29cf230 sub_29cf230 size 0x73a
+  0x29d1720 sub_29d1720 size 0x315
+  0x29d22d0 sub_29d22d0 size 0x1147
+  0x29d4b60 sub_29d4b60 size 0x315
+  0x29d5630 sub_29d5630 size 0x1224
+  0x29d8d60 sub_29d8d60 size 0x315
+  0x29d9900 sub_29d9900 size 0x10c2
+  0x29dc1a0 sub_29dc1a0 size 0x315
+  0x29dcd30 sub_29dcd30 size 0x99f
+  0x29ded50 sub_29ded50 size 0x315
+  0x29df820 sub_29df820 size 0x170a
+  0x29e3bc0 sub_29e3bc0 size 0x315
+  0x29e47a0 sub_29e47a0 size 0xbb1
+  0x29e75b0 sub_29e75b0 size 0x315
+  0x29e8080 sub_29e8080 size 0x99f
+  0x29f6480 sub_29f6480 size 0x315
+  0x29f7060 sub_29f7060 size 0xc30
+  0x29f97d0 sub_29f97d0 size 0x315
+  0x29fa2a0 sub_29fa2a0 size 0x100a
+  0x29fdaf0 sub_29fdaf0 size 0x315
+  0x29fe5c0 sub_29fe5c0 size 0x99f
+  0x2a01f30 sub_2a01f30 size 0x315
+  0x2a02a00 sub_2a02a00 size 0x190f
+  0x2a06600 sub_2a06600 size 0x241
+  0x2a069b0 sub_2a069b0 size 0x457
+  0x2a08e70 sub_2a08e70 size 0x315
+  0x2a09940 sub_2a09940 size 0x99f
+  0x2a0cac0 sub_2a0cac0 size 0x315
+  0x2a0d5a0 sub_2a0d5a0 size 0x99f
+  0x2a116c0 sub_2a116c0 size 0x315
+  0x2a12190 sub_2a12190 size 0x139a
+  0x2a17770 sub_2a17770 size 0x315
+  0x2a18240 sub_2a18240 size 0x99f
+  0x2a1cbc0 sub_2a1cbc0 size 0x315
+  0x2a1d800 sub_2a1d800 size 0x99f
+  0x2a21750 sub_2a21750 size 0x315
+  0x2a22220 sub_2a22220 size 0xbec
+  0x2a6c750 sub_2a6c750 size 0x6d9
+  0x2a724f0 sub_2a724f0 size 0x6d9
+  0x2a8c190 sub_2a8c190 size 0x6d9
+  0x2a91860 sub_2a91860 size 0x6d9
+  0x2a96fc0 sub_2a96fc0 size 0x6d9
+  0x2a9fa40 sub_2a9fa40 size 0x6d9
+  0x2aa6660 sub_2aa6660 size 0x6d9
+  0x2aa8f50 sub_2aa8f50 size 0x371
+  0x2ab52d0 sub_2ab52d0 size 0x6d9
+  0x2abfa10 sub_2abfa10 size 0x6d9
+  0x2ad9c40 sub_2ad9c40 size 0x6d9
+  0x2adf110 sub_2adf110 size 0x6d9
+  0x2aee220 sub_2aee220 size 0x6d9
+  0x2b1ce90 sub_2b1ce90 size 0x6d9
+  0x2b50520 sub_2b50520 size 0x6d9
+  0x2b67560 sub_2b67560 size 0x1a1
+  0x2b67b20 sub_2b67b20 size 0x3de
+  0x2b68120 sub_2b68120 size 0x13b9
+  0x2b7f680 sub_2b7f680 size 0x45a
+  0x2b800e0 sub_2b800e0 size 0x5dd
+  0x2b80d30 sub_2b80d30 size 0x69a
+  0x2b815c0 sub_2b815c0 size 0x9cc
+  0x2b82460 sub_2b82460 size 0x371
+  0x2b82bb0 sub_2b82bb0 size 0x1a1
+  0x2b95f30 sub_2b95f30 size 0x191
+  0x2bee7d0 sub_2bee7d0 size 0x1e1c
+  0x2c754b0 sub_2c754b0 size 0x8ae
+  0x2c760a0 sub_2c760a0 size 0x208
+  0x2c9f020 sub_2c9f020 size 0x4d0
+  0x2d32950 sub_2d32950 size 0x52b
+  0x2d33210 sub_2d33210 size 0x38d
+  0x33970b0 sub_33970b0 size 0x315
+  0x3397b80 sub_3397b80 size 0x102a
+  0x339b9f0 sub_339b9f0 size 0x315
+  0x339c4c0 sub_339c4c0 size 0xd5e
+  0x339f9a0 sub_339f9a0 size 0x315
+  0x33a0470 sub_33a0470 size 0x99f
+  0x33b92d0 sub_33b92d0 size 0x315
+  0x33b9da0 sub_33b9da0 size 0xe8e
+  0x33bd8d0 sub_33bd8d0 size 0x315
+  0x33be3e0 sub_33be3e0 size 0x99f
+  0x33c2130 sub_33c2130 size 0x315
+  0x33c2c00 sub_33c2c00 size 0xb0e
+  0x33c5300 sub_33c5300 size 0x315
+  0x33c5dd0 sub_33c5dd0 size 0xac7
+  0x33c83e0 sub_33c83e0 size 0x315
+  0x33c8eb0 sub_33c8eb0 size 0x224b
+  0x33ce880 sub_33ce880 size 0x315
+  0x33cf350 sub_33cf350 size 0x99f
+  0x33d2c10 sub_33d2c10 size 0x315
+  0x33d36f0 sub_33d36f0 size 0xb12
+  0x33d6150 sub_33d6150 size 0x315
+  0x33d6d00 sub_33d6d00 size 0x9ed
+  0x33d9280 sub_33d9280 size 0x315
+  0x33d9d50 sub_33d9d50 size 0xf7c
+  0x33de1a0 sub_33de1a0 size 0x315
+  0x33dec70 sub_33dec70 size 0x1c8c
+  0x33e4330 sub_33e4330 size 0x315
+  0x33e4e00 sub_33e4e00 size 0x16a5
+  0x33eb200 sub_33eb200 size 0x315
+  0x33ebcd0 sub_33ebcd0 size 0x99f
+  0x33ee4e0 sub_33ee4e0 size 0x315
+  0x33eefb0 sub_33eefb0 size 0x9fe
+  0x33f18b0 sub_33f18b0 size 0x315
+  0x33f2380 sub_33f2380 size 0x16cd
+  0x33f6cc0 sub_33f6cc0 size 0x315
+  0x33f7790 sub_33f7790 size 0xad7
+  0x33fa770 sub_33fa770 size 0x315
+  0x33fb240 sub_33fb240 size 0x1707
+  0x33fe470 sub_33fe470 size 0x315
+  0x33fef40 sub_33fef40 size 0x99f
+  0x3401650 sub_3401650 size 0x315
+  0x3402220 sub_3402220 size 0x99f
+  0x3405dd0 sub_3405dd0 size 0x315
+  0x34068a0 sub_34068a0 size 0xcd1
+  0x3409730 sub_3409730 size 0x315
+  0x340a200 sub_340a200 size 0x9ad
+  0x341a650 sub_341a650 size 0x6d9
+  0x3423400 sub_3423400 size 0x6d9
+  0x34869d0 sub_34869d0 size 0x6d9
+  0x3497080 sub_3497080 size 0x6d9
+  0x349bde0 sub_349bde0 size 0x6d9
+  0x34a1330 sub_34a1330 size 0x6d9
+  0x34a3f70 sub_34a3f70 size 0x408
+  0x34b8990 sub_34b8990 size 0x6d9
+  0x34bd560 sub_34bd560 size 0x6d9
+  0x34c26b0 sub_34c26b0 size 0x6d9
+  0x34cc310 sub_34cc310 size 0x6d9
+  0x34d3420 sub_34d3420 size 0x6d9
+  0x34e37d0 sub_34e37d0 size 0x6d9
+  0x34e8ab0 sub_34e8ab0 size 0x6d9
+  0x34f3510 sub_34f3510 size 0x6d9
+  0x34f8920 sub_34f8920 size 0x6d9
+  0x350ff80 sub_350ff80 size 0x6d9
+  0x3519500 sub_3519500 size 0x6d9
+  0x35382a0 sub_35382a0 size 0x84f
+  0x3538df0 sub_3538df0 size 0xf75
+  0x353a6d0 sub_353a6d0 size 0xe7
+  0x353a9d0 sub_353a9d0 size 0x95b
+  0x3640b60 sub_3640b60 size 0x1b1
+  0x3641050 sub_3641050 size 0x3cc
+  0x369e0f0 sub_369e0f0 size 0x84b
+  0x3831850 sub_3831850 size 0x292f
+  0x383ccf0 sub_383ccf0 size 0x43a
+  0x383d1b0 sub_383d1b0 size 0x3e8
+  0x3872ba0 sub_3872ba0 size 0x346a
+  0x3876d00 sub_3876d00 size 0x191
+  0x3959730 sub_3959730 size 0x230
+  0x3a92e10 sub_3a92e10 size 0x11ad
+  0x3a95490 sub_3a95490 size 0x315
+  0x3a95f60 sub_3a95f60 size 0xf9b
+  0x3a99000 sub_3a99000 size 0x315
+  0x3a99be0 sub_3a99be0 size 0xaae
+  0x3a9c470 sub_3a9c470 size 0x315
+  0x3a9cf40 sub_3a9cf40 size 0x99f
+  0x3aa2120 sub_3aa2120 size 0x315
+  0x3aa2cb0 sub_3aa2cb0 size 0x923
+  0x3aa5450 sub_3aa5450 size 0x315
+  0x3aa5f20 sub_3aa5f20 size 0x99f
+  0x3aa8a30 sub_3aa8a30 size 0x315
+  0x3aa9500 sub_3aa9500 size 0xf4a
+  0x3aad180 sub_3aad180 size 0x315
+  0x3aadc50 sub_3aadc50 size 0x99f
+  0x3ab31c0 sub_3ab31c0 size 0x315
+  0x3ab3c90 sub_3ab3c90 size 0x1f0d
+  0x3ab9b10 sub_3ab9b10 size 0x231
+  0x3abafb0 sub_3abafb0 size 0x315
+  0x3abba80 sub_3abba80 size 0xe3f
+  0x3ac20e0 sub_3ac20e0 size 0x315
+  0x3ac2bb0 sub_3ac2bb0 size 0xc5e
+  0x3ac52e0 sub_3ac52e0 size 0x315
+  0x3ac5db0 sub_3ac5db0 size 0x1fe3
+  0x3acb200 sub_3acb200 size 0x315
+  0x3acbcd0 sub_3acbcd0 size 0x99f
+  0x3acfbb0 sub_3acfbb0 size 0x315
+  0x3ad0740 sub_3ad0740 size 0x8e3
+  0x3ad29f0 sub_3ad29f0 size 0x315
+  0x3ad34d0 sub_3ad34d0 size 0x973
+  0x3ad5b10 sub_3ad5b10 size 0x315
+  0x3ad65e0 sub_3ad65e0 size 0x769
+  0x3adb150 sub_3adb150 size 0x315
+  0x3adbc20 sub_3adbc20 size 0x99f
+  0x3adef20 sub_3adef20 size 0x315
+  0x3adfab0 sub_3adfab0 size 0x8a3
+  0x3ae1ba0 sub_3ae1ba0 size 0x315
+  0x3ae2670 sub_3ae2670 size 0x1d92
+  0x3b0e810 sub_3b0e810 size 0x315
+  0x3b0f2e0 sub_3b0f2e0 size 0xbee
+  0x3b11890 sub_3b11890 size 0x315
+  0x3b12360 sub_3b12360 size 0xac7
+  0x3b14a50 sub_3b14a50 size 0x19a
+  0x3bb9ba0 sub_3bb9ba0 size 0x6d9
+  0x3bc3120 sub_3bc3120 size 0x6d9
+  0x3bdca70 sub_3bdca70 size 0x6d9
+  0x3be72d0 sub_3be72d0 size 0x6d9
+  0x3bfbd50 sub_3bfbd50 size 0x6d9
+  0x3c02fa0 sub_3c02fa0 size 0x6d9
+  0x3c0de80 sub_3c0de80 size 0x6d9
+  0x3c17570 sub_3c17570 size 0x6d9
+  0x3c32bb0 sub_3c32bb0 size 0x6d9
+  0x3c37590 sub_3c37590 size 0x6d9
+  0x3c3f2e0 sub_3c3f2e0 size 0x6d9
+  0x3c61f20 sub_3c61f20 size 0x6d9
+  0x3c66f20 sub_3c66f20 size 0x6d9
+  0x3c73c30 sub_3c73c30 size 0x6d9
+  0x3c789b0 sub_3c789b0 size 0x6d9
+  0x3d52550 sub_3d52550 size 0x56c
+  0x3d52eb0 sub_3d52eb0 size 0x9bc
+  0x3d57ef0 sub_3d57ef0 size 0x315
+  0x3d589c0 sub_3d589c0 size 0x943
+  0x3d5b230 sub_3d5b230 size 0x315
+  0x3d5bd00 sub_3d5bd00 size 0xa2f
+  0x3d5efd0 sub_3d5efd0 size 0x315
+  0x3d5faa0 sub_3d5faa0 size 0x99f
+  0x3d649e0 sub_3d649e0 size 0x315
+  0x3d65590 sub_3d65590 size 0x995
+  0x3d70850 sub_3d70850 size 0x315
+  0x3d71320 sub_3d71320 size 0x99f
+  0x3d77390 sub_3d77390 size 0x315
+  0x3d77f20 sub_3d77f20 size 0x8a3
+  0x3d79ca0 sub_3d79ca0 size 0x315
+  0x3d7a860 sub_3d7a860 size 0xab3
+  0x3d7ca40 sub_3d7ca40 size 0x315
+  0x3d7d510 sub_3d7d510 size 0x132e
+  0x3d80010 sub_3d80010 size 0x2dd
+  0x3d807b0 sub_3d807b0 size 0x315
+  0x3d81360 sub_3d81360 size 0x21c7
+  0x3d85070 sub_3d85070 size 0x315
+  0x3d85b40 sub_3d85b40 size 0xc15
+  0x3d890d0 sub_3d890d0 size 0x315
+  0x3d89c60 sub_3d89c60 size 0x8b0
+  0x3d8ba10 sub_3d8ba10 size 0x315
+  0x3d8c4f0 sub_3d8c4f0 size 0x8c3
+  0x3d8f840 sub_3d8f840 size 0x315
+  0x3d90310 sub_3d90310 size 0x15a4
+  0x3d93a90 sub_3d93a90 size 0x315
+  0x3d94560 sub_3d94560 size 0xcbc
+  0x3d972b0 sub_3d972b0 size 0x315
+  0x3d97d80 sub_3d97d80 size 0x130b
+  0x3d9be00 sub_3d9be00 size 0x315
+  0x3d9c9a0 sub_3d9c9a0 size 0x8a3
+  0x3d9e670 sub_3d9e670 size 0x315
+  0x3d9f140 sub_3d9f140 size 0xd1e
+  0x3da24a0 sub_3da24a0 size 0x315
+  0x3da2f70 sub_3da2f70 size 0x1310
+  0x3da6860 sub_3da6860 size 0x315
+  0x3da7330 sub_3da7330 size 0xc27
+  0x3da9ae0 sub_3da9ae0 size 0x315
+  0x3daa5b0 sub_3daa5b0 size 0xeca
+  0x3dae6a0 sub_3dae6a0 size 0x315
+  0x3daf170 sub_3daf170 size 0x1024
+  0x3db1bd0 sub_3db1bd0 size 0xa5b
+  0x3db3760 sub_3db3760 size 0x315
+  0x3db4230 sub_3db4230 size 0x1e36
+  0x3db9840 sub_3db9840 size 0x315
+  0x3dba310 sub_3dba310 size 0x99f
+  0x3dc5670 sub_3dc5670 size 0x6d9
+  0x3dc9b30 sub_3dc9b30 size 0x6d9
+  0x3df3f00 sub_3df3f00 size 0x6d9
+  0x3e0b4d0 sub_3e0b4d0 size 0x6d9
+  0x3e0fce0 sub_3e0fce0 size 0x6d9
+  0x3e156a0 sub_3e156a0 size 0x6d9
+  0x3e1f320 sub_3e1f320 size 0x6d9
+  0x3e30d20 sub_3e30d20 size 0x6d9
+  0x3e3b2b0 sub_3e3b2b0 size 0x6d9
+  0x3e3fde0 sub_3e3fde0 size 0x6d9
+  0x3e47650 sub_3e47650 size 0x6d9
+  0x3e53360 sub_3e53360 size 0x6d9
+  0x3e58440 sub_3e58440 size 0x6d9
+  0x3e5dbe0 sub_3e5dbe0 size 0x6d9
+  0x3e621e0 sub_3e621e0 size 0x6d9
+  0x3e67b70 sub_3e67b70 size 0x6d9
+  0x3e6d1b0 sub_3e6d1b0 size 0x6d9
+  0x3e72710 sub_3e72710 size 0x6d9
+  0x3e7cca0 sub_3e7cca0 size 0x6d9
+  0x3e7f510 sub_3e7f510 size 0xbbf
+  0x3e8ccb0 sub_3e8ccb0 size 0x6d9
+  0x3fd9170 sub_3fd9170 size 0x315
+  0x3fd9c40 sub_3fd9c40 size 0x10e2
+  0x3fdd650 sub_3fdd650 size 0x315
+  0x3fde120 sub_3fde120 size 0x10f9
+  0x3fe0e20 sub_3fe0e20 size 0x315
+  0x3fe18f0 sub_3fe18f0 size 0xc3e
+  0x3fe47b0 sub_3fe47b0 size 0x315
+  0x3fe5280 sub_3fe5280 size 0x18cc
+  0x3feab70 sub_3feab70 size 0x315
+  0x3feb640 sub_3feb640 size 0x149c
+  0x3ff12d0 sub_3ff12d0 size 0x315
+  0x3ff1db0 sub_3ff1db0 size 0x8a3
+  0x3ff4100 sub_3ff4100 size 0x315
+  0x3ff4cb0 sub_3ff4cb0 size 0x9d6
+  0x3ff6be0 sub_3ff6be0 size 0x315
+  0x3ff76b0 sub_3ff76b0 size 0x1576
+  0x3ffc730 sub_3ffc730 size 0x315
+  0x3ffd2b0 sub_3ffd2b0 size 0x99f
+  0x3fff250 sub_3fff250 size 0x315
+  0x3fffd20 sub_3fffd20 size 0x99f
+  0x4002920 sub_4002920 size 0x315
+  0x40033f0 sub_40033f0 size 0x1762
+  0x4009b00 sub_4009b00 size 0x315
+  0x400a5d0 sub_400a5d0 size 0x1e5d
+  0x400e630 sub_400e630 size 0x315
+  0x400f1d0 sub_400f1d0 size 0x9ad
+  0x4013b40 sub_4013b40 size 0x315
+  0x4014610 sub_4014610 size 0xfce
+  0x40181e0 sub_40181e0 size 0x315
+  0x4018cb0 sub_4018cb0 size 0x99f
+  0x401c010 sub_401c010 size 0x315
+  0x401cf20 sub_401cf20 size 0x99f
+  0x40357e0 sub_40357e0 size 0x315
+  0x40362b0 sub_40362b0 size 0x99f
+  0x4038c20 sub_4038c20 size 0x315
+  0x40397b0 sub_40397b0 size 0x6fd
+  0x403b870 sub_403b870 size 0x315
+  0x403c340 sub_403c340 size 0xc0b
+  0x403ed20 sub_403ed20 size 0x191
+  0x403f400 sub_403f400 size 0x315
+  0x403fed0 sub_403fed0 size 0x99f
+  0x40465d0 sub_40465d0 size 0x315
+  0x40470f0 sub_40470f0 size 0x99f
+  0x404b7d0 sub_404b7d0 size 0x315
+  0x404c2a0 sub_404c2a0 size 0x99f
+  0x404e9f0 sub_404e9f0 size 0x315
+  0x404f4c0 sub_404f4c0 size 0xa5c
+  0x4051b70 sub_4051b70 size 0x315
+  0x4052640 sub_4052640 size 0xe7e
+  0x40577a0 sub_40577a0 size 0x6d9
+  0x405fc10 sub_405fc10 size 0x6d9
+  0x4069830 sub_4069830 size 0x6d9
+  0x406e740 sub_406e740 size 0x6d9
+  0x40798b0 sub_40798b0 size 0x6d9
+  0x4084440 sub_4084440 size 0x6d9
+  0x4088db0 sub_4088db0 size 0x6d9
+  0x408de20 sub_408de20 size 0x6d9
+  0x40a6e30 sub_40a6e30 size 0x6d9
+  0x40b2390 sub_40b2390 size 0x6d9
+  0x40b4e40 sub_40b4e40 size 0x3f8
+  0x40bb3d0 sub_40bb3d0 size 0x6d9
+  0x40c4e50 sub_40c4e50 size 0x6d9
+  0x4115010 sub_4115010 size 0x6d9
+  0x4119a50 sub_4119a50 size 0x6d9
+  0x414e700 sub_414e700 size 0x6d9
+  0x41538c0 sub_41538c0 size 0x6d9
+  0x4158410 sub_4158410 size 0x315
+  0x4158ee0 sub_4158ee0 size 0x99f
+  0x415bf30 sub_415bf30 size 0x315
+  0x415ca00 sub_415ca00 size 0x99f
+  0x415f560 sub_415f560 size 0x315
+  0x4160030 sub_4160030 size 0x99f
+  0x41647a0 sub_41647a0 size 0x315
+  0x41653c0 sub_41653c0 size 0x99f
+  0x416a780 sub_416a780 size 0x315
+  0x416b250 sub_416b250 size 0x99f
+  0x4170e30 sub_4170e30 size 0x315
+  0x4171900 sub_4171900 size 0x99f
+  0x4175ab0 sub_4175ab0 size 0x315
+  0x4176580 sub_4176580 size 0x99f
+  0x4178a90 sub_4178a90 size 0x315
+  0x4179560 sub_4179560 size 0x1939
+  0x417f070 sub_417f070 size 0x315
+  0x417fb40 sub_417fb40 size 0x99f
+  0x41876d0 sub_41876d0 size 0x315
+  0x4188290 sub_4188290 size 0xa5c
+  0x418a120 sub_418a120 size 0x315
+  0x418abf0 sub_418abf0 size 0x1278
+  0x418dc40 sub_418dc40 size 0x315
+  0x418e710 sub_418e710 size 0x247e
+  0x4196430 sub_4196430 size 0x315
+  0x4196fe0 sub_4196fe0 size 0x99f
+  0x41991c0 sub_41991c0 size 0x315
+  0x4199ca0 sub_4199ca0 size 0x99f
+  0x419d180 sub_419d180 size 0x315
+  0x419dd40 sub_419dd40 size 0x9a6
+  0x419fb80 sub_419fb80 size 0x315
+  0x41a0650 sub_41a0650 size 0xd4e
+  0x41a3270 sub_41a3270 size 0x315
+  0x41a3d40 sub_41a3d40 size 0xf4c
+  0x41a6ee0 sub_41a6ee0 size 0x315
+  0x41a7a70 sub_41a7a70 size 0x1315
+  0x41aa240 sub_41aa240 size 0x315
+  0x41aad10 sub_41aad10 size 0xc07
+  0x41ad870 sub_41ad870 size 0x315
+  0x41ae340 sub_41ae340 size 0x1775
+  0x41b3050 sub_41b3050 size 0x315
+  0x41b3b20 sub_41b3b20 size 0x99f
+  0x41c1070 sub_41c1070 size 0x315
+  0x41c1c50 sub_41c1c50 size 0xd7b
+  0x41c5490 sub_41c5490 size 0x315
+  0x41c60b0 sub_41c60b0 size 0x99f
+  0x41c8a30 sub_41c8a30 size 0x315
+  0x41c95c0 sub_41c95c0 size 0x923
+  0x41cba00 sub_41cba00 size 0x315
+  0x41cc4e0 sub_41cc4e0 size 0xa4b
+  0x422ad70 sub_422ad70 size 0x6d9
+  0x42516e0 sub_42516e0 size 0x6d9
+  0x4256770 sub_4256770 size 0x6d9
+  0x42675d0 sub_42675d0 size 0x6d9
+  0x4289a90 sub_4289a90 size 0x6d9
+  0x428e6b0 sub_428e6b0 size 0x6d9
+  0x42931b0 sub_42931b0 size 0x6d9
+  0x42984a0 sub_42984a0 size 0x6d9
+  0x42a0930 sub_42a0930 size 0x6d9
+  0x42a55a0 sub_42a55a0 size 0x6d9
+  0x42a7c30 sub_42a7c30 size 0x352
+  0x43062f0 sub_43062f0 size 0x6d9
+  0x4321400 sub_4321400 size 0x6d9
+  0x4326170 sub_4326170 size 0x6d9
+  0x4345f80 sub_4345f80 size 0x315
+  0x4346a50 sub_4346a50 size 0x99f
+  0x434cba0 sub_434cba0 size 0x315
+  0x434d680 sub_434d680 size 0x99f
+  0x434fe30 sub_434fe30 size 0x315
+  0x4350900 sub_4350900 size 0x8cf
+  0x4353f40 sub_4353f40 size 0x52e
+  0x4354880 sub_4354880 size 0x315
+  0x4355350 sub_4355350 size 0xd39
+  0x4358cf0 sub_4358cf0 size 0x315
+  0x43597c0 sub_43597c0 size 0x99f
+  0x4364600 sub_4364600 size 0x315
+  0x43650d0 sub_43650d0 size 0xb57
+  0x43687d0 sub_43687d0 size 0x315
+  0x4369390 sub_4369390 size 0x99f
+  0x436b330 sub_436b330 size 0x315
+  0x436cfc0 sub_436cfc0 size 0x315
+  0x436db50 sub_436db50 size 0x8b3
+  0x436f790 sub_436f790 size 0x315
+  0x4370320 sub_4370320 size 0x923
+  0x43724f0 sub_43724f0 size 0x315
+  0x4372fc0 sub_4372fc0 size 0x9cf
+  0x4375200 sub_4375200 size 0x315
+  0x4375cd0 sub_4375cd0 size 0x1566
+  0x437ace0 sub_437ace0 size 0x315
+  0x437b7b0 sub_437b7b0 size 0x9a6
+  0x437dda0 sub_437dda0 size 0x315
+  0x437e870 sub_437e870 size 0x8b3
+  0x4380f70 sub_4380f70 size 0x315
+  0x4381a40 sub_4381a40 size 0xd3e
+  0x43849c0 sub_43849c0 size 0x315
+  0x4385490 sub_4385490 size 0xdd4
+  0x4388c00 sub_4388c00 size 0x315
+  0x43896e0 sub_43896e0 size 0xa5c
+  0x438c0e0 sub_438c0e0 size 0x315
+  0x438cbd0 sub_438cbd0 size 0x99f
+  0x4392a10 sub_4392a10 size 0x315
+  0x43934e0 sub_43934e0 size 0x15ac
+  0x4397ed0 sub_4397ed0 size 0x315
+  0x4398a20 sub_4398a20 size 0x1b21
+  0x439f080 sub_439f080 size 0x315
+  0x439fbe0 sub_439fbe0 size 0x99f
+  0x43a3cd0 sub_43a3cd0 size 0x315
+  0x43a4830 sub_43a4830 size 0x99f
+  0x43a64d0 sub_43a64d0 size 0x315
+  0x43a6fa0 sub_43a6fa0 size 0xd72
+  0x43aa740 sub_43aa740 size 0x315
+  0x43ab300 sub_43ab300 size 0xab3
+  0x43ad510 sub_43ad510 size 0x315
+  0x43adfe0 sub_43adfe0 size 0x99f
+  0x43e5960 sub_43e5960 size 0x6d9
+  0x43eb310 sub_43eb310 size 0x6d9
+  0x44252c0 sub_44252c0 size 0x6d9
+  0x442d1f0 sub_442d1f0 size 0x6d9
+  0x4430d50 sub_4430d50 size 0x6d9
+  0x4435680 sub_4435680 size 0x6d9
+  0x443a150 sub_443a150 size 0x6d9
+  0x443ed60 sub_443ed60 size 0x6d9
+  0x4443fb0 sub_4443fb0 size 0x6d9
+  0x4448c50 sub_4448c50 size 0x6d9
+  0x444d5c0 sub_444d5c0 size 0x6d9
+  0x4452740 sub_4452740 size 0x6d9
+  0x44580e0 sub_44580e0 size 0x6d9
+  0x4470ea0 sub_4470ea0 size 0x6d9
+  0x44773a0 sub_44773a0 size 0x6d9
+  0x4499c70 sub_4499c70 size 0x6d9
+  0x449ede0 sub_449ede0 size 0x6d9
+  0x44acc90 sub_44acc90 size 0x315
+  0x44ad830 sub_44ad830 size 0x9ad
+  0x44af660 sub_44af660 size 0x315
+  0x44b01f0 sub_44b01f0 size 0x8b3
+  0x44b2560 sub_44b2560 size 0x315
+  0x44b3030 sub_44b3030 size 0xf8f
+  0x44b6000 sub_44b6000 size 0x315
+  0x44b6ad0 sub_44b6ad0 size 0x99f
+  0x44b9700 sub_44b9700 size 0x315
+  0x44ba2a0 sub_44ba2a0 size 0x87d
+  0x44bc650 sub_44bc650 size 0x315
+  0x44bd1e0 sub_44bd1e0 size 0xebe
+  0x44bfdc0 sub_44bfdc0 size 0x315
+  0x44c0920 sub_44c0920 size 0x99f
+  0x44c7510 sub_44c7510 size 0x315
+  0x44c8040 sub_44c8040 size 0x99f
+  0x44cb3e0 sub_44cb3e0 size 0x315
+  0x44cbeb0 sub_44cbeb0 size 0xfdb
+  0x44cf7d0 sub_44cf7d0 size 0x315
+  0x44d0370 sub_44d0370 size 0x8a3
+  0x44d28c0 sub_44d28c0 size 0x315
+  0x44d3390 sub_44d3390 size 0x1931
+  0x44d9fb0 sub_44d9fb0 size 0x315
+  0x44dab70 sub_44dab70 size 0xa5c
+  0x44dc9e0 sub_44dc9e0 size 0x315
+  0x44dd4b0 sub_44dd4b0 size 0xbad
+  0x44e0990 sub_44e0990 size 0x315
+  0x44e1520 sub_44e1520 size 0x923
+  0x44e33d0 sub_44e33d0 size 0x315
+  0x44e3ea0 sub_44e3ea0 size 0x99f
+  0x44e5c10 sub_44e5c10 size 0x315
+  0x44e67b0 sub_44e67b0 size 0x9ad
+  0x44e9ae0 sub_44e9ae0 size 0x315
+  0x44ea680 sub_44ea680 size 0x9ad
+  0x44ecb50 sub_44ecb50 size 0x315
+  0x44ed620 sub_44ed620 size 0x9b5
+  0x44eff80 sub_44eff80 size 0x315
+  0x44f0a50 sub_44f0a50 size 0x1cef
+  0x44f5640 sub_44f5640 size 0x315
+  0x44f6110 sub_44f6110 size 0x99f
+  0x4507e90 sub_4507e90 size 0x315
+  0x4508970 sub_4508970 size 0xba9
+  0x450b010 sub_450b010 size 0x315
+  0x450bae0 sub_450bae0 size 0x99f
+  0x450dc60 sub_450dc60 size 0x315
+  0x450e730 sub_450e730 size 0x124e
+  0x4513e10 sub_4513e10 size 0x315
+  0x4514a80 sub_4514a80 size 0x99f
+  0x451bf50 sub_451bf50 size 0x315
+  0x451ca20 sub_451ca20 size 0x99f
+  0x45667c0 sub_45667c0 size 0x6d9
+  0x456adb0 sub_456adb0 size 0x6d9
+  0x456f580 sub_456f580 size 0x6d9
+  0x457dc90 sub_457dc90 size 0x6d9
+  0x4582420 sub_4582420 size 0x6d9
+  0x45b6f20 sub_45b6f20 size 0x6d9
+  0x45c0c90 sub_45c0c90 size 0x6d9
+  0x45c5ea0 sub_45c5ea0 size 0x6d9
+  0x45d1ae0 sub_45d1ae0 size 0x6d9
+  0x45d6b10 sub_45d6b10 size 0x6d9
+  0x45db590 sub_45db590 size 0x6d9
+  0x45e7dc0 sub_45e7dc0 size 0x6d9
+  0x45f13a0 sub_45f13a0 size 0x6d9
+  0x45f96f0 sub_45f96f0 size 0x6d9
+  0x45fea80 sub_45fea80 size 0x6d9
+  0x462f4a0 sub_462f4a0 size 0x6d9
+  0x463b820 sub_463b820 size 0x6d9
+  0x4a87b10 sub_4a87b10 size 0xaf8
+  0x4a8e7c0 sub_4a8e7c0 size 0x114c
+  0x4a90880 sub_4a90880 size 0x386
+  0x4a90f00 sub_4a90f00 size 0x9c1
+  0x4a93840 sub_4a93840 size 0xa59
+  0x4b39770 sub_4b39770 size 0x36f
+  0x4fb3870 sub_4fb3870 size 0x5a0a
+  0x4fbe0c0 sub_4fbe0c0 size 0x2c3f
+  0x54de8d0 sub_54de8d0 size 0xdd6
+  0x56e6480 sub_56e6480 size 0x447
+  0x5a2e910 sub_5a2e910 size 0x3e5
+  0x5a899d0 sub_5a899d0 size 0x8f4
+  0x5a8a4f0 sub_5a8a4f0 size 0xd4a
+  0x5aae550 sub_5aae550 size 0x1880
+  0x5e3a880 sub_5e3a880 size 0x7a
+  0x5e3aa30 sub_5e3aa30 size 0x65
+  0x5e3abd0 sub_5e3abd0 size 0xa4
+  0x5e3aee0 sub_5e3aee0 size 0xa4
+  0x5e3b1f0 sub_5e3b1f0 size 0xa5
+  0x5e3b500 sub_5e3b500 size 0xa5
+  0x5e3b810 sub_5e3b810 size 0xa3
+  0x5e3bb20 sub_5e3bb20 size 0xa4
+  0x5e3be30 sub_5e3be30 size 0x66
+  0x5e3bfd0 sub_5e3bfd0 size 0xa1
+  0x5e3c2e0 sub_5e3c2e0 size 0xb8
+  0x5e3c600 sub_5e3c600 size 0x68
+  0x5e3c7a0 sub_5e3c7a0 size 0x20c
+  0x5e3cc90 sub_5e3cc90 size 0x302
+  0x6632fd0 sub_6632fd0 size 0x1531
+  0x6c731b0 sub_6c731b0 size 0xc4f
+  0x6c78c60 sub_6c78c60 size 0x597
+  0x6c7a3d0 sub_6c7a3d0 size 0x956
+  0x6cf2f90 sub_6cf2f90 size 0x465
+  0x6cf3920 sub_6cf3920 size 0x421
+  0x6cf40d0 sub_6cf40d0 size 0x811
+  0x6cf5470 sub_6cf5470 size 0x5fa
+  0x6cf9a30 sub_6cf9a30 size 0x496
+  0x6cfa860 sub_6cfa860 size 0x14e0
+  0x6d017f0 sub_6d017f0 size 0x2c0
+  0x6d01ae0 sub_6d01ae0 size 0x50d
+  0x6d02950 sub_6d02950 size 0x15d
+  0x6d02ae0 sub_6d02ae0 size 0x18e
+  0x6d02ce0 sub_6d02ce0 size 0x187
+  0x77835c0 sub_77835c0 size 0x55a
+  0x778f350 sub_778f350 size 0x1a1
+  0x778f540 sub_778f540 size 0x1b1
+  0x778f740 sub_778f740 size 0x1a1
+  0x778f930 sub_778f930 size 0x1a1
+  0x778fb20 sub_778fb20 size 0x1a1
+  0x778fd10 sub_778fd10 size 0xa1
+  0x778fdc0 sub_778fdc0 size 0x252
+  0x77a5a50 sub_77a5a50 size 0x128
+  0x77a5ee0 sub_77a5ee0 size 0xf3
+  0x77a5fe0 sub_77a5fe0 size 0x1df
+  0x77a61f0 sub_77a61f0 size 0xff
+  0x77a62f0 sub_77a62f0 size 0xff
+  0x77a63f0 sub_77a63f0 size 0x139
+  0x77a6530 sub_77a6530 size 0x112
+  0x77a6650 sub_77a6650 size 0x222
+  0x77a68a0 sub_77a68a0 size 0x1f7
+  0x77a6ac0 sub_77a6ac0 size 0x1f7
+  0x77a6ce0 sub_77a6ce0 size 0x31e4
+  0x77ab3d0 sub_77ab3d0 size 0x339
+  0x7835550 sub_7835550 size 0x40d
+  0x7a57c70 sub_7a57c70 size 0x359
+  0x7a58110 sub_7a58110 size 0x54c
+  0x7a58b70 sub_7a58b70 size 0xe57
+  0x80ec2b0 sub_80ec2b0 size 0x39d
+  0x83ce7b0 sub_83ce7b0 size 0x697
+  0x83cef70 sub_83cef70 size 0x44e
+  0x83cf810 sub_83cf810 size 0x1d6
+  0x83cfe20 sub_83cfe20 size 0x71b
+  0x83d06d0 sub_83d06d0 size 0x381
+  0x83d0e10 sub_83d0e10 size 0x3db
+  0x83d1250 sub_83d1250 size 0xb9b
+  0x83d24a0 sub_83d24a0 size 0x40b
+  0x83d2cd0 sub_83d2cd0 size 0x40b
+  0x83d5f20 sub_83d5f20 size 0x705
+  0x8562070 sub_8562070 size 0xe00
+  0x85694d0 sub_85694d0 size 0xacb
+  0x85bea00 sub_85bea00 size 0x315
+  0x85bf4d0 sub_85bf4d0 size 0xae7
+  0x85c1cb0 sub_85c1cb0 size 0x315
+  0x85c2780 sub_85c2780 size 0x99f
+  0x85c9820 sub_85c9820 size 0x315
+  0x85ca2f0 sub_85ca2f0 size 0x99f
+  0x85cd9d0 sub_85cd9d0 size 0x315
+  0x85ce4b0 sub_85ce4b0 size 0x99f
+  0x85d0770 sub_85d0770 size 0x315
+  0x85d1240 sub_85d1240 size 0x99f
+  0x85d50e0 sub_85d50e0 size 0x315
+  0x85d5bb0 sub_85d5bb0 size 0x99f
+  0x85d9000 sub_85d9000 size 0x315
+  0x85d9b90 sub_85d9b90 size 0x99f
+  0x85dbb30 sub_85dbb30 size 0x315
+  0x85dc6e0 sub_85dc6e0 size 0x99f
+  0x85de710 sub_85de710 size 0x315
+  0x85df2a0 sub_85df2a0 size 0x99f
+  0x85e1240 sub_85e1240 size 0x315
+  0x85e1d10 sub_85e1d10 size 0x99f
+  0x85e4480 sub_85e4480 size 0x315
+  0x85e4f50 sub_85e4f50 size 0x99f
+  0x85e6dd0 sub_85e6dd0 size 0x315
+  0x85e78a0 sub_85e78a0 size 0xdf0
+  0x85ea9a0 sub_85ea9a0 size 0x315
+  0x85eb470 sub_85eb470 size 0x1212
+  0x85ee1e0 sub_85ee1e0 size 0x315
+  0x85eed80 sub_85eed80 size 0x8a3
+  0x85f0b40 sub_85f0b40 size 0x315
+  0x85f1650 sub_85f1650 size 0xeb0
+  0x85f4b60 sub_85f4b60 size 0x315
+  0x85f5630 sub_85f5630 size 0x1090
+  0x85f91d0 sub_85f91d0 size 0x315
+  0x85f9d60 sub_85f9d60 size 0x8a3
+  0x85fc270 sub_85fc270 size 0x315
+  0x85fcd40 sub_85fcd40 size 0x99f
+  0x86001d0 sub_86001d0 size 0x315
+  0x8600ca0 sub_8600ca0 size 0x1b2e
+  0x8605020 sub_8605020 size 0x315
+  0x8607000 sub_8607000 size 0x315
+  0x8607ad0 sub_8607ad0 size 0x99f
+  0x860d8d0 sub_860d8d0 size 0x315
+  0x860f8b0 sub_860f8b0 size 0x315
+  0x8610450 sub_8610450 size 0x99f
+  0x86123f0 sub_86123f0 size 0x315
+  0x8612f80 sub_8612f80 size 0x99f
+  0x8614ee0 sub_8614ee0 size 0x315
+  0x8615a40 sub_8615a40 size 0x99f
+  0x861d5d0 sub_861d5d0 size 0x6d9
+  0x8681240 sub_8681240 size 0x6d9
+  0x8686800 sub_8686800 size 0x6d9
+  0x868ce40 sub_868ce40 size 0x6d9
+  0x86916f0 sub_86916f0 size 0x6d9
+  0x8696ba0 sub_8696ba0 size 0x6d9
+  0x86994e0 sub_86994e0 size 0x399
+  0x86a15c0 sub_86a15c0 size 0x6d9
+  0x86af2d0 sub_86af2d0 size 0x6d9
+  0x86b6060 sub_86b6060 size 0x6d9
+  0x86d2730 sub_86d2730 size 0x6d9
+  0x8709cd0 sub_8709cd0 size 0x38d
+  0x8854c70 sub_8854c70 size 0x59e
+  0x88bca20 sub_88bca20 size 0x19c
+  0x88bcc20 sub_88bcc20 size 0x19a
+  0x88bce20 sub_88bce20 size 0x19c
+  0x88bd020 sub_88bd020 size 0x199
+  0x8901940 sub_8901940 size 0x1403
+  0x89031c0 sub_89031c0 size 0xf88
+  0x8ba2f20 sub_8ba2f20 size 0x207e
+  0x8ba59d0 sub_8ba59d0 size 0x1506
+  0x8ba74f0 sub_8ba74f0 size 0xb15
+  0x8be8f80 sub_8be8f80 size 0xd0f
+  0x8bea0f0 sub_8bea0f0 size 0x967
+  0x9fded90 sub_9fded90 size 0x860
+  0x9fe2410 sub_9fe2410 size 0x9d0
+  0xa03e2f0 sub_a03e2f0 size 0x44a8
+  0xa085690 sub_a085690 size 0x2c3c
+  0xa08caa0 sub_a08caa0 size 0x361
+  0xa0bf440 sub_a0bf440 size 0x1607
+  0xa0c1030 sub_a0c1030 size 0xad9
+  0xa0c6130 sub_a0c6130 size 0x18c2
+  0xa1f14b0 sub_a1f14b0 size 0x28a
+  0xa1f4310 sub_a1f4310 size 0x21d
+  0xa226040 sub_a226040 size 0x381
+  0xa226650 sub_a226650 size 0x5e7
+  0xa226f00 sub_a226f00 size 0x824
+  0xae7bc70 sub_ae7bc70 size 0x838
+  0xaebc880 sub_aebc880 size 0x299
+  0xb379420 sub_b379420 size 0x2830
+  0xb37dab0 sub_b37dab0 size 0xbded
+  0xb38cfc0 sub_b38cfc0 size 0x107f
+  0xb38e4f0 sub_b38e4f0 size 0x2b0c
+  0xb396bf0 sub_b396bf0 size 0x5984
+  0xb39e2b0 sub_b39e2b0 size 0xa58
+  0xb39f500 sub_b39f500 size 0x299
+  0xb39f960 sub_b39f960 size 0x93b
+  0xb3a0350 sub_b3a0350 size 0x299
+  0xb3a0d50 sub_b3a0d50 size 0x2a4
+  0xb3a20d0 sub_b3a20d0 size 0xab3
+  0xb3a2c90 sub_b3a2c90 size 0x784
+  0xb3a3980 sub_b3a3980 size 0x27f
+  0xb3a3ed0 sub_b3a3ed0 size 0x299
+  0xb3a43a0 sub_b3a43a0 size 0x299
+  0xb3a4b90 sub_b3a4b90 size 0xd3c
+  0xb3a5e90 sub_b3a5e90 size 0x1449
+  0xb3a77e0 sub_b3a77e0 size 0x287
+  0xb3a81c0 sub_b3a81c0 size 0x16b4
+  0xc13adf0 sub_c13adf0 size 0x70c
+  0xc13d2c0 sub_c13d2c0 size 0x898
+  0xd1f0630 sub_d1f0630 size 0x1088
+  0xd1f1b10 sub_d1f1b10 size 0x1236
+  0xda61910 sub_da61910 size 0x3078
+  0xda6b270 sub_da6b270 size 0x1805
+  0xdabb980 sub_dabb980 size 0xef0
+  -- 1252 calling function(s)
+```
+
+## CALLEES (signature + status, trust [proven] from exe)
+  rva        name               status     signature  trust     boundary  source/dossier
+  0x9c590     sub_9c590         set         [open]     [proven]  src=src\client\features\render\native\helpers\sub_9c590.cpp;src\client\features\render\native\helpers\sub_9c590.h
+  0x9c650     sub_9c650         set         [open]     [proven]  src=src\client\features\render\native\helpers\sub_9c650.cpp;src\client\features\render\native\helpers\sub_9c650.h
+  0xe935700   sub_e935700       set         [open]     [proven]  src=src\client\features\render\native\helpers\sub_e935700.cpp;src\client\features\render\native\helpers\sub_e935700.h
+
+## STRINGS AND RIP REFS
+  (none)
+
+## FIELD ACCESS TABLE (descscan2, regs rdi,rsi,r9,r15)
+  (no [reg+off] description reads detected; register unknown -> [open])
+
+## KNOWN STRUCT LAYOUTS TOUCHED
+  (none detected)
+
+## CLOSEST FINISHED LIFT (style example, same size band + call shape)
+  e93c790.md  size 0x101  callees~20  trust [derived]
+  dossier: C:\Users\Atomi\Desktop\BlueySenseV2\docs\functions\e93c790.md
+
+## KNOWN FACTS [derived]
+  (none in ctx_facts.tsv for target or its direct callees/callers)
+
+## DEAD ENDS [open]
+  Unverified questions from oc_U-E*.md for target or its direct callees/callers.
+  - UNRESOLVED CALL: - 0xe935700 (sub_e935700): `call 0xE935700` at 0xbc3c6f8 and 0xbc3c741. sub_e935700 is a thunk (`jmp sub_392960` @0xe935700). Neither sub_e935700 nor sub_392960 appears in docs/data/native_functions.tsv or docs/data/native_boundary.tsv. Declared as `extern "C" void sub_e935700(uint64_t, uint64_t, void*, void*)` matching register usage; no wrapper invented. (from docs\progress\oc_U-EX1.bc3c6b0.md)
+  - UNRESOLVED CALL: 0xE935700 at 0xbc56577: `0xbc56577  call 0xE935700` — direct call target neither in the lift set (callees_in_set empty per unit data) nor in docs/data/native_boundary.tsv. Checked docs/data/native_functions.tsv, native_boundary.tsv, function_classes.tsv, native_deps.tsv, native_roots.txt, native_unresolved_indirect.tsv: no entry. Not emitted in lifted code (no wrapper per unit rules); quoted verbatim in source for coverage. (from docs\progress\oc_U-EX1.bc56190_r1.md)
+  - UNRESOLVED CALL: 0xE935700 at 0xbc56577 (direct call 0xE935700: target neither lifted nor boundary); import-slot call qword ptr [0xF9A8C78] at 0xbc56600 likewise outside both tables (from docs\progress\oc_U-EX1.bc56190_r1.md)
+  - UNRESOLVED CALL: none. All six calls resolved: `call 0xE935700` x2 (lift callee sub_e935700, forward-declared and called directly), `call qword ptr [0xF99FFA0]` x3 (vtable slots 4/0/1 through the jmp-rax thunk, no static target by design), `call qword ptr [0xF9A8C78]` x1 (data-slot function-pointer call, rule 69, documented with slot RVA). (from docs\progress\oc_U-EX1.bc97070.md)
+
+## DECISIONS
+  - D-rank not derivable from static data; needs a model/orchestrator decision [open]
+  - description register for descscan2 unknown; tried rdi,rsi,r9,r15, result best-effort [open]
+  - callee signatures not available (no Sigs.json); each callee ABI/signature is [open]
+  - field offsets above are [derived] from descscan2; struct/meaning is [open]
+  - 'closest finished lift' size-band match is [derived], not verified as same call shape [open]
+
+
+
+CURRENT FILES (written by the scaffold program):
+===== src/client/features/render/native/helpers/sub_79950.h (current content on disk) =====
+#pragma once
+#include <cstddef>
+#include <cstdint>
+
+namespace native::helpers {
+
+// Typed state layout(s) for sub_79950, reverse-engineered from the disassembly
+// of [0x79950, 0x79a6a), Minecraft Windows 1.26.62.01. [proven] offsets/widths/signedness
+// come straight from the instruction operands; field NAMES and MEANINGS are [open].
+// One struct per base register that is dereferenced (rcx/rdx/r8/r9 this/a1/a2 and
+// any other register used as a memory base). Field f<hex> is at offset 0x<hex>.
+
+// Struct for base register rcx (dereferenced in this function) [proven base, [open] name/meaning]
+// The struct is packed (#pragma pack(1)) so every declared field sits exactly at its
+// observed offset and offsetof() matches it. The real object may have compiler-inserted
+// alignment padding, so sizeof is a lower bound, not an exact size. [open] field meanings.
+#pragma pack(push, 1)
+struct sub_79950_rcx {
+    std::uint64_t f0[2];   // // +0x00: std::uint64_t[2] W  (R/W cited: 0x79992:W)
+    std::uint64_t f10[2];   // // +0x10: std::uint64_t[2] W  (R/W cited: 0x799a3:W)
+    std::uint64_t f20[2];   // // +0x20: std::uint64_t[2] W  (R/W cited: 0x799b5:W)
+    std::uint64_t f30[2];   // // +0x30: std::uint64_t[2] W  (R/W cited: 0x799b9:W)
+    std::uint8_t f40;   // // +0x40: std::uint8_t W  (R/W cited: 0x79989:W)
+};
+#pragma pack(pop)
+
+// Struct for base register rdx (dereferenced in this function) [proven base, [open] name/meaning]
+// The struct is packed (#pragma pack(1)) so every declared field sits exactly at its
+// observed offset and offsetof() matches it. The real object may have compiler-inserted
+// alignment padding, so sizeof is a lower bound, not an exact size. [open] field meanings.
+#pragma pack(push, 1)
+struct sub_79950_rdx {
+    std::uint64_t f0[2];   // // +0x00: std::uint64_t[2] R  (R/W cited: 0x79961:R)
+    std::uint64_t f10[2];   // // +0x10: std::uint64_t[2] R/W  (R/W cited: 0x7996e:R, 0x7997d:W)
+    std::uint64_t f20[2];   // // +0x20: std::uint64_t[2] R/W  (R/W cited: 0x79972:R, 0x79981:W)
+    // // +0x28: std::uint64_t R  (R/W cited: 0x799c2:R, 0x799cb:R)   [subsumed by earlier field; overlapping access, no separate field]
+    std::uint64_t f30[2];   // // +0x30: std::uint64_t[2] R/W  (R/W cited: 0x79976:R, 0x79985:W, 0x799cf:R)
+    // // +0x38: std::uint64_t R  (R/W cited: 0x799f7:R)   [subsumed by earlier field; overlapping access, no separate field]
+};
+#pragma pack(pop)
+
+// (no non-negative-offset fields; base only used for stack/scratch accesses)
+
+// Struct for base register rbx (dereferenced in this function) [proven base, [open] name/meaning]
+// The struct is packed (#pragma pack(1)) so every declared field sits exactly at its
+// observed offset and offsetof() matches it. The real object may have compiler-inserted
+// alignment padding, so sizeof is a lower bound, not an exact size. [open] field meanings.
+#pragma pack(push, 1)
+struct sub_79950_rbx {
+    void* f0[2];   // // +0x00: void*[2] R/W  (R/W cited: 0x799f4:R, 0x79a2a:W)
+    std::uint64_t f10;   // // +0x10: std::uint64_t W  (R/W cited: 0x79a2d:W)
+};
+#pragma pack(pop)
+
+// Struct for base register rsp (dereferenced in this function) [proven base, [open] name/meaning]
+// The struct is packed (#pragma pack(1)) so every declared field sits exactly at its
+// observed offset and offsetof() matches it. The real object may have compiler-inserted
+// alignment padding, so sizeof is a lower bound, not an exact size. [open] field meanings.
+#pragma pack(push, 1)
+struct sub_79950_rsp {
+    std::uint8_t pad0x00[0x20];   // +0x00..+0x1f padding (no observed access)
+    std::uint64_t f20;   // // +0x20: std::uint64_t W  (R/W cited: 0x79a50:W)
+    std::uint8_t pad0x28[0x8];   // +0x28..+0x2f padding (no observed access)
+    std::uint8_t f30;   // // +0x30: std::uint8_t R/W  (R/W cited: 0x79964:W, 0x7998d:R)
+    std::uint8_t pad0x31[0xf];   // +0x31..+0x3f padding (no observed access)
+    std::uint8_t f40;   // // +0x40: std::uint8_t R/W  (R/W cited: 0x79969:R, 0x79995:W)
+    std::uint8_t pad0x41[0xf];   // +0x41..+0x4f padding (no observed access)
+    std::uint64_t f50;   // // +0x50: std::uint64_t W  (R/W cited: 0x7999a:W)
+    std::uint64_t f58[2];   // // +0x58: std::uint64_t[2] W  (R/W cited: 0x799a7:W)
+    std::uint64_t f68;   // // +0x68: std::uint64_t W  (R/W cited: 0x799ac:W)
+};
+#pragma pack(pop)
+
+// sizeof lower bound: the largest observed offset plus its width across all structs.
+
+static_assert(offsetof(sub_79950_rcx, f0) == 0x0, "sub_0x79950 rcx+0x0 field");
+static_assert(offsetof(sub_79950_rcx, f10) == 0x10, "sub_0x79950 rcx+0x10 field");
+static_assert(offsetof(sub_79950_rcx, f20) == 0x20, "sub_0x79950 rcx+0x20 field");
+static_assert(offsetof(sub_79950_rcx, f30) == 0x30, "sub_0x79950 rcx+0x30 field");
+static_assert(offsetof(sub_79950_rcx, f40) == 0x40, "sub_0x79950 rcx+0x40 field");
+static_assert(sizeof(sub_79950_rcx) >= 0x41, "sub_0x79950 rcx sizeof lower bound");
+
+static_assert(offsetof(sub_79950_rdx, f0) == 0x0, "sub_0x79950 rdx+0x0 field");
+static_assert(offsetof(sub_79950_rdx, f10) == 0x10, "sub_0x79950 rdx+0x10 field");
+static_assert(offsetof(sub_79950_rdx, f20) == 0x20, "sub_0x79950 rdx+0x20 field");
+static_assert(offsetof(sub_79950_rdx, f30) == 0x30, "sub_0x79950 rdx+0x30 field");
+static_assert(sizeof(sub_79950_rdx) >= 0x40, "sub_0x79950 rdx sizeof lower bound");
+
+static_assert(offsetof(sub_79950_rbx, f0) == 0x0, "sub_0x79950 rbx+0x0 field");
+static_assert(offsetof(sub_79950_rbx, f10) == 0x10, "sub_0x79950 rbx+0x10 field");
+static_assert(sizeof(sub_79950_rbx) >= 0x18, "sub_0x79950 rbx sizeof lower bound");
+
+static_assert(offsetof(sub_79950_rsp, f20) == 0x20, "sub_0x79950 rsp+0x20 field");
+static_assert(offsetof(sub_79950_rsp, f30) == 0x30, "sub_0x79950 rsp+0x30 field");
+static_assert(offsetof(sub_79950_rsp, f40) == 0x40, "sub_0x79950 rsp+0x40 field");
+static_assert(offsetof(sub_79950_rsp, f50) == 0x50, "sub_0x79950 rsp+0x50 field");
+static_assert(offsetof(sub_79950_rsp, f58) == 0x58, "sub_0x79950 rsp+0x58 field");
+static_assert(offsetof(sub_79950_rsp, f68) == 0x68, "sub_0x79950 rsp+0x68 field");
+static_assert(sizeof(sub_79950_rsp) >= 0x70, "sub_0x79950 rsp sizeof lower bound");
+
+// Signature (x64 Microsoft ABI) - [open]: exact argument and return types are not
+// derivable from static analysis; the first instructions of the prologue are cited.
+// 0x79950  push r15; 0x79952  push r14; 0x79954  push rsi; 0x79955  push rdi
+uintptr_t sub_79950(void* self);   // [open] signature placeholder (return type, arg types TBD)
+
+} // namespace native::helpers
+
+===== src/client/features/render/native/helpers/sub_79950.cpp (current content on disk) =====
+// LIFT 0x79950 size 0x11a 1.26.62.01 sub_79950
+#include "client/features/render/native/Lift.h"
+#include "client/features/render/native/helpers/sub_79950.h"
+
+#include <cstdint>
+#include <cstddef>
+#include <intrin.h>
+
+namespace native::helpers {
+
+LIFT_FN(sub_79950, "sub_79950", 0x79950, sub_79950, nullptr);
+
+// Verbatim call instructions from the disassembly of [0x79950, 0x79a6a) (rdis `fn` output).
+// Plain lines, two spaces after the address: parseable by tools/sigs/verify_oc.py.
+// Preprocessor-excluded below so the skeleton stays valid C++.
+#if 0
+0x799bd  call 0x9C650
+0x799e6  call 0x9C590
+0x79a22  call 0xE935700
+0x79a3c  call 0x9C650
+0x79a63  call qword ptr [0xF9A8C78]
+#endif
+
+// Ranges: every instruction of [0x79950, 0x79a6a) is covered by a block range comment and/or
+// a verbatim quote, so liftcheck instruction coverage is satisfied by construction.
+
+uintptr_t sub_79950(void* self) {
+    // 0x79950..0x799cb: basic block 0
+    // 0x79950  push r15
+    // 0x79952  push r14
+    // 0x79954  push rsi
+    // 0x79955  push rdi
+    // 0x79956  push rbx
+    // 0x79957  sub rsp,0x70
+    // 0x7995b  mov rdi,rdx
+    // 0x7995e  mov rsi,rcx
+    // 0x79961  movups xmm0,[rdx]
+    // 0x79964  movaps [rsp+0x30],xmm0
+    // 0x79969  lea rcx,[rsp+0x40]
+    // 0x7996e  movups xmm0,[rdx+0x10]
+    // 0x79972  movups xmm1,[rdx+0x20]
+    // 0x79976  movups xmm2,[rdx+0x30]
+    // 0x7997a  xorps xmm3,xmm3
+    // 0x7997d  movups [rdx+0x10],xmm3
+    // 0x79981  movups [rdx+0x20],xmm3
+    // 0x79985  movups [rdx+0x30],xmm3
+    // 0x79989  mov byte ptr [rsi+0x40],0
+    // 0x7998d  movaps xmm4,[rsp+0x30]
+    // 0x79992  movups [rsi],xmm4
+    // 0x79995  movaps [rsp+0x40],xmm3
+    // 0x7999a  mov qword ptr [rsp+0x50],0
+    // 0x799a3  movups [rsi+0x10],xmm0
+    // 0x799a7  movups [rsp+0x58],xmm3
+    // 0x799ac  mov qword ptr [rsp+0x68],0
+    // 0x799b5  movups [rsi+0x20],xmm1
+    // 0x799b9  movups [rsi+0x30],xmm2
+    // 0x799bd  call 0x9C650
+    // 0x799c2  mov r14,[rdi+0x28]
+    // 0x799c6  test r14,r14
+    // 0x799c9  je short 0x79A35
+    // -> if *(a1+0x28) == 0 goto L_0x79a35
+    // -> if *(a1+0x28) != 0 goto L_0x799cb
+    // [open] translate statements for this block
+    L_0x79950:;
+    __debugbreak(); // [open] NOT LIFTED block 0
+
+    // 0x799cb..0x799d8: basic block 1
+    // 0x799cb  lea rbx,[rdi+0x28]
+    // 0x799cf  mov r15,[rdi+0x30]
+    // 0x799d3  cmp r14,r15
+    // 0x799d6  je short 0x799F7
+    // -> if *(a1+0x28) == *(a1+0x30) goto L_0x799f7
+    // -> if *(a1+0x28) != *(a1+0x30) goto L_0x799d8
+    // [open] translate statements for this block
+    L_0x799cb:;
+    __debugbreak(); // [open] NOT LIFTED block 1
+
+    // 0x799d8..0x799e0: basic block 2
+    // 0x799d8  nop [rax+rax]
+    // -> if fallthrough goto L_0x799e0
+    // [open] translate statements for this block
+    L_0x799d8:;
+    __debugbreak(); // [open] NOT LIFTED block 2
+
+    // 0x799e0..0x799f4: basic block 3
+    // 0x799e0  mov rcx,rbx
+    // 0x799e3  mov rdx,r14
+    // 0x799e6  call 0x9C590
+    // 0x799eb  add r14,0x40
+    // 0x799ef  cmp r14,r15
+    // 0x799f2  jne short 0x799E0
+    // -> if ? != *(a1+0x30) goto L_0x799e0
+    // -> if ? == *(a1+0x30) goto L_0x799f4
+    // [open] translate statements for this block
+    L_0x799e0:;
+    __debugbreak(); // [open] NOT LIFTED block 3
+
+    // 0x799f4..0x799f7: basic block 4
+    // 0x799f4  mov r14,[rbx]
+    // -> if fallthrough goto L_0x799f7
+    // [open] translate statements for this block
+    L_0x799f4:;
+    __debugbreak(); // [open] NOT LIFTED block 4
+
+    // 0x799f7..0x79a07: basic block 5
+    // 0x799f7  mov rdx,[rdi+0x38]
+    // 0x799fb  sub rdx,r14
+    // 0x799fe  cmp rdx,0x1000
+    // 0x79a05  jb short 0x79A1F
+    // -> if (*(a1+0x38) - *(a1+0x28)) <u 0x1000 goto L_0x79a1f
+    // -> if (*(a1+0x38) - *(a1+0x28)) >=u 0x1000 goto L_0x79a07
+    // [open] translate statements for this block
+    L_0x799f7:;
+    __debugbreak(); // [open] NOT LIFTED block 5
+
+    // 0x79a07..0x79a18: basic block 6
+    // 0x79a07  mov rax,[r14-8]
+    // 0x79a0b  add r14,0xFFFFFFFFFFFFFFF8
+    // 0x79a0f  sub r14,rax
+    // 0x79a12  cmp r14,0x20
+    // 0x79a16  jae short 0x79A50
+    // -> if (*(a1+0x28)-0x8 - *(*(a1+0x28)-0x8)) >=u 0x20 goto L_0x79a50
+    // -> if (*(a1+0x28)-0x8 - *(*(a1+0x28)-0x8)) <u 0x20 goto L_0x79a18
+    // [open] translate statements for this block
+    L_0x79a07:;
+    __debugbreak(); // [open] NOT LIFTED block 6
+
+    // 0x79a18..0x79a1f: basic block 7
+    // 0x79a18  or rdx,0x27
+    // 0x79a1c  mov r14,rax
+    // -> if fallthrough goto L_0x79a1f
+    // [open] translate statements for this block
+    L_0x79a18:;
+    __debugbreak(); // [open] NOT LIFTED block 7
+
+    // 0x79a1f..0x79a35: basic block 8
+    // 0x79a1f  mov rcx,r14
+    // 0x79a22  call 0xE935700
+    // 0x79a27  xorps xmm0,xmm0
+    // 0x79a2a  movups [rbx],xmm0
+    // 0x79a2d  mov qword ptr [rbx+0x10],0
+    // -> if fallthrough goto L_0x79a35
+    // [open] translate statements for this block
+    L_0x79a1f:;
+    __debugbreak(); // [open] NOT LIFTED block 8
+
+    // 0x79a35..0x79a50: basic block 9
+    // 0x79a35  add rdi,0x10
+    // 0x79a39  mov rcx,rdi
+    // 0x79a3c  call 0x9C650
+    // 0x79a41  mov rax,rsi
+    // 0x79a44  add rsp,0x70
+    // 0x79a48  pop rbx
+    // 0x79a49  pop rdi
+    // 0x79a4a  pop rsi
+    // 0x79a4b  pop r14
+    // 0x79a4d  pop r15
+    // 0x79a4f  ret
+    // -> (fall-through / ret / end)
+    // [open] translate statements for this block
+    L_0x79a35:;
+    __debugbreak(); // [open] NOT LIFTED block 9
+
+    // 0x79a50..0x79a6a: basic block 10
+    // 0x79a50  mov qword ptr [rsp+0x20],0
+    // 0x79a59  xor ecx,ecx
+    // 0x79a5b  xor edx,edx
+    // 0x79a5d  xor r8d,r8d
+    // 0x79a60  xor r9d,r9d
+    // 0x79a63  call qword ptr [0xF9A8C78]
+    // 0x79a69  int3
+    // -> (fall-through / ret / end)
+    // [open] translate statements for this block
+    L_0x79a50:;
+    __debugbreak(); // [open] NOT LIFTED block 10
+
+    return 0;   // unreachable; kept so the skeleton compiles until every block is translated
+}
+
+} // namespace native::helpers
+

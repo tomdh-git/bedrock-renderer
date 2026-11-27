@@ -1,0 +1,526 @@
+UNIT U-EX3.c28bc30: lift the function at 0xc28bc30 of the game exe into C++ ("lift" = C++ that does exactly what the function does: same reads, writes, calls in the same order, same return, exact x64 ABI signature). Your whole context is in this message: do NOT read docs/OPENCODE_BRIEF.md, docs/RENDER_NATIVE_SPEC.md, Lift.h, liftcheck.py or the data/pack files again; they are inlined below. Never ask questions. Reply text between tool calls: at most 2 short lines, no analysis in text.
+
+PROGRAMS ALREADY DID THE MECHANICAL PART (it is exact, from the exe; do not redo or retype it):
+  * src/client/features/render/native/helpers/sub_c28bc30.cpp  first line `// LIFT ...`, includes, LIFT_FN registry line, every call quoted verbatim as `0xRVA  call ...` inside #if 0, a range comment covering the function. Its body is a placeholder (`return 0; // [open]`).
+  * src/client/features/render/native/helpers/sub_c28bc30.h  signature/state struct placeholder, observed [reg+off] accesses with constants and static_asserts. The struct field names, types and meanings are [open] decisions that are YOURS.
+  * docs/functions/c28bc30.md  dossier skeleton with a ## DECISIONS section.
+These files already exist: EDIT them (Edit/Write). Do not create other source files.
+
+YOUR JOB (this is the only thing that needs judgement): replace the placeholder body with the real logic, block by block, with a `// 0xA..0xB` instruction range on every block; give the state struct real field names/types matching every access in the listing (offsetof static_asserts for every field read or written); decide each [open] item below (write [UNVERIFIED: 0xaddr question] only when the listing truly cannot settle it). No stubs, no `return 0` placeholders left, no TODO/[?], no null guards or SEH the original does not have. Every call must go to a function in the callee list below (native symbol) or a boundary function; if a callee is neither, write it in the result file as UNRESOLVED CALL (address, caller instruction) and stop. If you need a fact the pack does not give, use `tools/rdis/target/release/rdis.exe` (rdis MCP: sum, cfg, callees, callers, xr, struct, fld, rw, vt, vcalls); batch several queries in ONE turn.
+
+LOOP (few turns): 1) read nothing; write the .h and .cpp in one or two turns. 2) run `python tools/ctx/gate.py 0xc28bc30`: it prints ONE line (GATE OK, or GATE FAIL with the first problems; full log docs/progress/gate/0xC28BC30.log). 3) fix what it says, rerun, until GATE OK. Target: under 12 turns.
+
+RESULT FILE docs/progress/oc_U-EX3.c28bc30.md (write it at the end; first line `## NEXT`, then `DONE`): '## FILES' every path you changed; '## LIFTCHECK' the final gate/liftcheck output; '## UNRESOLVED CALL' address + instruction, or 'none'; final line `CLOSES? YES` (only after GATE OK) or `CLOSES? NO <the single blocking fact>`. Never leave a placeholder line like `CLOSES? NO` when the gate is OK.
+
+DATA ROW AND CALLEES (orchestrator data file):
+FUNCTION ROW (rva size depth milestone region status name root callees_in_set callees_outside_set):
+0xc28bc30	0xbb	3	3	dragon	D0		BgfxFrameBuilder slot 11	0x6ae330	
+
+CALLEES IN THE LIFT SET (already lifted, call them through their native symbol; id, name, header):
+X7.6ae330		lifted header: src/client/features/render/native\helpers\sub_6ae330.h
+
+
+STATIC PACK (computed by programs; [proven] = from the exe, [derived], [open] = needs your decision):
+# ctxpack build 0xc28bc30
+
+STAMP exe=758bacdeef3ede55d45da4418bf0fcdc319dd9992cda79d50560d9a08536f9d8 inputs=data=native_functions.tsv:bdcd6148497d9602d8b6e2502f9eeacac70d17f7043d54b487f012c7c593c182,data=native_deps.tsv:3a011b1beb8abc9cee35af6b8def513461bb5c74a237acd078264ae2eeae7369,data=native_boundary.tsv:09d2c7e87589c4874db33822736157330acef9a310eb3c5672cfea2172b1000d,data=native_boundary_candidates.tsv:5dbcc428209895d9e114212ccd83d2cdc3d5e8f37ef0c1a03b1f4d609ef5aebb
+
+## HEADER
+  rva        : 0xc28bc30
+  size       : 0xbb (187 bytes)
+  depth      : 
+  D-rank     : [open] (not derivable from static data)
+  callees    : 1 (direct), depth 1
+  callers    : 1
+
+## EXACT LISTING (0xc28bc30..0xc28bceb)
+```
+sub_c28bc30  [0xc28bc30..0xc28dc30)  size 0x2000  1 xrefs in
+  c28bc30  push r14                                      
+  c28bc32  push rsi                                      
+  c28bc33  push rdi                                      
+  c28bc34  push rbx                                      
+  c28bc35  sub rsp,0x28                                  
+  c28bc39  mov rsi,rcx                                   
+  c28bc3c  mov rbx,[rcx]                                 ; R a0+0x0
+  c28bc3f  mov r14,[rcx+8]                               ; R a0+0x8
+  c28bc43  jmp short 0xC28BC54                           ; -> loc_c28bc54
+  c28bc45  nop [rax+rax]                                 
+
+loc_c28bc50:  ; from c28bc60, c28bc72, c28bc9a, c28bca0, c28bcb5, c28bcc7
+  c28bc50  add rbx,0x10                                  
+
+loc_c28bc54:  ; from c28bc43
+  c28bc54  cmp rbx,r14                                   
+  c28bc57  je short 0xC28BCC9                            ; -> loc_c28bcc9
+  c28bc59  mov rcx,[rbx+8]                               
+  c28bc5d  test rcx,rcx                                  
+  c28bc60  je short 0xC28BC50                            ; -> loc_c28bc50
+  c28bc62  mov eax,[rcx+8]                               
+  c28bc65  nop [rax+rax]                                 
+
+loc_c28bc70:  ; from c28bc7c
+  c28bc70  test eax,eax                                  
+  c28bc72  je short 0xC28BC50                            ; -> loc_c28bc50
+  c28bc74  lea edx,[rax+1]                               
+  c28bc77  lock cmpxchg [rcx+8],edx                      
+  c28bc7c  jne short 0xC28BC70                           ; -> loc_c28bc70
+  c28bc7e  mov rax,[rbx]                                 
+  c28bc81  mov rdi,[rbx+8]                               
+  c28bc85  test rax,rax                                  
+  c28bc88  je short 0xC28BC97                            ; -> loc_c28bc97
+  c28bc8a  mov rcx,[rax+0x18]                            
+  c28bc8e  mov word ptr [rcx],0xFFFF                     
+  c28bc93  mov byte ptr [rax+0x10],0                     
+
+loc_c28bc97:  ; from c28bc88
+  c28bc97  test rdi,rdi                                  
+  c28bc9a  je short 0xC28BC50                            ; -> loc_c28bc50
+  c28bc9c  lock dec dword ptr [rdi+8]                    
+  c28bca0  jne short 0xC28BC50                           ; -> loc_c28bc50
+  c28bca2  mov rax,[rdi]                                 
+  c28bca5  mov rax,[rax]                                 
+  c28bca8  mov rcx,rdi                                   
+  c28bcab  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  c28bcb1  lock dec dword ptr [rdi+0xC]                  
+  c28bcb5  jne short 0xC28BC50                           ; -> loc_c28bc50
+  c28bcb7  mov rax,[rdi]                                 
+  c28bcba  mov rax,[rax+8]                               
+  c28bcbe  mov rcx,rdi                                   
+  c28bcc1  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  c28bcc7  jmp short 0xC28BC50                           ; -> loc_c28bc50
+
+loc_c28bcc9:  ; from c28bc57
+  c28bcc9  lea rcx,[rsi+0x18]                            
+  c28bccd  call 0x6AE330                                 ; -> sub_6ae330
+  c28bcd2  xorps xmm0,xmm0                               
+  c28bcd5  movups [rsi+0x18],xmm0                        
+  c28bcd9  mov qword ptr [rsi+0x28],0                    
+  c28bce1  add rsp,0x28                                  
+  c28bce5  pop rbx                                       
+  c28bce6  pop rdi                                       
+  c28bce7  pop rsi                                       
+  c28bce8  pop r14                                       
+  c28bcea  ret                                           
+  c28bceb  int3                                          
+  c28bcec  int3                                          
+  c28bced  int3                                          
+  c28bcee  int3                                          
+  c28bcef  int3                                          
+  c28bcf0  push rbp                                      
+  c28bcf1  push r15                                      
+  c28bcf3  push r14                                      
+  c28bcf5  push r13                                      
+  c28bcf7  push r12                                      
+  c28bcf9  push rsi                                      
+  c28bcfa  push rdi                                      
+  c28bcfb  push rbx                                      
+  c28bcfc  sub rsp,0xD8                                  
+  c28bd03  lea rbp,[rsp+0x80]                            
+  c28bd0b  movaps [rbp+0x40],xmm6                        
+  c28bd0f  mov qword ptr [rbp+0x38],0xFFFFFFFFFFFFFFFE   
+  c28bd17  mov rsi,rcx                                   
+  c28bd1a  mov r14,[rcx]                                 
+  c28bd1d  mov r15,[rcx+8]                               
+  c28bd21  cmp r14,r15                                   
+  c28bd24  je 0xC28BE46                                  ; -> loc_c28be46
+  c28bd2a  lea r12,[rbp-0x38]                            
+  c28bd2e  xorps xmm6,xmm6                               
+  c28bd31  lea rdi,[rbp-0x58]                            
+  c28bd35  jmp short 0xC28BD4D                           ; -> loc_c28bd4d
+  c28bd37  nop [rax+rax]                                 ; R ret@6ae330+0x0+idx
+
+loc_c28bd40:  ; from c28bd54, c28bd62, c28be08, c28be12, c28be2b, c28be41
+  c28bd40  add r14,0x10                                  
+  c28bd44  cmp r14,r15                                   
+  c28bd47  je 0xC28BE46                                  ; -> loc_c28be46
+
+loc_c28bd4d:  ; from c28bd35
+  c28bd4d  mov rcx,[r14+8]                               
+  c28bd51  test rcx,rcx                                  
+  c28bd54  je short 0xC28BD40                            ; -> loc_c28bd40
+  c28bd56  mov eax,[rcx+8]                               
+  c28bd59  nop [rax]                                     
+
+loc_c28bd60:  ; from c28bd6c
+  c28bd60  test eax,eax                                  
+  c28bd62  je short 0xC28BD40                            ; -> loc_c28bd40
+  c28bd64  lea edx,[rax+1]                               
+  c28bd67  lock cmpxchg [rcx+8],edx                      
+  c28bd6c  jne short 0xC28BD60                           ; -> loc_c28bd60
+  c28bd6e  mov r13,[r14]                                 
+  c28bd71  mov rbx,[r14+8]                               
+  c28bd75  test r13,r13                                  
+  c28bd78  je 0xC28BE05                                  ; -> loc_c28be05
+  c28bd7e  movups [r12+0x60],xmm6                        
+  c28bd84  movups [r12+0x50],xmm6                        
+  c28bd8a  movups [r12+0x40],xmm6                        
+  c28bd90  movups [r12+0x30],xmm6                        
+  c28bd96  movups [r12+0x20],xmm6                        
+  c28bd9c  movups [r12+0x10],xmm6                        
+  c28bda2  movups [r12],xmm6                             
+  c28bda7  lea rax,[0x3C7B10]                            ; [sub_3c7b10]
+  c28bdae  mov [rbp-0x58],rax                            
+  c28bdb2  movups [r12-9],xmm6                           
+  c28bdb8  movups [r12-0x18],xmm6                        
+  c28bdbe  mov dword ptr [rbp-0x30],1                    
+  c28bdc5  mov rcx,[r13+0x18]                            
+  c28bdc9  mov rdx,rdi                                   
+  c28bdcc  call 0xE325430                                ; -> sub_e325430
+  c28bdd1  cmp byte ptr [rbp+0x30],1                     
+  c28bdd5  jne short 0xC28BDEB                           ; -> loc_c28bdeb
+  c28bdd7  mov rcx,[rbp]                                 
+  c28bddb  test rcx,rcx                                  
+  c28bdde  je short 0xC28BDEB                            ; -> loc_c28bdeb
+  c28bde0  mov rax,[rbp-8]                               
+  c28bde4  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  c28bdea  nop                                           
+
+loc_c28bdeb:  ; from c28bdd5, c28bdde
+  c28bdeb  mov rcx,[rbp-0x50]                            
+  c28bdef  test rcx,rcx                                  
+  c28bdf2  je short 0xC28BDFF                            ; -> loc_c28bdff
+  c28bdf4  mov rax,[rbp-0x58]                            
+  c28bdf8  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  c28bdfe  nop                                           
+
+loc_c28bdff:  ; from c28bdf2
+  c28bdff  xor eax,eax                                   
+  c28be01  xchg [r13+0x12],al                            
+
+loc_c28be05:  ; from c28bd78
+  c28be05  test rbx,rbx                                  
+  c28be08  je 0xC28BD40                                  ; -> loc_c28bd40
+  c28be0e  lock dec dword ptr [rbx+8]                    
+  c28be12  jne 0xC28BD40                                 ; -> loc_c28bd40
+  c28be18  mov rax,[rbx]                                 
+  c28be1b  mov rax,[rax]                                 
+  c28be1e  mov rcx,rbx                                   
+  c28be21  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  c28be27  lock dec dword ptr [rbx+0xC]                  
+  c28be2b  jne 0xC28BD40                                 ; -> loc_c28bd40
+  c28be31  mov rax,[rbx]                                 
+  c28be34  mov rax,[rax+8]                               
+  c28be38  mov rcx,rbx                                   
+  c28be3b  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  c28be41  jmp 0xC28BD40                                 ; -> loc_c28bd40
+
+loc_c28be46:  ; from c28bd24, c28bd47
+  c28be46  lea rcx,[rsi+0x18]                            
+  c28be4a  call 0x6AE330                                 ; -> sub_6ae330
+  c28be4f  xorps xmm0,xmm0                               
+  c28be52  movups [rsi+0x18],xmm0                        
+  c28be56  mov qword ptr [rsi+0x28],0                    
+  c28be5e  movaps xmm6,[rbp+0x40]                        
+  c28be62  add rsp,0xD8                                  
+  c28be69  pop rbx                                       
+  c28be6a  pop rdi                                       
+  c28be6b  pop rsi                                       
+  c28be6c  pop r12                                       
+  c28be6e  pop r13                                       
+  c28be70  pop r14                                       
+  c28be72  pop r15                                       
+  c28be74  pop rbp                                       
+  c28be75  ret                                           
+  c28be76  nop [rax+rax]                                 ; R ret@6ae330+0x0+idx
+  c28be80  mov [rsp+0x10],rdx                            
+  c28be85  push rbp                                      
+  c28be86  push r15                                      
+  c28be88  push r14                                      
+  c28be8a  push r13                                      
+  c28be8c  push r12                                      
+  c28be8e  push rsi                                      
+  c28be8f  push rdi                                      
+  c28be90  push rbx                                      
+  c28be91  sub rsp,0x38                                  
+  c28be95  lea rbp,[rdx+0x80]                            
+  c28be9c  movaps [rsp+0x20],xmm6                        
+  c28bea1  call 0xEEC6E40                                ; -> sub_eec6e40
+  c28bea6  int3                                          
+  c28bea7  nop [rax+rax]                                 ; R ret@eec6e40+0x0+idx
+  c28beb0  mov [rsp+0x10],rdx                            
+  c28beb5  push rbp                                      
+  c28beb6  push r15                                      
+  c28beb8  push r14                                      
+  c28beba  push r13                                      
+  c28bebc  push r12                                      
+  c28bebe  push rsi                                      
+  c28bebf  push rdi                                      
+  c28bec0  push rbx                                      
+  c28bec1  sub rsp,0x38                                  
+  c28bec5  lea rbp,[rdx+0x80]                            
+  c28becc  movaps [rsp+0x20],xmm6                        
+  c28bed1  call 0xEEC6E40                                ; -> sub_eec6e40
+  c28bed6  int3                                          
+  c28bed7  int3                                          
+  c28bed8  int3                                          
+  c28bed9  int3                                          
+  c28beda  int3                                          
+  c28bedb  int3                                          
+  c28bedc  int3                                          
+  c28bedd  int3                                          
+  c28bede  int3                                          
+  c28bedf  int3                                          
+  c28bee0  push r15                                      
+  c28bee2  push r14                                      
+  c28bee4  push r13                                      
+  c28bee6  push r12                                      
+  c28bee8  push rsi                                      
+  c28bee9  push rdi                                      
+  c28beea  push rbp                                      
+  c28beeb  push rbx                                      
+  c28beec  sub rsp,0xD8                                  
+  c28bef3  mov [rsp+0xC0],r9                             
+  c28befb  mov [rsp+0xC8],r8                             
+  c28bf03  mov [rsp+0xD0],rdx                            
+  c28bf0b  mov r14,[rsp+0x140]                           
+  c28bf13  mov rax,[rsp+0x148]                           
+  c28bf1b  mov rdx,[rsp+0x150]                           
+  c28bf23  mov r8,[rsp+0x158]                            
+  c28bf2b  mov r9,[rsp+0x160]                            
+  c28bf33  mov r10,[rsp+0x168]                           
+  c28bf3b  mov r11,[rsp+0x170]                           
+  c28bf43  mov rsi,[rsp+0x178]                           
+  c28bf4b  mov rdi,[rsp+0x180]                           
+  c28bf53  movzx edi,byte ptr [rdi]                      
+  c28bf56  mov [rsp+0x8C],edi                            
+  c28bf5d  mov r13d,[rsi]                                
+  c28bf60  mov r12d,[r11]                                
+  c28bf63  movzx ebp,byte ptr [r10]                      
+  c28bf67  mov r11d,[r9]                                 
+  c28bf6a  mov ebx,[r8]                                  
+  c28bf6d  mov esi,[rdx]                                 
+  c28bf6f  mov edi,[rax]                                 
+  c28bf71  xorps xmm0,xmm0                               
+  c28bf74  movaps [rsp+0xA0],xmm0                        
+  c28bf7c  movaps [rsp+0x90],xmm0                        
+  c28bf84  mov r15,[r14+0x10]                            
+  c28bf88  cmp qword ptr [r14+0x18],0x10                 
+  c28bf8d  jb short 0xC28BF92                            ; -> loc_c28bf92
+  c28bf8f  mov r14,[r14]                                 
+
+loc_c28bf92:  ; from c28bf8d
+  c28bf92  test r15,r15                                  
+  c28bf95  js 0xC28C128                                  ; -> loc_c28c128
+  c28bf9b  cmp r15,0xF                                   
+  c28bf9f  ja short 0xC28BFC6                            ; -> loc_c28bfc6
+  c28bfa1  mov [rsp+0xA0],r15                            
+  c28bfa9  mov qword ptr [rsp+0xA8],0xF                  
+  c28bfb5  movups xmm0,[r14]                             
+  c28bfb9  movaps [rsp+0x90],xmm0                        
+  c28bfc1  jmp 0xC28C084                                 ; -> loc_c28c084
+
+loc_c28bfc6:  ; from c28bf9f
+  c28bfc6  mov [rsp+0x84],esi                            
+  c28bfcd  mov [rsp+0x88],r11d                           
+  c28bfd5  mov [rsp+0xB8],rcx                            
+  c28bfdd  mov rdx,r15                                   
+  c28bfe0  or rdx,0xF                                    
+  c28bfe4  cmp rdx,0x17                                  
+  c28bfe8  mov esi,0x16                                  
+  c28bfed  cmovae rsi,rdx                                
+  c28bff1  mov rcx,[0x1233E1A8]                          ; [data_1233e1a8]
+  c28bff8  mov rax,[rcx]                                 
+  c28bffb  mov rax,[rax+8]                               
+  c28bfff  cmp rdx,0xFFF                                 
+  c28c006  jb short 0xC28C02C                            ; -> loc_c28c02c
+  c28c008  lea rdx,[rsi+0x28]                            
+  c28c00c  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  c28c012  test rax,rax                                  
+  c28c015  je 0xC28C110                                  ; -> loc_c28c110
+
+loc_c28c01b:  ; from c28c123
+  c28c01b  mov rcx,rax                                   
+  c28c01e  add rcx,0x27                                  
+  c28c022  and rcx,0xFFFFFFFFFFFFFFE0                    
+  c28c026  mov [rcx-8],rax                               
+  c28c02a  jmp short 0xC28C047                           ; -> loc_c28c047
+
+loc_c28c02c:  ; from c28c006
+  c28c02c  lea rdx,[rsi+1]                               
+  c28c030  mov [rsp+0x78],rdx                            
+  c28c035  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+  c28c03b  mov rcx,rax                                   
+  c28c03e  test rax,rax                                  
+  c28c041  je 0xC28C12D                                  ; -> loc_c28c12d
+
+loc_c28c047:  ; from c28c02a
+  c28c047  mov [rsp+0x90],rcx                            
+  c28c04f  mov [rsp+0xA0],r15                            
+  c28c057  mov [rsp+0xA8],rsi                            
+  c28c05f  inc r15                                       
+  c28c062  mov rdx,r14                                   
+  c28c065  mov r8,r15                                    
+  c28c068  call 0xEEC6EC0                                ; -> sub_eec6ec0
+  c28c06d  mov rcx,[rsp+0xB8]                            
+  c28c075  mov r11d,[rsp+0x88]                           
+  c28c07d  mov esi,[rsp+0x84]                            
+
+loc_c28c084:  ; from c28bfc1
+  c28c084  mov rax,[rsp+0x190]                           
+  c28c08c  mov r10,[rsp+0x188]                           
+  c28c094  mov rdx,[rsp+0xC0]                            
+  c28c09c  mov r9d,[rdx]                                 
+  c28c09f  mov rdx,[rsp+0xC8]                            
+  c28c0a7  mov r8d,[rdx]                                 
+  c28c0aa  mov rdx,[rsp+0xD0]                            
+  c28c0b2  mov edx,[rdx]                                 
+  c28c0b4  mov [rsp+0x70],rax                            
+  c28c0b9  mov [rsp+0x68],r10                            
+  c28c0be  mov eax,[rsp+0x8C]                            
+  c28c0c5  mov [rsp+0x60],eax                            
+  c28c0c9  mov [rsp+0x58],r13d                           
+  c28c0ce  mov [rsp+0x50],r12d                           
+  c28c0d3  mov [rsp+0x48],bpl                            
+  c28c0d8  mov [rsp+0x40],r11d                           
+  c28c0dd  mov [rsp+0x38],ebx                            
+  c28c0e1  mov [rsp+0x30],esi                            
+  c28c0e5  mov [rsp+0x28],edi                            
+  c28c0e9  lea rax,[rsp+0x90]                            
+  c28c0f1  mov [rsp+0x20],rax                            
+  c28c0f6  call 0xC28C380                                ; -> sub_c28c380
+  c28c0fb  nop                                           
+  c28c0fc  add rsp,0xD8                                  
+  c28c103  pop rbx                                       
+  c28c104  pop rbp                                       
+  c28c105  pop rdi                                       
+  c28c106  pop rsi                                       
+  c28c107  pop r12                                       
+  c28c109  pop r13                                       
+  c28c10b  pop r14                                       
+  c28c10d  pop r15                                       
+  c28c10f  ret                                           
+
+loc_c28c110:  ; from c28c015
+  c28c110  lea rcx,[rsi+0x28]                            
+  c28c114  mov [rsp+0x78],rax                            
+  c28c119  call 0x9BC830                                 ; -> sub_9bc830
+  c28c11e  mov rax,[rsp+0x78]                            
+  c28c123  jmp 0xC28C01B                                 ; -> loc_c28c01b
+
+loc_c28c128:  ; from c28bf95
+  c28c128  call 0x75720                                  ; -> sub_75720
+
+loc_c28c12d:  ; from c28c041
+  c28c12d  mov rcx,[rsp+0x78]                            
+  c28c132  call 0x9BC830                                 ; -> sub_9bc830
+  c28c137  int3                                          
+  c28c138  int3                                          
+  c28c139  int3                                          
+  c28c13a  int3                                          
+  c28c13b  int3                                          
+  c28c13c  int3                                          
+  c28c13d  int3                                          
+  c28c13e  int3                                          
+  c28c13f  int3                                          
+  c28c140  push rsi                                      
+  c28c141  push rdi                                      
+  c28c142  push rbx                                      
+  c28c143  sub rsp,0x30                                  
+  c28c147  mov rsi,rcx                                   
+  c28c14a  mov rcx,[rcx+0x2B0]                           
+  c28c151  test rcx,rcx                                  
+  c28c154  je short 0xC28C19F                            ; -> loc_c28c19f
+  c28c156  mov rdx,[rsi+0x2C0]                           
+  c28c15d  sub rdx,rcx                                   
+  c28c160  cmp rdx,0x1000                                
+  c28c167  jb short 0xC28C185                            ; -> loc_c28c185
+  c28c169  mov rax,[rcx-8]                               
+  c28c16d  add rcx,0xFFFFFFFFFFFFFFF8                    
+  c28c171  sub rcx,rax                                   
+  c28c174  cmp rcx,0x20                                  
+  c28c178  jae 0xC28C35B                                 ; -> loc_c28c35b
+  c28c17e  add rdx,0x27                                  
+  c28c182  mov rcx,rax                                   
+
+loc_c28c185:  ; from c28c167
+  c28c185  lea rdi,[rsi+0x2B0]                           
+  c28c18c  call 0xE935700                                ; -> sub_e935700
+  c28c191  xorps xmm0,xmm0                               
+  c28c194  movups [rdi],xmm0                             
+  c28c197  mov qword ptr [rdi+0x10],0                    
+
+loc_c28c19f:  ; from c28c154
+  c28c19f  mov rax,[rsi+0x2A0]                           
+  c28c1a6  mov rcx,[rax+8]                               
+  c28c1aa  mov qword ptr [rcx],0                         
+  c28c1b1  mov rdx,[rax]                                 
+  c28c1b4  test rdx,rdx                                  
+  c28c1b7  je short 0xC28C1D3                            ; -> loc_c28c1d3
+  c28c1b9  lea rdi,[rsi+0x2A0]                           
+
+loc_c28c1c0:  ; from c28c1d1
+  c28c1c0  mov rbx,[rdx]                                 
+  c28c1c3  mov rcx,rdi                                   
+  c28c1c6  call 0x67C4650                                ; -> sub_67c4650
+  c28c1cb  mov rdx,rbx                                   
+  c28c1ce  test rbx,rbx                                  
+  c28c1d1  jne short 0xC28C1C0                           ; -> loc_c28c1c0
+
+loc_c28c1d3:  ; from c28c1b7
+  c28c1d3  mov rcx,[rsi+0x2A0]                           
+  c28c1da  mov edx,0x48                                  
+  c28c1df  call 0xE935700                                ; -> sub_e935700
+  c28c1e4  lea rcx,[rsi+0x278]                           
+  c28c1eb  call 0xC28D2D0                                ; -> sub_c28d2d0
+  c28c1f0  mov rcx,[rsi+0x220]                           
+  c28c1f7  test rcx,rcx                                  
+  c28c1fa  je short 0xC28C20D                            ; -> loc_c28c20d
+  c28c1fc  mov rax,[rcx]                                 
+  c28c1ff  mov rax,[rax]                                 
+  c28c202  mov edx,1                                     
+  c28c207  call qword ptr [0xF99FFA0]                    ; [data_f99ffa0] = sub_eea6040
+
+loc_c28c20d:  ; from c28c1fa
+  c28c20d  mov rcx,[rsi+0x1F8]                           
+  c28c214  test rcx,rcx                                  
+  c28c217  je short 0xC28C262                            ; -> loc_c28c262
+  c28c219  mov rdx,[rsi+0x208]                           
+  c28c220  sub rdx,rcx                                   
+  c28c223  cmp rdx,0x1000                                
+  c28c22a  jb short 0xC28C248                            ; -> loc_c28c248
+  c28c22c  mov rax,[rcx-8]                               
+  c28c230  add rcx,0xFFFFFFFFFFFFFFF8                    
+  c28c234  sub rcx,rax                                   
+  c28c237  cmp rcx,0x20                                  
+  c28c23b  jae 0xC28C35B                                 ; -> loc_c28c35b
+  c28c241  add rdx,0x27                                  
+  c28c245  mov rcx,rax                                   
+
+loc_c28c248:  ; from c28c22a
+  c28c248  lea rdi,[rsi+0x1F8]                           
+  c28c24f  call 0xE935700                                ; -> sub_e935700
+  ... (--max 400)
+```
+
+## CALLERS
+```
+  0xc284020 sub_c284020 size 0x10b
+  -- 1 calling function(s)
+```
+
+## CALLEES (signature + status, trust [proven] from exe)
+  rva        name               status     signature  trust     boundary  source/dossier
+  0x6ae330    sub_6ae330        set         [open]     [proven]  src=src\client\features\render\native\helpers\sub_6ae330.cpp;src\client\features\render\native\helpers\sub_6ae330.h
+
+## STRINGS AND RIP REFS
+  (none)
+
+## FIELD ACCESS TABLE (descscan2, regs rdi,rsi,r9,r15)
+  (no [reg+off] description reads detected; register unknown -> [open])
+
+## KNOWN STRUCT LAYOUTS TOUCHED
+  (none detected)
+
+## CLOSEST FINISHED LIFT (style example, same size band + call shape)
+  566d290.md  size 0xbd  callees~21  trust [derived]
+  dossier: C:\Users\Atomi\Desktop\BlueySenseV2\docs\functions\566d290.md
+
+## DECISIONS
+  - D-rank not derivable from static data; needs a model/orchestrator decision [open]
+  - description register for descscan2 unknown; tried rdi,rsi,r9,r15, result best-effort [open]
+  - callee signatures not available (no Sigs.json); each callee ABI/signature is [open]
+  - field offsets above are [derived] from descscan2; struct/meaning is [open]
+  - 'closest finished lift' size-band match is [derived], not verified as same call shape [open]
+
+

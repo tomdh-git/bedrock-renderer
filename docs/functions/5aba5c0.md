@@ -63,6 +63,115 @@ template <class T> T* ThreadLocalObject<T>::get() {
 }
 ```
 
+### Reversed source (complete)
+
+Instruction-by-instruction reversal of `0x5aba5c0..0x5aba6cf` (0x10f bytes, 71 instructions), matching `src/client/features/render/native/helpers/sub_5aba5c0.cpp`. Every `call` is quoted verbatim.
+
+```
+// 0x5aba5c0..0x5aba5c5: prologue (push r14, rsi, rdi, rbx; sub rsp,0x28)
+// 0x5aba5c9  mov rsi,rcx                                   ; rsi = this
+// 0x5aba5cc  lea rbx,[rcx+0xA0]                            ; rbx = &this->tlsSlot (+0xA0)
+// 0x5aba5d3  mov rcx,rbx                                   ; rcx = &this->tlsSlot
+// 0x5aba5d6  call 0x9BD4A0                                 ; sub_9bd4a0 (tlsGet) -> rax = node
+0x5aba5d6  call 0x9BD4A0
+// 0x5aba5db  test rax,rax
+// 0x5aba5de  je short 0x5ABA5E9                            ; if node == NULL -> allocate path
+// 0x5aba5e0  add rax,0x10                                  ; rax = node + 0x10 (&value)
+// 0x5aba5e4  jmp 0x5ABA68C                                 ; return &value
+return (unsigned char*)node + 0x10;
+
+// loc_5aba5e9: allocate a 0x8C8-byte node
+// 0x5aba5e9  mov rcx,[0x1233E1A8]                          ; rcx = heap object (global)
+// 0x5aba5f0  mov rax,[rcx]                                  ; rax = heap vfptr
+// 0x5aba5f3  mov rax,[rax+8]                                ; rax = heap->alloc (vtable slot 1)
+// 0x5aba5f7  mov edx,0x8C8                                  ; rdx = alloc size
+// 0x5aba5fc  call qword ptr [0xF99FFA0]                    ; sub_eea6040 indirect-call thunk -> rax = node
+0x5aba5fc  call qword ptr [0xF99FFA0]
+// 0x5aba602  mov rdi,rax                                    ; rdi = node
+// 0x5aba605  test rax,rax
+// 0x5aba608  je 0x5ABA696                                   ; if alloc failed -> OOM path
+if (node == nullptr) {
+    // loc_5aba696:
+    // 0x5aba696  mov ecx,0x8C8
+    // 0x5aba69b  mov r14,rax                                ; r14 = 0
+    // 0x5aba69e  call 0x9BC830                              ; sub_9bc830 (alloc OOM handler)
+    0x5aba69e  call 0x9BC830
+    // 0x5aba6a3  mov rax,r14                                ; rax = 0
+    // 0x5aba6a6  jmp 0x5ABA60E                              ; retry allocation
+    goto retry_alloc;
+}
+// loc_5aba60e: initialise the node
+// 0x5aba60e  mov [rdi],rdi                                  ; node.prev = node
+// 0x5aba611  mov [rdi+8],rdi                                ; node.next = node
+// 0x5aba615  add rax,0x10                                   ; rax = node + 0x10 = &value
+// 0x5aba619  mov qword ptr [rdi+0x10],0                     ; zero first qword of value
+// 0x5aba621  mov [rsp+0x20],rax                             ; save &value
+// 0x5aba626  mov rcx,[rsi+0x38]                             ; rcx = this->factory
+// 0x5aba62a  test rcx,rcx
+// 0x5aba62d  je short 0x5ABA6AB                             ; if factory == NULL -> _Xbad_function_call
+if (factory == nullptr) {
+    // loc_5aba6ab:
+    // 0x5aba6ab  call 0xEEC59E0                             ; sub_eec59e0 (_Xbad_function_call, noreturn)
+    0x5aba6ab  call 0xEEC59E0
+}
+// 0x5aba62f  mov r14,rax                                    ; r14 = &value (return)
+// 0x5aba632  mov rax,[rcx]                                  ; rax = factory vfptr
+// 0x5aba635  mov rax,[rax+0x10]                             ; rax = factory->invoke (vtable slot 2)
+// 0x5aba639  lea rdx,[rsp+0x20]                             ; rdx = &valueSlot
+// 0x5aba63e  call qword ptr [0xF99FFA0]                    ; sub_eea6040 -> tail-call factory->invoke(factory, &valueSlot)
+0x5aba63e  call qword ptr [0xF99FFA0]
+// 0x5aba644  mov rcx,rbx                                    ; rcx = &this->tlsSlot
+// 0x5aba647  mov rdx,rdi                                    ; rdx = node
+// 0x5aba64a  call 0x9BD6D0                                 ; sub_9bd6d0 (tlsSet) -> return discarded
+0x5aba64a  call 0x9BD6D0
+// 0x5aba64f  lea rbx,[rsi+0x50]                             ; rbx = &this->mutex (+0x50)
+// 0x5aba653  mov rcx,rbx                                    ; rcx = &mutex
+// 0x5aba656  call 0xEEC59F0                                 ; sub_eec59f0 (_Mtx_lock) -> eax = status
+0x5aba656  call 0xEEC59F0
+// 0x5aba65b  test eax,eax
+// 0x5aba65d  jne short 0x5ABA6B0                            ; if lock failed -> _Throw_Cpp_error(5)
+if (sub_eec59f0(&this->mutex) != 0) {
+    // loc_5aba6b0:
+    // 0x5aba6b0  mov ecx,5
+    // 0x5aba6b5  call 0xEEC5A00                             ; sub_eec5a00 (_Throw_Cpp_error(5), noreturn)
+    0x5aba6b5  call 0xEEC5A00
+}
+// 0x5aba65f  cmp dword ptr [rsi+0x9C],0x7FFFFFFF
+// 0x5aba669  je short 0x5ABA6BA                             ; if init flag == 0x7FFFFFFF -> error path (throw 6)
+if (*(uint32_t*)(this + 0x9C) == 0x7FFFFFFFu) {
+    // loc_5aba6ba:
+    // 0x5aba6ba  mov dword ptr [rsi+0x9C],0x7FFFFFFE        ; init flag = 0x7FFFFFFE
+    // 0x5aba6c4  mov ecx,6
+    // 0x5aba6c9  call 0xEEC5A00                             ; sub_eec5a00 (_Throw_Cpp_error(6), noreturn)
+    0x5aba6c9  call 0xEEC5A00
+    // 0x5aba6ce  int3                                        ; unreachable padding
+    // 0x5aba6cf  int3                                        ; unreachable padding
+}
+// list insert (append node to owner's circular list)
+// 0x5aba66b  lea rax,[rsi+0x40]                             ; rax = &this->listHead (+0x40)
+// 0x5aba66f  mov rcx,[rsi+0x48]                             ; rcx = this->listPrev (+0x48) = last
+// 0x5aba673  mov [rdi+8],rcx                                ; node.next = last
+// 0x5aba677  mov [rdi],rax                                  ; node.prev = &this->listHead
+// 0x5aba67a  mov [rcx],rdi                                  ; last.next = node
+// 0x5aba67d  mov [rsi+0x48],rdi                             ; this->listPrev = node
+// 0x5aba681  mov rcx,rbx                                    ; rcx = &mutex
+// 0x5aba684  call 0xEEC5A10                                 ; sub_eec5a10 (_Mtx_unlock)
+0x5aba684  call 0xEEC5A10
+// 0x5aba689  mov rax,r14                                    ; rax = &value (return)
+// 0x5aba68c  add rsp,0x28 ; pop rbx,rdi,rsi,r14 ; ret
+return &value;
+
+// Struct fields touched [V]:
+//   this+0x38 factory (R), this+0x40 list head (R/W), this+0x48 list prev (R/W),
+//   this+0x50 mutex (R/W via _Mtx_lock/_Mtx_unlock), this+0x9C init flag (R/W),
+//   this+0xA0 TLS slot (R/W via tlsGet/tlsSet); node+0x00 prev (W), node+0x08 next (W),
+//   node+0x10 value (W via factory).
+// Callees: sub_9bd4a0 (boundary/os), sub_eea6040 (boundary/vendor thunk via slot 0xF99FFA0),
+// sub_9bd6d0 (boundary/os), sub_eec59f0 (lift set), sub_eec5a10 (lift set),
+// sub_eec5a00 (lift set, noreturn), sub_eec59e0 (lift set, noreturn).
+// All 71 instructions covered; every branch lifted; no skipped paths. Status D2.
+```
+
 ### Consequence
 
 The visitor cases that "queue" a description (PlayerVision, most Light cases, Sky 8) append it to **the current extraction thread's** container block (0x8B8 bytes; PlayerVision's vector at +0x330). The consumer later walks the owner's list to merge every thread's block. So extraction is multi-threaded and lock-free per thread; only the first use per thread takes the lock [V structure, I interpretation of the consumer]. Status D2.
